@@ -12,10 +12,10 @@ Examples
 
  1. Define an interface that will describe your Algebraic Data Type like this:
 
-    interface OptionalVisitor<R, T> {
-        R present(T value);
-        R missing();
-    }
+        interface OptionalVisitor<R, T> {
+            R present(T value);
+            R missing();
+        }
 
     You must define a variation of visitor interface (see Visitor-pattern).
     This interface is a discription of your data-type.
@@ -35,11 +35,11 @@ Examples
 
  2. Add a `@DataVisitor` annotation and specify special type-variable names in arguments to annotation
 
-    @DataVisitor(result = "R")
-    interface OptionalVisitor<R, T> {
-        R present(T value);
-        R missing();
-    }
+        @DataVisitor(result = "R")
+        interface OptionalVisitor<R, T> {
+            R present(T value);
+            R missing();
+        }
 
     Here we declare that type-variable `R` is used as a result-type of all interface methods.
 
