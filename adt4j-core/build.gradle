@@ -1,0 +1,3 @@
+dependencies {
+    compile(group: 'com.sun.codemodel', name: 'codemodel', version: '2.6')
+}

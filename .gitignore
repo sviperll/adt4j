@@ -1,0 +1,6 @@
+*~
+/adt4j-core/build
+/adt4j-examples/build
+/.nb-gradle
+/.gradle
+

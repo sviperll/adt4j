@@ -1,0 +1,93 @@
+subprojects {
+    apply plugin: 'java'
+    apply plugin: 'maven'
+    apply plugin: 'signing'
+
+    compileJava.options.compilerArgs = ['-Xlint:unchecked'] 
+
+    version = '0.2-SNAPSHOT'
+    group = 'com.github.sviperll'
+    sourceCompatibility = 1.7
+
+    jar {
+        manifest {
+            // attributes provider: 'gradle'
+        }
+    }
+
+    repositories {
+       mavenCentral()
+    }
+
+    dependencies {
+        testCompile(group: 'junit', name: 'junit', version: '4.11')
+    }
+
+    task javadocJar(type: Jar, dependsOn: javadoc) {
+        classifier = 'javadoc'
+        from 'build/docs/javadoc'
+    }
+ 
+    task sourcesJar(type: Jar) {
+        from sourceSets.main.allSource
+        classifier = 'sources'
+    }
+
+    artifacts {
+        archives jar
+        archives javadocJar
+        archives sourcesJar
+    }
+
+    signing {
+        sign configurations.archives
+    }
+
+    configurations {
+        deployerJars
+    }
+
+    dependencies {
+        deployerJars 'org.apache.maven.wagon:wagon-http:2.2'
+    }
+
+    uploadArchives {
+        repositories {
+            mavenDeployer {
+                beforeDeployment { MavenDeployment deployment -> signing.signPom(deployment) }
+                configuration = configurations.deployerJars
+                repository(url: "https://oss.sonatype.org/service/local/staging/deploy/maven2/") {
+                    authentication(userName: sonatypeUsername, password: sonatypePassword)
+                }
+                pom.name = project.name
+                pom {
+                    project {
+                        url 'http://github.com/sviperll/adt4j'
+
+                        scm {
+                            url 'scm:git@github.com:sviperll/adt4j.git'
+                            connection 'scm:git@github.com:sviperll/adt4j.git'
+                            developerConnection 'scm:git@github.com:sviperll/adt4j.git'
+                        }
+
+                        licenses {
+                            license {
+                                name 'The BSD 3-Clause License'
+                                url 'http://opensource.org/licenses/BSD-3-Clause'
+                                distribution 'repo'
+                            }
+                        }
+
+                        developers {
+                            developer {
+                                id 'sviperll'
+                                name 'Victor Nazarov'
+                                email 'asviraspossible@gmail.com'
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
