@@ -8,25 +8,30 @@ import com.sun.codemodel.JClass;
 import com.sun.codemodel.JClassAlreadyExistsException;
 import com.sun.codemodel.JCodeModel;
 import com.sun.codemodel.JDefinedClass;
-import com.sun.codemodel.JExpr;
-import com.sun.codemodel.JExpression;
-import com.sun.codemodel.JFieldVar;
-import com.sun.codemodel.JInvocation;
 import com.sun.codemodel.JMethod;
 import com.sun.codemodel.JMod;
-import com.sun.codemodel.JType;
 import com.sun.codemodel.JTypeVar;
-import com.sun.codemodel.JVar;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-import java.util.Map;
-import java.util.TreeMap;
 import javax.lang.model.element.Element;
 import javax.lang.model.element.ElementKind;
+import static javax.lang.model.element.ElementKind.ANNOTATION_TYPE;
 import static javax.lang.model.element.ElementKind.CLASS;
+import static javax.lang.model.element.ElementKind.ENUM;
+import static javax.lang.model.element.ElementKind.INTERFACE;
 import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.Modifier;
+import static javax.lang.model.element.Modifier.ABSTRACT;
+import static javax.lang.model.element.Modifier.FINAL;
+import static javax.lang.model.element.Modifier.NATIVE;
+import static javax.lang.model.element.Modifier.PRIVATE;
+import static javax.lang.model.element.Modifier.PROTECTED;
+import static javax.lang.model.element.Modifier.PUBLIC;
+import static javax.lang.model.element.Modifier.STATIC;
+import static javax.lang.model.element.Modifier.SYNCHRONIZED;
+import static javax.lang.model.element.Modifier.TRANSIENT;
+import static javax.lang.model.element.Modifier.VOLATILE;
 import javax.lang.model.element.TypeElement;
 import javax.lang.model.element.TypeParameterElement;
 import javax.lang.model.element.VariableElement;
@@ -68,6 +73,56 @@ class ClassBuilder {
             return (TypeElement)element;
     }
     private final JCodeModel codeModel;
+
+    private static int toJMod(Collection<Modifier> modifierCollection) {
+        int modifiers = 0;
+        for (Modifier modifier: modifierCollection) {
+            modifiers = modifiers | toJMod(modifier);
+        }
+        return modifiers;
+    }
+
+    private static int toJMod(Modifier modifier) {
+        switch (modifier) {
+            case ABSTRACT:
+                return JMod.ABSTRACT;
+            case FINAL:
+                return JMod.FINAL;
+            case NATIVE:
+                return JMod.NATIVE;
+            case PRIVATE:
+                return JMod.PRIVATE;
+            case PROTECTED:
+                return JMod.PROTECTED;
+            case PUBLIC:
+                return JMod.PUBLIC;
+            case STATIC:
+                return JMod.STATIC;
+            case SYNCHRONIZED:
+                return JMod.SYNCHRONIZED;
+            case TRANSIENT:
+                return JMod.TRANSIENT;
+            case VOLATILE:
+                return JMod.VOLATILE;
+            default:
+                throw new UnsupportedOperationException("Unsupported modifier: " + modifier);
+        }
+    }
+
+    private static ClassType toClassType(ElementKind kind) {
+        switch (kind) {
+            case CLASS:
+                return ClassType.CLASS;
+            case ENUM:
+                return ClassType.ENUM;
+            case INTERFACE:
+                return ClassType.INTERFACE;
+            case ANNOTATION_TYPE:
+                return ClassType.ANNOTATION_TYPE_DECL;
+            default:
+                throw new UnsupportedOperationException("Unsupported ElementKind: " + kind);
+        }
+    }
 
     public ClassBuilder(JCodeModel codeModel) {
         this.codeModel = codeModel;
@@ -120,122 +175,18 @@ class ClassBuilder {
                 typeParameter.bound(visitorTypeParameter._extends());
                 typeParameters.add(typeParameter);
             }
-            buildAcceptMethod(definedClass, visitorInterface, definedClass.narrow(typeParameters));
+            DefinedClass result = new DefinedClass(definedClass, visitorInterface, definedClass.narrow(typeParameters));
+            result.buildAcceptMethod();
+            result.buildAcceptRecursiveMethod();
 
-            JDefinedClass factoryClass = buildFactoryClass(definedClass, visitorInterface);
-            JMethod factoryInstanceGetterMethod = buildFactoryInstanceGetter(definedClass, factoryClass, visitorInterface);
+            JDefinedClass factoryClass = result.buildFactoryClass();
+            JMethod factoryInstanceGetterMethod = result.buildFactoryInstanceGetter(factoryClass);
+            result.buildConstructorMethods(factoryInstanceGetterMethod);
 
-            for (JMethod interfaceMethod: visitorInterface.methods()) {
-                JMethod constructorMethod = definedClass.method(interfaceMethod.mods().getValue() & ~JMod.ABSTRACT | JMod.STATIC, codeModel.VOID, interfaceMethod.name());
-                List<JClass> typeArguments = new ArrayList<>();
-                for (JTypeVar visitorTypeParameter: visitorInterface.getDataTypeParameters()) {
-                    JTypeVar typeParameter = constructorMethod.generify(visitorTypeParameter.name());
-                    typeParameter.bound(visitorTypeParameter._extends());
-                    typeArguments.add(typeParameter);
-                }
-                JClass usedDataType = definedClass.narrow(typeArguments);
-                JClass factoryUsedType = factoryClass.narrow(typeArguments);
-                JClass runtimeException = codeModel.ref(RuntimeException.class);
-                constructorMethod.type(usedDataType);
-                for (JVar param: interfaceMethod.params()) {
-                    JType paramType = visitorInterface.narrowed(param.type(), usedDataType, usedDataType, runtimeException);
-                    constructorMethod.param(param.mods().getValue(), paramType, param.name());
-                }
-                JExpression factoryExpression = JExpr.cast(factoryUsedType, JExpr.ref("FACTORY"));
-                JInvocation invocation = JExpr.invoke(factoryExpression, interfaceMethod.name());
-                for (JVar param: interfaceMethod.params()) {
-                    invocation.arg(JExpr.ref(param.name()));
-                }
-                constructorMethod.body()._return(invocation);
-            }
-
-            return new DefinedClass(definedClass);
+            return result;
         } catch (JClassAlreadyExistsException ex) {
             throw new CodeGenerationException(ex);
         }
-    }
-    private void buildAcceptMethod(JDefinedClass definedClass, DefinedVisitorInterface visitorInterface,
-                                   JClass usedDataType) {
-        JMethod acceptMethod = definedClass.method(JMod.ABSTRACT | JMod.PUBLIC, codeModel.VOID, "accept");
-
-        JTypeVar visitorResultType = visitorInterface.getResultTypeParameter();
-        JTypeVar resultType = acceptMethod.generify(visitorResultType.name());
-        resultType.bound(visitorResultType._extends());
-        acceptMethod.type(resultType);
-
-        JTypeVar visitorExceptionType = visitorInterface.getExceptionTypeParameter();
-        JTypeVar exceptionType = null;
-        if (visitorExceptionType != null) {
-            exceptionType = acceptMethod.generify(visitorExceptionType.name());
-            exceptionType.bound(visitorExceptionType._extends());
-            acceptMethod._throws(exceptionType);
-        }
-
-        JClass usedVisitorType = visitorInterface.narrowed(usedDataType, resultType, exceptionType);
-        acceptMethod.param(usedVisitorType, "visitor");
-    }
-
-    private JMethod buildFactoryInstanceGetter(JDefinedClass definedClass, JDefinedClass factory,
-                                            DefinedVisitorInterface visitorInterface) {
-        JFieldVar factoryField = definedClass.field(JMod.PRIVATE | JMod.STATIC, factory, "FACTORY");
-        factoryField.init(JExpr._new(factory));
-        JMethod factoryMethod = definedClass.method(JMod.PUBLIC | JMod.STATIC, codeModel.VOID, "factory");
-        List<JClass> typeArguments = new ArrayList<>();
-        for (JTypeVar visitorTypeParameter: visitorInterface.getDataTypeParameters()) {
-            JTypeVar typeParameter = factoryMethod.generify(visitorTypeParameter.name());
-            typeParameter.bound(visitorTypeParameter._extends());
-            typeArguments.add(typeParameter);
-        }
-        JClass usedDataType = definedClass.narrow(typeArguments);
-        JClass factoryUsedType = factory.narrow(typeArguments);
-        factoryMethod.type(visitorInterface.narrowed(usedDataType, usedDataType, codeModel.ref(RuntimeException.class)));
-        factoryMethod.body()._return(JExpr.cast(factoryUsedType, JExpr.ref("FACTORY")));
-        return factoryMethod;
-    }
-
-    private JDefinedClass buildFactoryClass(JDefinedClass definedClass, DefinedVisitorInterface visitorInterface) throws JClassAlreadyExistsException {
-        JClass runtimeException = codeModel.ref(RuntimeException.class);
-        JDefinedClass factoryClass = definedClass._class(JMod.PRIVATE | JMod.STATIC, definedClass.name() + "Factory", ClassType.CLASS);
-        List<JClass> typeArguments = new ArrayList<>();
-        for (JTypeVar visitorTypeParameter: visitorInterface.getDataTypeParameters()) {
-            JTypeVar typeParameter = factoryClass.generify(visitorTypeParameter.name());
-            typeParameter.bound(visitorTypeParameter._extends());
-            typeArguments.add(typeParameter);
-        }
-        JClass usedDataType = definedClass.narrow(typeArguments);
-        factoryClass._implements(visitorInterface.narrowed(usedDataType, usedDataType, runtimeException));
-        for (JMethod interfaceMethod: visitorInterface.methods()) {
-            JMethod factoryMethod = factoryClass.method(interfaceMethod.mods().getValue() & ~JMod.ABSTRACT, usedDataType, interfaceMethod.name());
-            for (JVar param: interfaceMethod.params()) {
-                JType paramType = visitorInterface.narrowed(param.type(), usedDataType, usedDataType, runtimeException);
-                factoryMethod.param(param.mods().getValue() | JMod.FINAL, paramType, param.name());
-            }
-            JDefinedClass anonymousClass = codeModel.anonymousClass(usedDataType);
-            JMethod acceptMethod = anonymousClass.method(JMod.PUBLIC, codeModel.VOID, "accept");
-
-            JTypeVar visitorResultType = visitorInterface.getResultTypeParameter();
-            JTypeVar resultType = acceptMethod.generify(visitorResultType.name());
-            resultType.bound(visitorResultType._extends());
-            acceptMethod.type(resultType);
-
-            JTypeVar visitorExceptionType = visitorInterface.getExceptionTypeParameter();
-            JTypeVar exceptionType = null;
-            if (visitorExceptionType != null) {
-                exceptionType = acceptMethod.generify(visitorExceptionType.name());
-                exceptionType.bound(visitorExceptionType._extends());
-                acceptMethod._throws(exceptionType);
-            }
-
-            JClass usedVisitorType = visitorInterface.narrowed(usedDataType, resultType, exceptionType);
-            acceptMethod.param(usedVisitorType, "visitor");
-            JInvocation invocation = JExpr.invoke(JExpr.ref("visitor"), interfaceMethod.name());
-            for (JVar param: interfaceMethod.params()) {
-                invocation.arg(JExpr.ref(param.name()));
-            }
-            acceptMethod.body()._return(invocation);
-            factoryMethod.body()._return(JExpr._new(anonymousClass));
-        }
-        return factoryClass;
     }
 
     private JDefinedClass createJDefinedClass(TypeElement element) throws JClassAlreadyExistsException {
@@ -348,53 +299,4 @@ class ClassBuilder {
         }, null);
     }
 
-    private int toJMod(Collection<Modifier> modifierCollection) {
-        int modifiers = 0;
-        for (Modifier modifier: modifierCollection) {
-            modifiers = modifiers | toJMod(modifier);
-        }
-        return modifiers;
-    }
-
-    private int toJMod(Modifier modifier) {
-        switch (modifier) {
-            case ABSTRACT:
-                return JMod.ABSTRACT;
-            case FINAL:
-                return JMod.FINAL;
-            case NATIVE:
-                return JMod.NATIVE;
-            case PRIVATE:
-                return JMod.PRIVATE;
-            case PROTECTED:
-                return JMod.PROTECTED;
-            case PUBLIC:
-                return JMod.PUBLIC;
-            case STATIC:
-                return JMod.STATIC;
-            case SYNCHRONIZED:
-                return JMod.SYNCHRONIZED;
-            case TRANSIENT:
-                return JMod.TRANSIENT;
-            case VOLATILE:
-                return JMod.VOLATILE;
-            default:
-                throw new UnsupportedOperationException("Unsupported modifier: " + modifier);
-        }
-    }
-
-    private ClassType toClassType(ElementKind kind) {
-        switch (kind) {
-            case CLASS:
-                return ClassType.CLASS;
-            case ENUM:
-                return ClassType.ENUM;
-            case INTERFACE:
-                return ClassType.INTERFACE;
-            case ANNOTATION_TYPE:
-                return ClassType.ANNOTATION_TYPE_DECL;
-            default:
-                throw new UnsupportedOperationException("Unsupported ElementKind: " + kind);
-        }
-    }
 }

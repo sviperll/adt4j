@@ -58,7 +58,7 @@ public class DefinedVisitorInterface {
         return name.equals(dataVisitor.result()) || name.equals(dataVisitor.exception());
     }
 
-    private boolean isSelf(String name) {
+    public boolean isSelf(String name) {
         return name.equals(dataVisitor.self());
     }
 
@@ -79,6 +79,10 @@ public class DefinedVisitorInterface {
     }
 
     JClass narrowed(JClass usedDataType, JClass resultType, JClass exceptionType) {
+        return narrowedForSelf(usedDataType, resultType, exceptionType, usedDataType);
+    }
+
+    JClass narrowedForSelf(JClass usedDataType, JClass resultType, JClass exceptionType, JClass selfType) {
         System.out.println("Narrowing visitor interface with " + visitorInterfaceModel.typeParams().length + " parameters");
         Iterator<JClass> dataTypeArgumentIterator = usedDataType.getTypeParameters().iterator();
         List<JClass> arguments = new ArrayList<>();
@@ -88,7 +92,7 @@ public class DefinedVisitorInterface {
             else if (typeVariable.name().equals(dataVisitor.result()))
                 arguments.add(resultType);
             else if (typeVariable.name().equals(dataVisitor.self()))
-                arguments.add(usedDataType);
+                arguments.add(selfType);
             else
                 arguments.add(dataTypeArgumentIterator.next());
         }
