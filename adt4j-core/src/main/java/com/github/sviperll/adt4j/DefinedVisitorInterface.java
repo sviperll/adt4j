@@ -58,7 +58,7 @@ public class DefinedVisitorInterface {
         return name.equals(dataVisitor.result()) || name.equals(dataVisitor.exception());
     }
 
-    public boolean isSelf(String name) {
+    private boolean isSelf(String name) {
         return name.equals(dataVisitor.self());
     }
 
@@ -73,6 +73,14 @@ public class DefinedVisitorInterface {
     JTypeVar getExceptionTypeParameter() {
         for (JTypeVar typeVariable: visitorInterfaceModel.typeParams()) {
             if (typeVariable.name().equals(dataVisitor.exception()))
+                return typeVariable;
+        }
+        return null;
+    }
+
+    JTypeVar getSelfTypeParameter() {
+        for (JTypeVar typeVariable: visitorInterfaceModel.typeParams()) {
+            if (isSelf(typeVariable.name()))
                 return typeVariable;
         }
         return null;
@@ -119,5 +127,9 @@ public class DefinedVisitorInterface {
             return usedDataType;
         else
             return type;
+    }
+
+    boolean hasSelfTypeParameter() {
+        return getSelfTypeParameter() != null;
     }
 }

@@ -82,35 +82,38 @@ class DefinedClass {
 
         JClass usedVisitorType = visitorInterface.narrowedForSelf(usedDataType, resultType, exceptionType, resultType);
         JVar visitorParam = acceptRecursiveMethod.param(JMod.FINAL, usedVisitorType, "visitor");
-
-        JDefinedClass anonymousClass = definedClass.owner().anonymousClass(visitorInterface.narrowed(usedDataType, resultType, exceptionType));
-        for (JMethod interfaceMethod: visitorInterface.methods()) {
-            JMethod adaptorMethod = anonymousClass.method(interfaceMethod.mods().getValue() & ~JMod.ABSTRACT, resultType, interfaceMethod.name());
-            adaptorMethod.annotate(Override.class);
-
-            if (visitorExceptionType != null) {
-                adaptorMethod._throws(exceptionType);
-            }
-
-            JInvocation invocation = JExpr.ref(visitorParam.name()).invoke(adaptorMethod.name());
-            for (JVar param: interfaceMethod.params()) {
-                JType paramType = visitorInterface.narrowed(param.type(), usedDataType, resultType, exceptionType);
-                adaptorMethod.param(param.mods().getValue() | JMod.FINAL, paramType, param.name());
-
-                JType outerVisitorParamType = visitorInterface.narrowed(param.type(), resultType, resultType, exceptionType);
-
-                if (paramType.equals(outerVisitorParamType))
-                    invocation.arg(JExpr.ref(param.name()));
-                else {
-                    JInvocation argument = param.invoke("acceptRecursive");
-                    argument.arg(JExpr.ref("visitor"));
-                    invocation.arg(argument);
-                }
-            }
-            adaptorMethod.body()._return(invocation);
-        }
         JInvocation acceptInvocation = JExpr._this().invoke("accept");
-        acceptInvocation.arg(JExpr._new(anonymousClass));
+        if (!visitorInterface.hasSelfTypeParameter()) {
+            acceptInvocation.arg(JExpr.ref("visitor"));
+        } else {
+            JDefinedClass anonymousClass = definedClass.owner().anonymousClass(visitorInterface.narrowed(usedDataType, resultType, exceptionType));
+            for (JMethod interfaceMethod: visitorInterface.methods()) {
+                JMethod adaptorMethod = anonymousClass.method(interfaceMethod.mods().getValue() & ~JMod.ABSTRACT, resultType, interfaceMethod.name());
+                adaptorMethod.annotate(Override.class);
+
+                if (visitorExceptionType != null) {
+                    adaptorMethod._throws(exceptionType);
+                }
+
+                JInvocation invocation = JExpr.ref(visitorParam.name()).invoke(adaptorMethod.name());
+                for (JVar param: interfaceMethod.params()) {
+                    JType paramType = visitorInterface.narrowed(param.type(), usedDataType, resultType, exceptionType);
+                    adaptorMethod.param(param.mods().getValue() | JMod.FINAL, paramType, param.name());
+
+                    JType outerVisitorParamType = visitorInterface.narrowed(param.type(), resultType, resultType, exceptionType);
+
+                    if (paramType.equals(outerVisitorParamType))
+                        invocation.arg(JExpr.ref(param.name()));
+                    else {
+                        JInvocation argument = param.invoke("acceptRecursive");
+                        argument.arg(JExpr.ref("visitor"));
+                        invocation.arg(argument);
+                    }
+                }
+                adaptorMethod.body()._return(invocation);
+            }
+            acceptInvocation.arg(JExpr._new(anonymousClass));
+        }
         acceptRecursiveMethod.body()._return(acceptInvocation);
     }
 
