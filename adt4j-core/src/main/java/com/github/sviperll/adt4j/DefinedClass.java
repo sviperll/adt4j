@@ -4,6 +4,7 @@
 package com.github.sviperll.adt4j;
 
 import com.sun.codemodel.ClassType;
+import com.sun.codemodel.JAnnotationArrayMember;
 import com.sun.codemodel.JAnnotationUse;
 import com.sun.codemodel.JClass;
 import com.sun.codemodel.JClassAlreadyExistsException;
@@ -20,12 +21,67 @@ import com.sun.codemodel.JVar;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
+import java.util.TreeMap;
 
 /**
  *
  * @author Victor Nazarov <asviraspossible@gmail.com>
  */
 class DefinedClass {
+    private static final String VISITOR_SUFFIX = "Visitor";
+    private static final String VALUE_SUFFIX = "Value";
+
+    private static String capitalize(String s) {
+        if (s.length() >= 2
+            && Character.isHighSurrogate(s.charAt(0))
+            && Character.isLowSurrogate(s.charAt(1))) {
+            return s.substring(0, 2).toUpperCase() + s.substring(2);
+        } else {
+            return s.substring(0, 1).toUpperCase() + s.substring(1);
+        }
+    }
+    private static String getQualifiedName(DefinedVisitorInterface visitorInterface) throws SourceException {
+        String visitorName = visitorInterface.getSimpleName();
+        String valueName;
+        if (visitorName.endsWith(VISITOR_SUFFIX))
+            valueName = visitorName.substring(0, visitorName.length() - VISITOR_SUFFIX.length());
+        else
+            valueName = visitorName + VALUE_SUFFIX;
+        String packageName = visitorInterface.getPackageName();
+        return packageName + "." + valueName;
+    }
+
+    public static DefinedClass createInstance(JCodeModel codeModel, DefinedVisitorInterface visitorInterface) throws SourceException, CodeGenerationException {
+        try {
+            String qualifiedName = getQualifiedName(visitorInterface);
+            JDefinedClass definedClass = codeModel._class(JMod.ABSTRACT | JMod.PUBLIC, qualifiedName, ClassType.CLASS);
+            List<JClass> typeParameters = new ArrayList<>();
+            for (JTypeVar visitorTypeParameter: visitorInterface.getDataTypeParameters()) {
+                JTypeVar typeParameter = definedClass.generify(visitorTypeParameter.name());
+                typeParameter.bound(visitorTypeParameter._extends());
+                typeParameters.add(typeParameter);
+            }
+            DefinedClass result = new DefinedClass(definedClass, visitorInterface, definedClass.narrow(typeParameters));
+            result.buildAcceptMethod();
+            result.buildAcceptRecursiveMethod();
+
+            Map<String, JDefinedClass> caseClasses = new TreeMap<>();
+            for (JMethod interfaceMethod: visitorInterface.methods()) {
+                JDefinedClass caseClass = result.buildCaseClass(interfaceMethod);
+                caseClasses.put(interfaceMethod.name(), caseClass);
+            }
+
+            JDefinedClass factoryClass = result.buildFactoryClass(caseClasses);
+            JMethod factoryInstanceGetterMethod = result.buildFactoryInstanceGetter(factoryClass);
+            result.buildConstructorMethods(caseClasses);
+
+            return result;
+        } catch (JClassAlreadyExistsException ex) {
+            throw new CodeGenerationException(ex);
+        }
+    }
+
     private final JDefinedClass definedClass;
     private final DefinedVisitorInterface visitorInterface;
     private final JClass usedDataType;
@@ -136,7 +192,7 @@ class DefinedClass {
         return factoryMethod;
     }
 
-    JDefinedClass buildFactoryClass() throws JClassAlreadyExistsException {
+    JDefinedClass buildFactoryClass(Map<String, JDefinedClass> caseClasses) throws JClassAlreadyExistsException {
         JClass runtimeException = definedClass.owner().ref(RuntimeException.class);
         JDefinedClass factoryClass = definedClass._class(JMod.PRIVATE | JMod.STATIC, definedClass.name() + "Factory", ClassType.CLASS);
         List<JClass> typeArguments = new ArrayList<>();
@@ -151,51 +207,38 @@ class DefinedClass {
             JMethod factoryMethod = factoryClass.method(interfaceMethod.mods().getValue() & ~JMod.ABSTRACT, staticUsedDataType, interfaceMethod.name());
             factoryMethod.annotate(Override.class);
 
+            JInvocation staticInvoke = definedClass.staticInvoke(interfaceMethod.name());
             for (JVar param: interfaceMethod.params()) {
                 JType paramType = visitorInterface.narrowed(param.type(), staticUsedDataType, staticUsedDataType, runtimeException);
                 factoryMethod.param(param.mods().getValue() | JMod.FINAL, paramType, param.name());
+                staticInvoke.arg(JExpr.ref(param.name()));
             }
-
-
-            if (!interfaceMethod.params().isEmpty()) {
-                JDefinedClass anonymousClass = createFactoryAnonymousClass(interfaceMethod, staticUsedDataType);
-                factoryMethod.body()._return(JExpr._new(anonymousClass));
-            } else {
-                JMethod singletonFactoryMethod = createSingletonFactoryMethod(interfaceMethod, factoryClass);
-                JFieldVar singletonInstanceField = factoryClass.field(JMod.PRIVATE | JMod.STATIC | JMod.FINAL,
-                                                                      staticUsedDataType.erasure(),
-                                                                      factoryMethod.name().toUpperCase(),
-                                                                      factoryClass.staticInvoke(singletonFactoryMethod.name()));
-                JAnnotationUse annotationUse = factoryMethod.annotate(SuppressWarnings.class);
-                annotationUse.param("value", "unchecked");
-                factoryMethod.body()._return(JExpr.cast(staticUsedDataType, singletonInstanceField));
-            }
+            factoryMethod.body()._return(staticInvoke);
         }
         return factoryClass;
     }
 
-    private JMethod createSingletonFactoryMethod(JMethod interfaceMethod, JDefinedClass factoryClass) {
-        int mods = interfaceMethod.mods().getValue() & ~JMod.ABSTRACT & ~JMod.PUBLIC & ~JMod.PROTECTED;
-        mods = mods | JMod.STATIC | JMod.PRIVATE;
-        JMethod result = factoryClass.method(mods,
-                                                             definedClass.owner().VOID,
-                                                             "init" + interfaceMethod.name());
-        List<JClass> typeArguments = new ArrayList<>();
+    private JDefinedClass buildCaseClass(JMethod interfaceMethod) throws JClassAlreadyExistsException {
+        JClass runtimeException = definedClass.owner().ref(RuntimeException.class);
+        JDefinedClass caseClass = definedClass._class(JMod.PRIVATE | JMod.STATIC, capitalize(interfaceMethod.name()) + capitalize(definedClass.name()));
+        List<JClass> typeParameters = new ArrayList<>();
         for (JTypeVar visitorTypeParameter: visitorInterface.getDataTypeParameters()) {
-            JTypeVar typeParameter = result.generify(visitorTypeParameter.name());
-            typeParameter.bound(visitorTypeParameter._extends());
-            typeArguments.add(typeParameter);
+            JTypeVar typeParameter = caseClass.generify(visitorTypeParameter.name());
+            typeParameters.add(typeParameter);
         }
-        JClass staticUsedDataType = definedClass.narrow(typeArguments);
-        result.type(staticUsedDataType);
-        JDefinedClass anonymousClass = createFactoryAnonymousClass(interfaceMethod, staticUsedDataType);
-        result.body()._return(JExpr._new(anonymousClass));
-        return result;
-    }
 
-    private JDefinedClass createFactoryAnonymousClass(JMethod interfaceMethod, JClass staticUsedDataType) {
-        JDefinedClass anonymousClass = definedClass.owner().anonymousClass(staticUsedDataType);
-        JMethod acceptMethod = anonymousClass.method(JMod.PUBLIC, definedClass.owner().VOID, "accept");
+        JClass staticUsedDataType = definedClass.narrow(typeParameters);
+        caseClass._extends(staticUsedDataType);
+
+        JMethod constructor = caseClass.constructor(JMod.NONE);
+        for (JVar param: interfaceMethod.params()) {
+            JType paramType = visitorInterface.narrowed(param.type(), staticUsedDataType, staticUsedDataType, runtimeException);
+            caseClass.field(JMod.PRIVATE | JMod.FINAL, paramType, param.name());
+            constructor.param(paramType, param.name());
+            constructor.body().assign(JExpr._this().ref(param.name()), JExpr.ref(param.name()));
+        }
+
+        JMethod acceptMethod = caseClass.method(JMod.PUBLIC, definedClass.owner().VOID, "accept");
         acceptMethod.annotate(Override.class);
 
         JTypeVar visitorResultType = visitorInterface.getResultTypeParameter();
@@ -218,10 +261,10 @@ class DefinedClass {
             invocation.arg(JExpr.ref(param.name()));
         }
         acceptMethod.body()._return(invocation);
-        return anonymousClass;
+        return caseClass;
     }
 
-    void buildConstructorMethods(JMethod factoryInstanceGetterMethod) {
+    void buildConstructorMethods(Map<String, JDefinedClass> caseClasses) {
         for (JMethod interfaceMethod: visitorInterface.methods()) {
             JMethod constructorMethod = definedClass.method(interfaceMethod.mods().getValue() & ~JMod.ABSTRACT | JMod.STATIC, definedClass.owner().VOID, interfaceMethod.name());
             List<JClass> typeArguments = new ArrayList<>();
@@ -237,28 +280,27 @@ class DefinedClass {
                 JType paramType = visitorInterface.narrowed(param.type(), staticUsedDataType, staticUsedDataType, runtimeException);
                 constructorMethod.param(param.mods().getValue(), paramType, param.name());
             }
-            // JExpression factoryExpression = JExpr.cast(factoryUsedType, JExpr.ref("FACTORY"));
-            StringBuilder factoryMethodNameInInvokation = new StringBuilder();
-            Iterator<JClass> typeArgumentsIterator = typeArguments.iterator();
-            if (typeArgumentsIterator.hasNext()) {
-                JClass typeArgument = typeArgumentsIterator.next();
-                factoryMethodNameInInvokation.append("<");
-                factoryMethodNameInInvokation.append(typeArgument.name());
-                while (typeArgumentsIterator.hasNext()) {
-                    typeArgument = typeArgumentsIterator.next();
-                    factoryMethodNameInInvokation.append(", ");
-                    factoryMethodNameInInvokation.append(typeArgument.name());
-                }
-                factoryMethodNameInInvokation.append(">");
-            }
-            factoryMethodNameInInvokation.append(factoryInstanceGetterMethod.name());
 
-            JInvocation factoryExpression = definedClass.staticInvoke(factoryMethodNameInInvokation.toString());
-            JInvocation invocation = JExpr.invoke(factoryExpression, interfaceMethod.name());
-            for (JVar param: interfaceMethod.params()) {
-                invocation.arg(JExpr.ref(param.name()));
+            JClass caseClass = caseClasses.get(interfaceMethod.name()).narrow(typeArguments);
+            if (!interfaceMethod.params().isEmpty()) {
+                JInvocation constructorInvocation = JExpr._new(caseClass);
+                for (JVar param: interfaceMethod.params())
+                    constructorInvocation.arg(JExpr.ref(param.name()));
+                constructorMethod.body()._return(constructorInvocation);
+            } else {
+                JFieldVar singletonInstanceField = definedClass.field(JMod.PRIVATE | JMod.STATIC | JMod.FINAL,
+                                                                      staticUsedDataType.erasure(),
+                                                                      interfaceMethod.name().toUpperCase(),
+                                                                      JExpr._new(caseClass.erasure()));
+                JAnnotationUse fieldAnnotationUse = singletonInstanceField.annotate(SuppressWarnings.class);
+                JAnnotationArrayMember paramArray = fieldAnnotationUse.paramArray("value");
+                paramArray.param("unchecked");
+                paramArray.param("rawtypes");
+
+                JAnnotationUse methodAnnotationUse = constructorMethod.annotate(SuppressWarnings.class);
+                methodAnnotationUse.param("value", "unchecked");
+                constructorMethod.body()._return(JExpr.cast(staticUsedDataType, singletonInstanceField));
             }
-            constructorMethod.body()._return(invocation);
         }
     }
 

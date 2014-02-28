@@ -53,19 +53,6 @@ import javax.lang.model.type.WildcardType;
  * @author Victor Nazarov <asviraspossible@gmail.com>
  */
 class ClassBuilder {
-    private static final String VISITOR_SUFFIX = "Visitor";
-    private static final String VALUE_SUFFIX = "Value";
-    private static String getQualifiedName(DefinedVisitorInterface visitorInterface) throws SourceException {
-        String visitorName = visitorInterface.getSimpleName();
-        String valueName;
-        if (visitorName.endsWith(VISITOR_SUFFIX))
-            valueName = visitorName.substring(0, visitorName.length() - VISITOR_SUFFIX.length());
-        else
-            valueName = visitorName + VALUE_SUFFIX;
-        String packageName = visitorInterface.getPackageName();
-        return packageName + "." + valueName;
-    }
-
     private static TypeElement toTypeElement(Element element) throws SourceException {
         if (!(element instanceof TypeElement))
             throw new SourceException("DataVisitor annotation is only allowed to interfaces");
@@ -166,27 +153,7 @@ class ClassBuilder {
     }
 
     DefinedClass build(DefinedVisitorInterface visitorInterface) throws SourceException, CodeGenerationException {
-        try {
-            String qualifiedName = getQualifiedName(visitorInterface);
-            JDefinedClass definedClass = codeModel._class(JMod.ABSTRACT | JMod.PUBLIC, qualifiedName, ClassType.CLASS);
-            List<JClass> typeParameters = new ArrayList<>();
-            for (JTypeVar visitorTypeParameter: visitorInterface.getDataTypeParameters()) {
-                JTypeVar typeParameter = definedClass.generify(visitorTypeParameter.name());
-                typeParameter.bound(visitorTypeParameter._extends());
-                typeParameters.add(typeParameter);
-            }
-            DefinedClass result = new DefinedClass(definedClass, visitorInterface, definedClass.narrow(typeParameters));
-            result.buildAcceptMethod();
-            result.buildAcceptRecursiveMethod();
-
-            JDefinedClass factoryClass = result.buildFactoryClass();
-            JMethod factoryInstanceGetterMethod = result.buildFactoryInstanceGetter(factoryClass);
-            result.buildConstructorMethods(factoryInstanceGetterMethod);
-
-            return result;
-        } catch (JClassAlreadyExistsException ex) {
-            throw new CodeGenerationException(ex);
-        }
+        return DefinedClass.createInstance(codeModel, visitorInterface);
     }
 
     private JDefinedClass createJDefinedClass(TypeElement element) throws JClassAlreadyExistsException {
