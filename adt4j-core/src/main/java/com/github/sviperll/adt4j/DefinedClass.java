@@ -6,11 +6,15 @@ package com.github.sviperll.adt4j;
 import com.sun.codemodel.ClassType;
 import com.sun.codemodel.JAnnotationArrayMember;
 import com.sun.codemodel.JAnnotationUse;
+import com.sun.codemodel.JBlock;
 import com.sun.codemodel.JClass;
 import com.sun.codemodel.JClassAlreadyExistsException;
 import com.sun.codemodel.JCodeModel;
+import com.sun.codemodel.JConditional;
 import com.sun.codemodel.JDefinedClass;
 import com.sun.codemodel.JExpr;
+import com.sun.codemodel.JExpression;
+import com.sun.codemodel.JFieldRef;
 import com.sun.codemodel.JFieldVar;
 import com.sun.codemodel.JInvocation;
 import com.sun.codemodel.JMethod;
@@ -19,7 +23,6 @@ import com.sun.codemodel.JType;
 import com.sun.codemodel.JTypeVar;
 import com.sun.codemodel.JVar;
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
@@ -72,9 +75,10 @@ class DefinedClass {
                 caseClasses.put(interfaceMethod.name(), caseClass);
             }
 
-            JDefinedClass factoryClass = result.buildFactoryClass(caseClasses);
-            JMethod factoryInstanceGetterMethod = result.buildFactoryInstanceGetter(factoryClass);
             result.buildConstructorMethods(caseClasses);
+            JDefinedClass factoryClass = result.buildFactoryClass(caseClasses);
+            result.buildFactoryInstanceGetter(factoryClass);
+            result.buildEqualsMethod();
 
             return result;
         } catch (JClassAlreadyExistsException ex) {
@@ -302,6 +306,73 @@ class DefinedClass {
                 constructorMethod.body()._return(JExpr.cast(staticUsedDataType, singletonInstanceField));
             }
         }
+    }
+
+    private void buildEqualsMethod() {
+        JType booleanType = definedClass.owner()._ref(Boolean.class);
+        JType runtimeException = definedClass.owner()._ref(RuntimeException.class);
+        JMethod equalsMethod = definedClass.method(JMod.PUBLIC, definedClass.owner().BOOLEAN, "equals");
+        equalsMethod.annotate(Override.class);
+        JAnnotationUse annotationUse = equalsMethod.annotate(SuppressWarnings.class);
+        annotationUse.param("value", "unchecked");
+        equalsMethod.param(definedClass.owner()._ref(Object.class), "thatObject");
+        JFieldRef thatObject = JExpr.ref("thatObject");
+        JConditional _if = equalsMethod.body()._if(JExpr._this().eq(thatObject));
+        _if._then()._return(JExpr.TRUE);
+        JConditional elseif = _if._elseif(thatObject._instanceof(definedClass).not());
+        elseif._then()._return(JExpr.FALSE);
+        JBlock _else = elseif._else();
+        _else.decl(JMod.FINAL, usedDataType, "that", JExpr.cast(usedDataType, thatObject));
+        JClass visitorType = visitorInterface.narrowed(usedDataType, booleanType, runtimeException);
+
+        JDefinedClass anonymousClass1 = definedClass.owner().anonymousClass(visitorType);
+        for (JMethod interfaceMethod1: visitorInterface.methods()) {
+            JMethod visitorMethod1 = anonymousClass1.method(interfaceMethod1.mods().getValue() & ~JMod.ABSTRACT, definedClass.owner().VOID, interfaceMethod1.name());
+            visitorMethod1.annotate(Override.class);
+            visitorMethod1.type(booleanType);
+            for (JVar param: interfaceMethod1.params()) {
+                JType paramType = visitorInterface.narrowed(param.type(), usedDataType, booleanType, runtimeException);
+                visitorMethod1.param(param.mods().getValue() | JMod.FINAL, paramType, param.name() + "1");
+            }
+
+            JDefinedClass anonymousClass2 = definedClass.owner().anonymousClass(visitorType);
+            for (JMethod interfaceMethod2: visitorInterface.methods()) {
+                JMethod visitorMethod2 = anonymousClass2.method(interfaceMethod1.mods().getValue() & ~JMod.ABSTRACT, definedClass.owner().VOID, interfaceMethod2.name());
+                visitorMethod2.annotate(Override.class);
+                visitorMethod2.type(booleanType);
+                for (JVar param: interfaceMethod2.params()) {
+                    JType paramType = visitorInterface.narrowed(param.type(), usedDataType, booleanType, runtimeException);
+                    visitorMethod2.param(param.mods().getValue() | JMod.FINAL, paramType, param.name() + "2");
+                }
+                if (!interfaceMethod1.name().equals(interfaceMethod2.name()))
+                    visitorMethod2.body()._return(JExpr.FALSE);
+                else {
+                    JExpression result = JExpr.TRUE;
+                    for (JVar param: interfaceMethod1.params()) {
+                        JType paramType = visitorInterface.narrowed(param.type(), usedDataType, booleanType, runtimeException);
+                        JExpression field1 = JExpr.ref(param.name() + "1");
+                        JExpression field2 = JExpr.ref(param.name() + "2");
+                        JExpression equality;
+                        if (paramType.isPrimitive())
+                            equality = field1.eq(field2);
+                        else {
+                            JInvocation equalsInvocation = field1.invoke("equals");
+                            equalsInvocation.arg(field2);
+                            equality = equalsInvocation;
+                        }
+                        result = result.cand(equality);
+                    }
+                    visitorMethod2.body()._return(result);
+                }
+            }
+
+            JInvocation invocation2 = JExpr.ref("that").invoke("accept");
+            invocation2.arg(JExpr._new(anonymousClass2));
+            visitorMethod1.body()._return(invocation2);
+        }
+        JInvocation invocation1 = JExpr._this().invoke("accept");
+        invocation1.arg(JExpr._new(anonymousClass1));
+        _else._return(invocation1);
     }
 
 }

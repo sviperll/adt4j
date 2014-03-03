@@ -86,25 +86,25 @@ public class DefinedVisitorInterface {
         return null;
     }
 
-    JClass narrowed(JClass usedDataType, JClass resultType, JClass exceptionType) {
+    JClass narrowed(JClass usedDataType, JType resultType, JType exceptionType) {
         return narrowedForSelf(usedDataType, resultType, exceptionType, usedDataType);
     }
 
-    JClass narrowedForSelf(JClass usedDataType, JClass resultType, JClass exceptionType, JClass selfType) {
+    JClass narrowedForSelf(JClass usedDataType, JType resultType, JType exceptionType, JType selfType) {
         System.out.println("Narrowing visitor interface with " + visitorInterfaceModel.typeParams().length + " parameters");
         Iterator<JClass> dataTypeArgumentIterator = usedDataType.getTypeParameters().iterator();
-        List<JClass> arguments = new ArrayList<>();
+        JClass result = visitorInterfaceModel;
         for (JTypeVar typeVariable: visitorInterfaceModel.typeParams()) {
             if (typeVariable.name().equals(dataVisitor.exception()))
-                arguments.add(exceptionType);
+                result = result.narrow(exceptionType);
             else if (typeVariable.name().equals(dataVisitor.result()))
-                arguments.add(resultType);
+                result = result.narrow(resultType);
             else if (typeVariable.name().equals(dataVisitor.self()))
-                arguments.add(selfType);
+                result = result.narrow(selfType);
             else
-                arguments.add(dataTypeArgumentIterator.next());
+                result = result.narrow(dataTypeArgumentIterator.next());
         }
-        return visitorInterfaceModel.narrow(arguments);
+        return result;
     }
 
     public Collection<JMethod> methods() {
@@ -118,7 +118,7 @@ public class DefinedVisitorInterface {
         return sb.toString();
     }
 
-    JType narrowed(JType type, JClass usedDataType, JClass resultType, JClass exceptionType) {
+    JType narrowed(JType type, JClass usedDataType, JType resultType, JType exceptionType) {
         if (type.name().equals(dataVisitor.exception()))
             return exceptionType;
         else if (type.name().equals(dataVisitor.result()))
