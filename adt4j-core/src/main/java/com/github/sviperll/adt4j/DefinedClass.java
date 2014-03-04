@@ -262,7 +262,7 @@ class DefinedClass {
         acceptMethod.param(usedVisitorType, "visitor");
         JInvocation invocation = JExpr.invoke(JExpr.ref("visitor"), interfaceMethod.name());
         for (JVar param: interfaceMethod.params()) {
-            invocation.arg(JExpr.ref(param.name()));
+            invocation.arg(JExpr._this().ref(param.name()));
         }
         acceptMethod.body()._return(invocation);
         return caseClass;
