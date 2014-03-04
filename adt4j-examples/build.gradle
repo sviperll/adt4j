@@ -1,3 +1,7 @@
+apply plugin:'application'
+
+mainClassName = "com.github.sviperll.adt4j.examples.Main"
+
 dependencies {
     compile(project(':adt4j-core'))
 }

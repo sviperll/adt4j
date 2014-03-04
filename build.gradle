@@ -3,7 +3,22 @@ subprojects {
     apply plugin: 'maven'
     apply plugin: 'signing'
 
-    compileJava.options.compilerArgs = ['-Xlint:unchecked'] 
+
+/*
+    sourceSets {
+        generated {
+            java {
+                srcDirs = ['src/generated']
+            }
+        }
+    }
+*/
+
+    compileJava {
+        options.compilerArgs = ['-Xlint', '-Xlint:-serial']
+        // source sourceSets.generated.java.srcDirs.iterator().next()
+        // destinationDir sourceSets.generated.java.srcDirs.iterator().next()
+    }
 
     version = '0.2-SNAPSHOT'
     group = 'com.github.sviperll'

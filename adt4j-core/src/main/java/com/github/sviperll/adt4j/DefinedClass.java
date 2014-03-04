@@ -182,10 +182,15 @@ class DefinedClass {
 
     JMethod buildFactoryInstanceGetter(JDefinedClass factory) {
         JFieldVar factoryField = definedClass.field(JMod.PRIVATE | JMod.STATIC, factory, "FACTORY");
+        JAnnotationUse fieldAnnotationUse = factoryField.annotate(SuppressWarnings.class);
+        JAnnotationArrayMember paramArray = fieldAnnotationUse.paramArray("value");
+        paramArray.param("unchecked");
+        paramArray.param("rawtypes");
+
         factoryField.init(JExpr._new(factory));
         JMethod factoryMethod = definedClass.method(JMod.PUBLIC | JMod.STATIC, definedClass.owner().VOID, "factory");
-        JAnnotationUse annotationUse = factoryMethod.annotate(SuppressWarnings.class);
-        annotationUse.param("value", "unchecked");
+        JAnnotationUse methodAnnotationUse = factoryMethod.annotate(SuppressWarnings.class);
+        methodAnnotationUse.param("value", "unchecked");
         List<JClass> typeArguments = new ArrayList<>();
         for (JTypeVar visitorTypeParameter: visitorInterface.getDataTypeParameters()) {
             JTypeVar typeParameter = factoryMethod.generify(visitorTypeParameter.name());
@@ -193,9 +198,11 @@ class DefinedClass {
             typeArguments.add(typeParameter);
         }
         JClass staticUsedDataType = JExprExt.narrow(definedClass, typeArguments);
-        JClass factoryUsedType = JExprExt.narrow(factory, typeArguments);
+        JClass usedFactoryType = JExprExt.narrow(factory, typeArguments);
         factoryMethod.type(visitorInterface.narrowed(staticUsedDataType, staticUsedDataType, definedClass.owner().ref(RuntimeException.class)));
-        factoryMethod.body()._return(JExpr.cast(factoryUsedType, JExpr.ref("FACTORY")));
+        JExpression result = JExpr.ref("FACTORY");
+        result = usedFactoryType.getTypeParameters().isEmpty() ? result : JExpr.cast(usedFactoryType, result);
+        factoryMethod.body()._return(result);
         return factoryMethod;
     }
 
@@ -306,7 +313,8 @@ class DefinedClass {
 
                 JAnnotationUse methodAnnotationUse = constructorMethod.annotate(SuppressWarnings.class);
                 methodAnnotationUse.param("value", "unchecked");
-                constructorMethod.body()._return(JExpr.cast(staticUsedDataType, singletonInstanceField));
+                JExpression result = staticUsedDataType.getTypeParameters().isEmpty() ? singletonInstanceField : JExpr.cast(staticUsedDataType, singletonInstanceField);
+                constructorMethod.body()._return(result);
             }
         }
     }
