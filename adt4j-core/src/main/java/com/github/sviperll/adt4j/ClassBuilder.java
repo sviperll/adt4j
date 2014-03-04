@@ -10,6 +10,7 @@ import com.sun.codemodel.JCodeModel;
 import com.sun.codemodel.JDefinedClass;
 import com.sun.codemodel.JMethod;
 import com.sun.codemodel.JMod;
+import com.sun.codemodel.JType;
 import com.sun.codemodel.JTypeVar;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -42,6 +43,7 @@ import javax.lang.model.type.ExecutableType;
 import javax.lang.model.type.NoType;
 import javax.lang.model.type.NullType;
 import javax.lang.model.type.PrimitiveType;
+import static javax.lang.model.type.TypeKind.CHAR;
 import javax.lang.model.type.TypeMirror;
 import javax.lang.model.type.TypeVariable;
 import javax.lang.model.type.TypeVisitor;
@@ -129,20 +131,20 @@ class ClassBuilder {
             for (Element element: visitorElement.getEnclosedElements()) {
                 if (element.getKind().equals(ElementKind.METHOD)) {
                     ExecutableElement executable = (ExecutableElement)element;
-                    JMethod method = visitorInterfaceModel.method(toJMod(executable.getModifiers()), toJClass(executable.getReturnType()), executable.getSimpleName().toString());
+                    JMethod method = visitorInterfaceModel.method(toJMod(executable.getModifiers()), toJType(executable.getReturnType()), executable.getSimpleName().toString());
                     for (TypeParameterElement parameter: executable.getTypeParameters()) {
                         JTypeVar typeVariable = method.generify(parameter.getSimpleName().toString());
                         for (TypeMirror type: parameter.getBounds()) {
-                            typeVariable.bound(toJClass(type));
+                            typeVariable.bound((JClass)toJType(type));
                         }
                     }
                     for (TypeMirror type: executable.getThrownTypes()) {
-                        JClass throwable = toJClass(type);
+                        JClass throwable = (JClass)toJType(type);
                         method._throws(throwable);
                     }
 
                     for (VariableElement variable: executable.getParameters()) {
-                        method.param(toJMod(variable.getModifiers()), toJClass(variable.asType()), variable.getSimpleName().toString());
+                        method.param(toJMod(variable.getModifiers()), toJType(variable.asType()), variable.getSimpleName().toString());
                     }
                 }
             }
@@ -166,7 +168,7 @@ class ClassBuilder {
         for (TypeParameterElement parameter: element.getTypeParameters()) {
             JTypeVar typeVariable = newClass.generify(parameter.getSimpleName().toString());
             for (TypeMirror type: parameter.getBounds()) {
-                typeVariable.bound(toJClass(type));
+                typeVariable.bound((JClass)toJType(type));
             }
         }
         return newClass;
@@ -185,44 +187,61 @@ class ClassBuilder {
         }
     }
 
-    private JClass toJClass(TypeMirror type) {
-        return type.accept(new TypeVisitor<JClass, Void>() {
+    private JType toJType(TypeMirror type) {
+        return type.accept(new TypeVisitor<JType, Void>() {
             @Override
-            public JClass visit(TypeMirror t, Void p) {
+            public JType visit(TypeMirror t, Void p) {
                 throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
             }
 
             @Override
-            public JClass visit(TypeMirror t) {
+            public JType visit(TypeMirror t) {
                 throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
             }
 
             @Override
-            public JClass visitPrimitive(PrimitiveType t, Void p) {
-                throw new IllegalArgumentException("Primitive can't be JClass."); //To change body of generated methods, choose Tools | Templates.
+            public JType visitPrimitive(PrimitiveType t, Void p) {
+                switch (t.getKind()) {
+                    case BOOLEAN:
+                        return codeModel.BOOLEAN;
+                    case BYTE:
+                        return codeModel.BYTE;
+                    case CHAR:
+                        return codeModel.CHAR;
+                    case INT:
+                        return codeModel.INT;
+                    case LONG:
+                        return codeModel.LONG;
+                    case FLOAT:
+                        return codeModel.FLOAT;
+                    case DOUBLE:
+                        return codeModel.DOUBLE;
+                    case SHORT:
+                        return codeModel.SHORT;
+                    default:
+                        throw new IllegalArgumentException("Unrecognized primitive " + t.getKind());
+                }
             }
 
             @Override
-            public JClass visitNull(NullType t, Void p) {
+            public JType visitNull(NullType t, Void p) {
                 throw new IllegalArgumentException("null can't be JClass."); //To change body of generated methods, choose Tools | Templates.
             }
 
             @Override
-            public JClass visitArray(ArrayType t, Void p) {
-                JClass componentType = toJClass(t.getComponentType());
+            public JType visitArray(ArrayType t, Void p) {
+                JType componentType = toJType(t.getComponentType());
                 return componentType.array();
             }
 
             @Override
-            public JClass visitDeclared(DeclaredType t, Void p) {
+            public JType visitDeclared(DeclaredType t, Void p) {
                 try {
                     TypeElement element = (TypeElement)t.asElement();
                     JClass _class = toJClass(element);
-                    List<JClass> typeParameters = new ArrayList<>();
                     for (TypeMirror typeArgument: t.getTypeArguments()) {
-                        typeParameters.add(toJClass(typeArgument));
+                        _class = _class.narrow(toJType(typeArgument));
                     }
-                    _class.narrow(typeParameters);
                     return _class;
                 } catch (CodeGenerationException ex) {
                     throw new RuntimeException(ex);
@@ -230,37 +249,37 @@ class ClassBuilder {
             }
 
             @Override
-            public JClass visitError(ErrorType t, Void p) {
+            public JType visitError(ErrorType t, Void p) {
                 throw new IllegalArgumentException("error can't be JClass."); //To change body of generated methods, choose Tools | Templates.
             }
 
             @Override
-            public JClass visitTypeVariable(TypeVariable t, Void p) {
+            public JType visitTypeVariable(TypeVariable t, Void p) {
                 return codeModel.directClass(t.asElement().getSimpleName().toString());
             }
 
             @Override
-            public JClass visitWildcard(WildcardType t, Void p) {
+            public JType visitWildcard(WildcardType t, Void p) {
                 throw new UnsupportedOperationException("wildcards are not supported in convertion to JClass."); //To change body of generated methods, choose Tools | Templates.
             }
 
             @Override
-            public JClass visitExecutable(ExecutableType t, Void p) {
+            public JType visitExecutable(ExecutableType t, Void p) {
                 throw new IllegalArgumentException("executable can't be JClass."); //To change body of generated methods, choose Tools | Templates.
             }
 
             @Override
-            public JClass visitNoType(NoType t, Void p) {
+            public JType visitNoType(NoType t, Void p) {
                 throw new IllegalArgumentException("'no type' can't be JClass."); //To change body of generated methods, choose Tools | Templates.
             }
 
             @Override
-            public JClass visitUnknown(TypeMirror t, Void p) {
+            public JType visitUnknown(TypeMirror t, Void p) {
                 throw new IllegalArgumentException("unknown can't be JClass."); //To change body of generated methods, choose Tools | Templates.
             }
 
             @Override
-            public JClass visitUnion(UnionType t, Void p) {
+            public JType visitUnion(UnionType t, Void p) {
                 throw new IllegalArgumentException("union type can't be JClass."); //To change body of generated methods, choose Tools | Templates.
             }
         }, null);

@@ -14,6 +14,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
+import java.util.NoSuchElementException;
 
 /**
  *
@@ -36,7 +37,7 @@ public class DefinedVisitorInterface {
         return visitorInterfaceModel._package().name();
     }
 
-    Iterable<JTypeVar> getDataTypeParameters() {
+    Collection<JTypeVar> getDataTypeParameters() {
         List<JTypeVar> result = new ArrayList<>();
         for (JTypeVar typeVariable: visitorInterfaceModel.typeParams()) {
             if (!shouldBeOverridenOnInvokation(typeVariable.name()) && !isSelf(typeVariable.name()))
@@ -45,7 +46,7 @@ public class DefinedVisitorInterface {
         return result;
     }
 
-    Iterable<JTypeVar> getVisitorInvokationTypeParameters() {
+    Collection<JTypeVar> getVisitorInvokationTypeParameters() {
         List<JTypeVar> result = new ArrayList<>();
         for (JTypeVar typeVariable: visitorInterfaceModel.typeParams()) {
             if (shouldBeOverridenOnInvokation(typeVariable.name()))
@@ -101,8 +102,9 @@ public class DefinedVisitorInterface {
                 result = result.narrow(resultType);
             else if (typeVariable.name().equals(dataVisitor.self()))
                 result = result.narrow(selfType);
-            else
+            else {
                 result = result.narrow(dataTypeArgumentIterator.next());
+            }
         }
         return result;
     }

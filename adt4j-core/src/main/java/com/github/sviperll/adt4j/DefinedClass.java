@@ -16,6 +16,7 @@ import com.sun.codemodel.JExpr;
 import com.sun.codemodel.JExpression;
 import com.sun.codemodel.JFieldRef;
 import com.sun.codemodel.JFieldVar;
+import com.sun.codemodel.JForLoop;
 import com.sun.codemodel.JInvocation;
 import com.sun.codemodel.JMethod;
 import com.sun.codemodel.JMod;
@@ -65,7 +66,8 @@ class DefinedClass {
                 typeParameter.bound(visitorTypeParameter._extends());
                 typeParameters.add(typeParameter);
             }
-            DefinedClass result = new DefinedClass(definedClass, visitorInterface, definedClass.narrow(typeParameters));
+            JClass usedDataType = JExprExt.narrow(definedClass, typeParameters);
+            DefinedClass result = new DefinedClass(definedClass, visitorInterface, usedDataType);
             result.buildAcceptMethod();
             result.buildAcceptRecursiveMethod();
 
@@ -79,6 +81,7 @@ class DefinedClass {
             JDefinedClass factoryClass = result.buildFactoryClass(caseClasses);
             result.buildFactoryInstanceGetter(factoryClass);
             result.buildEqualsMethod();
+            result.buildHashCodeMethod();
 
             return result;
         } catch (JClassAlreadyExistsException ex) {
@@ -189,8 +192,8 @@ class DefinedClass {
             typeParameter.bound(visitorTypeParameter._extends());
             typeArguments.add(typeParameter);
         }
-        JClass staticUsedDataType = definedClass.narrow(typeArguments);
-        JClass factoryUsedType = factory.narrow(typeArguments);
+        JClass staticUsedDataType = JExprExt.narrow(definedClass, typeArguments);
+        JClass factoryUsedType = JExprExt.narrow(factory, typeArguments);
         factoryMethod.type(visitorInterface.narrowed(staticUsedDataType, staticUsedDataType, definedClass.owner().ref(RuntimeException.class)));
         factoryMethod.body()._return(JExpr.cast(factoryUsedType, JExpr.ref("FACTORY")));
         return factoryMethod;
@@ -205,7 +208,7 @@ class DefinedClass {
             typeParameter.bound(visitorTypeParameter._extends());
             typeArguments.add(typeParameter);
         }
-        JClass staticUsedDataType = definedClass.narrow(typeArguments);
+        JClass staticUsedDataType = JExprExt.narrow(definedClass, typeArguments);
         factoryClass._implements(visitorInterface.narrowed(staticUsedDataType, staticUsedDataType, runtimeException));
         for (JMethod interfaceMethod: visitorInterface.methods()) {
             JMethod factoryMethod = factoryClass.method(interfaceMethod.mods().getValue() & ~JMod.ABSTRACT, staticUsedDataType, interfaceMethod.name());
@@ -231,7 +234,7 @@ class DefinedClass {
             typeParameters.add(typeParameter);
         }
 
-        JClass staticUsedDataType = definedClass.narrow(typeParameters);
+        JClass staticUsedDataType = JExprExt.narrow(definedClass, typeParameters);
         caseClass._extends(staticUsedDataType);
 
         JMethod constructor = caseClass.constructor(JMod.NONE);
@@ -277,7 +280,7 @@ class DefinedClass {
                 typeParameter.bound(visitorTypeParameter._extends());
                 typeArguments.add(typeParameter);
             }
-            JClass staticUsedDataType = definedClass.narrow(typeArguments);
+            JClass staticUsedDataType = JExprExt.narrow(definedClass, typeArguments);
             JClass runtimeException = definedClass.owner().ref(RuntimeException.class);
             constructorMethod.type(staticUsedDataType);
             for (JVar param: interfaceMethod.params()) {
@@ -285,7 +288,7 @@ class DefinedClass {
                 constructorMethod.param(param.mods().getValue(), paramType, param.name());
             }
 
-            JClass caseClass = caseClasses.get(interfaceMethod.name()).narrow(typeArguments);
+            JClass caseClass = JExprExt.narrow(caseClasses.get(interfaceMethod.name()), typeArguments);
             if (!interfaceMethod.params().isEmpty()) {
                 JInvocation constructorInvocation = JExpr._new(caseClass);
                 for (JVar param: interfaceMethod.params())
@@ -327,9 +330,8 @@ class DefinedClass {
 
         JDefinedClass anonymousClass1 = definedClass.owner().anonymousClass(visitorType);
         for (JMethod interfaceMethod1: visitorInterface.methods()) {
-            JMethod visitorMethod1 = anonymousClass1.method(interfaceMethod1.mods().getValue() & ~JMod.ABSTRACT, definedClass.owner().VOID, interfaceMethod1.name());
+            JMethod visitorMethod1 = anonymousClass1.method(interfaceMethod1.mods().getValue() & ~JMod.ABSTRACT, booleanType, interfaceMethod1.name());
             visitorMethod1.annotate(Override.class);
-            visitorMethod1.type(booleanType);
             for (JVar param: interfaceMethod1.params()) {
                 JType paramType = visitorInterface.narrowed(param.type(), usedDataType, booleanType, runtimeException);
                 visitorMethod1.param(param.mods().getValue() | JMod.FINAL, paramType, param.name() + "1");
@@ -337,9 +339,8 @@ class DefinedClass {
 
             JDefinedClass anonymousClass2 = definedClass.owner().anonymousClass(visitorType);
             for (JMethod interfaceMethod2: visitorInterface.methods()) {
-                JMethod visitorMethod2 = anonymousClass2.method(interfaceMethod1.mods().getValue() & ~JMod.ABSTRACT, definedClass.owner().VOID, interfaceMethod2.name());
+                JMethod visitorMethod2 = anonymousClass2.method(interfaceMethod1.mods().getValue() & ~JMod.ABSTRACT, booleanType, interfaceMethod2.name());
                 visitorMethod2.annotate(Override.class);
-                visitorMethod2.type(booleanType);
                 for (JVar param: interfaceMethod2.params()) {
                     JType paramType = visitorInterface.narrowed(param.type(), usedDataType, booleanType, runtimeException);
                     visitorMethod2.param(param.mods().getValue() | JMod.FINAL, paramType, param.name() + "2");
@@ -347,22 +348,14 @@ class DefinedClass {
                 if (!interfaceMethod1.name().equals(interfaceMethod2.name()))
                     visitorMethod2.body()._return(JExpr.FALSE);
                 else {
-                    JExpression result = JExpr.TRUE;
+                    EqualsBody body = new EqualsBody(visitorMethod2.body());
                     for (JVar param: interfaceMethod1.params()) {
                         JType paramType = visitorInterface.narrowed(param.type(), usedDataType, booleanType, runtimeException);
                         JExpression field1 = JExpr.ref(param.name() + "1");
                         JExpression field2 = JExpr.ref(param.name() + "2");
-                        JExpression equality;
-                        if (paramType.isPrimitive())
-                            equality = field1.eq(field2);
-                        else {
-                            JInvocation equalsInvocation = field1.invoke("equals");
-                            equalsInvocation.arg(field2);
-                            equality = equalsInvocation;
-                        }
-                        result = result.cand(equality);
+                        body.appendValue(paramType, field1, field2);
                     }
-                    visitorMethod2.body()._return(result);
+                    visitorMethod2.body()._return(JExpr.TRUE);
                 }
             }
 
@@ -375,4 +368,100 @@ class DefinedClass {
         _else._return(invocation1);
     }
 
+    private void buildHashCodeMethod() {
+        JType integerType = definedClass.owner()._ref(Integer.class);
+        JType runtimeException = definedClass.owner()._ref(RuntimeException.class);
+        JMethod hashCodeMethod = definedClass.method(JMod.PUBLIC, definedClass.owner().INT, "hashCode");
+        hashCodeMethod.annotate(Override.class);
+        JClass visitorType = visitorInterface.narrowed(usedDataType, integerType, runtimeException);
+
+        JDefinedClass anonymousClass1 = definedClass.owner().anonymousClass(visitorType);
+        int tag = 1;
+        for (JMethod interfaceMethod1: visitorInterface.methods()) {
+            JMethod visitorMethod1 = anonymousClass1.method(interfaceMethod1.mods().getValue() & ~JMod.ABSTRACT, integerType, interfaceMethod1.name());
+            visitorMethod1.annotate(Override.class);
+            JVar result = visitorMethod1.body().decl(definedClass.owner().INT, "result", JExpr.lit(tag));
+            HashCodeBody body = new HashCodeBody(visitorMethod1.body(), result);
+            for (JVar param: interfaceMethod1.params()) {
+                JType paramType = visitorInterface.narrowed(param.type(), usedDataType, integerType, runtimeException);
+                JVar argument = visitorMethod1.param(param.mods().getValue() | JMod.FINAL, paramType, param.name() + "1");
+                body.appendValue(paramType, argument);
+            }
+            visitorMethod1.body()._return(result);
+            tag++;
+        }
+        JInvocation invocation1 = JExpr._this().invoke("accept");
+        invocation1.arg(JExpr._new(anonymousClass1));
+        hashCodeMethod.body()._return(invocation1);
+    }
+
+    private class EqualsBody {
+        private final JBlock body;
+        private EqualsBody(JBlock body) {
+            this.body = body;
+        }
+
+        private void appendValue(JType type, JExpression value1, JExpression value2) {
+            JCodeModel model = definedClass.owner();
+            JType intType = model.INT;
+            if (type.isArray()) {
+                appendValue(model.INT, value1.ref("length"), value2.ref("length"));
+
+                JForLoop _for = body._for();
+                _for.init(intType, "i", JExpr.lit(0));
+                JFieldRef i = JExpr.ref("i");
+                _for.test(i.lt(value1.ref("length")));
+                _for.update(i.incr());
+                EqualsBody forBody = new EqualsBody(_for.body());
+                forBody.appendValue(type.elementType(), value1.component(i), value2.component(i));
+            } else if (type.isPrimitive()) {
+                JConditional _if = body._if(value1.ne(value2));
+                _if._then()._return(JExpr.FALSE);
+            } else {
+                JInvocation invocation = value1.invoke("equals");
+                invocation.arg(value2);
+                JConditional _if = body._if(invocation.not());
+                _if._then()._return(JExpr.FALSE);
+            }
+        }
+    }
+
+    private class HashCodeBody {
+        private final JBlock body;
+        private final JVar result;
+        private HashCodeBody(JBlock body, JVar result) {
+            this.body = body;
+            this.result = result;
+        }
+
+        private void appendValue(JType type, JExpression value) {
+            JCodeModel model = definedClass.owner();
+            JType intType = model.INT;
+            if (type.isArray()) {
+                JForLoop _for = body._for();
+                _for.init(intType, "i", JExpr.lit(0));
+                JFieldRef i = JExpr.ref("i");
+                _for.test(i.lt(value.ref("length")));
+                _for.update(i.incr());
+                HashCodeBody forBody = new HashCodeBody(_for.body(), result);
+                forBody.appendValue(type.elementType(), value.component(i));
+            } else if (!type.isPrimitive()) {
+                appendValue(intType, value.invoke("hashCode"));
+            } else if (type.name().equals("double")) {
+                JInvocation invocation = model.ref(Double.class).staticInvoke("doubleToLongBits");
+                invocation.arg(value);
+                appendValue(definedClass.owner().LONG, invocation);
+            } else if (type.name().equals("float")) {
+                JInvocation invocation = model.ref(Float.class).staticInvoke("floatToIntBits");
+                invocation.arg(value);
+                appendValue(intType, invocation);
+            } else if (type.name().equals("boolean")) {
+                appendValue(intType, JExprExt.ternary(value, JExpr.lit(0), JExpr.lit(1)));
+            } else if (type.name().equals("long")) {
+                appendValue(intType, JExpr.cast(intType, value.xor(value.shrz(JExpr.lit(32)))));
+            } else {
+                body.assign(result, result.mul(JExpr.lit(27)).plus(value));
+            }
+        }
+    }
 }
