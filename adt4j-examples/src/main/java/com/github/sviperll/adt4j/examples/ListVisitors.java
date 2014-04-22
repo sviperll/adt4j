@@ -63,4 +63,7 @@ public class ListVisitors {
             }
         };
     }
+
+    private ListVisitors() {
+    }
 }

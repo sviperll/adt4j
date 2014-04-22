@@ -15,4 +15,8 @@ public class CodeGenerationException extends Exception {
         super(ex);
     }
 
+    CodeGenerationException(ClassNotFoundException ex) {
+        super(ex);
+    }
+
 }

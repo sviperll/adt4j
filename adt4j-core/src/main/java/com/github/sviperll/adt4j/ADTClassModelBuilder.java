@@ -12,9 +12,7 @@ import com.sun.codemodel.JMethod;
 import com.sun.codemodel.JMod;
 import com.sun.codemodel.JType;
 import com.sun.codemodel.JTypeVar;
-import java.util.ArrayList;
 import java.util.Collection;
-import java.util.List;
 import javax.lang.model.element.Element;
 import javax.lang.model.element.ElementKind;
 import static javax.lang.model.element.ElementKind.ANNOTATION_TYPE;
@@ -54,7 +52,7 @@ import javax.lang.model.type.WildcardType;
  *
  * @author Victor Nazarov <asviraspossible@gmail.com>
  */
-class ClassBuilder {
+class ADTClassModelBuilder {
     private static TypeElement toTypeElement(Element element) throws SourceException {
         if (!(element instanceof TypeElement))
             throw new SourceException("DataVisitor annotation is only allowed to interfaces");
@@ -113,19 +111,21 @@ class ClassBuilder {
         }
     }
 
-    public ClassBuilder(JCodeModel codeModel) {
+    public ADTClassModelBuilder(JCodeModel codeModel) {
         this.codeModel = codeModel;
     }
 
-    public DefinedClass build(Element visitorElement, DataVisitor dataVisitor) throws SourceException, CodeGenerationException {
-        return build(buildVisitorInterface(visitorElement, dataVisitor));
+    public ADTClassModel build(Element visitorElement, DataVisitor dataVisitor) throws SourceException, CodeGenerationException {
+        ADTVisitorInterfaceModel visitorInterfaceModel = buildVisitorInterface(visitorElement, dataVisitor);
+        ADTClassModel result = build(visitorInterfaceModel);
+        return result;
     }
 
-    private DefinedVisitorInterface buildVisitorInterface(Element visitorElement, DataVisitor dataVisitor) throws SourceException, CodeGenerationException {
+    private ADTVisitorInterfaceModel buildVisitorInterface(Element visitorElement, DataVisitor dataVisitor) throws SourceException, CodeGenerationException {
         return buildVisitorInterface(toTypeElement(visitorElement), dataVisitor);
     }
 
-    private DefinedVisitorInterface buildVisitorInterface(TypeElement visitorElement, DataVisitor dataVisitor) throws SourceException, CodeGenerationException {
+    private ADTVisitorInterfaceModel buildVisitorInterface(TypeElement visitorElement, DataVisitor dataVisitor) throws SourceException, CodeGenerationException {
         try {
             JDefinedClass visitorInterfaceModel = createJDefinedClass(visitorElement);
             for (Element element: visitorElement.getEnclosedElements()) {
@@ -148,14 +148,14 @@ class ClassBuilder {
                     }
                 }
             }
-            return new DefinedVisitorInterface(visitorInterfaceModel, dataVisitor);
+            return new ADTVisitorInterfaceModel(visitorInterfaceModel, dataVisitor);
         } catch (JClassAlreadyExistsException ex) {
             throw new CodeGenerationException(ex);
         }
     }
 
-    DefinedClass build(DefinedVisitorInterface visitorInterface) throws SourceException, CodeGenerationException {
-        return DefinedClass.createInstance(codeModel, visitorInterface);
+    ADTClassModel build(ADTVisitorInterfaceModel visitorInterface) throws SourceException, CodeGenerationException {
+        return ADTClassModel.createInstance(codeModel, visitorInterface);
     }
 
     private JDefinedClass createJDefinedClass(TypeElement element) throws JClassAlreadyExistsException {
@@ -165,6 +165,7 @@ class ClassBuilder {
             modifiers = modifiers & ~JMod.ABSTRACT;
 
         JDefinedClass newClass = codeModel._class(modifiers, element.getQualifiedName().toString(), classType);
+        newClass.hide();
         for (TypeParameterElement parameter: element.getTypeParameters()) {
             JTypeVar typeVariable = newClass.generify(parameter.getSimpleName().toString());
             for (TypeMirror type: parameter.getBounds()) {
@@ -176,13 +177,10 @@ class ClassBuilder {
 
     private JClass toJClass(TypeElement element) throws CodeGenerationException {
         try {
-            JClass declaredClass = codeModel._getClass(element.getQualifiedName().toString());
-            if (declaredClass != null) {
-                return declaredClass;
-            } else {
-                return createJDefinedClass(element);
-            }
-        } catch (JClassAlreadyExistsException ex) {
+            Class<?> klass = Class.forName(element.getQualifiedName().toString());
+            JType declaredClass = codeModel._ref(klass);
+            return (JClass)declaredClass;
+        } catch (ClassNotFoundException ex) {
             throw new CodeGenerationException(ex);
         }
     }

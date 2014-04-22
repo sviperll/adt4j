@@ -14,17 +14,16 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
-import java.util.NoSuchElementException;
 
 /**
  *
  * @author Victor Nazarov <asviraspossible@gmail.com>
  */
-public class DefinedVisitorInterface {
+public class ADTVisitorInterfaceModel {
     private final JDefinedClass visitorInterfaceModel;
     private final DataVisitor dataVisitor;
 
-    DefinedVisitorInterface(JDefinedClass visitorInterfaceModel, DataVisitor dataVisitor) {
+    ADTVisitorInterfaceModel(JDefinedClass visitorInterfaceModel, DataVisitor dataVisitor) {
         this.visitorInterfaceModel = visitorInterfaceModel;
         this.dataVisitor = dataVisitor;
     }
@@ -41,15 +40,6 @@ public class DefinedVisitorInterface {
         List<JTypeVar> result = new ArrayList<>();
         for (JTypeVar typeVariable: visitorInterfaceModel.typeParams()) {
             if (!shouldBeOverridenOnInvokation(typeVariable.name()) && !isSelf(typeVariable.name()))
-                result.add(typeVariable);
-        }
-        return result;
-    }
-
-    Collection<JTypeVar> getVisitorInvokationTypeParameters() {
-        List<JTypeVar> result = new ArrayList<>();
-        for (JTypeVar typeVariable: visitorInterfaceModel.typeParams()) {
-            if (shouldBeOverridenOnInvokation(typeVariable.name()))
                 result.add(typeVariable);
         }
         return result;
@@ -79,7 +69,7 @@ public class DefinedVisitorInterface {
         return null;
     }
 
-    JTypeVar getSelfTypeParameter() {
+    private JTypeVar getSelfTypeParameter() {
         for (JTypeVar typeVariable: visitorInterfaceModel.typeParams()) {
             if (isSelf(typeVariable.name()))
                 return typeVariable;
@@ -88,11 +78,10 @@ public class DefinedVisitorInterface {
     }
 
     JClass narrowed(JClass usedDataType, JType resultType, JType exceptionType) {
-        return narrowedForSelf(usedDataType, resultType, exceptionType, usedDataType);
+        return narrowed(usedDataType, resultType, exceptionType, usedDataType);
     }
 
-    JClass narrowedForSelf(JClass usedDataType, JType resultType, JType exceptionType, JType selfType) {
-        System.out.println("Narrowing visitor interface with " + visitorInterfaceModel.typeParams().length + " parameters");
+    JClass narrowed(JClass usedDataType, JType resultType, JType exceptionType, JType selfType) {
         Iterator<JClass> dataTypeArgumentIterator = usedDataType.getTypeParameters().iterator();
         JClass result = visitorInterfaceModel;
         for (JTypeVar typeVariable: visitorInterfaceModel.typeParams()) {
@@ -109,7 +98,7 @@ public class DefinedVisitorInterface {
         return result;
     }
 
-    public Collection<JMethod> methods() {
+    Collection<JMethod> methods() {
         return visitorInterfaceModel.methods();
     }
 
@@ -120,7 +109,7 @@ public class DefinedVisitorInterface {
         return sb.toString();
     }
 
-    JType narrowed(JType type, JClass usedDataType, JType resultType, JType exceptionType) {
+    JType substituteTypeParameter(JType type, JClass usedDataType, JType resultType, JType exceptionType) {
         if (type.name().equals(dataVisitor.exception()))
             return exceptionType;
         else if (type.name().equals(dataVisitor.result()))

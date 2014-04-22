@@ -3,8 +3,6 @@
  */
 package com.github.sviperll.adt4j.examples;
 
-import com.github.sviperll.adt4j.examples.List;
-
 /**
  *
  * @author Victor Nazarov <asviraspossible@gmail.com>
@@ -16,5 +14,8 @@ public class Lists {
 
     public static <T> List<T> append(List<T> list1, List<T> list2) {
         return list1.acceptRecursive(ListVisitors.appendRecursive(list2, List.<T>factory()));
+    }
+
+    private Lists() {
     }
 }

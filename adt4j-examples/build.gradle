@@ -5,3 +5,23 @@ mainClassName = "com.github.sviperll.adt4j.examples.Main"
 dependencies {
     compile(project(':adt4j-core'))
 }
+
+ext {
+    generatedSourcesDir = file("${buildDir}/generated-sources/javac/main/java")
+}
+
+sourceSets {
+    main {
+        java {
+            srcDir 'src/main/java'
+            srcDir generatedSourcesDir
+        }
+    }
+}
+
+compileJava {
+    doFirst {
+        generatedSourcesDir.mkdirs()
+    }
+    options.compilerArgs += ['-s', generatedSourcesDir]
+}

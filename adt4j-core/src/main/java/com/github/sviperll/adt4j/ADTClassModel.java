@@ -32,7 +32,7 @@ import java.util.TreeMap;
  *
  * @author Victor Nazarov <asviraspossible@gmail.com>
  */
-class DefinedClass {
+class ADTClassModel {
     private static final String VISITOR_SUFFIX = "Visitor";
     private static final String VALUE_SUFFIX = "Value";
 
@@ -45,7 +45,7 @@ class DefinedClass {
             return s.substring(0, 1).toUpperCase() + s.substring(1);
         }
     }
-    private static String getQualifiedName(DefinedVisitorInterface visitorInterface) throws SourceException {
+    private static String getQualifiedName(ADTVisitorInterfaceModel visitorInterface) throws SourceException {
         String visitorName = visitorInterface.getSimpleName();
         String valueName;
         if (visitorName.endsWith(VISITOR_SUFFIX))
@@ -56,7 +56,7 @@ class DefinedClass {
         return packageName + "." + valueName;
     }
 
-    public static DefinedClass createInstance(JCodeModel codeModel, DefinedVisitorInterface visitorInterface) throws SourceException, CodeGenerationException {
+    public static ADTClassModel createInstance(JCodeModel codeModel, ADTVisitorInterfaceModel visitorInterface) throws SourceException, CodeGenerationException {
         try {
             String qualifiedName = getQualifiedName(visitorInterface);
             JDefinedClass definedClass = codeModel._class(JMod.ABSTRACT | JMod.PUBLIC, qualifiedName, ClassType.CLASS);
@@ -67,7 +67,7 @@ class DefinedClass {
                 typeParameters.add(typeParameter);
             }
             JClass usedDataType = JExprExt.narrow(definedClass, typeParameters);
-            DefinedClass result = new DefinedClass(definedClass, visitorInterface, usedDataType);
+            ADTClassModel result = new ADTClassModel(definedClass, visitorInterface, usedDataType);
             result.buildAcceptMethod();
             result.buildAcceptRecursiveMethod();
 
@@ -90,24 +90,16 @@ class DefinedClass {
     }
 
     private final JDefinedClass definedClass;
-    private final DefinedVisitorInterface visitorInterface;
+    private final ADTVisitorInterfaceModel visitorInterface;
     private final JClass usedDataType;
 
-    DefinedClass(JDefinedClass definedClass, DefinedVisitorInterface visitorInterface, JClass usedDataType) {
+    private ADTClassModel(JDefinedClass definedClass, ADTVisitorInterfaceModel visitorInterface, JClass usedDataType) {
         this.definedClass = definedClass;
         this.visitorInterface = visitorInterface;
         this.usedDataType = usedDataType;
     }
 
-    String getQualifiedName() {
-        return definedClass.fullName();
-    }
-
-    JCodeModel getCodeModel() {
-        return definedClass.owner();
-    }
-
-    void buildAcceptMethod() {
+    private void buildAcceptMethod() {
         JMethod acceptMethod = definedClass.method(JMod.ABSTRACT | JMod.PUBLIC, definedClass.owner().VOID, "accept");
 
         JTypeVar visitorResultType = visitorInterface.getResultTypeParameter();
@@ -127,7 +119,7 @@ class DefinedClass {
         acceptMethod.param(usedVisitorType, "visitor");
     }
 
-    void buildAcceptRecursiveMethod() {
+    private void buildAcceptRecursiveMethod() {
         JMethod acceptRecursiveMethod = definedClass.method(JMod.PUBLIC, definedClass.owner().VOID, "acceptRecursive");
 
         JTypeVar visitorResultType = visitorInterface.getResultTypeParameter();
@@ -143,7 +135,7 @@ class DefinedClass {
             acceptRecursiveMethod._throws(exceptionType);
         }
 
-        JClass usedVisitorType = visitorInterface.narrowedForSelf(usedDataType, resultType, exceptionType, resultType);
+        JClass usedVisitorType = visitorInterface.narrowed(usedDataType, resultType, exceptionType, resultType);
         JVar visitorParam = acceptRecursiveMethod.param(JMod.FINAL, usedVisitorType, "visitor");
         JInvocation acceptInvocation = JExpr._this().invoke("accept");
         if (!visitorInterface.hasSelfTypeParameter()) {
@@ -160,10 +152,10 @@ class DefinedClass {
 
                 JInvocation invocation = JExpr.ref(visitorParam.name()).invoke(adaptorMethod.name());
                 for (JVar param: interfaceMethod.params()) {
-                    JType paramType = visitorInterface.narrowed(param.type(), usedDataType, resultType, exceptionType);
+                    JType paramType = visitorInterface.substituteTypeParameter(param.type(), usedDataType, resultType, exceptionType);
                     adaptorMethod.param(param.mods().getValue() | JMod.FINAL, paramType, param.name());
 
-                    JType outerVisitorParamType = visitorInterface.narrowed(param.type(), resultType, resultType, exceptionType);
+                    JType outerVisitorParamType = visitorInterface.substituteTypeParameter(param.type(), resultType, resultType, exceptionType);
 
                     if (paramType.equals(outerVisitorParamType))
                         invocation.arg(JExpr.ref(param.name()));
@@ -180,7 +172,7 @@ class DefinedClass {
         acceptRecursiveMethod.body()._return(acceptInvocation);
     }
 
-    JMethod buildFactoryInstanceGetter(JDefinedClass factory) {
+    private JMethod buildFactoryInstanceGetter(JDefinedClass factory) {
         JFieldVar factoryField = definedClass.field(JMod.PRIVATE | JMod.STATIC, factory, "FACTORY");
         JAnnotationUse fieldAnnotationUse = factoryField.annotate(SuppressWarnings.class);
         JAnnotationArrayMember paramArray = fieldAnnotationUse.paramArray("value");
@@ -206,7 +198,7 @@ class DefinedClass {
         return factoryMethod;
     }
 
-    JDefinedClass buildFactoryClass(Map<String, JDefinedClass> caseClasses) throws JClassAlreadyExistsException {
+    private JDefinedClass buildFactoryClass(Map<String, JDefinedClass> caseClasses) throws JClassAlreadyExistsException {
         JClass runtimeException = definedClass.owner().ref(RuntimeException.class);
         JDefinedClass factoryClass = definedClass._class(JMod.PRIVATE | JMod.STATIC, definedClass.name() + "Factory", ClassType.CLASS);
         List<JClass> typeArguments = new ArrayList<>();
@@ -223,7 +215,7 @@ class DefinedClass {
 
             JInvocation staticInvoke = definedClass.staticInvoke(interfaceMethod.name());
             for (JVar param: interfaceMethod.params()) {
-                JType paramType = visitorInterface.narrowed(param.type(), staticUsedDataType, staticUsedDataType, runtimeException);
+                JType paramType = visitorInterface.substituteTypeParameter(param.type(), staticUsedDataType, staticUsedDataType, runtimeException);
                 factoryMethod.param(param.mods().getValue() | JMod.FINAL, paramType, param.name());
                 staticInvoke.arg(JExpr.ref(param.name()));
             }
@@ -246,7 +238,7 @@ class DefinedClass {
 
         JMethod constructor = caseClass.constructor(JMod.NONE);
         for (JVar param: interfaceMethod.params()) {
-            JType paramType = visitorInterface.narrowed(param.type(), staticUsedDataType, staticUsedDataType, runtimeException);
+            JType paramType = visitorInterface.substituteTypeParameter(param.type(), staticUsedDataType, staticUsedDataType, runtimeException);
             caseClass.field(JMod.PRIVATE | JMod.FINAL, paramType, param.name());
             constructor.param(paramType, param.name());
             constructor.body().assign(JExpr._this().ref(param.name()), JExpr.ref(param.name()));
@@ -278,7 +270,7 @@ class DefinedClass {
         return caseClass;
     }
 
-    void buildConstructorMethods(Map<String, JDefinedClass> caseClasses) {
+    private void buildConstructorMethods(Map<String, JDefinedClass> caseClasses) {
         for (JMethod interfaceMethod: visitorInterface.methods()) {
             JMethod constructorMethod = definedClass.method(interfaceMethod.mods().getValue() & ~JMod.ABSTRACT | JMod.STATIC, definedClass.owner().VOID, interfaceMethod.name());
             List<JClass> typeArguments = new ArrayList<>();
@@ -291,7 +283,7 @@ class DefinedClass {
             JClass runtimeException = definedClass.owner().ref(RuntimeException.class);
             constructorMethod.type(staticUsedDataType);
             for (JVar param: interfaceMethod.params()) {
-                JType paramType = visitorInterface.narrowed(param.type(), staticUsedDataType, staticUsedDataType, runtimeException);
+                JType paramType = visitorInterface.substituteTypeParameter(param.type(), staticUsedDataType, staticUsedDataType, runtimeException);
                 constructorMethod.param(param.mods().getValue(), paramType, param.name());
             }
 
@@ -341,7 +333,7 @@ class DefinedClass {
             JMethod visitorMethod1 = anonymousClass1.method(interfaceMethod1.mods().getValue() & ~JMod.ABSTRACT, booleanType, interfaceMethod1.name());
             visitorMethod1.annotate(Override.class);
             for (JVar param: interfaceMethod1.params()) {
-                JType paramType = visitorInterface.narrowed(param.type(), usedDataType, booleanType, runtimeException);
+                JType paramType = visitorInterface.substituteTypeParameter(param.type(), usedDataType, booleanType, runtimeException);
                 visitorMethod1.param(param.mods().getValue() | JMod.FINAL, paramType, param.name() + "1");
             }
 
@@ -350,7 +342,7 @@ class DefinedClass {
                 JMethod visitorMethod2 = anonymousClass2.method(interfaceMethod1.mods().getValue() & ~JMod.ABSTRACT, booleanType, interfaceMethod2.name());
                 visitorMethod2.annotate(Override.class);
                 for (JVar param: interfaceMethod2.params()) {
-                    JType paramType = visitorInterface.narrowed(param.type(), usedDataType, booleanType, runtimeException);
+                    JType paramType = visitorInterface.substituteTypeParameter(param.type(), usedDataType, booleanType, runtimeException);
                     visitorMethod2.param(param.mods().getValue() | JMod.FINAL, paramType, param.name() + "2");
                 }
                 if (!interfaceMethod1.name().equals(interfaceMethod2.name()))
@@ -358,7 +350,7 @@ class DefinedClass {
                 else {
                     EqualsBody body = new EqualsBody(visitorMethod2.body());
                     for (JVar param: interfaceMethod1.params()) {
-                        JType paramType = visitorInterface.narrowed(param.type(), usedDataType, booleanType, runtimeException);
+                        JType paramType = visitorInterface.substituteTypeParameter(param.type(), usedDataType, booleanType, runtimeException);
                         JExpression field1 = JExpr.ref(param.name() + "1");
                         JExpression field2 = JExpr.ref(param.name() + "2");
                         body.appendValue(paramType, field1, field2);
@@ -391,7 +383,7 @@ class DefinedClass {
             JVar result = visitorMethod1.body().decl(definedClass.owner().INT, "result", JExpr.lit(tag));
             HashCodeBody body = new HashCodeBody(visitorMethod1.body(), result);
             for (JVar param: interfaceMethod1.params()) {
-                JType paramType = visitorInterface.narrowed(param.type(), usedDataType, integerType, runtimeException);
+                JType paramType = visitorInterface.substituteTypeParameter(param.type(), usedDataType, integerType, runtimeException);
                 JVar argument = visitorMethod1.param(param.mods().getValue() | JMod.FINAL, paramType, param.name() + "1");
                 body.appendValue(paramType, argument);
             }

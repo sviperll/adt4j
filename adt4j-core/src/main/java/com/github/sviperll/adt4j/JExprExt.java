@@ -38,4 +38,7 @@ public class JExprExt {
                                 List<JClass> typeArguments) {
         return typeArguments.isEmpty() ? definedClass : definedClass.narrow(typeArguments);
     }
+
+    private JExprExt() {
+    }
 }

@@ -3,18 +3,16 @@
  */
 package com.github.sviperll.adt4j;
 
+import com.sun.codemodel.JCodeModel;
+import java.io.IOException;
 import java.util.Set;
 import javax.annotation.processing.AbstractProcessor;
 import javax.annotation.processing.RoundEnvironment;
 import javax.annotation.processing.SupportedAnnotationTypes;
 import javax.annotation.processing.SupportedSourceVersion;
 import javax.lang.model.SourceVersion;
-import javax.lang.model.element.TypeElement;
-import com.sun.codemodel.JCodeModel;
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import javax.lang.model.element.Element;
+import javax.lang.model.element.TypeElement;
 import javax.tools.Diagnostic;
 
 /**
@@ -44,10 +42,10 @@ public class DataVisitorProcessor extends AbstractProcessor {
     }
 
     private void processElement(Element visitorElement, DataVisitor dataVisitor) throws CodeGenerationException, IOException, SourceException {
-        Path temporaryDirectory = Files.createTempDirectory("datavisitorcodemodel");
-        ClassWriter definedClassWriter = new ClassWriter(processingEnv.getFiler(), temporaryDirectory);
-        ClassBuilder builder = new ClassBuilder(new JCodeModel());
-        DefinedClass definedClass = builder.build(visitorElement, dataVisitor);
-        definedClassWriter.write(definedClass);
+        JCodeModel jCodeModel = new JCodeModel();
+        ADTClassModelBuilder builder = new ADTClassModelBuilder(jCodeModel);
+        ADTClassModel definedClass = builder.build(visitorElement, dataVisitor);
+
+        jCodeModel.build(new FilerCodeWriter(processingEnv.getFiler()));
     }
 }
