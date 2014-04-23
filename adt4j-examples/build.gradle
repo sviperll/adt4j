@@ -7,21 +7,22 @@ dependencies {
 }
 
 ext {
-    generatedSourcesDir = file("${buildDir}/generated-sources/javac/main/java")
+    javacGeneratedSourcesDir = file("${buildDir}/generated-sources/javac/main/java")
 }
 
 sourceSets {
     main {
         java {
             srcDir 'src/main/java'
-            srcDir generatedSourcesDir
+            srcDir javacGeneratedSourcesDir
         }
     }
 }
 
 compileJava {
     doFirst {
-        generatedSourcesDir.mkdirs()
+        javacGeneratedSourcesDir.mkdirs()
     }
-    options.compilerArgs += ['-s', generatedSourcesDir]
+    options.compilerArgs += ['-s', javacGeneratedSourcesDir]
+    source = source.filter { p -> !p.getPath().startsWith(javacGeneratedSourcesDir.getPath()) }
 }
