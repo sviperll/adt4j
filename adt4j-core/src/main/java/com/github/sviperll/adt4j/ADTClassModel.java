@@ -45,31 +45,44 @@ class ADTClassModel {
             return s.substring(0, 1).toUpperCase() + s.substring(1);
         }
     }
-    private static String getQualifiedName(ADTVisitorInterfaceModel visitorInterface) throws SourceException {
+    private static String getValueName(ADTVisitorInterfaceModel visitorInterface) throws SourceException {
         String visitorName = visitorInterface.getSimpleName();
         String valueName;
         if (visitorName.endsWith(VISITOR_SUFFIX))
             valueName = visitorName.substring(0, visitorName.length() - VISITOR_SUFFIX.length());
         else
             valueName = visitorName + VALUE_SUFFIX;
-        String packageName = visitorInterface.getPackageName();
-        return packageName + "." + valueName;
+        return valueName;
+    }
+
+    private static String pluralise(String s) throws SourceException {
+        if (s.endsWith("y"))
+            return s.substring(0, s.length() - "y".length()) + "ies";
+        else
+            return s + "s";
     }
 
     public static ADTClassModel createInstance(JCodeModel codeModel, ADTVisitorInterfaceModel visitorInterface) throws SourceException, CodeGenerationException {
         try {
-            String qualifiedName = getQualifiedName(visitorInterface);
-            JDefinedClass definedClass = codeModel._class(JMod.ABSTRACT | JMod.PUBLIC, qualifiedName, ClassType.CLASS);
-            List<JClass> typeParameters = new ArrayList<>();
+            String acceptingInterfaceName = getValueName(visitorInterface);
+            String utilsClassName = pluralise(acceptingInterfaceName);
+
+            JDefinedClass acceptingInterface = codeModel._class(JMod.PUBLIC, visitorInterface.getPackageName() + "." + acceptingInterfaceName, ClassType.INTERFACE);
             for (JTypeVar visitorTypeParameter: visitorInterface.getDataTypeParameters()) {
-                JTypeVar typeParameter = definedClass.generify(visitorTypeParameter.name());
+                JTypeVar typeParameter = acceptingInterface.generify(visitorTypeParameter.name());
                 typeParameter.bound(visitorTypeParameter._extends());
-                typeParameters.add(typeParameter);
             }
-            JClass usedDataType = JExprExt.narrow(definedClass, typeParameters);
-            ADTClassModel result = new ADTClassModel(definedClass, visitorInterface, usedDataType);
+
+            JDefinedClass utilsClass = codeModel._class(JMod.PUBLIC, visitorInterface.getPackageName() + "." + utilsClassName, ClassType.CLASS);
+            JDefinedClass baseCaseClass = utilsClass._class(JMod.ABSTRACT | JMod.PRIVATE | JMod.STATIC, "Base" + acceptingInterface.name(), ClassType.CLASS);
+            for (JTypeVar visitorTypeParameter: visitorInterface.getDataTypeParameters()) {
+                JTypeVar typeParameter = baseCaseClass.generify(visitorTypeParameter.name());
+                typeParameter.bound(visitorTypeParameter._extends());
+            }
+            baseCaseClass._implements(JExprExt.narrow(acceptingInterface, baseCaseClass.typeParams()));
+
+            ADTClassModel result = new ADTClassModel(acceptingInterface, utilsClass, baseCaseClass, visitorInterface);
             result.buildAcceptMethod();
-            result.buildAcceptRecursiveMethod();
 
             Map<String, JDefinedClass> caseClasses = new TreeMap<>();
             for (JMethod interfaceMethod: visitorInterface.methods()) {
@@ -88,19 +101,20 @@ class ADTClassModel {
             throw new CodeGenerationException(ex);
         }
     }
-
-    private final JDefinedClass definedClass;
+    private final JDefinedClass acceptingInterface;
+    private final JDefinedClass utilsClass;
+    private final JDefinedClass baseCaseClass;
     private final ADTVisitorInterfaceModel visitorInterface;
-    private final JClass usedDataType;
 
-    private ADTClassModel(JDefinedClass definedClass, ADTVisitorInterfaceModel visitorInterface, JClass usedDataType) {
-        this.definedClass = definedClass;
+    private ADTClassModel(JDefinedClass acceptingInterface, JDefinedClass utilsClass, JDefinedClass baseCaseClass, ADTVisitorInterfaceModel visitorInterface) {
+        this.acceptingInterface = acceptingInterface;
+        this.utilsClass = utilsClass;
+        this.baseCaseClass = baseCaseClass;
         this.visitorInterface = visitorInterface;
-        this.usedDataType = usedDataType;
     }
 
     private void buildAcceptMethod() {
-        JMethod acceptMethod = definedClass.method(JMod.ABSTRACT | JMod.PUBLIC, definedClass.owner().VOID, "accept");
+        JMethod acceptMethod = acceptingInterface.method(JMod.PUBLIC, acceptingInterface.owner().VOID, "accept");
 
         JTypeVar visitorResultType = visitorInterface.getResultTypeParameter();
         JTypeVar resultType = acceptMethod.generify(visitorResultType.name());
@@ -115,83 +129,29 @@ class ADTClassModel {
             acceptMethod._throws(exceptionType);
         }
 
-        JClass usedVisitorType = visitorInterface.narrowed(usedDataType, resultType, exceptionType);
+        JClass usedAcceptingInterfaceType = JExprExt.narrow(acceptingInterface, acceptingInterface.typeParams());
+        JClass usedVisitorType = visitorInterface.narrowed(usedAcceptingInterfaceType, resultType, exceptionType);
         acceptMethod.param(usedVisitorType, "visitor");
     }
 
-    private void buildAcceptRecursiveMethod() {
-        JMethod acceptRecursiveMethod = definedClass.method(JMod.PUBLIC, definedClass.owner().VOID, "acceptRecursive");
-
-        JTypeVar visitorResultType = visitorInterface.getResultTypeParameter();
-        JTypeVar resultType = acceptRecursiveMethod.generify(visitorResultType.name());
-        resultType.bound(visitorResultType._extends());
-        acceptRecursiveMethod.type(resultType);
-
-        JTypeVar visitorExceptionType = visitorInterface.getExceptionTypeParameter();
-        JTypeVar exceptionType = null;
-        if (visitorExceptionType != null) {
-            exceptionType = acceptRecursiveMethod.generify(visitorExceptionType.name());
-            exceptionType.bound(visitorExceptionType._extends());
-            acceptRecursiveMethod._throws(exceptionType);
-        }
-
-        JClass usedVisitorType = visitorInterface.narrowed(usedDataType, resultType, exceptionType, resultType);
-        JVar visitorParam = acceptRecursiveMethod.param(JMod.FINAL, usedVisitorType, "visitor");
-        JInvocation acceptInvocation = JExpr._this().invoke("accept");
-        if (!visitorInterface.hasSelfTypeParameter()) {
-            acceptInvocation.arg(JExpr.ref("visitor"));
-        } else {
-            JDefinedClass anonymousClass = definedClass.owner().anonymousClass(visitorInterface.narrowed(usedDataType, resultType, exceptionType));
-            for (JMethod interfaceMethod: visitorInterface.methods()) {
-                JMethod adaptorMethod = anonymousClass.method(interfaceMethod.mods().getValue() & ~JMod.ABSTRACT, resultType, interfaceMethod.name());
-                adaptorMethod.annotate(Override.class);
-
-                if (visitorExceptionType != null) {
-                    adaptorMethod._throws(exceptionType);
-                }
-
-                JInvocation invocation = JExpr.ref(visitorParam.name()).invoke(adaptorMethod.name());
-                for (JVar param: interfaceMethod.params()) {
-                    JType paramType = visitorInterface.substituteTypeParameter(param.type(), usedDataType, resultType, exceptionType);
-                    adaptorMethod.param(param.mods().getValue() | JMod.FINAL, paramType, param.name());
-
-                    JType outerVisitorParamType = visitorInterface.substituteTypeParameter(param.type(), resultType, resultType, exceptionType);
-
-                    if (paramType.equals(outerVisitorParamType))
-                        invocation.arg(JExpr.ref(param.name()));
-                    else {
-                        JInvocation argument = param.invoke("acceptRecursive");
-                        argument.arg(JExpr.ref("visitor"));
-                        invocation.arg(argument);
-                    }
-                }
-                adaptorMethod.body()._return(invocation);
-            }
-            acceptInvocation.arg(JExpr._new(anonymousClass));
-        }
-        acceptRecursiveMethod.body()._return(acceptInvocation);
-    }
-
     private JMethod buildFactoryInstanceGetter(JDefinedClass factory) {
-        JFieldVar factoryField = definedClass.field(JMod.PRIVATE | JMod.STATIC, factory, "FACTORY");
+        JFieldVar factoryField = utilsClass.field(JMod.PRIVATE | JMod.STATIC, factory, "FACTORY");
         JAnnotationUse fieldAnnotationUse = factoryField.annotate(SuppressWarnings.class);
         JAnnotationArrayMember paramArray = fieldAnnotationUse.paramArray("value");
         paramArray.param("unchecked");
         paramArray.param("rawtypes");
 
         factoryField.init(JExpr._new(factory));
-        JMethod factoryMethod = definedClass.method(JMod.PUBLIC | JMod.STATIC, definedClass.owner().VOID, "factory");
+        JMethod factoryMethod = utilsClass.method(JMod.PUBLIC | JMod.STATIC, utilsClass.owner().VOID, "factory");
         JAnnotationUse methodAnnotationUse = factoryMethod.annotate(SuppressWarnings.class);
         methodAnnotationUse.param("value", "unchecked");
-        List<JClass> typeArguments = new ArrayList<>();
         for (JTypeVar visitorTypeParameter: visitorInterface.getDataTypeParameters()) {
             JTypeVar typeParameter = factoryMethod.generify(visitorTypeParameter.name());
             typeParameter.bound(visitorTypeParameter._extends());
-            typeArguments.add(typeParameter);
         }
-        JClass staticUsedDataType = JExprExt.narrow(definedClass, typeArguments);
-        JClass usedFactoryType = JExprExt.narrow(factory, typeArguments);
-        factoryMethod.type(visitorInterface.narrowed(staticUsedDataType, staticUsedDataType, definedClass.owner().ref(RuntimeException.class)));
+        JClass usedAcceptingInterfaceType = JExprExt.narrow(acceptingInterface, factoryMethod.typeParams());
+        JClass usedFactoryType = JExprExt.narrow(factory, factoryMethod.typeParams());
+        factoryMethod.type(visitorInterface.narrowed(usedAcceptingInterfaceType, usedAcceptingInterfaceType, utilsClass.owner().ref(RuntimeException.class)));
         JExpression result = JExpr.ref("FACTORY");
         result = usedFactoryType.getTypeParameters().isEmpty() ? result : JExpr.cast(usedFactoryType, result);
         factoryMethod.body()._return(result);
@@ -199,23 +159,23 @@ class ADTClassModel {
     }
 
     private JDefinedClass buildFactoryClass(Map<String, JDefinedClass> caseClasses) throws JClassAlreadyExistsException {
-        JClass runtimeException = definedClass.owner().ref(RuntimeException.class);
-        JDefinedClass factoryClass = definedClass._class(JMod.PRIVATE | JMod.STATIC, definedClass.name() + "Factory", ClassType.CLASS);
+        JClass runtimeException = utilsClass.owner().ref(RuntimeException.class);
+        JDefinedClass factoryClass = utilsClass._class(JMod.PRIVATE | JMod.STATIC, acceptingInterface.name() + "Factory", ClassType.CLASS);
         List<JClass> typeArguments = new ArrayList<>();
         for (JTypeVar visitorTypeParameter: visitorInterface.getDataTypeParameters()) {
             JTypeVar typeParameter = factoryClass.generify(visitorTypeParameter.name());
             typeParameter.bound(visitorTypeParameter._extends());
             typeArguments.add(typeParameter);
         }
-        JClass staticUsedDataType = JExprExt.narrow(definedClass, typeArguments);
-        factoryClass._implements(visitorInterface.narrowed(staticUsedDataType, staticUsedDataType, runtimeException));
+        JClass usedAcceptingInterfaceType = JExprExt.narrow(acceptingInterface, typeArguments);
+        factoryClass._implements(visitorInterface.narrowed(usedAcceptingInterfaceType, usedAcceptingInterfaceType, runtimeException));
         for (JMethod interfaceMethod: visitorInterface.methods()) {
-            JMethod factoryMethod = factoryClass.method(interfaceMethod.mods().getValue() & ~JMod.ABSTRACT, staticUsedDataType, interfaceMethod.name());
+            JMethod factoryMethod = factoryClass.method(interfaceMethod.mods().getValue() & ~JMod.ABSTRACT, usedAcceptingInterfaceType, interfaceMethod.name());
             factoryMethod.annotate(Override.class);
 
-            JInvocation staticInvoke = definedClass.staticInvoke(interfaceMethod.name());
+            JInvocation staticInvoke = utilsClass.staticInvoke(interfaceMethod.name());
             for (JVar param: interfaceMethod.params()) {
-                JType paramType = visitorInterface.substituteTypeParameter(param.type(), staticUsedDataType, staticUsedDataType, runtimeException);
+                JType paramType = visitorInterface.substituteTypeParameter(param.type(), usedAcceptingInterfaceType, usedAcceptingInterfaceType, runtimeException);
                 factoryMethod.param(param.mods().getValue() | JMod.FINAL, paramType, param.name());
                 staticInvoke.arg(JExpr.ref(param.name()));
             }
@@ -225,26 +185,25 @@ class ADTClassModel {
     }
 
     private JDefinedClass buildCaseClass(JMethod interfaceMethod) throws JClassAlreadyExistsException {
-        JClass runtimeException = definedClass.owner().ref(RuntimeException.class);
-        JDefinedClass caseClass = definedClass._class(JMod.PRIVATE | JMod.STATIC, capitalize(interfaceMethod.name()) + capitalize(definedClass.name()));
-        List<JClass> typeParameters = new ArrayList<>();
+        JClass runtimeException = utilsClass.owner().ref(RuntimeException.class);
+        JDefinedClass caseClass = utilsClass._class(JMod.PRIVATE | JMod.STATIC, capitalize(interfaceMethod.name()) + capitalize(acceptingInterface.name()));
         for (JTypeVar visitorTypeParameter: visitorInterface.getDataTypeParameters()) {
             JTypeVar typeParameter = caseClass.generify(visitorTypeParameter.name());
-            typeParameters.add(typeParameter);
         }
 
-        JClass staticUsedDataType = JExprExt.narrow(definedClass, typeParameters);
-        caseClass._extends(staticUsedDataType);
+        JClass usedBaseCaseClassType = JExprExt.narrow(baseCaseClass, caseClass.typeParams());
+        JClass usedAcceptingInterfaceType = JExprExt.narrow(acceptingInterface, caseClass.typeParams());
+        caseClass._extends(usedBaseCaseClassType);
 
         JMethod constructor = caseClass.constructor(JMod.NONE);
         for (JVar param: interfaceMethod.params()) {
-            JType paramType = visitorInterface.substituteTypeParameter(param.type(), staticUsedDataType, staticUsedDataType, runtimeException);
+            JType paramType = visitorInterface.substituteTypeParameter(param.type(), usedAcceptingInterfaceType, usedAcceptingInterfaceType, runtimeException);
             caseClass.field(JMod.PRIVATE | JMod.FINAL, paramType, param.name());
             constructor.param(paramType, param.name());
             constructor.body().assign(JExpr._this().ref(param.name()), JExpr.ref(param.name()));
         }
 
-        JMethod acceptMethod = caseClass.method(JMod.PUBLIC, definedClass.owner().VOID, "accept");
+        JMethod acceptMethod = caseClass.method(JMod.PUBLIC, utilsClass.owner().VOID, "accept");
         acceptMethod.annotate(Override.class);
 
         JTypeVar visitorResultType = visitorInterface.getResultTypeParameter();
@@ -260,7 +219,7 @@ class ADTClassModel {
             acceptMethod._throws(exceptionType);
         }
 
-        JClass usedVisitorType = visitorInterface.narrowed(staticUsedDataType, resultType, exceptionType);
+        JClass usedVisitorType = visitorInterface.narrowed(usedAcceptingInterfaceType, resultType, exceptionType);
         acceptMethod.param(usedVisitorType, "visitor");
         JInvocation invocation = JExpr.invoke(JExpr.ref("visitor"), interfaceMethod.name());
         for (JVar param: interfaceMethod.params()) {
@@ -272,15 +231,15 @@ class ADTClassModel {
 
     private void buildConstructorMethods(Map<String, JDefinedClass> caseClasses) {
         for (JMethod interfaceMethod: visitorInterface.methods()) {
-            JMethod constructorMethod = definedClass.method(interfaceMethod.mods().getValue() & ~JMod.ABSTRACT | JMod.STATIC, definedClass.owner().VOID, interfaceMethod.name());
+            JMethod constructorMethod = utilsClass.method(interfaceMethod.mods().getValue() & ~JMod.ABSTRACT | JMod.STATIC, utilsClass.owner().VOID, interfaceMethod.name());
             List<JClass> typeArguments = new ArrayList<>();
             for (JTypeVar visitorTypeParameter: visitorInterface.getDataTypeParameters()) {
                 JTypeVar typeParameter = constructorMethod.generify(visitorTypeParameter.name());
                 typeParameter.bound(visitorTypeParameter._extends());
                 typeArguments.add(typeParameter);
             }
-            JClass staticUsedDataType = JExprExt.narrow(definedClass, typeArguments);
-            JClass runtimeException = definedClass.owner().ref(RuntimeException.class);
+            JClass staticUsedDataType = JExprExt.narrow(acceptingInterface, typeArguments);
+            JClass runtimeException = utilsClass.owner().ref(RuntimeException.class);
             constructorMethod.type(staticUsedDataType);
             for (JVar param: interfaceMethod.params()) {
                 JType paramType = visitorInterface.substituteTypeParameter(param.type(), staticUsedDataType, staticUsedDataType, runtimeException);
@@ -294,10 +253,10 @@ class ADTClassModel {
                     constructorInvocation.arg(JExpr.ref(param.name()));
                 constructorMethod.body()._return(constructorInvocation);
             } else {
-                JFieldVar singletonInstanceField = definedClass.field(JMod.PRIVATE | JMod.STATIC | JMod.FINAL,
-                                                                      staticUsedDataType.erasure(),
-                                                                      interfaceMethod.name().toUpperCase(),
-                                                                      JExpr._new(caseClass.erasure()));
+                JFieldVar singletonInstanceField = utilsClass.field(JMod.PRIVATE | JMod.STATIC | JMod.FINAL,
+                                                                    staticUsedDataType.erasure(),
+                                                                    interfaceMethod.name().toUpperCase(),
+                                                                    JExpr._new(caseClass.erasure()));
                 JAnnotationUse fieldAnnotationUse = singletonInstanceField.annotate(SuppressWarnings.class);
                 JAnnotationArrayMember paramArray = fieldAnnotationUse.paramArray("value");
                 paramArray.param("unchecked");
@@ -312,37 +271,38 @@ class ADTClassModel {
     }
 
     private void buildEqualsMethod() {
-        JType booleanType = definedClass.owner()._ref(Boolean.class);
-        JType runtimeException = definedClass.owner()._ref(RuntimeException.class);
-        JMethod equalsMethod = definedClass.method(JMod.PUBLIC, definedClass.owner().BOOLEAN, "equals");
+        JType booleanType = baseCaseClass.owner()._ref(Boolean.class);
+        JType runtimeException = baseCaseClass.owner()._ref(RuntimeException.class);
+        JMethod equalsMethod = baseCaseClass.method(JMod.PUBLIC, baseCaseClass.owner().BOOLEAN, "equals");
         equalsMethod.annotate(Override.class);
         JAnnotationUse annotationUse = equalsMethod.annotate(SuppressWarnings.class);
         annotationUse.param("value", "unchecked");
-        equalsMethod.param(definedClass.owner()._ref(Object.class), "thatObject");
+        equalsMethod.param(baseCaseClass.owner()._ref(Object.class), "thatObject");
         JFieldRef thatObject = JExpr.ref("thatObject");
         JConditional _if = equalsMethod.body()._if(JExpr._this().eq(thatObject));
         _if._then()._return(JExpr.TRUE);
-        JConditional elseif = _if._elseif(thatObject._instanceof(definedClass).not());
+        JConditional elseif = _if._elseif(thatObject._instanceof(acceptingInterface).not());
         elseif._then()._return(JExpr.FALSE);
         JBlock _else = elseif._else();
-        _else.decl(JMod.FINAL, usedDataType, "that", JExpr.cast(usedDataType, thatObject));
-        JClass visitorType = visitorInterface.narrowed(usedDataType, booleanType, runtimeException);
+        JClass usedAcceptingInterfaceType = JExprExt.narrow(acceptingInterface, baseCaseClass.typeParams());
+        _else.decl(JMod.FINAL, usedAcceptingInterfaceType, "that", JExpr.cast(usedAcceptingInterfaceType, thatObject));
+        JClass visitorType = visitorInterface.narrowed(usedAcceptingInterfaceType, booleanType, runtimeException);
 
-        JDefinedClass anonymousClass1 = definedClass.owner().anonymousClass(visitorType);
+        JDefinedClass anonymousClass1 = baseCaseClass.owner().anonymousClass(visitorType);
         for (JMethod interfaceMethod1: visitorInterface.methods()) {
             JMethod visitorMethod1 = anonymousClass1.method(interfaceMethod1.mods().getValue() & ~JMod.ABSTRACT, booleanType, interfaceMethod1.name());
             visitorMethod1.annotate(Override.class);
             for (JVar param: interfaceMethod1.params()) {
-                JType paramType = visitorInterface.substituteTypeParameter(param.type(), usedDataType, booleanType, runtimeException);
+                JType paramType = visitorInterface.substituteTypeParameter(param.type(), usedAcceptingInterfaceType, booleanType, runtimeException);
                 visitorMethod1.param(param.mods().getValue() | JMod.FINAL, paramType, param.name() + "1");
             }
 
-            JDefinedClass anonymousClass2 = definedClass.owner().anonymousClass(visitorType);
+            JDefinedClass anonymousClass2 = baseCaseClass.owner().anonymousClass(visitorType);
             for (JMethod interfaceMethod2: visitorInterface.methods()) {
                 JMethod visitorMethod2 = anonymousClass2.method(interfaceMethod1.mods().getValue() & ~JMod.ABSTRACT, booleanType, interfaceMethod2.name());
                 visitorMethod2.annotate(Override.class);
                 for (JVar param: interfaceMethod2.params()) {
-                    JType paramType = visitorInterface.substituteTypeParameter(param.type(), usedDataType, booleanType, runtimeException);
+                    JType paramType = visitorInterface.substituteTypeParameter(param.type(), usedAcceptingInterfaceType, booleanType, runtimeException);
                     visitorMethod2.param(param.mods().getValue() | JMod.FINAL, paramType, param.name() + "2");
                 }
                 if (!interfaceMethod1.name().equals(interfaceMethod2.name()))
@@ -350,7 +310,7 @@ class ADTClassModel {
                 else {
                     EqualsBody body = new EqualsBody(visitorMethod2.body());
                     for (JVar param: interfaceMethod1.params()) {
-                        JType paramType = visitorInterface.substituteTypeParameter(param.type(), usedDataType, booleanType, runtimeException);
+                        JType paramType = visitorInterface.substituteTypeParameter(param.type(), usedAcceptingInterfaceType, booleanType, runtimeException);
                         JExpression field1 = JExpr.ref(param.name() + "1");
                         JExpression field2 = JExpr.ref(param.name() + "2");
                         body.appendValue(paramType, field1, field2);
@@ -369,21 +329,22 @@ class ADTClassModel {
     }
 
     private void buildHashCodeMethod() {
-        JType integerType = definedClass.owner()._ref(Integer.class);
-        JType runtimeException = definedClass.owner()._ref(RuntimeException.class);
-        JMethod hashCodeMethod = definedClass.method(JMod.PUBLIC, definedClass.owner().INT, "hashCode");
+        JType integerType = baseCaseClass.owner()._ref(Integer.class);
+        JType runtimeException = baseCaseClass.owner()._ref(RuntimeException.class);
+        JMethod hashCodeMethod = baseCaseClass.method(JMod.PUBLIC, baseCaseClass.owner().INT, "hashCode");
         hashCodeMethod.annotate(Override.class);
-        JClass visitorType = visitorInterface.narrowed(usedDataType, integerType, runtimeException);
+        JClass usedAcceptingInterfaceType = JExprExt.narrow(acceptingInterface, baseCaseClass.typeParams());
+        JClass visitorType = visitorInterface.narrowed(usedAcceptingInterfaceType, integerType, runtimeException);
 
-        JDefinedClass anonymousClass1 = definedClass.owner().anonymousClass(visitorType);
+        JDefinedClass anonymousClass1 = baseCaseClass.owner().anonymousClass(visitorType);
         int tag = 1;
         for (JMethod interfaceMethod1: visitorInterface.methods()) {
             JMethod visitorMethod1 = anonymousClass1.method(interfaceMethod1.mods().getValue() & ~JMod.ABSTRACT, integerType, interfaceMethod1.name());
             visitorMethod1.annotate(Override.class);
-            JVar result = visitorMethod1.body().decl(definedClass.owner().INT, "result", JExpr.lit(tag));
+            JVar result = visitorMethod1.body().decl(baseCaseClass.owner().INT, "result", JExpr.lit(tag));
             HashCodeBody body = new HashCodeBody(visitorMethod1.body(), result);
             for (JVar param: interfaceMethod1.params()) {
-                JType paramType = visitorInterface.substituteTypeParameter(param.type(), usedDataType, integerType, runtimeException);
+                JType paramType = visitorInterface.substituteTypeParameter(param.type(), usedAcceptingInterfaceType, integerType, runtimeException);
                 JVar argument = visitorMethod1.param(param.mods().getValue() | JMod.FINAL, paramType, param.name() + "1");
                 body.appendValue(paramType, argument);
             }
@@ -402,7 +363,7 @@ class ADTClassModel {
         }
 
         private void appendValue(JType type, JExpression value1, JExpression value2) {
-            JCodeModel model = definedClass.owner();
+            JCodeModel model = baseCaseClass.owner();
             JType intType = model.INT;
             if (type.isArray()) {
                 appendValue(model.INT, value1.ref("length"), value2.ref("length"));
@@ -435,7 +396,7 @@ class ADTClassModel {
         }
 
         private void appendValue(JType type, JExpression value) {
-            JCodeModel model = definedClass.owner();
+            JCodeModel model = baseCaseClass.owner();
             JType intType = model.INT;
             if (type.isArray()) {
                 JForLoop _for = body._for();
@@ -450,7 +411,7 @@ class ADTClassModel {
             } else if (type.name().equals("double")) {
                 JInvocation invocation = model.ref(Double.class).staticInvoke("doubleToLongBits");
                 invocation.arg(value);
-                appendValue(definedClass.owner().LONG, invocation);
+                appendValue(baseCaseClass.owner().LONG, invocation);
             } else if (type.name().equals("float")) {
                 JInvocation invocation = model.ref(Float.class).staticInvoke("floatToIntBits");
                 invocation.arg(value);

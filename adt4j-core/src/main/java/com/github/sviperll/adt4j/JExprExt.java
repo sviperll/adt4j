@@ -8,8 +8,10 @@ import com.sun.codemodel.JDefinedClass;
 import com.sun.codemodel.JExpr;
 import com.sun.codemodel.JExpression;
 import com.sun.codemodel.JFormatter;
+import com.sun.codemodel.JTypeVar;
 import java.io.PrintWriter;
 import java.io.StringWriter;
+import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -35,8 +37,12 @@ public class JExprExt {
     }
 
     public static JClass narrow(JDefinedClass definedClass,
-                                List<JClass> typeArguments) {
+                                List<? extends JClass> typeArguments) {
         return typeArguments.isEmpty() ? definedClass : definedClass.narrow(typeArguments);
+    }
+
+    static JClass narrow(JDefinedClass definedClass, JTypeVar[] typeParams) {
+        return narrow(definedClass, Arrays.asList(typeParams));
     }
 
     private JExprExt() {
