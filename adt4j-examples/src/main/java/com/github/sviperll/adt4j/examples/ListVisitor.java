@@ -1,24 +1,11 @@
 /*
- * Copyright 2013 Victor Nazarov <asviraspossible@gmail.com>.
+ * Copyright 2014 Victor Nazarov <asviraspossible@gmail.com>.
  */
 package com.github.sviperll.adt4j.examples;
-
-import com.github.sviperll.adt4j.DataVisitor;
 
 /**
  *
  * @author Victor Nazarov <asviraspossible@gmail.com>
  */
-@DataVisitor(
-        result = "R",
-        self = "S"
-        /*,
-         * // All static methods that return Visitor interface should become
-         * // instance methods of generated List class
-         * mixin = ListVisitors.class
-         */
-        )
-public interface ListVisitor<T, S, R> {
-    R cons(T head, S tail);
-    R nil();
+public interface ListVisitor<T, R> extends ListLikeVisitor<T, List<T>, R> {
 }

@@ -9,13 +9,18 @@ package com.github.sviperll.adt4j.examples;
  */
 public class Main {
     public static void main(String[] args) {
-        List<Integer> list1 = Lists.cons(1, Lists.cons(2, Lists.cons(3, Lists.<Integer>nil())));
-        List<Integer> list2 = Lists.cons(4, Lists.cons(5, Lists.cons(6, Lists.<Integer>nil())));
-        list1.accept(new ListVisitor<Integer, List<Integer>, Void>() {
+        List<Integer> list1 = List.cons(1, List.cons(2, List.cons(3, List.<Integer>nil())));
+        List<Integer> list2 = List.cons(4, List.cons(5, List.cons(6, List.<Integer>nil())));
+
+        printList(list1.append(list2));
+    }
+
+    private static void printList(List<Integer> list) {
+        list.accept(new ListVisitor<Integer, Void>() {
             @Override
             public Void cons(Integer head, List<Integer> tail) {
                 System.out.println(head);
-                tail.accept(this);
+                printList(tail);
                 return null;
             }
 
