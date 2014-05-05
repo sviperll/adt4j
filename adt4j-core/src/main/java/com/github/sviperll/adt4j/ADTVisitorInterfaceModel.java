@@ -20,6 +20,9 @@ import java.util.List;
  * @author Victor Nazarov <asviraspossible@gmail.com>
  */
 public class ADTVisitorInterfaceModel {
+    private static final String VISITOR_SUFFIX = "Visitor";
+    private static final String VALUE_SUFFIX = "Value";
+
     private final JDefinedClass visitorInterfaceModel;
     private final DataVisitor dataVisitor;
 
@@ -28,24 +31,30 @@ public class ADTVisitorInterfaceModel {
         this.dataVisitor = dataVisitor;
     }
 
-    String getSimpleName() {
-        return visitorInterfaceModel.name();
-    }
-
     String getPackageName() {
         return visitorInterfaceModel._package().name();
+    }
+
+    String getValueClassName() {
+        String visitorName = visitorInterfaceModel.name();
+        String valueName;
+        if (visitorName.endsWith(VISITOR_SUFFIX))
+            valueName = visitorName.substring(0, visitorName.length() - VISITOR_SUFFIX.length());
+        else
+            valueName = visitorName + VALUE_SUFFIX;
+        return valueName;
     }
 
     Collection<JTypeVar> getDataTypeParameters() {
         List<JTypeVar> result = new ArrayList<>();
         for (JTypeVar typeVariable: visitorInterfaceModel.typeParams()) {
-            if (!shouldBeOverridenOnInvokation(typeVariable.name()) && !isSelf(typeVariable.name()))
+            if (!shouldBeOverridenOnInvocation(typeVariable.name()) && !isSelf(typeVariable.name()))
                 result.add(typeVariable);
         }
         return result;
     }
 
-    private boolean shouldBeOverridenOnInvokation(String name) {
+    private boolean shouldBeOverridenOnInvocation(String name) {
         return name.equals(dataVisitor.result()) || name.equals(dataVisitor.exception());
     }
 
