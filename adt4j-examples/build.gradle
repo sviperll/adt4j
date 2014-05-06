@@ -26,3 +26,13 @@ compileJava {
     options.compilerArgs += ['-s', javacGeneratedSourcesDir]
     source = source.filter { p -> !p.getPath().startsWith(javacGeneratedSourcesDir.getPath()) }
 }
+
+uploadArchives {
+    repositories {
+        mavenDeployer {
+            pom.project {
+                description "ADT4J examples package. ADT4J implements Algebraic Data Types in Java language using visitor pattern";
+            }
+        }
+    }
+}

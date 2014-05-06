@@ -1,3 +1,13 @@
 dependencies {
     compile(group: 'com.sun.codemodel', name: 'codemodel', version: '2.6')
 }
+
+uploadArchives {
+    repositories {
+        mavenDeployer {
+            pom.project {
+                description "ADT4J main package. ADT4J implements Algebraic Data Types in Java language using visitor pattern";
+            }
+        }
+    }
+}
