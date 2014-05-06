@@ -36,13 +36,25 @@ public class ADTVisitorInterfaceModel {
     }
 
     String getValueClassName() {
-        String visitorName = visitorInterfaceModel.name();
-        String valueName;
-        if (visitorName.endsWith(VISITOR_SUFFIX))
-            valueName = visitorName.substring(0, visitorName.length() - VISITOR_SUFFIX.length());
-        else
-            valueName = visitorName + VALUE_SUFFIX;
-        return valueName;
+        if (!dataVisitor.className().equals(":auto")) {
+            return dataVisitor.className();
+        } else {
+            String visitorName = visitorInterfaceModel.name();
+            String valueName;
+            if (visitorName.endsWith(VISITOR_SUFFIX))
+                valueName = visitorName.substring(0, visitorName.length() - VISITOR_SUFFIX.length());
+            else
+                valueName = visitorName + VALUE_SUFFIX;
+            return valueName;
+        }
+    }
+
+    boolean generatesPublicClass() {
+        return dataVisitor.isPublic();
+    }
+
+    int hashCodeBase() {
+        return dataVisitor.hashCodeBase();
     }
 
     Collection<JTypeVar> getDataTypeParameters() {

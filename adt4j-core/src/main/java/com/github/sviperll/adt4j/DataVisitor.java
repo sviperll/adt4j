@@ -21,4 +21,7 @@ public @interface DataVisitor {
     String result();
     String exception() default ":none";
     String self() default ":none";
+    String className() default ":auto";
+    boolean isPublic() default false;
+    int hashCodeBase() default 27;
 }

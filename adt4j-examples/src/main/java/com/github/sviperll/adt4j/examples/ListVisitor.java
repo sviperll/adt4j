@@ -11,7 +11,8 @@ import com.github.sviperll.adt4j.DataVisitor;
  */
 @DataVisitor(
         result = "R",
-        self = "S"
+        self = "S",
+        isPublic = true
         )
 public interface ListVisitor<T, S, R> {
     R cons(T head, S tail);

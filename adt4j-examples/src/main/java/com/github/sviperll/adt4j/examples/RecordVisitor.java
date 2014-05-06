@@ -9,7 +9,8 @@ import com.github.sviperll.adt4j.DataVisitor;
  *
  * @author Victor Nazarov <asviraspossible@gmail.com>
  */
-@DataVisitor(result = "R")
+@DataVisitor(result = "R",
+             hashCodeBase = 49)
 public interface RecordVisitor<R> {
     R valueOf(boolean bool, byte b, char c, int i, long l, float f, double d, Object o, boolean[] boola, byte[] ba, char[] ca, int[] ia, long[] la, float[] fa, double[] da, Object[] oa);
 }

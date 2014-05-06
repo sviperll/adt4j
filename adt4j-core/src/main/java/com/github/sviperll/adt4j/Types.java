@@ -5,14 +5,20 @@ package com.github.sviperll.adt4j;
 
 import com.sun.codemodel.JClass;
 import com.sun.codemodel.JCodeModel;
+import com.sun.codemodel.JDefinedClass;
 import com.sun.codemodel.JPrimitiveType;
 import com.sun.codemodel.JType;
+import com.sun.codemodel.JTypeVar;
 
 /**
  *
  * @author Victor Nazarov <asviraspossible@gmail.com>
  */
 class Types {
+    static JClass narrow(JDefinedClass definedClass, JTypeVar[] typeParams) {
+        return typeParams.length == 0 ? definedClass : definedClass.narrow(typeParams);
+    }
+
     static Types createInstance(JCodeModel codeModel) {
         Types modelTypes = new Types();
         modelTypes._void = codeModel.VOID;
