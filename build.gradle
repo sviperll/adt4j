@@ -8,7 +8,7 @@ subprojects {
         options.compilerArgs = ['-Xlint', '-Xlint:-serial']
     }
 
-    version = '0.3-SNAPSHOT'
+    version = '0.4-SNAPSHOT'
     group = 'com.github.sviperll'
     sourceCompatibility = 1.7
 
