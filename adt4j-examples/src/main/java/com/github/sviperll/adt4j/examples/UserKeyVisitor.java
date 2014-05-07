@@ -3,13 +3,13 @@
  */
 package com.github.sviperll.adt4j.examples;
 
-import com.github.sviperll.adt4j.DataVisitor;
+import com.github.sviperll.adt4j.ValueVisitor;
 
 /**
  *
  * @author Victor Nazarov <asviraspossible@gmail.com>
  */
-@DataVisitor(result = "R")
+@ValueVisitor(resultVariableName = "R")
 public interface UserKeyVisitor<R> {
     R valueOf(int key);
 }

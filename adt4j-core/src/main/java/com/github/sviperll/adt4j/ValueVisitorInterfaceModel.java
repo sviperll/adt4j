@@ -19,14 +19,14 @@ import java.util.List;
  *
  * @author Victor Nazarov <asviraspossible@gmail.com>
  */
-public class ADTVisitorInterfaceModel {
+public class ValueVisitorInterfaceModel {
     private static final String VISITOR_SUFFIX = "Visitor";
     private static final String VALUE_SUFFIX = "Value";
 
     private final JDefinedClass visitorInterfaceModel;
-    private final DataVisitor dataVisitor;
+    private final ValueVisitor dataVisitor;
 
-    ADTVisitorInterfaceModel(JDefinedClass visitorInterfaceModel, DataVisitor dataVisitor) {
+    ValueVisitorInterfaceModel(JDefinedClass visitorInterfaceModel, ValueVisitor dataVisitor) {
         this.visitorInterfaceModel = visitorInterfaceModel;
         this.dataVisitor = dataVisitor;
     }
@@ -36,8 +36,8 @@ public class ADTVisitorInterfaceModel {
     }
 
     String getValueClassName() {
-        if (!dataVisitor.className().equals(":auto")) {
-            return dataVisitor.className();
+        if (!dataVisitor.valueClassName().equals(":auto")) {
+            return dataVisitor.valueClassName();
         } else {
             String visitorName = visitorInterfaceModel.name();
             String valueName;
@@ -50,11 +50,11 @@ public class ADTVisitorInterfaceModel {
     }
 
     boolean generatesPublicClass() {
-        return dataVisitor.isPublic();
+        return dataVisitor.valueClassIsPublic();
     }
 
     int hashCodeBase() {
-        return dataVisitor.hashCodeBase();
+        return dataVisitor.valueClassHashCodeBase();
     }
 
     Collection<JTypeVar> getDataTypeParameters() {
@@ -67,16 +67,16 @@ public class ADTVisitorInterfaceModel {
     }
 
     private boolean shouldBeOverridenOnInvocation(String name) {
-        return name.equals(dataVisitor.result()) || name.equals(dataVisitor.exception());
+        return name.equals(dataVisitor.resultVariableName()) || name.equals(dataVisitor.exceptionVariableName());
     }
 
     private boolean isSelf(String name) {
-        return name.equals(dataVisitor.self());
+        return name.equals(dataVisitor.selfReferenceVariableName());
     }
 
     JTypeVar getResultTypeParameter() {
         for (JTypeVar typeVariable: visitorInterfaceModel.typeParams()) {
-            if (typeVariable.name().equals(dataVisitor.result()))
+            if (typeVariable.name().equals(dataVisitor.resultVariableName()))
                 return typeVariable;
         }
         return null;
@@ -84,7 +84,7 @@ public class ADTVisitorInterfaceModel {
 
     JTypeVar getExceptionTypeParameter() {
         for (JTypeVar typeVariable: visitorInterfaceModel.typeParams()) {
-            if (typeVariable.name().equals(dataVisitor.exception()))
+            if (typeVariable.name().equals(dataVisitor.exceptionVariableName()))
                 return typeVariable;
         }
         return null;
@@ -106,11 +106,11 @@ public class ADTVisitorInterfaceModel {
         Iterator<JClass> dataTypeArgumentIterator = usedDataType.getTypeParameters().iterator();
         JClass result = visitorInterfaceModel;
         for (JTypeVar typeVariable: visitorInterfaceModel.typeParams()) {
-            if (typeVariable.name().equals(dataVisitor.exception()))
+            if (typeVariable.name().equals(dataVisitor.exceptionVariableName()))
                 result = result.narrow(exceptionType);
-            else if (typeVariable.name().equals(dataVisitor.result()))
+            else if (typeVariable.name().equals(dataVisitor.resultVariableName()))
                 result = result.narrow(resultType);
-            else if (typeVariable.name().equals(dataVisitor.self()))
+            else if (typeVariable.name().equals(dataVisitor.selfReferenceVariableName()))
                 result = result.narrow(selfType);
             else {
                 result = result.narrow(dataTypeArgumentIterator.next());
@@ -131,11 +131,11 @@ public class ADTVisitorInterfaceModel {
     }
 
     JType substituteTypeParameter(JType type, JClass usedDataType, JType resultType, JType exceptionType) {
-        if (type.name().equals(dataVisitor.exception()))
+        if (type.name().equals(dataVisitor.exceptionVariableName()))
             return exceptionType;
-        else if (type.name().equals(dataVisitor.result()))
+        else if (type.name().equals(dataVisitor.resultVariableName()))
             return resultType;
-        else if (type.name().equals(dataVisitor.self()))
+        else if (type.name().equals(dataVisitor.selfReferenceVariableName()))
             return usedDataType;
         else
             return type;

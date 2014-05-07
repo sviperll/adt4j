@@ -15,44 +15,45 @@ import com.sun.codemodel.JTypeVar;
  * @author Victor Nazarov <asviraspossible@gmail.com>
  */
 class Types {
-    static JClass narrow(JDefinedClass definedClass, JTypeVar[] typeParams) {
+    public static JClass narrow(JDefinedClass definedClass, JTypeVar[] typeParams) {
         return typeParams.length == 0 ? definedClass : definedClass.narrow(typeParams);
     }
 
-    static Types createInstance(JCodeModel codeModel) {
-        Types modelTypes = new Types();
-        modelTypes._void = codeModel.VOID;
-        modelTypes._long = codeModel.LONG;
-        modelTypes._boolean = codeModel.BOOLEAN;
-        modelTypes._int = codeModel.INT;
-        modelTypes._float = codeModel.FLOAT;
-        modelTypes._double = codeModel.DOUBLE;
-
-        modelTypes._Object = codeModel.ref(Object.class);
-        modelTypes._Boolean = codeModel.ref(Boolean.class);
-        modelTypes._Integer = codeModel.ref(Integer.class);
-        modelTypes._Long = codeModel.ref(Long.class);
-        modelTypes._Double = codeModel.ref(Double.class);
-        modelTypes._Float = codeModel.ref(Float.class);
-        modelTypes._RuntimeException = codeModel.ref(RuntimeException.class);
-        return modelTypes;
+    public static Types createInstance(JCodeModel codeModel) {
+        return new Types(codeModel);
     }
 
-    private JPrimitiveType _void;
-    private JPrimitiveType _long;
-    private JPrimitiveType _boolean;
-    private JPrimitiveType _int;
-    private JPrimitiveType _float;
-    private JPrimitiveType _double;
-    private JClass _Object;
-    private JClass _Boolean;
-    private JClass _Integer;
-    private JClass _Double;
-    private JClass _Float;
-    private JClass _RuntimeException;
-    private JClass _Long;
+    private final JPrimitiveType _void;
+    private final JPrimitiveType _long;
+    private final JPrimitiveType _boolean;
+    private final JPrimitiveType _int;
+    private final JPrimitiveType _float;
+    private final JPrimitiveType _double;
+    private final JClass _Object;
+    private final JClass _Boolean;
+    private final JClass _Integer;
+    private final JClass _Double;
+    private final JClass _Float;
+    private final JClass _RuntimeException;
+    private final JClass _Long;
+    private final JClass _NullPointerException;
 
-    private Types() {
+    private Types(JCodeModel codeModel) {
+        _void = codeModel.VOID;
+        _long = codeModel.LONG;
+        _boolean = codeModel.BOOLEAN;
+        _int = codeModel.INT;
+        _float = codeModel.FLOAT;
+        _double = codeModel.DOUBLE;
+
+        _Object = codeModel.ref(Object.class);
+        _Boolean = codeModel.ref(Boolean.class);
+        _Integer = codeModel.ref(Integer.class);
+        _Long = codeModel.ref(Long.class);
+        _Double = codeModel.ref(Double.class);
+        _Float = codeModel.ref(Float.class);
+        _RuntimeException = codeModel.ref(RuntimeException.class);
+        _NullPointerException = codeModel.ref(NullPointerException.class);
     }
 
     public JPrimitiveType _void() {
@@ -105,5 +106,9 @@ class Types {
 
     public JClass _Long() {
         return _Long;
+    }
+
+    public JClass _NullPointerException() {
+        return _NullPointerException;
     }
 }

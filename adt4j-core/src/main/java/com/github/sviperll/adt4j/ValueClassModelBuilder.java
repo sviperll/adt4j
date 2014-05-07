@@ -12,7 +12,9 @@ import com.sun.codemodel.JMethod;
 import com.sun.codemodel.JMod;
 import com.sun.codemodel.JType;
 import com.sun.codemodel.JTypeVar;
+import com.sun.codemodel.JVar;
 import java.util.Collection;
+import javax.lang.model.element.AnnotationMirror;
 import javax.lang.model.element.Element;
 import javax.lang.model.element.ElementKind;
 import static javax.lang.model.element.ElementKind.ANNOTATION_TYPE;
@@ -52,7 +54,7 @@ import javax.lang.model.type.WildcardType;
  *
  * @author Victor Nazarov <asviraspossible@gmail.com>
  */
-class ADTClassModelBuilder {
+class ValueClassModelBuilder {
     private static TypeElement toTypeElement(Element element) throws SourceException {
         if (!(element instanceof TypeElement))
             throw new SourceException("DataVisitor annotation is only allowed to interfaces");
@@ -111,21 +113,21 @@ class ADTClassModelBuilder {
         }
     }
 
-    public ADTClassModelBuilder(JCodeModel codeModel) {
+    public ValueClassModelBuilder(JCodeModel codeModel) {
         this.codeModel = codeModel;
     }
 
-    public ADTClassModel build(Element visitorElement, DataVisitor dataVisitor) throws SourceException, CodeGenerationException {
-        ADTVisitorInterfaceModel visitorInterfaceModel = buildVisitorInterface(visitorElement, dataVisitor);
-        ADTClassModel result = build(visitorInterfaceModel);
+    public ValueClassModel build(Element visitorElement, ValueVisitor dataVisitor) throws SourceException, CodeGenerationException {
+        ValueVisitorInterfaceModel visitorInterfaceModel = buildVisitorInterface(visitorElement, dataVisitor);
+        ValueClassModel result = build(visitorInterfaceModel);
         return result;
     }
 
-    private ADTVisitorInterfaceModel buildVisitorInterface(Element visitorElement, DataVisitor dataVisitor) throws SourceException, CodeGenerationException {
+    private ValueVisitorInterfaceModel buildVisitorInterface(Element visitorElement, ValueVisitor dataVisitor) throws SourceException, CodeGenerationException {
         return buildVisitorInterface(toTypeElement(visitorElement), dataVisitor);
     }
 
-    private ADTVisitorInterfaceModel buildVisitorInterface(TypeElement visitorElement, DataVisitor dataVisitor) throws SourceException, CodeGenerationException {
+    private ValueVisitorInterfaceModel buildVisitorInterface(TypeElement visitorElement, ValueVisitor dataVisitor) throws SourceException, CodeGenerationException {
         try {
             JDefinedClass visitorInterfaceModel = createJDefinedClass(visitorElement);
             for (Element element: visitorElement.getEnclosedElements()) {
@@ -144,18 +146,21 @@ class ADTClassModelBuilder {
                     }
 
                     for (VariableElement variable: executable.getParameters()) {
-                        method.param(toJMod(variable.getModifiers()), toJType(variable.asType()), variable.getSimpleName().toString());
+                        JVar param = method.param(toJMod(variable.getModifiers()), toJType(variable.asType()), variable.getSimpleName().toString());
+                        for (AnnotationMirror annotation: variable.getAnnotationMirrors()) {
+                            param.annotate((JClass)toJType(annotation.getAnnotationType()));
+                        }
                     }
                 }
             }
-            return new ADTVisitorInterfaceModel(visitorInterfaceModel, dataVisitor);
+            return new ValueVisitorInterfaceModel(visitorInterfaceModel, dataVisitor);
         } catch (JClassAlreadyExistsException ex) {
             throw new CodeGenerationException(ex);
         }
     }
 
-    ADTClassModel build(ADTVisitorInterfaceModel visitorInterface) throws SourceException, CodeGenerationException {
-        return ADTClassModel.createInstance(codeModel, visitorInterface);
+    ValueClassModel build(ValueVisitorInterfaceModel visitorInterface) throws SourceException, CodeGenerationException {
+        return ValueClassModel.createInstance(codeModel, visitorInterface);
     }
 
     private JDefinedClass createJDefinedClass(TypeElement element) throws JClassAlreadyExistsException {

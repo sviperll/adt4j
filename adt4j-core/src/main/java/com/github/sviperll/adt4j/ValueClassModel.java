@@ -26,12 +26,13 @@ import com.sun.codemodel.JTypeVar;
 import com.sun.codemodel.JVar;
 import java.util.Map;
 import java.util.TreeMap;
+import javax.annotation.Nonnull;
 
 /**
  *
  * @author Victor Nazarov <asviraspossible@gmail.com>
  */
-class ADTClassModel {
+class ValueClassModel {
     private static String capitalize(String s) {
         if (s.length() >= 2
             && Character.isHighSurrogate(s.charAt(0))
@@ -43,7 +44,7 @@ class ADTClassModel {
     }
 
     private static JDefinedClass createAcceptingInterface(JDefinedClass valueClass,
-                                                          ADTVisitorInterfaceModel visitorInterface,
+                                                          ValueVisitorInterfaceModel visitorInterface,
                                                           Types types) throws JClassAlreadyExistsException {
 
         JDefinedClass acceptingInterface = valueClass._class(JMod.PUBLIC, valueClass.name() + "Acceptor", ClassType.INTERFACE);
@@ -78,7 +79,7 @@ class ADTClassModel {
         return acceptingInterface;
     }
 
-    public static ADTClassModel createInstance(JCodeModel codeModel, ADTVisitorInterfaceModel visitorInterface) throws SourceException, CodeGenerationException {
+    public static ValueClassModel createInstance(JCodeModel codeModel, ValueVisitorInterfaceModel visitorInterface) throws SourceException, CodeGenerationException {
         try {
             Types types = Types.createInstance(codeModel);
 
@@ -93,7 +94,7 @@ class ADTClassModel {
 
             JDefinedClass acceptingInterface = createAcceptingInterface(valueClass, visitorInterface, types);
 
-            ADTClassModel result = new ADTClassModel(valueClass, acceptingInterface, visitorInterface, types);
+            ValueClassModel result = new ValueClassModel(valueClass, acceptingInterface, visitorInterface, types);
             JFieldVar acceptorField = result.buildAcceptorField();
             result.buildPrivateConstructor(acceptorField);
             result.buildProtectedConstructor(acceptorField);
@@ -108,12 +109,22 @@ class ADTClassModel {
             throw new CodeGenerationException(ex);
         }
     }
+
+    private static boolean isNullable(JVar param) {
+        for (JAnnotationUse annotationUse: param.annotations()) {
+            if (annotationUse.getAnnotationClass().fullName().equals("javax.annotation.Nonnull")) {
+                return false;
+            }
+        }
+        return true;
+    }
+
     private final JDefinedClass valueClass;
     private final JDefinedClass acceptingInterface;
-    private final ADTVisitorInterfaceModel visitorInterface;
+    private final ValueVisitorInterfaceModel visitorInterface;
     private final Types types;
 
-    private ADTClassModel(JDefinedClass valueClass, JDefinedClass acceptingInterface, ADTVisitorInterfaceModel visitorInterface, Types modelTypes) {
+    private ValueClassModel(JDefinedClass valueClass, JDefinedClass acceptingInterface, ValueVisitorInterfaceModel visitorInterface, Types modelTypes) {
         this.valueClass = valueClass;
         this.acceptingInterface = acceptingInterface;
         this.visitorInterface = visitorInterface;
@@ -134,7 +145,13 @@ class ADTClassModel {
     private void buildProtectedConstructor(JFieldVar acceptorField) throws JClassAlreadyExistsException {
         JMethod constructor = valueClass.constructor(JMod.PROTECTED);
         JClass usedValueClassType = Types.narrow(valueClass, valueClass.typeParams());
-        constructor.param(JMod.FINAL, usedValueClassType, "implementation");
+        JVar param = constructor.param(JMod.FINAL, usedValueClassType, "implementation");
+        param.annotate(Nonnull.class);
+        JConditional nullCheck = constructor.body()._if(JExpr.ref("implementation").eq(JExpr._null()));
+        JInvocation nullPointerExceptionConstruction = JExpr._new(types._NullPointerException());
+        nullPointerExceptionConstruction.arg(JExpr.lit("Argument shouldn't be null: 'implementation' argument in class constructor invocation: " + valueClass.fullName()));
+        nullCheck._then()._throw(nullPointerExceptionConstruction);
+
         JDefinedClass proxyClass = createProxyClass();
         JClass usedProxyClassType = Types.narrow(proxyClass, valueClass.typeParams());
         JInvocation construction = JExpr._new(usedProxyClassType);
@@ -268,14 +285,26 @@ class ADTClassModel {
             constructorMethod.type(usedValueClassType);
             for (JVar param: interfaceMethod.params()) {
                 JType paramType = visitorInterface.substituteTypeParameter(param.type(), usedValueClassType, usedValueClassType, types._RuntimeException());
-                constructorMethod.param(param.mods().getValue(), paramType, param.name());
+                JVar constructorMethodParam = constructorMethod.param(param.mods().getValue(), paramType, param.name());
+                if (!isNullable(param)) {
+                    constructorMethodParam.annotate(Nonnull.class);
+                }
             }
 
             JClass usedCaseClassType = Types.narrow(caseClasses.get(interfaceMethod.name()), constructorMethod.typeParams());
             if (!interfaceMethod.params().isEmpty()) {
+                for (JVar param: interfaceMethod.params()) {
+                    if (!isNullable(param)) {
+                        JConditional nullCheck = constructorMethod.body()._if(JExpr.ref(param.name()).eq(JExpr._null()));
+                        JInvocation nullPointerExceptionConstruction = JExpr._new(types._NullPointerException());
+                        nullPointerExceptionConstruction.arg(JExpr.lit("Argument shouldn't be null: '" + param.name() + "' argument in static method invocation: '" + constructorMethod.name() + "' in class " + valueClass.fullName()));
+                        nullCheck._then()._throw(nullPointerExceptionConstruction);
+                    }
+                }
                 JInvocation caseClassConstructorInvocation = JExpr._new(usedCaseClassType);
-                for (JVar param: interfaceMethod.params())
+                for (JVar param: interfaceMethod.params()) {
                     caseClassConstructorInvocation.arg(JExpr.ref(param.name()));
+                }
                 JInvocation constructorInvocation = JExpr._new(usedValueClassType);
                 constructorInvocation.arg(caseClassConstructorInvocation);
                 constructorMethod.body()._return(constructorInvocation);
@@ -397,7 +426,10 @@ class ADTClassModel {
                         JType paramType = visitorInterface.substituteTypeParameter(param.type(), usedValueClassType, types._Boolean(), types._RuntimeException());
                         JExpression field1 = JExpr.ref(param.name() + "1");
                         JExpression field2 = JExpr.ref(param.name() + "2");
-                        body.appendNullableValue(paramType, field1, field2);
+                        if (isNullable(param))
+                            body.appendNullableValue(paramType, field1, field2);
+                        else
+                            body.appendNotNullValue(paramType, field1, field2);
                     }
                     visitorMethod2.body()._return(JExpr.TRUE);
                 }
@@ -428,7 +460,10 @@ class ADTClassModel {
             for (JVar param: interfaceMethod1.params()) {
                 JType paramType = visitorInterface.substituteTypeParameter(param.type(), usedValueClassType, types._Integer(), types._RuntimeException());
                 JVar argument = visitorMethod1.param(param.mods().getValue() | JMod.FINAL, paramType, param.name() + "1");
-                body.appendNullableValue(paramType, argument);
+                if (isNullable(param))
+                    body.appendNullableValue(paramType, argument);
+                else
+                    body.appendNotNullValue(paramType, argument);
             }
             visitorMethod1.body()._return(result);
             tag++;

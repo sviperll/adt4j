@@ -3,17 +3,15 @@
  */
 package com.github.sviperll.adt4j.examples;
 
-import com.github.sviperll.adt4j.DataVisitor;
+import com.github.sviperll.adt4j.ValueVisitor;
 
 /**
  *
  * @author Victor Nazarov <asviraspossible@gmail.com>
  */
-@DataVisitor(
-        result = "R",
-        self = "S",
-        isPublic = true
-        )
+@ValueVisitor(resultVariableName = "R",
+              selfReferenceVariableName = "S",
+              valueClassIsPublic = true)
 public interface ListVisitor<T, S, R> {
     R cons(T head, S tail);
     R nil();

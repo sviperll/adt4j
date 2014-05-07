@@ -19,16 +19,16 @@ import javax.tools.Diagnostic;
  *
  * @author Victor Nazarov <asviraspossible@gmail.com>
  */
-@SupportedAnnotationTypes("com.github.sviperll.adt4j.DataVisitor")
+@SupportedAnnotationTypes("com.github.sviperll.adt4j.ValueVisitor")
 @SupportedSourceVersion(SourceVersion.RELEASE_7)
-public class DataVisitorProcessor extends AbstractProcessor {
+public class ValueVisitorProcessor extends AbstractProcessor {
     @Override
     public boolean process(Set<? extends TypeElement> annotations,
                            RoundEnvironment roundEnv) {
         try {
-            for (Element elem : roundEnv.getElementsAnnotatedWith(DataVisitor.class)) {
+            for (Element elem : roundEnv.getElementsAnnotatedWith(ValueVisitor.class)) {
                 try {
-                    DataVisitor dataVisitor = elem.getAnnotation(DataVisitor.class);
+                    ValueVisitor dataVisitor = elem.getAnnotation(ValueVisitor.class);
                     processElement(elem, dataVisitor);
                 } catch (CodeGenerationException | SourceException ex) {
                     processingEnv.getMessager().printMessage(Diagnostic.Kind.ERROR, ex.getMessage());
@@ -41,10 +41,10 @@ public class DataVisitorProcessor extends AbstractProcessor {
         }
     }
 
-    private void processElement(Element visitorElement, DataVisitor dataVisitor) throws CodeGenerationException, IOException, SourceException {
+    private void processElement(Element visitorElement, ValueVisitor dataVisitor) throws CodeGenerationException, IOException, SourceException {
         JCodeModel jCodeModel = new JCodeModel();
-        ADTClassModelBuilder builder = new ADTClassModelBuilder(jCodeModel);
-        ADTClassModel definedClass = builder.build(visitorElement, dataVisitor);
+        ValueClassModelBuilder builder = new ValueClassModelBuilder(jCodeModel);
+        ValueClassModel definedClass = builder.build(visitorElement, dataVisitor);
 
         jCodeModel.build(new FilerCodeWriter(processingEnv.getFiler()));
     }

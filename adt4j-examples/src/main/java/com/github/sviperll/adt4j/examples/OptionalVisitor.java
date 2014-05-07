@@ -3,16 +3,17 @@
  */
 package com.github.sviperll.adt4j.examples;
 
-import com.github.sviperll.adt4j.DataVisitor;
+import com.github.sviperll.adt4j.ValueVisitor;
+import javax.annotation.Nonnull;
 
 /**
  *
  * @author Victor Nazarov <asviraspossible@gmail.com>
  */
-@DataVisitor(result = "R",
-             exception = "E",
-             className = "OptionalValue")
+@ValueVisitor(resultVariableName = "R",
+              exceptionVariableName = "E",
+              valueClassName = "OptionalValue")
 public interface OptionalVisitor<T, R, E extends Exception> {
     R missing() throws E;
-    R present(T value) throws E;
+    R present(@Nonnull T value) throws E;
 }

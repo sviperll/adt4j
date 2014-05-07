@@ -4,6 +4,7 @@ mainClassName = "com.github.sviperll.adt4j.examples.Main"
 
 dependencies {
     compile(project(':adt4j-core'))
+    compile(group: "com.google.code.findbugs", name: "annotations", version: "2.0.3")
 }
 
 ext {

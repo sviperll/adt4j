@@ -17,11 +17,11 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.SOURCE)
 @Target(ElementType.TYPE)
 @Documented
-public @interface DataVisitor {
-    String result();
-    String exception() default ":none";
-    String self() default ":none";
-    String className() default ":auto";
-    boolean isPublic() default false;
-    int hashCodeBase() default 27;
+public @interface ValueVisitor {
+    String resultVariableName();
+    String exceptionVariableName() default ":none";
+    String selfReferenceVariableName() default ":none";
+    String valueClassName() default ":auto";
+    boolean valueClassIsPublic() default false;
+    int valueClassHashCodeBase() default 27;
 }

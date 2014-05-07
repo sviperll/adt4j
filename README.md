@@ -33,11 +33,12 @@ Examples
     Additional type variables are allowed.
     Methods should not throw any checked exceptions.
 
- 2. Add a `@DataVisitor` annotation and specify special type-variable names in arguments to annotation
+ 2. Add a `@ValueVisitor` and specify special type-variable names in arguments to annotation.
+    Add `@Nonnull` annonations when null checks are needed.
 
-        @DataVisitor(result = "R")
+        @ValueVisitor(resultVariableName = "R")
         interface OptionalVisitor<R, T> {
-            R present(T value);
+            R present(@Nonnull T value);
             R missing();
         }
 
@@ -46,6 +47,53 @@ Examples
  3. We are ready to go.
 
     New class `Optional` will be automatically generated when you compile your project.
+
+    You can customize className with additional arguments. Like this:
+
+        @ValueVisitor(resultVariableName = "R",
+                      valueClassName = "OptionalValue",
+                      valueClassIsPublic = false)
+        interface OptionalVisitor<R, T> {
+            R present(@Nonnull T value);
+            R missing();
+        }
+
+    In the example above `OptionalValue` class will be generated instead of `Optional`.
+
+    You can extend generated classes to add more methods like this:
+
+        public class Optional<T> extends OptionalValue<T> {
+            public static <T> Optional<T> missing() {
+                return new Optional<>(OptionalValue.missing());
+            }
+
+            public static <T> Optional<T> present(T value) {
+                return new Optional<>(OptionalValue.present(value));
+            }
+
+            private Optional(OptionalValue<T> value) {
+                // protected constructor from OptionalValue class
+                super(value);
+            }
+
+            //
+            // equals and hashCode are correctly inherited from OptionalValue
+            //
+
+            public <U> Optional<U> flatMap(final Function<T, Optional<U>> function) {
+                return accept(new OptionalVisitor<T, Optional<U>>() {
+                    @Override
+                    public Optional<U> missing() {
+                        return Optional.missing();
+                    }
+
+                    @Override
+                    public Optional<U> present(T value) {
+                        return function.apply(value);
+                    }
+                });
+            }
+        }
 
     You can create instances of this class like this:
 
@@ -90,28 +138,15 @@ Examples
     If you use Java 8 you can use lambda-expression:
 
         Optional<String> lookup2(String key) {
-            return flatMap(lookup(key), (value) -> lookup(value));
+            return lookup(key).flatMap((value) -> lookup(value));
         }
 
     With Java before 8 you can still do it with anonymous class:
 
         Optional<String> lookup2(String key) {
-            return flatMap(lookup(key), new Function<String, Optional<String>>() {
+            return lookup(key).flatMap(new Function<String, Optional<String>>() {
                 public String apply(String value) {
                     return lookup(value);
-                }
-            });
-        }
-
-    flatMap-method is not hard to define:
-
-        <T, U> Optional<U> flatMap(final Optional<T> argument, final Function<T, Optional<U>> function) {
-            return argument.accept(new OptionalVisitor<Optional<U>, T>() {
-                public Optional<U> present(T value) {
-                    return function.apply(value);
-                }
-                public Optional<U> missing() {
-                    return Optional.missing();
                 }
             });
         }
