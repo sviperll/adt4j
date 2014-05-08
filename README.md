@@ -1,18 +1,66 @@
 adt4j - Algebraic Data Types for Java
 =====================================
 
-This library implements Algebraic Data Types for Java.
+This library implements [Algebraic Data Types](http://en.wikipedia.org/wiki/Algebraic_data_type) for Java.
+ADT4J provides annotation processor for @ValueVisitor annotation.
+ADT4J generates new class for each @ValueVisitor annotation.
 
-Just add `adt4j-core` maven dependency to your project and you are ready to go.
+It allows you to easily define custom data types. Like this:
 
-Examples
---------
+    // Define Expression data type
+    @ValueVisitor(resultVariableName="R",
+                  selfReferenceVariableName="E")
+    interface ExpressionVisitor<E, R> {
+        R int(int i);
+        R sum(E e1, E e2);
+        R mul(E e1, E e2);
+    }
 
-### Optional A. K. A. Maybe type ###
+And that's it. `Expression` class will be generated and you'll be able to define expressions like this:
+
+    import static ...Expression.*;
+
+    /* ... */
+
+    Expression e = mul(sum(lit(5), lit(1)), lit(2));
+
+You can process expressions with "pattern-matching" a. k. a. visitor-pattern:
+
+    int value = e.accept(new ExpressionVisitor<Expression, Integer>() {
+        @Override
+        public Integer int(int i) {
+            return i;
+        }
+        @Override
+        public Integer sum(Expression e1, Expression e2) {
+            return e1.accept(this) + e2.accept(this);
+        }
+        @Override
+        public Integer mul(Expression e1, Expression e2) {
+            return e1.accept(this) * e2.accept(this);
+        }
+    });
+
+Installation
+------------
+
+Use maven dependency to use ADT4J:
+
+    <dependency>
+        <groupId>com.github.sviperll</groupId>
+        <artifactId>adt4j-core</artifactId>
+        <version>0.4</version>
+    </dependency>
+
+Usage
+-----
+
+We will use an implemetation of optional-type similar to `Optional` class provided by Java 8 as
+an example of ADT4J usage.
 
  1. Define an interface that will describe your Algebraic Data Type like this:
 
-        interface OptionalVisitor<R, T> {
+        interface OptionalVisitor<T, R> {
             R present(T value);
             R missing();
         }
@@ -37,7 +85,7 @@ Examples
     Add `@Nonnull` annonations when null checks are needed.
 
         @ValueVisitor(resultVariableName = "R")
-        interface OptionalVisitor<R, T> {
+        interface OptionalVisitor<T, R> {
             R present(@Nonnull T value);
             R missing();
         }
@@ -48,53 +96,6 @@ Examples
 
     New class `Optional` will be automatically generated when you compile your project.
 
-    You can customize className with additional arguments. Like this:
-
-        @ValueVisitor(resultVariableName = "R",
-                      valueClassName = "OptionalValue",
-                      valueClassIsPublic = false)
-        interface OptionalVisitor<R, T> {
-            R present(@Nonnull T value);
-            R missing();
-        }
-
-    In the example above `OptionalValue` class will be generated instead of `Optional`.
-
-    You can extend generated classes to add more methods like this:
-
-        public class Optional<T> extends OptionalValue<T> {
-            public static <T> Optional<T> missing() {
-                return new Optional<>(OptionalValue.missing());
-            }
-
-            public static <T> Optional<T> present(T value) {
-                return new Optional<>(OptionalValue.present(value));
-            }
-
-            private Optional(OptionalValue<T> value) {
-                // protected constructor from OptionalValue class
-                super(value);
-            }
-
-            //
-            // equals and hashCode are correctly inherited from OptionalValue
-            //
-
-            public <U> Optional<U> flatMap(final Function<T, Optional<U>> function) {
-                return accept(new OptionalVisitor<T, Optional<U>>() {
-                    @Override
-                    public Optional<U> missing() {
-                        return Optional.missing();
-                    }
-
-                    @Override
-                    public Optional<U> present(T value) {
-                        return function.apply(value);
-                    }
-                });
-            }
-        }
-
     You can create instances of this class like this:
 
         Optional<String> optional1 = Optional.present("Test");
@@ -102,7 +103,7 @@ Examples
 
     You can use visitors as pattern-matching construct:
 
-        OptionalVisitor<Void, String> printVisitor = new OptionalVisitor<>() {
+        OptionalVisitor<String, Void> printVisitor = new OptionalVisitor<>() {
            public Void present(String value) {
                System.out.println("present: " + value);
                return null;
@@ -125,23 +126,69 @@ Examples
         optional2:
         missing
 
-    You can use lots of combintators with optional types.
+    Generated class contains correct `equals` and `hashCode` method impelementation to support
+    value-semantics of generated class.
 
-    If you have a lookup method:
+    Generated class name is chosen by removing `Visitor`-suffix from visitor-interface name.
+    If visitor-interface name doesn't end with `Visitor`, `Value`-suffix is appended
+    to visitor-interface name to form generated class name.
 
-        Optional<String> lookup(String key) {
-            ...
+    You can customize class name with additional arguments. Like this:
+
+        @ValueVisitor(resultVariableName = "R",
+                      valueClassName = "OptionalBase",
+                      valueClassIsPublic = false)
+        interface OptionalVisitor<T, R> {
+            R present(@Nonnull T value);
+            R missing();
         }
 
-    And you want to define lookup2 method that will look given key up and then use the result of first lookup
-    as a key for next one. You can do this with `flatMap` method.
-    If you use Java 8 you can use lambda-expression:
+    In the example above `OptionalBase` class will be generated instead of `Optional`.
 
-        Optional<String> lookup2(String key) {
-            return lookup(key).flatMap((value) -> lookup(value));
+    You can extend generated class to add more methods like this:
+
+        public class MyOptional<T> extends OptionalBase<T> {
+            public static <T> MyOptional<T> missing() {
+                return new MyOptional<>(OptionalBase.missing());
+            }
+
+            public static <T> MyOptional<T> present(T value) {
+                return new MyOptional<>(OptionalBase.present(value));
+            }
+
+            private MyOptional(OptionalBase<T> value) {
+                // protected constructor from OptionalValue class
+                super(value);
+            }
+
+            //
+            // equals and hashCode are correctly inherited from OptionalValue
+            //
+
+            public <U> MyOptional<U> flatMap(final Function<T, MyOptional<U>> function) {
+                return accept(new OptionalVisitor<T, MyOptional<U>>() {
+                    @Override
+                    public MyOptional<U> missing() {
+                        return MyOptional.missing();
+                    }
+
+                    @Override
+                    public Optional<U> present(T value) {
+                        return function.apply(value);
+                    }
+                });
+            }
         }
 
-    With Java before 8 you can still do it with anonymous class:
+    Now you have `MyOptional` class similar to `Optional` class provided by Java 8.
+
+    You can use it to chain optional operations:
+
+    With Java 8 syntax:
+
+        lookup(key1).flatMap((key2) -> lookup(key2));
+
+    or with anonymous classes:
 
         Optional<String> lookup2(String key) {
             return lookup(key).flatMap(new Function<String, Optional<String>>() {
