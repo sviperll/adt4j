@@ -52,14 +52,10 @@ class FilerCodeWriter extends CodeWriter {
         if (!fileName.endsWith(JAVA_SOURCE_SUFFIX))
             throw new IllegalStateException("Unexpected file name passed to code writer: " + fileName);
         String className = fileName.substring(0, fileName.length() - JAVA_SOURCE_SUFFIX.length());
-        if (className.endsWith("$Hidden"))
-            return new NullOutputStream();
-        else {
-            JavaFileObject fileObject = filer.createSourceFile(pkg.name() + "." + className);
-            OutputStream stream = fileObject.openOutputStream();
-            closeables.add(stream);
-            return stream;
-        }
+        JavaFileObject fileObject = filer.createSourceFile(pkg.name() + "." + className);
+        OutputStream stream = fileObject.openOutputStream();
+        closeables.add(stream);
+        return stream;
     }
 
     @Override
@@ -81,12 +77,6 @@ class FilerCodeWriter extends CodeWriter {
                 throw (RuntimeException)exception;
             } else
                 throw new IllegalStateException("Unexpected exception", exception);
-        }
-    }
-
-    private static class NullOutputStream extends OutputStream {
-        @Override
-        public void write(int b) throws IOException {
         }
     }
 }
