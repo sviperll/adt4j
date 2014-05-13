@@ -41,6 +41,11 @@ You can process expressions with "pattern-matching" a. k. a. visitor-pattern:
         }
     });
 
+License
+-------
+
+ADT4J is under BSD 3-clause license.
+
 Installation
 ------------
 
@@ -199,4 +204,3 @@ an example of ADT4J usage.
         }
 
     See adt4j-examples project for more complete examples.
-
