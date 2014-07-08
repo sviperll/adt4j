@@ -29,12 +29,12 @@
  */
 package com.github.sviperll.adt4j;
 
-import com.sun.codemodel.JClass;
-import com.sun.codemodel.JDefinedClass;
-import com.sun.codemodel.JFormatter;
-import com.sun.codemodel.JMethod;
-import com.sun.codemodel.JType;
-import com.sun.codemodel.JTypeVar;
+import com.helger.jcodemodel.AbstractJClass;
+import com.helger.jcodemodel.JDefinedClass;
+import com.helger.jcodemodel.JFormatter;
+import com.helger.jcodemodel.JMethod;
+import com.helger.jcodemodel.AbstractJType;
+import com.helger.jcodemodel.JTypeVar;
 import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -120,13 +120,13 @@ public class ValueVisitorInterfaceModel {
         return null;
     }
 
-    JClass narrowed(JClass usedDataType, JType resultType, JType exceptionType) {
+    AbstractJClass narrowed(AbstractJClass usedDataType, AbstractJType resultType, AbstractJType exceptionType) {
         return narrowed(usedDataType, resultType, exceptionType, usedDataType);
     }
 
-    JClass narrowed(JClass usedDataType, JType resultType, JType exceptionType, JType selfType) {
-        Iterator<JClass> dataTypeArgumentIterator = usedDataType.getTypeParameters().iterator();
-        JClass result = visitorInterfaceModel;
+    AbstractJClass narrowed(AbstractJClass usedDataType, AbstractJType resultType, AbstractJType exceptionType, AbstractJType selfType) {
+        Iterator<? extends AbstractJClass> dataTypeArgumentIterator = usedDataType.getTypeParameters().iterator();
+        AbstractJClass result = visitorInterfaceModel;
         for (JTypeVar typeVariable: visitorInterfaceModel.typeParams()) {
             if (typeVariable.name().equals(dataVisitor.exceptionVariableName()))
                 result = result.narrow(exceptionType);
@@ -152,7 +152,7 @@ public class ValueVisitorInterfaceModel {
         return sb.toString();
     }
 
-    JType substituteTypeParameter(JType type, JClass usedDataType, JType resultType, JType exceptionType) {
+    AbstractJType substituteTypeParameter(AbstractJType type, AbstractJClass usedDataType, AbstractJType resultType, AbstractJType exceptionType) {
         if (type.name().equals(dataVisitor.exceptionVariableName()))
             return exceptionType;
         else if (type.name().equals(dataVisitor.resultVariableName()))

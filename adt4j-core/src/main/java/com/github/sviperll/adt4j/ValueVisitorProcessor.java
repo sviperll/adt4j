@@ -29,7 +29,9 @@
  */
 package com.github.sviperll.adt4j;
 
-import com.sun.codemodel.JCodeModel;
+import com.helger.jcodemodel.JCodeModel;
+import com.helger.jcodemodel.JFieldRef;
+import com.helger.jcodemodel.JFormatter;
 import java.io.IOException;
 import java.util.Set;
 import javax.annotation.processing.AbstractProcessor;

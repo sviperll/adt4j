@@ -7,27 +7,6 @@ dependencies {
     compile(group: "com.google.code.findbugs", name: "annotations", version: "2.0.3")
 }
 
-ext {
-    javacGeneratedSourcesDir = file("${buildDir}/generated-sources/javac/main/java")
-}
-
-sourceSets {
-    main {
-        java {
-            srcDir 'src/main/java'
-            srcDir javacGeneratedSourcesDir
-        }
-    }
-}
-
-compileJava {
-    doFirst {
-        javacGeneratedSourcesDir.mkdirs()
-    }
-    options.compilerArgs += ['-s', javacGeneratedSourcesDir]
-    source = source.filter { p -> !p.getPath().startsWith(javacGeneratedSourcesDir.getPath()) }
-}
-
 uploadArchives {
     repositories {
         mavenDeployer {

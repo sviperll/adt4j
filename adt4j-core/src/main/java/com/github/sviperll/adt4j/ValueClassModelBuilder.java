@@ -29,16 +29,16 @@
  */
 package com.github.sviperll.adt4j;
 
-import com.sun.codemodel.ClassType;
-import com.sun.codemodel.JClass;
-import com.sun.codemodel.JClassAlreadyExistsException;
-import com.sun.codemodel.JCodeModel;
-import com.sun.codemodel.JDefinedClass;
-import com.sun.codemodel.JMethod;
-import com.sun.codemodel.JMod;
-import com.sun.codemodel.JType;
-import com.sun.codemodel.JTypeVar;
-import com.sun.codemodel.JVar;
+import com.helger.jcodemodel.EClassType;
+import com.helger.jcodemodel.AbstractJClass;
+import com.helger.jcodemodel.JClassAlreadyExistsException;
+import com.helger.jcodemodel.JCodeModel;
+import com.helger.jcodemodel.JDefinedClass;
+import com.helger.jcodemodel.JMethod;
+import com.helger.jcodemodel.JMod;
+import com.helger.jcodemodel.AbstractJType;
+import com.helger.jcodemodel.JTypeVar;
+import com.helger.jcodemodel.JVar;
 import java.util.Collection;
 import javax.lang.model.element.AnnotationMirror;
 import javax.lang.model.element.Element;
@@ -120,16 +120,16 @@ class ValueClassModelBuilder {
         }
     }
 
-    private static ClassType toClassType(ElementKind kind) {
+    private static EClassType toClassType(ElementKind kind) {
         switch (kind) {
             case CLASS:
-                return ClassType.CLASS;
+                return EClassType.CLASS;
             case ENUM:
-                return ClassType.ENUM;
+                return EClassType.ENUM;
             case INTERFACE:
-                return ClassType.INTERFACE;
+                return EClassType.INTERFACE;
             case ANNOTATION_TYPE:
-                return ClassType.ANNOTATION_TYPE_DECL;
+                return EClassType.ANNOTATION_TYPE_DECL;
             default:
                 throw new UnsupportedOperationException("Unsupported ElementKind: " + kind);
         }
@@ -159,18 +159,18 @@ class ValueClassModelBuilder {
                     for (TypeParameterElement parameter: executable.getTypeParameters()) {
                         JTypeVar typeVariable = method.generify(parameter.getSimpleName().toString());
                         for (TypeMirror type: parameter.getBounds()) {
-                            typeVariable.bound((JClass)toJType(type));
+                            typeVariable.bound((AbstractJClass)toJType(type));
                         }
                     }
                     for (TypeMirror type: executable.getThrownTypes()) {
-                        JClass throwable = (JClass)toJType(type);
+                        AbstractJClass throwable = (AbstractJClass)toJType(type);
                         method._throws(throwable);
                     }
 
                     for (VariableElement variable: executable.getParameters()) {
                         JVar param = method.param(toJMod(variable.getModifiers()), toJType(variable.asType()), variable.getSimpleName().toString());
                         for (AnnotationMirror annotation: variable.getAnnotationMirrors()) {
-                            param.annotate((JClass)toJType(annotation.getAnnotationType()));
+                            param.annotate((AbstractJClass)toJType(annotation.getAnnotationType()));
                         }
                     }
                 }
@@ -186,9 +186,9 @@ class ValueClassModelBuilder {
     }
 
     private JDefinedClass createJDefinedClass(TypeElement element) throws JClassAlreadyExistsException {
-        ClassType classType = toClassType(element.getKind());
+        EClassType classType = toClassType(element.getKind());
         int modifiers = toJMod(element.getModifiers());
-        if (classType.equals(ClassType.INTERFACE))
+        if (classType.equals(EClassType.INTERFACE))
             modifiers = modifiers & ~JMod.ABSTRACT;
 
         JDefinedClass newClass = codeModel._class(modifiers, element.getQualifiedName().toString(), classType);
@@ -196,36 +196,36 @@ class ValueClassModelBuilder {
         for (TypeParameterElement parameter: element.getTypeParameters()) {
             JTypeVar typeVariable = newClass.generify(parameter.getSimpleName().toString());
             for (TypeMirror type: parameter.getBounds()) {
-                typeVariable.bound((JClass)toJType(type));
+                typeVariable.bound((AbstractJClass)toJType(type));
             }
         }
         return newClass;
     }
 
-    private JClass toJClass(TypeElement element) throws CodeGenerationException {
+    private AbstractJClass toJClass(TypeElement element) throws CodeGenerationException {
         try {
             Class<?> klass = Class.forName(element.getQualifiedName().toString());
-            JType declaredClass = codeModel._ref(klass);
-            return (JClass)declaredClass;
+            AbstractJType declaredClass = codeModel._ref(klass);
+            return (AbstractJClass)declaredClass;
         } catch (ClassNotFoundException ex) {
             throw new CodeGenerationException(ex);
         }
     }
 
-    private JType toJType(TypeMirror type) {
-        return type.accept(new TypeVisitor<JType, Void>() {
+    private AbstractJType toJType(TypeMirror type) {
+        return type.accept(new TypeVisitor<AbstractJType, Void>() {
             @Override
-            public JType visit(TypeMirror t, Void p) {
+            public AbstractJType visit(TypeMirror t, Void p) {
                 throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
             }
 
             @Override
-            public JType visit(TypeMirror t) {
+            public AbstractJType visit(TypeMirror t) {
                 throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
             }
 
             @Override
-            public JType visitPrimitive(PrimitiveType t, Void p) {
+            public AbstractJType visitPrimitive(PrimitiveType t, Void p) {
                 switch (t.getKind()) {
                     case BOOLEAN:
                         return codeModel.BOOLEAN;
@@ -249,21 +249,21 @@ class ValueClassModelBuilder {
             }
 
             @Override
-            public JType visitNull(NullType t, Void p) {
+            public AbstractJType visitNull(NullType t, Void p) {
                 throw new IllegalArgumentException("null can't be JClass."); //To change body of generated methods, choose Tools | Templates.
             }
 
             @Override
-            public JType visitArray(ArrayType t, Void p) {
-                JType componentType = toJType(t.getComponentType());
+            public AbstractJType visitArray(ArrayType t, Void p) {
+                AbstractJType componentType = toJType(t.getComponentType());
                 return componentType.array();
             }
 
             @Override
-            public JType visitDeclared(DeclaredType t, Void p) {
+            public AbstractJType visitDeclared(DeclaredType t, Void p) {
                 try {
                     TypeElement element = (TypeElement)t.asElement();
-                    JClass _class = toJClass(element);
+                    AbstractJClass _class = toJClass(element);
                     for (TypeMirror typeArgument: t.getTypeArguments()) {
                         _class = _class.narrow(toJType(typeArgument));
                     }
@@ -274,37 +274,37 @@ class ValueClassModelBuilder {
             }
 
             @Override
-            public JType visitError(ErrorType t, Void p) {
+            public AbstractJType visitError(ErrorType t, Void p) {
                 throw new IllegalArgumentException("error can't be JClass."); //To change body of generated methods, choose Tools | Templates.
             }
 
             @Override
-            public JType visitTypeVariable(TypeVariable t, Void p) {
+            public AbstractJType visitTypeVariable(TypeVariable t, Void p) {
                 return codeModel.directClass(t.asElement().getSimpleName().toString());
             }
 
             @Override
-            public JType visitWildcard(WildcardType t, Void p) {
+            public AbstractJType visitWildcard(WildcardType t, Void p) {
                 throw new UnsupportedOperationException("wildcards are not supported in convertion to JClass."); //To change body of generated methods, choose Tools | Templates.
             }
 
             @Override
-            public JType visitExecutable(ExecutableType t, Void p) {
+            public AbstractJType visitExecutable(ExecutableType t, Void p) {
                 throw new IllegalArgumentException("executable can't be JClass."); //To change body of generated methods, choose Tools | Templates.
             }
 
             @Override
-            public JType visitNoType(NoType t, Void p) {
+            public AbstractJType visitNoType(NoType t, Void p) {
                 throw new IllegalArgumentException("'no type' can't be JClass."); //To change body of generated methods, choose Tools | Templates.
             }
 
             @Override
-            public JType visitUnknown(TypeMirror t, Void p) {
+            public AbstractJType visitUnknown(TypeMirror t, Void p) {
                 throw new IllegalArgumentException("unknown can't be JClass."); //To change body of generated methods, choose Tools | Templates.
             }
 
             @Override
-            public JType visitUnion(UnionType t, Void p) {
+            public AbstractJType visitUnion(UnionType t, Void p) {
                 throw new IllegalArgumentException("union type can't be JClass."); //To change body of generated methods, choose Tools | Templates.
             }
         }, null);

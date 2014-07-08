@@ -18,12 +18,66 @@ subprojects {
         }
     }
 
-    repositories {
-       mavenCentral()
+    ext {
+        pomDefinition = {
+            project {
+                url 'http://github.com/sviperll/adt4j'
+
+                scm {
+                    url 'scm:git@github.com:sviperll/adt4j.git'
+                    connection 'scm:git@github.com:sviperll/adt4j.git'
+                    developerConnection 'scm:git@github.com:sviperll/adt4j.git'
+                }
+
+                licenses {
+                    license {
+                        name 'The BSD 3-Clause License'
+                        url 'http://opensource.org/licenses/BSD-3-Clause'
+                        distribution 'repo'
+                    }
+                }
+
+                developers {
+                    developer {
+                        id 'sviperll'
+                        name 'Victor Nazarov'
+                        email 'asviraspossible@gmail.com'
+                    }
+                }
+            }
+        }
     }
 
     dependencies {
         testCompile(group: 'junit', name: 'junit', version: '4.11')
+    }
+
+
+    ext {
+        javacGeneratedSourcesDir = file("${buildDir}/generated-sources/javac/main/java")
+    }
+
+    sourceSets {
+        main {
+            java {
+                srcDir 'src/main/java'
+                srcDir javacGeneratedSourcesDir
+            }
+        }
+    }
+
+    compileJava {
+        doFirst {
+            javacGeneratedSourcesDir.mkdirs()
+        }
+        options.compilerArgs += ['-s', javacGeneratedSourcesDir]
+        source = source.filter { p -> !p.getPath().startsWith(javacGeneratedSourcesDir.getPath()) }
+    }
+
+
+    repositories {
+       mavenCentral()
+       mavenLocal()
     }
 
     task javadocJar(type: Jar, dependsOn: javadoc) {
@@ -63,33 +117,7 @@ subprojects {
                     authentication(userName: sonatypeUsername, password: sonatypePassword)
                 }
                 pom.name = project.name
-                pom {
-                    project {
-                        url 'http://github.com/sviperll/adt4j'
-
-                        scm {
-                            url 'scm:git@github.com:sviperll/adt4j.git'
-                            connection 'scm:git@github.com:sviperll/adt4j.git'
-                            developerConnection 'scm:git@github.com:sviperll/adt4j.git'
-                        }
-
-                        licenses {
-                            license {
-                                name 'The BSD 3-Clause License'
-                                url 'http://opensource.org/licenses/BSD-3-Clause'
-                                distribution 'repo'
-                            }
-                        }
-
-                        developers {
-                            developer {
-                                id 'sviperll'
-                                name 'Victor Nazarov'
-                                email 'asviraspossible@gmail.com'
-                            }
-                        }
-                    }
-                }
+                pom(pomDefinition)
             }
         }
     }

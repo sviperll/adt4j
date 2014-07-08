@@ -29,7 +29,7 @@
  */
 package com.github.sviperll.adt4j;
 
-import com.sun.codemodel.JClassAlreadyExistsException;
+import com.helger.jcodemodel.JClassAlreadyExistsException;
 
 public class CodeGenerationException extends Exception {
 

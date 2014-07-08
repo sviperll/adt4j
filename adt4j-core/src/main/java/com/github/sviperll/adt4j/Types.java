@@ -29,15 +29,14 @@
  */
 package com.github.sviperll.adt4j;
 
-import com.sun.codemodel.JClass;
-import com.sun.codemodel.JCodeModel;
-import com.sun.codemodel.JDefinedClass;
-import com.sun.codemodel.JPrimitiveType;
-import com.sun.codemodel.JType;
-import com.sun.codemodel.JTypeVar;
+import com.helger.jcodemodel.AbstractJClass;
+import com.helger.jcodemodel.JCodeModel;
+import com.helger.jcodemodel.JDefinedClass;
+import com.helger.jcodemodel.JPrimitiveType;
+import com.helger.jcodemodel.JTypeVar;
 
 class Types {
-    public static JClass narrow(JDefinedClass definedClass, JTypeVar[] typeParams) {
+    public static AbstractJClass narrow(JDefinedClass definedClass, JTypeVar[] typeParams) {
         return typeParams.length == 0 ? definedClass : definedClass.narrow(typeParams);
     }
 
@@ -51,14 +50,14 @@ class Types {
     private final JPrimitiveType _int;
     private final JPrimitiveType _float;
     private final JPrimitiveType _double;
-    private final JClass _Object;
-    private final JClass _Boolean;
-    private final JClass _Integer;
-    private final JClass _Double;
-    private final JClass _Float;
-    private final JClass _RuntimeException;
-    private final JClass _Long;
-    private final JClass _NullPointerException;
+    private final AbstractJClass _Object;
+    private final AbstractJClass _Boolean;
+    private final AbstractJClass _Integer;
+    private final AbstractJClass _Double;
+    private final AbstractJClass _Float;
+    private final AbstractJClass _RuntimeException;
+    private final AbstractJClass _Long;
+    private final AbstractJClass _NullPointerException;
 
     private Types(JCodeModel codeModel) {
         _void = codeModel.VOID;
@@ -102,35 +101,35 @@ class Types {
         return _double;
     }
 
-    public JType _Boolean() {
+    public AbstractJClass _Boolean() {
         return _Boolean;
     }
 
-    public JClass _Object() {
+    public AbstractJClass _Object() {
         return _Object;
     }
 
-    public JClass _RuntimeException() {
+    public AbstractJClass _RuntimeException() {
         return _RuntimeException;
     }
 
-    public JClass _Integer() {
+    public AbstractJClass _Integer() {
         return _Integer;
     }
 
-    public JClass _Double() {
+    public AbstractJClass _Double() {
         return _Double;
     }
 
-    public JClass _Float() {
+    public AbstractJClass _Float() {
         return _Float;
     }
 
-    public JClass _Long() {
+    public AbstractJClass _Long() {
         return _Long;
     }
 
-    public JClass _NullPointerException() {
+    public AbstractJClass _NullPointerException() {
         return _NullPointerException;
     }
 }

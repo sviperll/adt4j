@@ -29,8 +29,8 @@
  */
 package com.github.sviperll.adt4j;
 
-import com.sun.codemodel.CodeWriter;
-import com.sun.codemodel.JPackage;
+import com.helger.jcodemodel.AbstractCodeWriter;
+import com.helger.jcodemodel.JPackage;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.ArrayList;
@@ -38,12 +38,14 @@ import java.util.List;
 import javax.annotation.processing.Filer;
 import javax.tools.JavaFileObject;
 
-class FilerCodeWriter extends CodeWriter {
+class FilerCodeWriter extends AbstractCodeWriter {
     private static final String JAVA_SOURCE_SUFFIX = ".java";
     private final Filer filer;
     private final List<OutputStream> closeables = new ArrayList<>();
 
     public FilerCodeWriter(Filer filer) {
+        // Null means: use system default encoding
+        super(null);
         this.filer = filer;
     }
 
