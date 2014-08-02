@@ -72,9 +72,9 @@ import javax.lang.model.type.PrimitiveType;
 import static javax.lang.model.type.TypeKind.CHAR;
 import javax.lang.model.type.TypeMirror;
 import javax.lang.model.type.TypeVariable;
-import javax.lang.model.type.TypeVisitor;
 import javax.lang.model.type.UnionType;
 import javax.lang.model.type.WildcardType;
+import javax.lang.model.util.AbstractTypeVisitor7;
 
 class ValueClassModelBuilder {
     private static TypeElement toTypeElement(Element element) throws SourceException {
@@ -213,16 +213,7 @@ class ValueClassModelBuilder {
     }
 
     private AbstractJType toJType(TypeMirror type) {
-        return type.accept(new TypeVisitor<AbstractJType, Void>() {
-            @Override
-            public AbstractJType visit(TypeMirror t, Void p) {
-                throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-            }
-
-            @Override
-            public AbstractJType visit(TypeMirror t) {
-                throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-            }
+        return type.accept(new AbstractTypeVisitor7<AbstractJType, Void>() {
 
             @Override
             public AbstractJType visitPrimitive(PrimitiveType t, Void p) {
