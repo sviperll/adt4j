@@ -72,9 +72,8 @@ import javax.lang.model.type.PrimitiveType;
 import static javax.lang.model.type.TypeKind.CHAR;
 import javax.lang.model.type.TypeMirror;
 import javax.lang.model.type.TypeVariable;
-import javax.lang.model.type.UnionType;
 import javax.lang.model.type.WildcardType;
-import javax.lang.model.util.AbstractTypeVisitor7;
+import javax.lang.model.util.AbstractTypeVisitor6;
 
 class ValueClassModelBuilder {
     private static TypeElement toTypeElement(Element element) throws SourceException {
@@ -213,7 +212,7 @@ class ValueClassModelBuilder {
     }
 
     private AbstractJType toJType(TypeMirror type) {
-        return type.accept(new AbstractTypeVisitor7<AbstractJType, Void>() {
+        return type.accept(new AbstractTypeVisitor6<AbstractJType, Void>() {
 
             @Override
             public AbstractJType visitPrimitive(PrimitiveType t, Void p) {
@@ -292,11 +291,6 @@ class ValueClassModelBuilder {
             @Override
             public AbstractJType visitUnknown(TypeMirror t, Void p) {
                 throw new IllegalArgumentException("unknown can't be JClass."); //To change body of generated methods, choose Tools | Templates.
-            }
-
-            @Override
-            public AbstractJType visitUnion(UnionType t, Void p) {
-                throw new IllegalArgumentException("union type can't be JClass."); //To change body of generated methods, choose Tools | Templates.
             }
         }, null);
     }

@@ -86,16 +86,13 @@ public class Main {
     }
 
     public static Optional<String> lookup(String name) {
-        switch (name) {
-            case "a":
-                return Optional.present("b");
-            case "b":
-                return Optional.present("c");
-            case "c":
-                return Optional.present("d");
-            default:
-                return Optional.missing();
-        }
+        if ("a".equals(name))
+            return Optional.present("b");
+        if ("b".equals(name))
+            return Optional.present("c");
+        if ("c".equals(name))
+            return Optional.present("d");
+        return Optional.missing();
     }
     public static Optional<String> lookup2(String name1) {
         // Using Java 8 syntax:

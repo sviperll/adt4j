@@ -36,17 +36,21 @@ import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.List;
 import javax.annotation.processing.Filer;
+import javax.annotation.processing.Messager;
+import javax.tools.Diagnostic;
 import javax.tools.JavaFileObject;
 
 class FilerCodeWriter extends AbstractCodeWriter {
     private static final String JAVA_SOURCE_SUFFIX = ".java";
     private final Filer filer;
-    private final List<OutputStream> closeables = new ArrayList<>();
+    private final List<OutputStream> closeables = new ArrayList<OutputStream>();
+    private final Messager messager;
 
-    public FilerCodeWriter(Filer filer) {
+    public FilerCodeWriter(Filer filer, Messager messager) {
         // Null means: use system default encoding
         super(null);
         this.filer = filer;
+        this.messager = messager;
     }
 
     @Override
@@ -66,9 +70,14 @@ class FilerCodeWriter extends AbstractCodeWriter {
         for (OutputStream stream: closeables) {
             try {
                 stream.close();
-            } catch (IOException | RuntimeException ex) {
+            } catch (IOException ex) {
                 if (exception != null)
-                    ex.addSuppressed(exception);
+                    messager.printMessage(Diagnostic.Kind.ERROR, exception.toString());
+                exception = ex;
+            }
+            catch (RuntimeException ex) {
+                if (exception != null)
+                    messager.printMessage(Diagnostic.Kind.ERROR, exception.toString());
                 exception = ex;
             }
         }
