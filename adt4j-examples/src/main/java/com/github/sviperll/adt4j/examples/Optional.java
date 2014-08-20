@@ -39,7 +39,7 @@ public class Optional<T> extends OptionalValue<T> {
     }
 
     public static <T> Optional<T> present(T value) {
-        return new Optional<>(OptionalValue.present(value));
+        return new Optional<T>(OptionalValue.present(value));
     }
 
     private Optional(OptionalValue<T> value) {

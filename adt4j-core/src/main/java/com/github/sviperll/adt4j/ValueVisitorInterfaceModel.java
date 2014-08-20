@@ -80,7 +80,7 @@ public class ValueVisitorInterfaceModel {
     }
 
     Collection<JTypeVar> getDataTypeParameters() {
-        List<JTypeVar> result = new ArrayList<>();
+        List<JTypeVar> result = new ArrayList<JTypeVar>();
         for (JTypeVar typeVariable: visitorInterfaceModel.typeParams()) {
             if (!shouldBeOverridenOnInvocation(typeVariable.name()) && !isSelf(typeVariable.name()))
                 result.add(typeVariable);

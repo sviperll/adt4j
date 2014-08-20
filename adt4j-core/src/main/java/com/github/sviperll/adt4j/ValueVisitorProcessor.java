@@ -44,7 +44,7 @@ import javax.lang.model.element.TypeElement;
 import javax.tools.Diagnostic;
 
 @SupportedAnnotationTypes("com.github.sviperll.adt4j.ValueVisitor")
-@SupportedSourceVersion(SourceVersion.RELEASE_7)
+@SupportedSourceVersion(SourceVersion.RELEASE_6)
 public class ValueVisitorProcessor extends AbstractProcessor {
     @Override
     public boolean process(Set<? extends TypeElement> annotations,
@@ -54,7 +54,10 @@ public class ValueVisitorProcessor extends AbstractProcessor {
                 try {
                     ValueVisitor dataVisitor = elem.getAnnotation(ValueVisitor.class);
                     processElement(elem, dataVisitor);
-                } catch (CodeGenerationException | SourceException ex) {
+                } catch (CodeGenerationException ex) {
+                    processingEnv.getMessager().printMessage(Diagnostic.Kind.ERROR, ex.getMessage());
+                }
+                catch (SourceException ex) {
                     processingEnv.getMessager().printMessage(Diagnostic.Kind.ERROR, ex.getMessage());
                 }
             }
@@ -70,6 +73,6 @@ public class ValueVisitorProcessor extends AbstractProcessor {
         ValueClassModelBuilder builder = new ValueClassModelBuilder(jCodeModel);
         ValueClassModel definedClass = builder.build(visitorElement, dataVisitor);
 
-        jCodeModel.build(new FilerCodeWriter(processingEnv.getFiler()));
+        jCodeModel.build(new FilerCodeWriter(processingEnv.getFiler(), processingEnv.getMessager()));
     }
 }

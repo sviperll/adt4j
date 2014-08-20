@@ -296,7 +296,7 @@ class ValueClassModel {
     private Map<String, JMethod> buildConstructorMethods() throws JClassAlreadyExistsException {
         Map<String, JDefinedClass> caseClasses = buildCaseClasses();
 
-        Map<String, JMethod> constructorMethods = new TreeMap<>();
+        Map<String, JMethod> constructorMethods = new TreeMap<String, JMethod>();
         for (JMethod interfaceMethod: visitorInterface.methods()) {
             JMethod constructorMethod = valueClass.method(interfaceMethod.mods().getValue() & ~JMod.ABSTRACT | JMod.STATIC, types._void(), interfaceMethod.name());
             for (JTypeVar visitorTypeParameter: visitorInterface.getDataTypeParameters()) {
@@ -354,7 +354,7 @@ class ValueClassModel {
     }
 
     private Map<String, JDefinedClass> buildCaseClasses() throws JClassAlreadyExistsException {
-        Map<String, JDefinedClass> caseClasses = new TreeMap<>();
+        Map<String, JDefinedClass> caseClasses = new TreeMap<String, JDefinedClass>();
         for (JMethod interfaceMethod: visitorInterface.methods()) {
             JDefinedClass caseClass = buildCaseClass(interfaceMethod);
             caseClasses.put(interfaceMethod.name(), caseClass);
