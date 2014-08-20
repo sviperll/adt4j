@@ -8,11 +8,9 @@ subprojects {
         options.compilerArgs = ['-Xlint', '-Xlint:-serial']
     }
 
-    version = '0.8-SNAPSHOT'
+    version = '0.7-SNAPSHOT'
     group = 'com.github.sviperll'
     sourceCompatibility = 1.6
-    targetCompatibility = 1.6
-    archivesBaseName = name + '-jdk6'
 
     jar {
         manifest {
