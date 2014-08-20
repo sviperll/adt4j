@@ -8,7 +8,7 @@ subprojects {
         options.compilerArgs = ['-Xlint', '-Xlint:-serial']
     }
 
-    version = '0.6-SNAPSHOT'
+    version = '0.7-SNAPSHOT'
     group = 'com.github.sviperll'
     sourceCompatibility = 1.6
     targetCompatibility = 1.6
@@ -78,8 +78,8 @@ subprojects {
 
 
     repositories {
-       mavenCentral()
        mavenLocal()
+       mavenCentral()
     }
 
     task javadocJar(type: Jar, dependsOn: javadoc) {

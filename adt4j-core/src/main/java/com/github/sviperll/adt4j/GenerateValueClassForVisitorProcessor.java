@@ -30,8 +30,6 @@
 package com.github.sviperll.adt4j;
 
 import com.helger.jcodemodel.JCodeModel;
-import com.helger.jcodemodel.JFieldRef;
-import com.helger.jcodemodel.JFormatter;
 import java.io.IOException;
 import java.util.Set;
 import javax.annotation.processing.AbstractProcessor;
@@ -43,16 +41,16 @@ import javax.lang.model.element.Element;
 import javax.lang.model.element.TypeElement;
 import javax.tools.Diagnostic;
 
-@SupportedAnnotationTypes("com.github.sviperll.adt4j.ValueVisitor")
+@SupportedAnnotationTypes("com.github.sviperll.adt4j.GenerateValueClassForVisitor")
 @SupportedSourceVersion(SourceVersion.RELEASE_6)
-public class ValueVisitorProcessor extends AbstractProcessor {
+public class GenerateValueClassForVisitorProcessor extends AbstractProcessor {
     @Override
     public boolean process(Set<? extends TypeElement> annotations,
                            RoundEnvironment roundEnv) {
         try {
-            for (Element elem : roundEnv.getElementsAnnotatedWith(ValueVisitor.class)) {
+            for (Element elem : roundEnv.getElementsAnnotatedWith(GenerateValueClassForVisitor.class)) {
                 try {
-                    ValueVisitor dataVisitor = elem.getAnnotation(ValueVisitor.class);
+                    GenerateValueClassForVisitor dataVisitor = elem.getAnnotation(GenerateValueClassForVisitor.class);
                     processElement(elem, dataVisitor);
                 } catch (CodeGenerationException ex) {
                     processingEnv.getMessager().printMessage(Diagnostic.Kind.ERROR, ex.getMessage());
@@ -68,7 +66,7 @@ public class ValueVisitorProcessor extends AbstractProcessor {
         }
     }
 
-    private void processElement(Element visitorElement, ValueVisitor dataVisitor) throws CodeGenerationException, IOException, SourceException {
+    private void processElement(Element visitorElement, GenerateValueClassForVisitor dataVisitor) throws CodeGenerationException, IOException, SourceException {
         JCodeModel jCodeModel = new JCodeModel();
         ValueClassModelBuilder builder = new ValueClassModelBuilder(jCodeModel);
         ValueClassModel definedClass = builder.build(visitorElement, dataVisitor);

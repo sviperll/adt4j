@@ -38,7 +38,7 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.SOURCE)
 @Target(ElementType.TYPE)
 @Documented
-public @interface ValueVisitor {
+public @interface GenerateValueClassForVisitor {
     String resultVariableName();
     String exceptionVariableName() default ":none";
     String selfReferenceVariableName() default ":none";

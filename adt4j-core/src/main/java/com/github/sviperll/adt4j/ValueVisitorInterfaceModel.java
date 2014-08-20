@@ -46,9 +46,9 @@ public class ValueVisitorInterfaceModel {
     private static final String VALUE_SUFFIX = "Value";
 
     private final JDefinedClass visitorInterfaceModel;
-    private final ValueVisitor dataVisitor;
+    private final GenerateValueClassForVisitor dataVisitor;
 
-    ValueVisitorInterfaceModel(JDefinedClass visitorInterfaceModel, ValueVisitor dataVisitor) {
+    ValueVisitorInterfaceModel(JDefinedClass visitorInterfaceModel, GenerateValueClassForVisitor dataVisitor) {
         this.visitorInterfaceModel = visitorInterfaceModel;
         this.dataVisitor = dataVisitor;
     }

@@ -29,9 +29,9 @@
  */
 package com.github.sviperll.adt4j.examples;
 
-import com.github.sviperll.adt4j.ValueVisitor;
+import com.github.sviperll.adt4j.GenerateValueClassForVisitor;
 
-@ValueVisitor(resultVariableName = "R")
+@GenerateValueClassForVisitor(resultVariableName = "R")
 public interface UserKeyVisitor<R> {
     R valueOf(int key);
 }

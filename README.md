@@ -2,14 +2,14 @@ adt4j - Algebraic Data Types for Java
 =====================================
 
 This library implements [Algebraic Data Types](http://en.wikipedia.org/wiki/Algebraic_data_type) for Java.
-ADT4J provides annotation processor for @ValueVisitor annotation.
-ADT4J generates new class for each @ValueVisitor annotation.
+ADT4J provides annotation processor for @GenerateValueClassForVisitor annotation.
+ADT4J generates new class for each @GenerateValueClassForVisitor annotation.
 
 It allows you to easily define custom data types. Like this:
 
     // Define Expression data type
-    @ValueVisitor(resultVariableName="R",
-                  selfReferenceVariableName="E")
+    @GenerateValueClassForVisitor(resultVariableName="R",
+                                  selfReferenceVariableName="E")
     interface ExpressionVisitor<E, R> {
         R int(int i);
         R sum(E e1, E e2);
@@ -86,10 +86,10 @@ an example of ADT4J usage.
     Additional type variables are allowed.
     Methods should not throw any checked exceptions.
 
- 2. Add a `@ValueVisitor` and specify special type-variable names in arguments to annotation.
+ 2. Add a `@GenerateValueClassForVisitor` and specify special type-variable names in arguments to annotation.
     Add `@Nonnull` annonations when null checks are needed.
 
-        @ValueVisitor(resultVariableName = "R")
+        @GenerateValueClassForVisitor(resultVariableName = "R")
         interface OptionalVisitor<T, R> {
             R present(@Nonnull T value);
             R missing();
@@ -140,9 +140,9 @@ an example of ADT4J usage.
 
     You can customize class name with additional arguments. Like this:
 
-        @ValueVisitor(resultVariableName = "R",
-                      valueClassName = "OptionalBase",
-                      valueClassIsPublic = false)
+        @GenerateValueClassForVisitor(resultVariableName = "R",
+                                      valueClassName = "OptionalBase",
+                                      valueClassIsPublic = false)
         interface OptionalVisitor<T, R> {
             R present(@Nonnull T value);
             R missing();
@@ -178,7 +178,7 @@ an example of ADT4J usage.
                     }
 
                     @Override
-                    public Optional<U> present(T value) {
+                    public MyOptional<U> present(T value) {
                         return function.apply(value);
                     }
                 });
@@ -195,10 +195,9 @@ an example of ADT4J usage.
 
     or with anonymous classes:
 
-        Optional<String> lookup2(String key) {
-            return lookup(key).flatMap(new Function<String, Optional<String>>() {
-                public String apply(String value) {
-                    return lookup(value);
+        lookup(key1).flatMap(new Function<String, Optional<String>>() {
+                public String apply(String key2) {
+                    return lookup(key2);
                 }
             });
         }

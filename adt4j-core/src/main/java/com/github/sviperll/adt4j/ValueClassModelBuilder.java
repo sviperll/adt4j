@@ -138,17 +138,17 @@ class ValueClassModelBuilder {
         this.codeModel = codeModel;
     }
 
-    public ValueClassModel build(Element visitorElement, ValueVisitor dataVisitor) throws SourceException, CodeGenerationException {
+    public ValueClassModel build(Element visitorElement, GenerateValueClassForVisitor dataVisitor) throws SourceException, CodeGenerationException {
         ValueVisitorInterfaceModel visitorInterfaceModel = buildVisitorInterface(visitorElement, dataVisitor);
         ValueClassModel result = build(visitorInterfaceModel);
         return result;
     }
 
-    private ValueVisitorInterfaceModel buildVisitorInterface(Element visitorElement, ValueVisitor dataVisitor) throws SourceException, CodeGenerationException {
+    private ValueVisitorInterfaceModel buildVisitorInterface(Element visitorElement, GenerateValueClassForVisitor dataVisitor) throws SourceException, CodeGenerationException {
         return buildVisitorInterface(toTypeElement(visitorElement), dataVisitor);
     }
 
-    private ValueVisitorInterfaceModel buildVisitorInterface(TypeElement visitorElement, ValueVisitor dataVisitor) throws SourceException, CodeGenerationException {
+    private ValueVisitorInterfaceModel buildVisitorInterface(TypeElement visitorElement, GenerateValueClassForVisitor dataVisitor) throws SourceException, CodeGenerationException {
         try {
             JDefinedClass visitorInterfaceModel = createJDefinedClass(visitorElement);
             for (Element element: visitorElement.getEnclosedElements()) {
