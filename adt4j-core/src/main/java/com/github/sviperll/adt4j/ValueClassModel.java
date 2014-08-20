@@ -132,13 +132,20 @@ class ValueClassModel {
         }
     }
 
-    private static boolean isNullable(JVar param) {
+    private static boolean isNullable(JVar param) throws SourceException {
+        boolean hasNonnull = false;
+        boolean hasNullable = false;
         for (JAnnotationUse annotationUse: param.annotations()) {
             if (annotationUse.getAnnotationClass().fullName().equals("javax.annotation.Nonnull")) {
-                return false;
+                hasNonnull = true;
+            }
+            if (annotationUse.getAnnotationClass().fullName().equals("javax.annotation.Nullable")) {
+                hasNullable = true;
             }
         }
-        return true;
+        if (hasNonnull && hasNullable)
+            throw new SourceException("Parameter " + param.name() + " is declared as both @Nullable and @Nonnull");
+        return hasNullable;
     }
 
     private final JDefinedClass valueClass;
@@ -293,7 +300,7 @@ class ValueClassModel {
         return factoryClass;
     }
 
-    private Map<String, JMethod> buildConstructorMethods() throws JClassAlreadyExistsException {
+    private Map<String, JMethod> buildConstructorMethods() throws JClassAlreadyExistsException, SourceException {
         Map<String, JDefinedClass> caseClasses = buildCaseClasses();
 
         Map<String, JMethod> constructorMethods = new TreeMap<String, JMethod>();
@@ -308,7 +315,7 @@ class ValueClassModel {
             for (JVar param: interfaceMethod.params()) {
                 AbstractJType paramType = visitorInterface.substituteTypeParameter(param.type(), usedValueClassType, usedValueClassType, types._RuntimeException());
                 JVar constructorMethodParam = constructorMethod.param(param.mods().getValue(), paramType, param.name());
-                if (!isNullable(param)) {
+                if (!isNullable(param) && param.type().isReference()) {
                     constructorMethodParam.annotate(Nonnull.class);
                 }
             }
@@ -316,7 +323,7 @@ class ValueClassModel {
             AbstractJClass usedCaseClassType = Types.narrow(caseClasses.get(interfaceMethod.name()), constructorMethod.typeParams());
             if (!interfaceMethod.params().isEmpty()) {
                 for (JVar param: interfaceMethod.params()) {
-                    if (!isNullable(param)) {
+                    if (!isNullable(param) && param.type().isReference()) {
                         JConditional nullCheck = constructorMethod.body()._if(JExpr.ref(param.name()).eq(JExpr._null()));
                         JInvocation nullPointerExceptionConstruction = JExpr._new(types._NullPointerException());
                         nullPointerExceptionConstruction.arg(JExpr.lit("Argument shouldn't be null: '" + param.name() + "' argument in static method invocation: '" + constructorMethod.name() + "' in class " + valueClass.fullName()));
@@ -407,7 +414,7 @@ class ValueClassModel {
         return caseClass;
     }
 
-    private void buildEqualsMethod() {
+    private void buildEqualsMethod() throws SourceException {
         JMethod equalsMethod = valueClass.method(JMod.PUBLIC | JMod.FINAL, types._boolean(), "equals");
         equalsMethod.annotate(Override.class);
         JAnnotationUse annotationUse = equalsMethod.annotate(SuppressWarnings.class);
@@ -466,7 +473,7 @@ class ValueClassModel {
         _else._return(invocation1);
     }
 
-    private void buildHashCodeMethod() {
+    private void buildHashCodeMethod() throws SourceException {
         JMethod hashCodeMethod = valueClass.method(JMod.PUBLIC | JMod.FINAL, types._int(), "hashCode");
         hashCodeMethod.annotate(Override.class);
         AbstractJClass usedValueClassType = Types.narrow(valueClass, valueClass.typeParams());

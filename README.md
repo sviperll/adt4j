@@ -87,15 +87,22 @@ an example of ADT4J usage.
     Methods should not throw any checked exceptions.
 
  2. Add a `@GenerateValueClassForVisitor` and specify special type-variable names in arguments to annotation.
-    Add `@Nonnull` annonations when null checks are needed.
 
         @GenerateValueClassForVisitor(resultVariableName = "R")
         interface OptionalVisitor<T, R> {
-            R present(@Nonnull T value);
+            R present(T value);
             R missing();
         }
 
     Here we declare that type-variable `R` is used as a result-type of all interface methods.
+
+    Note: you should always add @Nullable annotation to make any field nullable. Otherwise null checks are
+    generated and exception is thrown upon construction:
+
+        @GenerateValueClassForVisitor(resultVariableName = "R")
+        interface Record<T, R> {
+            R valueOf(T mandatory1, Object mandatory2, @Nullable Object optional);
+        }
 
  3. We are ready to go.
 
