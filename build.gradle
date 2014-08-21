@@ -3,7 +3,6 @@ subprojects {
     apply plugin: 'maven'
     apply plugin: 'signing'
 
-
     compileJava {
         options.compilerArgs = ['-Xlint', '-Xlint:-serial']
     }
@@ -12,7 +11,6 @@ subprojects {
     group = 'com.github.sviperll'
     sourceCompatibility = 1.6
     targetCompatibility = 1.6
-    archivesBaseName = name + '-jdk6'
 
     jar {
         manifest {
