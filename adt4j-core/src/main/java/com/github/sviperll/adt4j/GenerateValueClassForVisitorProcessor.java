@@ -48,10 +48,12 @@ public class GenerateValueClassForVisitorProcessor extends AbstractProcessor {
     public boolean process(Set<? extends TypeElement> annotations,
                            RoundEnvironment roundEnv) {
         try {
+            JCodeModel jCodeModel = new JCodeModel();
             for (Element elem : roundEnv.getElementsAnnotatedWith(GenerateValueClassForVisitor.class)) {
                 try {
                     GenerateValueClassForVisitor dataVisitor = elem.getAnnotation(GenerateValueClassForVisitor.class);
-                    processElement(elem, dataVisitor);
+                    ValueClassModelBuilder builder = new ValueClassModelBuilder(jCodeModel);
+                    ValueClassModel definedClass = builder.build(elem, dataVisitor);
                 } catch (CodeGenerationException ex) {
                     processingEnv.getMessager().printMessage(Diagnostic.Kind.ERROR, ex.getMessage());
                 }
@@ -59,18 +61,11 @@ public class GenerateValueClassForVisitorProcessor extends AbstractProcessor {
                     processingEnv.getMessager().printMessage(Diagnostic.Kind.ERROR, ex.getMessage());
                 }
             }
+            jCodeModel.build(new FilerCodeWriter(processingEnv.getFiler(), processingEnv.getMessager()));
             return true;
         } catch (IOException ex) {
             processingEnv.getMessager().printMessage(Diagnostic.Kind.ERROR, ex.getMessage());
             return false;
         }
-    }
-
-    private void processElement(Element visitorElement, GenerateValueClassForVisitor dataVisitor) throws CodeGenerationException, IOException, SourceException {
-        JCodeModel jCodeModel = new JCodeModel();
-        ValueClassModelBuilder builder = new ValueClassModelBuilder(jCodeModel);
-        ValueClassModel definedClass = builder.build(visitorElement, dataVisitor);
-
-        jCodeModel.build(new FilerCodeWriter(processingEnv.getFiler(), processingEnv.getMessager()));
     }
 }

@@ -53,6 +53,7 @@ import com.helger.jcodemodel.JVar;
 import java.util.Map;
 import java.util.TreeMap;
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
 class ValueClassModel {
     private static String capitalize(String s) {
@@ -145,6 +146,8 @@ class ValueClassModel {
         }
         if (hasNonnull && hasNullable)
             throw new SourceException("Parameter " + param.name() + " is declared as both @Nullable and @Nonnull");
+        if (!param.type().isReference() && hasNullable)
+            throw new SourceException("Parameter " + param.name() + " is non-reference, but declared as @Nullable");
         return hasNullable;
     }
 
@@ -315,15 +318,14 @@ class ValueClassModel {
             for (JVar param: interfaceMethod.params()) {
                 AbstractJType paramType = visitorInterface.substituteTypeParameter(param.type(), usedValueClassType, usedValueClassType, types._RuntimeException());
                 JVar constructorMethodParam = constructorMethod.param(param.mods().getValue(), paramType, param.name());
-                if (!isNullable(param) && param.type().isReference()) {
-                    constructorMethodParam.annotate(Nonnull.class);
-                }
+                if (param.type().isReference())
+                    constructorMethodParam.annotate(isNullable(param) ? Nullable.class : Nonnull.class);
             }
 
             AbstractJClass usedCaseClassType = Types.narrow(caseClasses.get(interfaceMethod.name()), constructorMethod.typeParams());
             if (!interfaceMethod.params().isEmpty()) {
                 for (JVar param: interfaceMethod.params()) {
-                    if (!isNullable(param) && param.type().isReference()) {
+                    if (param.type().isReference() && !isNullable(param)) {
                         JConditional nullCheck = constructorMethod.body()._if(JExpr.ref(param.name()).eq(JExpr._null()));
                         JInvocation nullPointerExceptionConstruction = JExpr._new(types._NullPointerException());
                         nullPointerExceptionConstruction.arg(JExpr.lit("Argument shouldn't be null: '" + param.name() + "' argument in static method invocation: '" + constructorMethod.name() + "' in class " + valueClass.fullName()));
@@ -509,8 +511,8 @@ class ValueClassModel {
         }
 
         private void appendNullableValue(AbstractJType type, IJExpression value1, IJExpression value2) {
-            if (type.isPrimitive()) {
-                appendNotNullValue(type, value1, value2);
+            if (!type.isReference()) {
+                throw new AssertionError("appendNullableValue called for non-reference type");
             } else {
                 JConditional _if = body._if(value1.ne(value2));
                 IJExpression isNull = value1.eq(JExpr._null()).cor(value2.eq(JExpr._null()));
@@ -531,7 +533,10 @@ class ValueClassModel {
                 _for.test(i.lt(value1.ref("length")));
                 _for.update(i.incr());
                 EqualsBody forBody = new EqualsBody(_for.body());
-                forBody.appendNullableValue(type.elementType(), value1.component(i), value2.component(i));
+                if (type.elementType().isReference())
+                    forBody.appendNullableValue(type.elementType(), value1.component(i), value2.component(i));
+                else
+                    forBody.appendNotNullValue(type.elementType(), value1.component(i), value2.component(i));
             } else if (type.isPrimitive()) {
                 JConditional _if = body._if(value1.ne(value2));
                 _if._then()._return(JExpr.FALSE);
@@ -555,8 +560,8 @@ class ValueClassModel {
         }
 
         private void appendNullableValue(AbstractJType type, IJExpression value) {
-            if (type.isPrimitive())
-                appendNotNullValue(type, value);
+            if (!type.isReference())
+                throw new AssertionError("appendNullableValue called for non-reference type");
             else {
                 JConditional _if = body._if(value.eq(JExpr._null()));
                 HashCodeBody thenBody = new HashCodeBody(_if._then(), result, hashCodeBase);
@@ -574,7 +579,10 @@ class ValueClassModel {
                 _for.test(i.lt(value.ref("length")));
                 _for.update(i.incr());
                 HashCodeBody forBody = new HashCodeBody(_for.body(), result, hashCodeBase);
-                forBody.appendNullableValue(type.elementType(), value.component(i));
+                if (type.elementType().isReference())
+                    forBody.appendNullableValue(type.elementType(), value.component(i));
+                else
+                    forBody.appendNotNullValue(type.elementType(), value.component(i));
             } else if (!type.isPrimitive()) {
                 appendNotNullValue(types._int(), value.invoke("hashCode"));
             } else if (type.name().equals("double")) {
