@@ -40,6 +40,7 @@ import com.helger.jcodemodel.AbstractJType;
 import com.helger.jcodemodel.JTypeVar;
 import com.helger.jcodemodel.JVar;
 import java.util.Collection;
+import javax.annotation.processing.ProcessingEnvironment;
 import javax.lang.model.element.AnnotationMirror;
 import javax.lang.model.element.Element;
 import javax.lang.model.element.ElementKind;
@@ -69,6 +70,7 @@ import javax.lang.model.type.ExecutableType;
 import javax.lang.model.type.NoType;
 import javax.lang.model.type.NullType;
 import javax.lang.model.type.PrimitiveType;
+import javax.lang.model.type.TypeKind;
 import static javax.lang.model.type.TypeKind.CHAR;
 import javax.lang.model.type.TypeMirror;
 import javax.lang.model.type.TypeVariable;
@@ -151,29 +153,6 @@ class ValueClassModelBuilder {
     private ValueVisitorInterfaceModel buildVisitorInterface(TypeElement visitorElement, GenerateValueClassForVisitor dataVisitor) throws SourceException, CodeGenerationException {
         try {
             JDefinedClass visitorInterfaceModel = createJDefinedClass(visitorElement);
-            for (Element element: visitorElement.getEnclosedElements()) {
-                if (element.getKind().equals(ElementKind.METHOD)) {
-                    ExecutableElement executable = (ExecutableElement)element;
-                    JMethod method = visitorInterfaceModel.method(toJMod(executable.getModifiers()), toJType(executable.getReturnType()), executable.getSimpleName().toString());
-                    for (TypeParameterElement parameter: executable.getTypeParameters()) {
-                        JTypeVar typeVariable = method.generify(parameter.getSimpleName().toString());
-                        for (TypeMirror type: parameter.getBounds()) {
-                            typeVariable.bound((AbstractJClass)toJType(type));
-                        }
-                    }
-                    for (TypeMirror type: executable.getThrownTypes()) {
-                        AbstractJClass throwable = (AbstractJClass)toJType(type);
-                        method._throws(throwable);
-                    }
-
-                    for (VariableElement variable: executable.getParameters()) {
-                        JVar param = method.param(toJMod(variable.getModifiers()), toJType(variable.asType()), variable.getSimpleName().toString());
-                        for (AnnotationMirror annotation: variable.getAnnotationMirrors()) {
-                            param.annotate((AbstractJClass)toJType(annotation.getAnnotationType()));
-                        }
-                    }
-                }
-            }
             return new ValueVisitorInterfaceModel(visitorInterfaceModel, dataVisitor);
         } catch (JClassAlreadyExistsException ex) {
             throw new CodeGenerationException(ex);
@@ -184,7 +163,7 @@ class ValueClassModelBuilder {
         return ValueClassModel.createInstance(codeModel, visitorInterface);
     }
 
-    private JDefinedClass createJDefinedClass(TypeElement element) throws JClassAlreadyExistsException {
+    private JDefinedClass createJDefinedClass(TypeElement element) throws JClassAlreadyExistsException, SourceException {
         EClassType classType = toClassType(element.getKind());
         int modifiers = toJMod(element.getModifiers());
         if (classType.equals(EClassType.INTERFACE))
@@ -198,16 +177,69 @@ class ValueClassModelBuilder {
                 typeVariable.bound((AbstractJClass)toJType(type));
             }
         }
+        TypeMirror superclass = element.getSuperclass();
+        if (superclass != null && superclass.getKind() != TypeKind.NONE) {
+            newClass._extends((AbstractJClass)toJType(superclass));
+        }
+        for (TypeMirror iface: element.getInterfaces()) {
+            newClass._implements((AbstractJClass)toJType(iface));
+        }
+        for (Element enclosedElement: element.getEnclosedElements()) {
+            if (enclosedElement.getKind().equals(ElementKind.METHOD)) {
+                ExecutableElement executable = (ExecutableElement)enclosedElement;
+                JMethod method = newClass.method(toJMod(executable.getModifiers()), toJType(executable.getReturnType()), executable.getSimpleName().toString());
+                for (TypeParameterElement parameter: executable.getTypeParameters()) {
+                    JTypeVar typeVariable = method.generify(parameter.getSimpleName().toString());
+                    for (TypeMirror type: parameter.getBounds()) {
+                        typeVariable.bound((AbstractJClass)toJType(type));
+                    }
+                }
+                for (TypeMirror type: executable.getThrownTypes()) {
+                    AbstractJClass throwable = (AbstractJClass)toJType(type);
+                    method._throws(throwable);
+                }
+
+                for (VariableElement variable: executable.getParameters()) {
+                    String parameterName = variable.getSimpleName().toString();
+                    TypeMirror parameterTypeMirror = variable.asType();
+                    /*
+                     * FIXME:
+                     *   Classes that are generated by annotation processor got ERROR type
+                     *   which means "not enough information". We can't see what interfaces are implemented by them.
+                     */
+                    AbstractJType parameterType;
+                    if (parameterTypeMirror.getKind() == TypeKind.ERROR) {
+                        JDefinedClass parameterTypeDefinition = createJDefinedClass((TypeElement)((ErrorType)parameterTypeMirror).asElement());
+                        parameterTypeDefinition._implements(codeModel.ref(ErrorTypeMarker.class));
+                        parameterTypeDefinition.hide();
+                        parameterType = parameterTypeDefinition;
+                    } else {
+                        parameterType = toJType(parameterTypeMirror);
+                    }
+                    JVar param = method.param(toJMod(variable.getModifiers()), parameterType, parameterName);
+                    for (AnnotationMirror annotation: variable.getAnnotationMirrors()) {
+                        param.annotate((AbstractJClass)toJType(annotation.getAnnotationType()));
+                    }
+                }
+            }
+        }
         return newClass;
     }
 
-    private AbstractJClass toJClass(TypeElement element) throws CodeGenerationException {
+    private AbstractJClass toJClass(TypeElement element) throws CodeGenerationException, SourceException {
         try {
             Class<?> klass = Class.forName(element.getQualifiedName().toString());
             AbstractJType declaredClass = codeModel._ref(klass);
             return (AbstractJClass)declaredClass;
         } catch (ClassNotFoundException ex) {
-            throw new CodeGenerationException(ex);
+            try {
+                AbstractJClass result = codeModel._getClass(element.getQualifiedName().toString());
+                if (result == null)
+                    result = createJDefinedClass(element);
+                return result;
+            } catch (JClassAlreadyExistsException ex1) {
+                throw new RuntimeException(ex1);
+            }
         }
     }
 
@@ -260,17 +292,19 @@ class ValueClassModelBuilder {
                     return _class;
                 } catch (CodeGenerationException ex) {
                     throw new RuntimeException(ex);
+                } catch (SourceException ex) {
+                    throw new RuntimeException(ex);
                 }
             }
 
             @Override
             public AbstractJType visitError(ErrorType t, Void p) {
-                throw new IllegalArgumentException("error can't be JClass."); //To change body of generated methods, choose Tools | Templates.
+                throw new IllegalArgumentException("error type can't be JClass."); //To change body of generated methods, choose Tools | Templates.
             }
 
             @Override
             public AbstractJType visitTypeVariable(TypeVariable t, Void p) {
-                return codeModel.directClass(t.asElement().getSimpleName().toString());
+                return codeModel.ref(t.asElement().getSimpleName().toString());
             }
 
             @Override

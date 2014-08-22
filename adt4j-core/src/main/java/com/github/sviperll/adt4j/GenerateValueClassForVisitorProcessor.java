@@ -31,6 +31,7 @@ package com.github.sviperll.adt4j;
 
 import com.helger.jcodemodel.JCodeModel;
 import java.io.IOException;
+import java.io.Writer;
 import java.util.Set;
 import javax.annotation.processing.AbstractProcessor;
 import javax.annotation.processing.RoundEnvironment;
@@ -48,20 +49,27 @@ public class GenerateValueClassForVisitorProcessor extends AbstractProcessor {
     public boolean process(Set<? extends TypeElement> annotations,
                            RoundEnvironment roundEnv) {
         try {
-            JCodeModel jCodeModel = new JCodeModel();
             for (Element elem : roundEnv.getElementsAnnotatedWith(GenerateValueClassForVisitor.class)) {
                 try {
+                    JCodeModel jCodeModel = new JCodeModel();
                     GenerateValueClassForVisitor dataVisitor = elem.getAnnotation(GenerateValueClassForVisitor.class);
                     ValueClassModelBuilder builder = new ValueClassModelBuilder(jCodeModel);
                     ValueClassModel definedClass = builder.build(elem, dataVisitor);
+                    FilerCodeWriter writer = new FilerCodeWriter(processingEnv.getFiler(), processingEnv.getMessager());
+                    try {
+                        jCodeModel.build(writer);
+                    } finally {
+                        writer.close();
+                    }
                 } catch (CodeGenerationException ex) {
                     processingEnv.getMessager().printMessage(Diagnostic.Kind.ERROR, ex.getMessage());
-                }
-                catch (SourceException ex) {
+                } catch (SourceException ex) {
                     processingEnv.getMessager().printMessage(Diagnostic.Kind.ERROR, ex.getMessage());
+                } catch (RuntimeException ex) {
+                    processingEnv.getMessager().printMessage(Diagnostic.Kind.ERROR, ex.getMessage());
+                    ex.printStackTrace(System.err);
                 }
             }
-            jCodeModel.build(new FilerCodeWriter(processingEnv.getFiler(), processingEnv.getMessager()));
             return true;
         } catch (IOException ex) {
             processingEnv.getMessager().printMessage(Diagnostic.Kind.ERROR, ex.getMessage());

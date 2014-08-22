@@ -35,6 +35,7 @@ import com.helger.jcodemodel.JFormatter;
 import com.helger.jcodemodel.JMethod;
 import com.helger.jcodemodel.AbstractJType;
 import com.helger.jcodemodel.JTypeVar;
+import com.helger.jcodemodel.JVar;
 import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -46,11 +47,11 @@ public class ValueVisitorInterfaceModel {
     private static final String VALUE_SUFFIX = "Value";
 
     private final JDefinedClass visitorInterfaceModel;
-    private final GenerateValueClassForVisitor dataVisitor;
+    private final GenerateValueClassForVisitor annotationInstance;
 
     ValueVisitorInterfaceModel(JDefinedClass visitorInterfaceModel, GenerateValueClassForVisitor dataVisitor) {
         this.visitorInterfaceModel = visitorInterfaceModel;
-        this.dataVisitor = dataVisitor;
+        this.annotationInstance = dataVisitor;
     }
 
     String getPackageName() {
@@ -58,8 +59,8 @@ public class ValueVisitorInterfaceModel {
     }
 
     String getValueClassName() {
-        if (!dataVisitor.valueClassName().equals(":auto")) {
-            return dataVisitor.valueClassName();
+        if (!annotationInstance.valueClassName().equals(":auto")) {
+            return annotationInstance.valueClassName();
         } else {
             String visitorName = visitorInterfaceModel.name();
             String valueName;
@@ -72,33 +73,33 @@ public class ValueVisitorInterfaceModel {
     }
 
     boolean generatesPublicClass() {
-        return dataVisitor.valueClassIsPublic();
+        return annotationInstance.valueClassIsPublic();
     }
 
     int hashCodeBase() {
-        return dataVisitor.valueClassHashCodeBase();
+        return annotationInstance.valueClassHashCodeBase();
     }
 
     Collection<JTypeVar> getDataTypeParameters() {
         List<JTypeVar> result = new ArrayList<JTypeVar>();
         for (JTypeVar typeVariable: visitorInterfaceModel.typeParams()) {
-            if (!shouldBeOverridenOnInvocation(typeVariable.name()) && !isSelf(typeVariable.name()))
+            if (!shouldBeOverridenOnInvocation(typeVariable.name()) && !isSelf(typeVariable))
                 result.add(typeVariable);
         }
         return result;
     }
 
     private boolean shouldBeOverridenOnInvocation(String name) {
-        return name.equals(dataVisitor.resultVariableName()) || name.equals(dataVisitor.exceptionVariableName());
+        return name.equals(annotationInstance.resultVariableName()) || name.equals(annotationInstance.exceptionVariableName());
     }
 
-    private boolean isSelf(String name) {
-        return name.equals(dataVisitor.selfReferenceVariableName());
+    boolean isSelf(AbstractJType type) {
+        return type.fullName().equals(annotationInstance.selfReferenceVariableName());
     }
 
     JTypeVar getResultTypeParameter() {
         for (JTypeVar typeVariable: visitorInterfaceModel.typeParams()) {
-            if (typeVariable.name().equals(dataVisitor.resultVariableName()))
+            if (typeVariable.name().equals(annotationInstance.resultVariableName()))
                 return typeVariable;
         }
         return null;
@@ -106,7 +107,7 @@ public class ValueVisitorInterfaceModel {
 
     JTypeVar getExceptionTypeParameter() {
         for (JTypeVar typeVariable: visitorInterfaceModel.typeParams()) {
-            if (typeVariable.name().equals(dataVisitor.exceptionVariableName()))
+            if (typeVariable.name().equals(annotationInstance.exceptionVariableName()))
                 return typeVariable;
         }
         return null;
@@ -114,7 +115,7 @@ public class ValueVisitorInterfaceModel {
 
     private JTypeVar getSelfTypeParameter() {
         for (JTypeVar typeVariable: visitorInterfaceModel.typeParams()) {
-            if (isSelf(typeVariable.name()))
+            if (isSelf(typeVariable))
                 return typeVariable;
         }
         return null;
@@ -128,11 +129,11 @@ public class ValueVisitorInterfaceModel {
         Iterator<? extends AbstractJClass> dataTypeArgumentIterator = usedDataType.getTypeParameters().iterator();
         AbstractJClass result = visitorInterfaceModel;
         for (JTypeVar typeVariable: visitorInterfaceModel.typeParams()) {
-            if (typeVariable.name().equals(dataVisitor.exceptionVariableName()))
+            if (typeVariable.name().equals(annotationInstance.exceptionVariableName()))
                 result = result.narrow(exceptionType);
-            else if (typeVariable.name().equals(dataVisitor.resultVariableName()))
+            else if (typeVariable.name().equals(annotationInstance.resultVariableName()))
                 result = result.narrow(resultType);
-            else if (typeVariable.name().equals(dataVisitor.selfReferenceVariableName()))
+            else if (isSelf(typeVariable))
                 result = result.narrow(selfType);
             else {
                 result = result.narrow(dataTypeArgumentIterator.next());
@@ -153,11 +154,11 @@ public class ValueVisitorInterfaceModel {
     }
 
     AbstractJType substituteTypeParameter(AbstractJType type, AbstractJClass usedDataType, AbstractJType resultType, AbstractJType exceptionType) {
-        if (type.name().equals(dataVisitor.exceptionVariableName()))
+        if (type.fullName().equals(annotationInstance.exceptionVariableName()))
             return exceptionType;
-        else if (type.name().equals(dataVisitor.resultVariableName()))
+        else if (type.fullName().equals(annotationInstance.resultVariableName()))
             return resultType;
-        else if (type.name().equals(dataVisitor.selfReferenceVariableName()))
+        else if (isSelf(type))
             return usedDataType;
         else
             return type;
@@ -165,5 +166,9 @@ public class ValueVisitorInterfaceModel {
 
     boolean hasSelfTypeParameter() {
         return getSelfTypeParameter() != null;
+    }
+
+    boolean shouldBeSerializable() {
+        return annotationInstance.valueClassIsSerializable();
     }
 }

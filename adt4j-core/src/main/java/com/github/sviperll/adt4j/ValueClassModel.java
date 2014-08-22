@@ -105,6 +105,16 @@ class ValueClassModel {
     public static ValueClassModel createInstance(JCodeModel codeModel, ValueVisitorInterfaceModel visitorInterface) throws SourceException, CodeGenerationException {
         try {
             Types types = Types.createInstance(codeModel);
+            boolean isSerializable = visitorInterface.shouldBeSerializable();
+            if (isSerializable) {
+                for (JMethod interfaceMethod: visitorInterface.methods()) {
+                    for (JVar param: interfaceMethod.params()) {
+                        AbstractJType type = param.type();
+                        if (!visitorInterface.isSelf(type) && !types.isError(type) && !types.isSerializable(type))
+                            throw new SourceException("Can't be serializable: " + param.name() + " parameter in " + interfaceMethod.name() + " method is not serializable");
+                    }
+                }
+            }
 
             String valueClassName = visitorInterface.getValueClassName();
 
@@ -114,8 +124,14 @@ class ValueClassModel {
                 JTypeVar typeParameter = valueClass.generify(visitorTypeParameter.name());
                 typeParameter.bound(visitorTypeParameter._extends());
             }
+            if (isSerializable) {
+                valueClass._implements(types._Serializable());
+            }
 
             JDefinedClass acceptingInterface = createAcceptingInterface(valueClass, visitorInterface, types);
+            if (isSerializable) {
+                acceptingInterface._extends(types._Serializable());
+            }
 
             ValueClassModel result = new ValueClassModel(valueClass, acceptingInterface, visitorInterface, types);
             JFieldVar acceptorField = result.buildAcceptorField();

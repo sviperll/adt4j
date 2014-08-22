@@ -30,10 +30,12 @@
 package com.github.sviperll.adt4j;
 
 import com.helger.jcodemodel.AbstractJClass;
+import com.helger.jcodemodel.AbstractJType;
 import com.helger.jcodemodel.JCodeModel;
 import com.helger.jcodemodel.JDefinedClass;
 import com.helger.jcodemodel.JPrimitiveType;
 import com.helger.jcodemodel.JTypeVar;
+import java.io.Serializable;
 
 class Types {
     public static AbstractJClass narrow(JDefinedClass definedClass, JTypeVar[] typeParams) {
@@ -58,6 +60,8 @@ class Types {
     private final AbstractJClass _RuntimeException;
     private final AbstractJClass _Long;
     private final AbstractJClass _NullPointerException;
+    private final AbstractJClass _Serializable;
+    private final AbstractJClass _ErrorTypeMarker;
 
     private Types(JCodeModel codeModel) {
         _void = codeModel.VOID;
@@ -75,6 +79,8 @@ class Types {
         _Float = codeModel.ref(Float.class);
         _RuntimeException = codeModel.ref(RuntimeException.class);
         _NullPointerException = codeModel.ref(NullPointerException.class);
+        _Serializable = codeModel.ref(Serializable.class);
+        _ErrorTypeMarker = codeModel.ref(ErrorTypeMarker.class);
     }
 
     public JPrimitiveType _void() {
@@ -131,5 +137,27 @@ class Types {
 
     public AbstractJClass _NullPointerException() {
         return _NullPointerException;
+    }
+
+    public AbstractJClass _Serializable() {
+        return _Serializable;
+    }
+
+    public boolean isSerializable(AbstractJType type) throws SourceException {
+        if (type.isPrimitive() || type.isArray())
+            return type.isPrimitive() || type.isArray() && isSerializable(type.elementType());
+        else {
+            AbstractJClass klass = (AbstractJClass)type.erasure();
+            return _Serializable.isAssignableFrom(klass);
+        }
+    }
+
+    boolean isError(AbstractJType type) {
+        if (type.isPrimitive() || type.isArray())
+            return false;
+        else {
+            AbstractJClass klass = (AbstractJClass)type.erasure();
+            return _ErrorTypeMarker.isAssignableFrom(klass);
+        }
     }
 }
