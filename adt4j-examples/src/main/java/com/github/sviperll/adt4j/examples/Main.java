@@ -69,6 +69,7 @@ public class Main {
         System.out.println();
         System.out.println("oa == oe ---> " + (oa == oe));
         System.out.println("oa.equals(oe) ---> " + ob.equals(oe));
+        System.out.println(List.cons("aaa", List.cons("bbb", List.nil())));
     }
 
     public static String toString(Optional<String> optional) {

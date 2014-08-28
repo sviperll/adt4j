@@ -61,6 +61,8 @@ class Types {
     private final AbstractJClass _Long;
     private final AbstractJClass _NullPointerException;
     private final AbstractJClass _Serializable;
+    private final AbstractJClass _String;
+    private final AbstractJClass _StringBuilder;
 
     private Types(JCodeModel codeModel) {
         _void = codeModel.VOID;
@@ -79,6 +81,8 @@ class Types {
         _RuntimeException = codeModel.ref(RuntimeException.class);
         _NullPointerException = codeModel.ref(NullPointerException.class);
         _Serializable = codeModel.ref(Serializable.class);
+        _String = codeModel.ref(String.class);
+        _StringBuilder = codeModel.ref(StringBuilder.class);
     }
 
     public JPrimitiveType _void() {
@@ -148,5 +152,13 @@ class Types {
             AbstractJClass klass = (AbstractJClass)type.erasure();
             return _Serializable.isAssignableFrom(klass);
         }
+    }
+
+    public AbstractJClass _String() {
+        return _String;
+    }
+
+    public AbstractJClass _StringBuilder() {
+        return _StringBuilder;
     }
 }

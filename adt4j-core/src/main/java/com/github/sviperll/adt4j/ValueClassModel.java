@@ -50,6 +50,7 @@ import com.helger.jcodemodel.JOp;
 import com.helger.jcodemodel.AbstractJType;
 import com.helger.jcodemodel.JTypeVar;
 import com.helger.jcodemodel.JVar;
+import java.util.Iterator;
 import java.util.Map;
 import java.util.TreeMap;
 import javax.annotation.Nonnull;
@@ -140,6 +141,7 @@ class ValueClassModel {
             result.buildAcceptMethod(acceptorField);
             result.buildEqualsMethod();
             result.buildHashCodeMethod();
+            result.buildToStringMethod();
             Map<String, JMethod> constructorMethods = result.buildConstructorMethods();
             result.buildFactory(constructorMethods);
 
@@ -520,6 +522,44 @@ class ValueClassModel {
         hashCodeMethod.body()._return(invocation1);
     }
 
+    private void buildToStringMethod() throws SourceException {
+        JMethod hashCodeMethod = valueClass.method(JMod.PUBLIC | JMod.FINAL, types._String(), "toString");
+        hashCodeMethod.annotate(Override.class);
+        AbstractJClass usedValueClassType = Types.narrow(valueClass, valueClass.typeParams());
+        AbstractJClass visitorType = visitorInterface.narrowed(usedValueClassType, types._String(), types._RuntimeException());
+
+        JDefinedClass anonymousClass1 = valueClass.owner().anonymousClass(visitorType);
+        for (JMethod interfaceMethod1: visitorInterface.methods()) {
+            JMethod visitorMethod1 = anonymousClass1.method(interfaceMethod1.mods().getValue() & ~JMod.ABSTRACT, types._String(), interfaceMethod1.name());
+            visitorMethod1.annotate(Override.class);
+            JVar result = visitorMethod1.body().decl(types._StringBuilder(), "result", JExpr._new(types._StringBuilder()));
+            JInvocation invocation = visitorMethod1.body().invoke(result, "append");
+            invocation.arg(valueClass.name() + "." + capitalize(interfaceMethod1.name()) + "{");
+            ToStringBody body = new ToStringBody(visitorMethod1.body(), result);
+            Iterator<JVar> iterator = interfaceMethod1.params().iterator();
+            if (iterator.hasNext()) {
+                JVar param = iterator.next();
+                AbstractJType paramType = visitorInterface.substituteTypeParameter(param.type(), usedValueClassType, types._Integer(), types._RuntimeException());
+                JVar argument = visitorMethod1.param(param.mods().getValue() | JMod.FINAL, paramType, param.name() + "1");
+                body.appendParam(paramType, param.name(), JExpr.ref(argument));
+                while (iterator.hasNext()) {
+                    param = iterator.next();
+                    paramType = visitorInterface.substituteTypeParameter(param.type(), usedValueClassType, types._Integer(), types._RuntimeException());
+                    argument = visitorMethod1.param(param.mods().getValue() | JMod.FINAL, paramType, param.name() + "1");
+                    invocation = visitorMethod1.body().invoke(result, "append");
+                    invocation.arg(", ");
+                    body.appendParam(paramType, param.name(), JExpr.ref(argument));
+                }
+            }
+            invocation = visitorMethod1.body().invoke(result, "append");
+            invocation.arg("}");
+            visitorMethod1.body()._return(result.invoke("toString"));
+        }
+        JInvocation invocation1 = JExpr._this().invoke("accept");
+        invocation1.arg(JExpr._new(anonymousClass1));
+        hashCodeMethod.body()._return(invocation1);
+    }
+
     private class EqualsBody {
         private final JBlock body;
         private EqualsBody(JBlock body) {
@@ -619,4 +659,20 @@ class ValueClassModel {
         }
     }
 
+    private class ToStringBody {
+        private final JBlock body;
+        private final JVar result;
+
+        public ToStringBody(JBlock body, JVar result) {
+            this.body = body;
+            this.result = result;
+        }
+
+        private void appendParam(AbstractJType type, String name, IJExpression value) {
+            JInvocation invocation = body.invoke(result, "append");
+            invocation.arg(name + " = ");
+            invocation = body.invoke(result, "append");
+            invocation.arg(value);
+        }
+    }
 }
