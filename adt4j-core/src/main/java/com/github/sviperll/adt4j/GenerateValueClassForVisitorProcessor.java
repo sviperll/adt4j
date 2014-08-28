@@ -30,7 +30,6 @@
 package com.github.sviperll.adt4j;
 
 import com.helger.jcodemodel.JCodeModel;
-import com.sun.source.util.TreePath;
 import java.io.IOException;
 import java.util.Set;
 import javax.annotation.processing.AbstractProcessor;
@@ -41,46 +40,33 @@ import javax.lang.model.SourceVersion;
 import javax.lang.model.element.Element;
 import javax.lang.model.element.TypeElement;
 import javax.tools.Diagnostic;
-import com.sun.source.util.Trees;
-import java.util.HashSet;
 import javax.annotation.processing.ProcessingEnvironment;
 
 @SupportedAnnotationTypes("com.github.sviperll.adt4j.GenerateValueClassForVisitor")
 @SupportedSourceVersion(SourceVersion.RELEASE_6)
 public class GenerateValueClassForVisitorProcessor extends AbstractProcessor {
-    private Trees trees;
-    private Set<TreePath> remainingElements = new HashSet<TreePath>();
 
     @Override
     public void init(ProcessingEnvironment environment) {
         super.init(environment);
-        trees = Trees.instance(environment);
     }
 
     @Override
     public boolean process(Set<? extends TypeElement> annotations,
                            RoundEnvironment roundEnv) {
         try {
-            if (roundEnv.processingOver()) {
-                for (TreePath path: remainingElements) {
-                    processingEnv.getMessager().printMessage(Diagnostic.Kind.ERROR, "Unable to process " + trees.getElement(path));
-                }
-            } else {
-                Set<Element> elements = new HashSet<Element>();
-                elements.addAll(roundEnv.getElementsAnnotatedWith(GenerateValueClassForVisitor.class));
-                for (TreePath path: remainingElements) {
-                    elements.add(trees.getElement(path));
-                }
-                remainingElements.clear();
-                processElements(elements);
-            }
+            Set<? extends Element> elements = roundEnv.getElementsAnnotatedWith(GenerateValueClassForVisitor.class);
+            processElements(elements);
         } catch (IOException ex) {
             processingEnv.getMessager().printMessage(Diagnostic.Kind.ERROR, ex.getMessage());
         }
-        return true;
+        // Always return false (do not claim annotation):
+        // it allows annotated elements in error (ErrorTypeFound) to have another chance during next round.
+        // Also it allows other processors to process 'our' annotation.
+        return false;
     }
 
-    private void processElements(Set<Element> elements) throws IOException {
+    private void processElements(Set<? extends Element> elements) throws IOException {
         for (Element element: elements) {
             try {
                 JCodeModel jCodeModel = new JCodeModel();
@@ -95,7 +81,7 @@ public class GenerateValueClassForVisitorProcessor extends AbstractProcessor {
                     writer.close();
                 }
             } catch (ErrorTypeFound ex) {
-                remainingElements.add(trees.getPath(element));
+                // We abandoned this type for now, but it may still be correctly processed during next round.
             } catch (CodeGenerationException ex) {
                 processingEnv.getMessager().printMessage(Diagnostic.Kind.ERROR, element + ": " + ex.getMessage());
             } catch (SourceException ex) {
