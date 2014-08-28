@@ -110,8 +110,8 @@ class ValueClassModel {
                 for (JMethod interfaceMethod: visitorInterface.methods()) {
                     for (JVar param: interfaceMethod.params()) {
                         AbstractJType type = param.type();
-                        if (!visitorInterface.isSelf(type) && !types.isError(type) && !types.isSerializable(type))
-                            throw new SourceException("Can't be serializable: " + param.name() + " parameter in " + interfaceMethod.name() + " method is not serializable");
+                        if (!visitorInterface.isSelf(type) && !types.isSerializable(type))
+                            throw new SourceException("Value class can't be serializable: " + param.name() + " parameter in " + interfaceMethod.name() + " method is not serializable");
                     }
                 }
             }

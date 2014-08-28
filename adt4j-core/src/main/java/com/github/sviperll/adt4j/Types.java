@@ -61,7 +61,6 @@ class Types {
     private final AbstractJClass _Long;
     private final AbstractJClass _NullPointerException;
     private final AbstractJClass _Serializable;
-    private final AbstractJClass _ErrorTypeMarker;
 
     private Types(JCodeModel codeModel) {
         _void = codeModel.VOID;
@@ -80,7 +79,6 @@ class Types {
         _RuntimeException = codeModel.ref(RuntimeException.class);
         _NullPointerException = codeModel.ref(NullPointerException.class);
         _Serializable = codeModel.ref(Serializable.class);
-        _ErrorTypeMarker = codeModel.ref(ErrorTypeMarker.class);
     }
 
     public JPrimitiveType _void() {
@@ -149,15 +147,6 @@ class Types {
         else {
             AbstractJClass klass = (AbstractJClass)type.erasure();
             return _Serializable.isAssignableFrom(klass);
-        }
-    }
-
-    boolean isError(AbstractJType type) {
-        if (type.isPrimitive() || type.isArray())
-            return false;
-        else {
-            AbstractJClass klass = (AbstractJClass)type.erasure();
-            return _ErrorTypeMarker.isAssignableFrom(klass);
         }
     }
 }

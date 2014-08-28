@@ -33,6 +33,7 @@ package com.github.sviperll.adt4j;
  *
  * @author Victor Nazarov <asviraspossible@gmail.com>
  */
-interface ErrorTypeMarker {
-
+public class ErrorTypeFound extends Exception {
+    public ErrorTypeFound() {
+    }
 }
