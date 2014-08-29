@@ -30,7 +30,6 @@
 package com.github.sviperll.adt4j;
 
 import com.helger.jcodemodel.JCodeModel;
-import com.sun.source.util.TreePath;
 import java.io.IOException;
 import java.util.Set;
 import javax.annotation.processing.AbstractProcessor;
@@ -40,21 +39,24 @@ import javax.annotation.processing.SupportedSourceVersion;
 import javax.lang.model.SourceVersion;
 import javax.lang.model.element.Element;
 import javax.lang.model.element.TypeElement;
+import javax.lang.model.util.ElementFilter;
 import javax.tools.Diagnostic;
-import com.sun.source.util.Trees;
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import javax.annotation.processing.ProcessingEnvironment;
 
 @SupportedAnnotationTypes("com.github.sviperll.adt4j.GenerateValueClassForVisitor")
 @SupportedSourceVersion(SourceVersion.RELEASE_6)
 public class GenerateValueClassForVisitorProcessor extends AbstractProcessor {
-    private Trees trees;
-    private Set<TreePath> remainingElements = new HashSet<TreePath>();
+
+    private final Set<Element> remainingElements = new HashSet<Element>();
+
+    private final List<TypeElement> generatedRootTypes = new ArrayList<TypeElement>();
 
     @Override
     public void init(ProcessingEnvironment environment) {
         super.init(environment);
-        trees = Trees.instance(environment);
     }
 
     @Override
@@ -62,30 +64,30 @@ public class GenerateValueClassForVisitorProcessor extends AbstractProcessor {
                            RoundEnvironment roundEnv) {
         try {
             if (roundEnv.processingOver()) {
-                for (TreePath path: remainingElements) {
-                    processingEnv.getMessager().printMessage(Diagnostic.Kind.ERROR, "Unable to process " + trees.getElement(path));
+                for (Element element: remainingElements) {
+                    processingEnv.getMessager().printMessage(Diagnostic.Kind.ERROR, "Unable to process " + element);
                 }
-            } else {
-                Set<Element> elements = new HashSet<Element>();
-                elements.addAll(roundEnv.getElementsAnnotatedWith(GenerateValueClassForVisitor.class));
-                for (TreePath path: remainingElements) {
-                    elements.add(trees.getElement(path));
-                }
-                remainingElements.clear();
-                processElements(elements);
             }
+            if (!remainingElements.isEmpty()) {
+                generatedRootTypes.addAll(ElementFilter.typesIn(roundEnv.getRootElements()));
+            }
+            remainingElements.addAll(roundEnv.getElementsAnnotatedWith(GenerateValueClassForVisitor.class));
+            final Set<Element> processed = processElements(remainingElements);
+            remainingElements.removeAll(processed);
         } catch (IOException ex) {
             processingEnv.getMessager().printMessage(Diagnostic.Kind.ERROR, ex.getMessage());
         }
-        return true;
+        // Allows other processors to process 'our' annotation by not claiming it.
+        return false;
     }
 
-    private void processElements(Set<Element> elements) throws IOException {
+    private Set<Element> processElements(Set<? extends Element> elements) throws IOException {
+        final Set<Element> processed = new HashSet<Element>();
         for (Element element: elements) {
             try {
                 JCodeModel jCodeModel = new JCodeModel();
                 GenerateValueClassForVisitor dataVisitor = element.getAnnotation(GenerateValueClassForVisitor.class);
-                ValueClassModelBuilder builder = new ValueClassModelBuilder(jCodeModel);
+                ValueClassModelBuilder builder = new ValueClassModelBuilder(jCodeModel, generatedRootTypes);
                 builder.build(element, dataVisitor);
                 processingEnv.getMessager().printMessage(Diagnostic.Kind.NOTE, "Generated value class for " + element);
                 FilerCodeWriter writer = new FilerCodeWriter(processingEnv.getFiler(), processingEnv.getMessager());
@@ -94,8 +96,9 @@ public class GenerateValueClassForVisitorProcessor extends AbstractProcessor {
                 } finally {
                     writer.close();
                 }
+                processed.add(element);
             } catch (ErrorTypeFound ex) {
-                remainingElements.add(trees.getPath(element));
+                // We abandoned this type for now, but it may still be correctly processed during next round.
             } catch (CodeGenerationException ex) {
                 processingEnv.getMessager().printMessage(Diagnostic.Kind.ERROR, element + ": " + ex.getMessage());
             } catch (SourceException ex) {
@@ -105,5 +108,6 @@ public class GenerateValueClassForVisitorProcessor extends AbstractProcessor {
                 ex.printStackTrace(System.err);
             }
         }
+        return processed;
     }
 }
