@@ -39,12 +39,20 @@ import javax.annotation.processing.SupportedSourceVersion;
 import javax.lang.model.SourceVersion;
 import javax.lang.model.element.Element;
 import javax.lang.model.element.TypeElement;
+import javax.lang.model.util.ElementFilter;
 import javax.tools.Diagnostic;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
 import javax.annotation.processing.ProcessingEnvironment;
 
 @SupportedAnnotationTypes("com.github.sviperll.adt4j.GenerateValueClassForVisitor")
 @SupportedSourceVersion(SourceVersion.RELEASE_6)
 public class GenerateValueClassForVisitorProcessor extends AbstractProcessor {
+
+    private final Set<Element> remainingElements = new HashSet<Element>();
+
+    private final List<TypeElement> generatedRootTypes = new ArrayList<TypeElement>();
 
     @Override
     public void init(ProcessingEnvironment environment) {
@@ -55,23 +63,32 @@ public class GenerateValueClassForVisitorProcessor extends AbstractProcessor {
     public boolean process(Set<? extends TypeElement> annotations,
                            RoundEnvironment roundEnv) {
         try {
-            Set<? extends Element> elements = roundEnv.getElementsAnnotatedWith(GenerateValueClassForVisitor.class);
-            processElements(elements);
+            if (roundEnv.processingOver()) {
+                for (Element element: remainingElements) {
+                    System.out.println("Unable to process " + element);
+                    processingEnv.getMessager().printMessage(Diagnostic.Kind.ERROR, "Unable to process " + element);
+                }
+            }
+            if (!remainingElements.isEmpty()) {
+                generatedRootTypes.addAll(ElementFilter.typesIn(roundEnv.getRootElements()));
+            }
+            remainingElements.addAll(roundEnv.getElementsAnnotatedWith(GenerateValueClassForVisitor.class));
+            final Set<Element> processed = processElements(remainingElements);
+            remainingElements.removeAll(processed);
         } catch (IOException ex) {
             processingEnv.getMessager().printMessage(Diagnostic.Kind.ERROR, ex.getMessage());
         }
-        // Always return false (do not claim annotation):
-        // it allows annotated elements in error (ErrorTypeFound) to have another chance during next round.
-        // Also it allows other processors to process 'our' annotation.
+        // Allows other processors to process 'our' annotation by not claiming it.
         return false;
     }
 
-    private void processElements(Set<? extends Element> elements) throws IOException {
+    private Set<Element> processElements(Set<? extends Element> elements) throws IOException {
+        final Set<Element> processed = new HashSet<Element>();
         for (Element element: elements) {
             try {
                 JCodeModel jCodeModel = new JCodeModel();
                 GenerateValueClassForVisitor dataVisitor = element.getAnnotation(GenerateValueClassForVisitor.class);
-                ValueClassModelBuilder builder = new ValueClassModelBuilder(jCodeModel);
+                ValueClassModelBuilder builder = new ValueClassModelBuilder(jCodeModel, generatedRootTypes);
                 builder.build(element, dataVisitor);
                 processingEnv.getMessager().printMessage(Diagnostic.Kind.NOTE, "Generated value class for " + element);
                 FilerCodeWriter writer = new FilerCodeWriter(processingEnv.getFiler(), processingEnv.getMessager());
@@ -80,6 +97,7 @@ public class GenerateValueClassForVisitorProcessor extends AbstractProcessor {
                 } finally {
                     writer.close();
                 }
+                processed.add(element);
             } catch (ErrorTypeFound ex) {
                 // We abandoned this type for now, but it may still be correctly processed during next round.
             } catch (CodeGenerationException ex) {
@@ -91,5 +109,6 @@ public class GenerateValueClassForVisitorProcessor extends AbstractProcessor {
                 ex.printStackTrace(System.err);
             }
         }
+        return processed;
     }
 }
