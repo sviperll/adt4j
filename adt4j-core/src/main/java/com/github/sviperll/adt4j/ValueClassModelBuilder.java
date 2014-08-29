@@ -139,14 +139,14 @@ class ValueClassModelBuilder {
         this.codeModel = codeModel;
     }
 
-    public ValueClassModel build(Element visitorElement, GenerateValueClassForVisitor dataVisitor) throws SourceException, CodeGenerationException, ErrorTypeFound {
+    public ValueClassModel build(TypeElement visitorElement, GenerateValueClassForVisitor dataVisitor) throws SourceException, CodeGenerationException, ErrorTypeFound {
         ValueVisitorInterfaceModel visitorInterfaceModel = buildVisitorInterface(visitorElement, dataVisitor);
         ValueClassModel result = build(visitorInterfaceModel);
         return result;
     }
 
-    private ValueVisitorInterfaceModel buildVisitorInterface(Element visitorElement, GenerateValueClassForVisitor dataVisitor) throws SourceException, CodeGenerationException, ErrorTypeFound {
-        return buildVisitorInterface(toTypeElement(visitorElement), dataVisitor);
+    public ValueClassModel build(Element visitorElement, GenerateValueClassForVisitor dataVisitor) throws SourceException, CodeGenerationException, ErrorTypeFound {
+        return build((TypeElement)visitorElement, dataVisitor);
     }
 
     private ValueVisitorInterfaceModel buildVisitorInterface(TypeElement visitorElement, GenerateValueClassForVisitor dataVisitor) throws SourceException, CodeGenerationException, ErrorTypeFound {

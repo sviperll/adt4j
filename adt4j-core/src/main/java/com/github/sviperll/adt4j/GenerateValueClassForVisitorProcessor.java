@@ -30,7 +30,6 @@
 package com.github.sviperll.adt4j;
 
 import com.helger.jcodemodel.JCodeModel;
-import com.sun.source.util.TreePath;
 import java.io.IOException;
 import java.util.Set;
 import javax.annotation.processing.AbstractProcessor;
@@ -41,35 +40,28 @@ import javax.lang.model.SourceVersion;
 import javax.lang.model.element.Element;
 import javax.lang.model.element.TypeElement;
 import javax.tools.Diagnostic;
-import com.sun.source.util.Trees;
 import java.util.HashSet;
-import javax.annotation.processing.ProcessingEnvironment;
 
 @SupportedAnnotationTypes("com.github.sviperll.adt4j.GenerateValueClassForVisitor")
 @SupportedSourceVersion(SourceVersion.RELEASE_6)
 public class GenerateValueClassForVisitorProcessor extends AbstractProcessor {
-    private Trees trees;
-    private Set<TreePath> remainingElements = new HashSet<TreePath>();
-
-    @Override
-    public void init(ProcessingEnvironment environment) {
-        super.init(environment);
-        trees = Trees.instance(environment);
-    }
+    private Set<String> remainingElements = new HashSet<String>();
 
     @Override
     public boolean process(Set<? extends TypeElement> annotations,
                            RoundEnvironment roundEnv) {
         try {
             if (roundEnv.processingOver()) {
-                for (TreePath path: remainingElements) {
-                    processingEnv.getMessager().printMessage(Diagnostic.Kind.ERROR, "Unable to process " + trees.getElement(path));
+                for (String path: remainingElements) {
+                    processingEnv.getMessager().printMessage(Diagnostic.Kind.ERROR, "Unable to process " + path);
                 }
             } else {
-                Set<Element> elements = new HashSet<Element>();
-                elements.addAll(roundEnv.getElementsAnnotatedWith(GenerateValueClassForVisitor.class));
-                for (TreePath path: remainingElements) {
-                    elements.add(trees.getElement(path));
+                Set<TypeElement> elements = new HashSet<TypeElement>();
+                for (Element element: roundEnv.getElementsAnnotatedWith(GenerateValueClassForVisitor.class)) {
+                    elements.add((TypeElement)element);
+                }
+                for (String path: remainingElements) {
+                    elements.add(processingEnv.getElementUtils().getTypeElement(path));
                 }
                 remainingElements.clear();
                 processElements(elements);
@@ -80,8 +72,8 @@ public class GenerateValueClassForVisitorProcessor extends AbstractProcessor {
         return true;
     }
 
-    private void processElements(Set<Element> elements) throws IOException {
-        for (Element element: elements) {
+    private void processElements(Set<? extends TypeElement> elements) throws IOException {
+        for (TypeElement element: elements) {
             try {
                 JCodeModel jCodeModel = new JCodeModel();
                 GenerateValueClassForVisitor dataVisitor = element.getAnnotation(GenerateValueClassForVisitor.class);
@@ -95,7 +87,7 @@ public class GenerateValueClassForVisitorProcessor extends AbstractProcessor {
                     writer.close();
                 }
             } catch (ErrorTypeFound ex) {
-                remainingElements.add(trees.getPath(element));
+                remainingElements.add(element.getQualifiedName().toString());
             } catch (CodeGenerationException ex) {
                 processingEnv.getMessager().printMessage(Diagnostic.Kind.ERROR, element + ": " + ex.getMessage());
             } catch (SourceException ex) {
