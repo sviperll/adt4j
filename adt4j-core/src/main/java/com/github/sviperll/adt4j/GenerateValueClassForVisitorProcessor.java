@@ -65,7 +65,6 @@ public class GenerateValueClassForVisitorProcessor extends AbstractProcessor {
         try {
             if (roundEnv.processingOver()) {
                 for (Element element: remainingElements) {
-                    System.out.println("Unable to process " + element);
                     processingEnv.getMessager().printMessage(Diagnostic.Kind.ERROR, "Unable to process " + element);
                 }
             }
