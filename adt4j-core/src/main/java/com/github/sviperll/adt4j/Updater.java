@@ -29,16 +29,19 @@
  */
 package com.github.sviperll.adt4j;
 
-import com.helger.jcodemodel.JClassAlreadyExistsException;
+import java.lang.annotation.Documented;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
-class CodeGenerationException extends Exception {
-
-    public CodeGenerationException(JClassAlreadyExistsException ex) {
-        super(ex);
-    }
-
-    CodeGenerationException(ClassNotFoundException ex) {
-        super(ex);
-    }
-
+/**
+ *
+ * @author Victor Nazarov <asviraspossible@gmail.com>
+ */
+@Retention(RetentionPolicy.SOURCE)
+@Target(ElementType.PARAMETER)
+@Documented
+public @interface Updater {
+    String value();
 }

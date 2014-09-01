@@ -33,7 +33,7 @@ package com.github.sviperll.adt4j;
  *
  * @author Victor Nazarov <asviraspossible@gmail.com>
  */
-public class RuntimeErrorTypeFound extends RuntimeException {
+class RuntimeErrorTypeFound extends RuntimeException {
     private final ErrorTypeFound cause;
 
     public RuntimeErrorTypeFound(ErrorTypeFound cause) {

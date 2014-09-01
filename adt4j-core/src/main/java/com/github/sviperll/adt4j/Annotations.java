@@ -29,16 +29,27 @@
  */
 package com.github.sviperll.adt4j;
 
-import com.helger.jcodemodel.JClassAlreadyExistsException;
+import com.helger.jcodemodel.AbstractJClass;
+import com.helger.jcodemodel.JAnnotationUse;
+import com.helger.jcodemodel.JVar;
+import java.util.ArrayList;
+import java.util.List;
 
-class CodeGenerationException extends Exception {
-
-    public CodeGenerationException(JClassAlreadyExistsException ex) {
-        super(ex);
+/**
+ *
+ * @author Victor Nazarov <asviraspossible@gmail.com>
+ */
+class Annotations {
+    static AnnotationUsage annotate(JVar param, AbstractJClass abstractJClass) {
+        JAnnotationUse annotationUse = param.annotate(abstractJClass);
+        AnnotationUsage annotationUsage = AnnotationUsage.getInstance(annotationUse);
+        return annotationUsage;
     }
-
-    CodeGenerationException(ClassNotFoundException ex) {
-        super(ex);
+    static List<AnnotationUsage> annotations(JVar param) {
+        List<AnnotationUsage> result = new ArrayList<AnnotationUsage>();
+        for (JAnnotationUse use: param.annotations()) {
+            result.add(AnnotationUsage.getInstance(use));
+        }
+        return result;
     }
-
 }

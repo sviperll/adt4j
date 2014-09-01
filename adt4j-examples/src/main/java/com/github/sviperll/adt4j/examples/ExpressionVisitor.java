@@ -27,18 +27,20 @@
  *  (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
  *  EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package com.github.sviperll.adt4j;
+package com.github.sviperll.adt4j.examples;
 
-import com.helger.jcodemodel.JClassAlreadyExistsException;
+import com.github.sviperll.adt4j.GenerateValueClassForVisitor;
+import com.github.sviperll.adt4j.Getter;
 
-class CodeGenerationException extends Exception {
-
-    public CodeGenerationException(JClassAlreadyExistsException ex) {
-        super(ex);
-    }
-
-    CodeGenerationException(ClassNotFoundException ex) {
-        super(ex);
-    }
-
+/**
+ *
+ * @author Victor Nazarov <asviraspossible@gmail.com>
+ */
+@GenerateValueClassForVisitor(resultVariableName = "R",
+                              selfReferenceVariableName = "S",
+                              valueClassIsPublic = true)
+public interface ExpressionVisitor<S, R> {
+    R add(@Getter("left") S left, @Getter("right") S right);
+    R mul(@Getter("left") S left, @Getter("right") S right);
+    R lit(int value);
 }

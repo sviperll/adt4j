@@ -35,14 +35,13 @@ import com.helger.jcodemodel.JFormatter;
 import com.helger.jcodemodel.JMethod;
 import com.helger.jcodemodel.AbstractJType;
 import com.helger.jcodemodel.JTypeVar;
-import com.helger.jcodemodel.JVar;
 import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 
-public class ValueVisitorInterfaceModel {
+class ValueVisitorInterfaceModel {
     private static final String VISITOR_SUFFIX = "Visitor";
     private static final String VALUE_SUFFIX = "Value";
 

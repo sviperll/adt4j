@@ -32,11 +32,11 @@ You can process expressions with "pattern-matching" a. k. a. visitor-pattern:
             return i;
         }
         @Override
-        public Integer sum(Expression e1, Expression e2) {
+        public Integer sum(Getter("leftOperand") Expression e1, Getter("rightOperand") Expression e2) {
             return e1.accept(this) + e2.accept(this);
         }
         @Override
-        public Integer mul(Expression e1, Expression e2) {
+        public Integer mul(Getter("leftOperand") Expression e1, Getter("rightOperand") Expression e2) {
             return e1.accept(this) * e2.accept(this);
         }
     });

@@ -33,7 +33,7 @@ package com.github.sviperll.adt4j;
  *
  * @author Victor Nazarov <asviraspossible@gmail.com>
  */
-public class RuntimeCodeGenerationException extends RuntimeException {
+class RuntimeCodeGenerationException extends RuntimeException {
     private final CodeGenerationException cause;
 
     public RuntimeCodeGenerationException(CodeGenerationException cause) {

@@ -33,7 +33,7 @@ package com.github.sviperll.adt4j;
  *
  * @author Victor Nazarov <asviraspossible@gmail.com>
  */
-public class RuntimeSourceException extends RuntimeException {
+class RuntimeSourceException extends RuntimeException {
     private final SourceException cause;
 
     public RuntimeSourceException(SourceException cause) {

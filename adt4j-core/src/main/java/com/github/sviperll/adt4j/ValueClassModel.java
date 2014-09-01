@@ -142,6 +142,8 @@ class ValueClassModel {
             result.buildEqualsMethod();
             result.buildHashCodeMethod();
             result.buildToStringMethod();
+            result.buildGetters();
+            result.buildUpdaters();
             Map<String, JMethod> constructorMethods = result.buildConstructorMethods();
             result.buildFactory(constructorMethods);
 
@@ -154,7 +156,7 @@ class ValueClassModel {
     private static boolean isNullable(JVar param) throws SourceException {
         boolean hasNonnull = false;
         boolean hasNullable = false;
-        for (JAnnotationUse annotationUse: param.annotations()) {
+        for (AnnotationUsage annotationUse: Annotations.annotations(param)) {
             if (annotationUse.getAnnotationClass().fullName().equals("javax.annotation.Nonnull")) {
                 hasNonnull = true;
             }
@@ -523,8 +525,8 @@ class ValueClassModel {
     }
 
     private void buildToStringMethod() throws SourceException {
-        JMethod hashCodeMethod = valueClass.method(JMod.PUBLIC | JMod.FINAL, types._String(), "toString");
-        hashCodeMethod.annotate(Override.class);
+        JMethod toStringMethod = valueClass.method(JMod.PUBLIC | JMod.FINAL, types._String(), "toString");
+        toStringMethod.annotate(Override.class);
         AbstractJClass usedValueClassType = Types.narrow(valueClass, valueClass.typeParams());
         AbstractJClass visitorType = visitorInterface.narrowed(usedValueClassType, types._String(), types._RuntimeException());
 
@@ -557,7 +559,145 @@ class ValueClassModel {
         }
         JInvocation invocation1 = JExpr._this().invoke("accept");
         invocation1.arg(JExpr._new(anonymousClass1));
-        hashCodeMethod.body()._return(invocation1);
+        toStringMethod.body()._return(invocation1);
+    }
+
+    private void buildGetters() throws SourceException {
+        AbstractJClass usedValueClassType = Types.narrow(valueClass, valueClass.typeParams());
+        Map<String, FieldConfiguration> gettersMap = new TreeMap<String, FieldConfiguration>();
+        for (JMethod interfaceMethod: visitorInterface.methods()) {
+            for (JVar param: interfaceMethod.params()) {
+                for (AnnotationUsage annotationUsage: Annotations.annotations(param)) {
+                    if (annotationUsage.getAnnotationClass().fullName().equals(Getter.class.getName())) {
+                        AbstractJType paramType = visitorInterface.substituteTypeParameter(param.type(), usedValueClassType, visitorInterface.getResultTypeParameter(), types._RuntimeException());
+                        String getterName = (String)annotationUsage.getParameterValue("value");
+                        FieldConfiguration configuration = gettersMap.get(getterName);
+                        if (configuration == null) {
+                            gettersMap.put(getterName, new FieldConfiguration(getterName, interfaceMethod, paramType, param.name()));
+                        } else {
+                            configuration.put(interfaceMethod, paramType, param.name());
+                        }
+                    }
+                }
+            }
+        }
+        for (FieldConfiguration configuration: gettersMap.values()) {
+            generateGetter(configuration);
+        }
+    }
+
+    private void generateGetter(FieldConfiguration configuration) {
+        String getterName = configuration.name();
+        JMethod getterMethod = valueClass.method(JMod.PUBLIC | JMod.FINAL, configuration.type(), getterName);
+        AbstractJClass usedValueClassType = Types.narrow(valueClass, valueClass.typeParams());
+        AbstractJClass visitorType = visitorInterface.narrowed(usedValueClassType, configuration.type().boxify(), types._RuntimeException());
+
+        JDefinedClass anonymousClass1 = valueClass.owner().anonymousClass(visitorType);
+        GetterBody body = new GetterBody(configuration, anonymousClass1);
+        for (JMethod interfaceMethod1: visitorInterface.methods()) {
+            body.generateCase(interfaceMethod1);
+        }
+        JInvocation invocation1 = JExpr._this().invoke("accept");
+        invocation1.arg(JExpr._new(anonymousClass1));
+        getterMethod.body()._return(invocation1);
+    }
+
+    private void buildUpdaters() throws SourceException {
+        AbstractJClass usedValueClassType = Types.narrow(valueClass, valueClass.typeParams());
+        Map<String, FieldConfiguration> updatersMap = new TreeMap<String, FieldConfiguration>();
+        for (JMethod interfaceMethod: visitorInterface.methods()) {
+            for (JVar param: interfaceMethod.params()) {
+                for (AnnotationUsage annotationUsage: Annotations.annotations(param)) {
+                    if (annotationUsage.getAnnotationClass().fullName().equals(Updater.class.getName())) {
+                        AbstractJType paramType = visitorInterface.substituteTypeParameter(param.type(), usedValueClassType, visitorInterface.getResultTypeParameter(), types._RuntimeException());
+                        String updaterName = (String)annotationUsage.getParameterValue("value");
+                        FieldConfiguration configuration = updatersMap.get(updaterName);
+                        if (configuration == null) {
+                            updatersMap.put(updaterName, new FieldConfiguration(updaterName, interfaceMethod, paramType, param.name()));
+                        } else {
+                            configuration.put(interfaceMethod, paramType, param.name());
+                        }
+                    }
+                }
+            }
+        }
+        for (FieldConfiguration configuration: updatersMap.values()) {
+            generateUpdater(configuration);
+        }
+    }
+
+    private void generateUpdater(FieldConfiguration configuration) {
+        String updaterName = configuration.name();
+        AbstractJClass usedValueClassType = Types.narrow(valueClass, valueClass.typeParams());
+        JMethod updaterMethod = valueClass.method(JMod.PUBLIC | JMod.FINAL, usedValueClassType, updaterName);
+        JVar newValue = updaterMethod.param(JMod.FINAL, configuration.type(), "value");
+        AbstractJClass visitorType = visitorInterface.narrowed(usedValueClassType, usedValueClassType, types._RuntimeException());
+
+        JDefinedClass anonymousClass1 = valueClass.owner().anonymousClass(visitorType);
+        UpdaterBody body = new UpdaterBody(configuration, anonymousClass1, newValue);
+        for (JMethod interfaceMethod1: visitorInterface.methods()) {
+            body.generateCase(interfaceMethod1);
+        }
+        JInvocation invocation1 = JExpr._this().invoke("accept");
+        invocation1.arg(JExpr._new(anonymousClass1));
+        updaterMethod.body()._return(invocation1);
+    }
+
+    private class GetterBody {
+        JDefinedClass visitor;
+        private final FieldConfiguration configuration;
+        GetterBody(FieldConfiguration configuration, JDefinedClass visitor) {
+            this.visitor = visitor;
+            this.configuration = configuration;
+        }
+
+        private void generateCase(JMethod interfaceMethod1) {
+            AbstractJClass usedValueClassType = Types.narrow(valueClass, valueClass.typeParams());
+            JMethod visitorMethod1 = visitor.method(interfaceMethod1.mods().getValue() & ~JMod.ABSTRACT, configuration.type().boxify(), interfaceMethod1.name());
+            visitorMethod1.annotate(Override.class);
+            boolean isGettable = false;
+            for (JVar param: interfaceMethod1.params()) {
+                AbstractJType paramType = visitorInterface.substituteTypeParameter(param.type(), usedValueClassType, configuration.type().boxify(), types._RuntimeException());
+                JVar argument = visitorMethod1.param(param.mods().getValue() | JMod.FINAL, paramType, param.name() + "1");
+                if (configuration.isFieldValue(interfaceMethod1, param.name())) {
+                    visitorMethod1.body()._return(argument);
+                    isGettable = true;
+                }
+            }
+            if (!isGettable) {
+                JInvocation exceptionInvocation = JExpr._new(types._IllegalStateException());
+                exceptionInvocation.arg(configuration.name() + " is not accessible in this case: " + interfaceMethod1.name());
+                visitorMethod1.body()._throw(exceptionInvocation);
+            }
+        }
+    }
+
+    private class UpdaterBody {
+        JDefinedClass visitor;
+        private final FieldConfiguration configuration;
+        private final JVar newValue;
+        UpdaterBody(FieldConfiguration configuration, JDefinedClass visitor, JVar newValue) {
+            this.visitor = visitor;
+            this.configuration = configuration;
+            this.newValue = newValue;
+        }
+
+        private void generateCase(JMethod interfaceMethod1) {
+            AbstractJClass usedValueClassType = Types.narrow(valueClass, valueClass.typeParams());
+            JMethod visitorMethod1 = visitor.method(interfaceMethod1.mods().getValue() & ~JMod.ABSTRACT, usedValueClassType, interfaceMethod1.name());
+            visitorMethod1.annotate(Override.class);
+            JInvocation invocation = valueClass.staticInvoke(interfaceMethod1.name());
+            for (JVar param: interfaceMethod1.params()) {
+                AbstractJType paramType = visitorInterface.substituteTypeParameter(param.type(), usedValueClassType, configuration.type().boxify(), types._RuntimeException());
+                JVar argument = visitorMethod1.param(param.mods().getValue() | JMod.FINAL, paramType, param.name() + "1");
+                if (configuration.isFieldValue(interfaceMethod1, param.name())) {
+                    invocation.arg(newValue);
+                } else {
+                    invocation.arg(argument);
+                }
+            }
+            visitorMethod1.body()._return(invocation);
+        }
     }
 
     private class EqualsBody {
@@ -673,6 +813,39 @@ class ValueClassModel {
             invocation.arg(name + " = ");
             invocation = body.invoke(result, "append");
             invocation.arg(value);
+        }
+    }
+
+    private static class FieldConfiguration {
+        private final Map<String, String> map = new TreeMap<String, String>();
+        private final AbstractJType type;
+        private final String name;
+
+        private FieldConfiguration(String name, JMethod method, AbstractJType paramType, String paramName) {
+            this.type = paramType;
+            map.put(method.name(), paramName);
+            this.name = name;
+        }
+
+        private void put(JMethod method, AbstractJType paramType, String paramName) throws SourceException {
+            if (!type.equals(paramType))
+                throw new SourceException("Unable to generate " + name + " getter: inconsitent field types");
+            String oldField = map.put(method.name(), paramName);
+            if (oldField != null)
+                throw new SourceException(oldField + " and " + paramName + " parameters of " + method.name() + " method are accessable with the same " + name + " getter");
+        }
+
+        private AbstractJType type() {
+            return type;
+        }
+
+        private String name() {
+            return name;
+        }
+
+        private boolean isFieldValue(JMethod method, String paramName) {
+            String getterParamName = map.get(method.name());
+            return getterParamName != null && getterParamName.equals(paramName);
         }
     }
 }

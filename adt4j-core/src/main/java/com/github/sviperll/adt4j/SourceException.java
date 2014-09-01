@@ -29,7 +29,7 @@
  */
 package com.github.sviperll.adt4j;
 
-public class SourceException extends Exception {
+class SourceException extends Exception {
 
     public SourceException(String message) {
         super(message);

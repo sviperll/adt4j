@@ -30,11 +30,14 @@
 package com.github.sviperll.adt4j.examples;
 
 import com.github.sviperll.adt4j.GenerateValueClassForVisitor;
+import com.github.sviperll.adt4j.Getter;
+import com.github.sviperll.adt4j.Updater;
 
 @GenerateValueClassForVisitor(resultVariableName = "R",
                               selfReferenceVariableName = "S",
                               valueClassIsPublic = true)
 public interface ListVisitor<T, S, R> {
-    R cons(T head, S tail);
+    R cons(@Getter("head") @Updater("withHead") T head,
+           @Getter("tail") S tail);
     R nil();
 }

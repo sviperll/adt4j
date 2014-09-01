@@ -33,7 +33,7 @@ package com.github.sviperll.adt4j;
  *
  * @author Victor Nazarov <asviraspossible@gmail.com>
  */
-public class ErrorTypeFound extends Exception {
+class ErrorTypeFound extends Exception {
     public ErrorTypeFound() {
     }
 }

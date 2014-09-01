@@ -29,6 +29,7 @@
  */
 package com.github.sviperll.adt4j;
 
+import com.helger.jcodemodel.AbstractJAnnotationValue;
 import com.helger.jcodemodel.EClassType;
 import com.helger.jcodemodel.AbstractJClass;
 import com.helger.jcodemodel.JClassAlreadyExistsException;
@@ -37,10 +38,14 @@ import com.helger.jcodemodel.JDefinedClass;
 import com.helger.jcodemodel.JMethod;
 import com.helger.jcodemodel.JMod;
 import com.helger.jcodemodel.AbstractJType;
+import com.helger.jcodemodel.JAnnotationUse;
+import com.helger.jcodemodel.JFormatter;
 import com.helger.jcodemodel.JTypeVar;
 import com.helger.jcodemodel.JVar;
 import java.util.Collection;
+import java.util.Map;
 import javax.lang.model.element.AnnotationMirror;
+import javax.lang.model.element.AnnotationValue;
 import javax.lang.model.element.Element;
 import javax.lang.model.element.ElementKind;
 import static javax.lang.model.element.ElementKind.ANNOTATION_TYPE;
@@ -205,7 +210,51 @@ class ValueClassModelBuilder {
                     AbstractJType parameterType = toJType(parameterTypeMirror);
                     JVar param = method.param(toJMod(variable.getModifiers()), parameterType, parameterName);
                     for (AnnotationMirror annotation: variable.getAnnotationMirrors()) {
-                        param.annotate((AbstractJClass)toJType(annotation.getAnnotationType()));
+                        AnnotationUsage annotationUsage = Annotations.annotate(param, (AbstractJClass)toJType(annotation.getAnnotationType()));
+                        for (Map.Entry<? extends ExecutableElement, ? extends AnnotationValue> annotationValueAssignment: annotation.getElementValues().entrySet()) {
+                            String name = annotationValueAssignment.getKey().getSimpleName().toString();
+                            Object value = annotationValueAssignment.getValue().getValue();
+                            if (value instanceof String)
+                                annotationUsage.param(name, (String)value);
+                            else if (value instanceof Integer)
+                                annotationUsage.param(name, (Integer)value);
+                            else if (value instanceof Long)
+                                annotationUsage.param(name, (Long)value);
+                            else if (value instanceof Short)
+                                annotationUsage.param(name, (Short)value);
+                            else if (value instanceof Float)
+                                annotationUsage.param(name, (Float)value);
+                            else if (value instanceof Double)
+                                annotationUsage.param(name, (Double)value);
+                            else if (value instanceof Byte)
+                                annotationUsage.param(name, (Byte)value);
+                            else if (value instanceof Character)
+                                annotationUsage.param(name, (Character)value);
+                            else if (value instanceof Class)
+                                annotationUsage.param(name, (Class)value);
+                            else if (value instanceof Enum)
+                                annotationUsage.param(name, (Enum)value);
+                            else if (value instanceof String[])
+                                annotationUsage.param(name, (String[])value);
+                            else if (value instanceof int[])
+                                annotationUsage.param(name, (int[])value);
+                            else if (value instanceof long[])
+                                annotationUsage.param(name, (long[])value);
+                            else if (value instanceof short[])
+                                annotationUsage.param(name, (short[])value);
+                            else if (value instanceof float[])
+                                annotationUsage.param(name, (float[])value);
+                            else if (value instanceof double[])
+                                annotationUsage.param(name, (double[])value);
+                            else if (value instanceof byte[])
+                                annotationUsage.param(name, (byte[])value);
+                            else if (value instanceof char[])
+                                annotationUsage.param(name, (char[])value);
+                            else if (value instanceof Class[])
+                                annotationUsage.param(name, (Class[])value);
+                            else if (value instanceof Enum[])
+                                annotationUsage.param(name, (Enum[])value);
+                        }
                     }
                 }
             }

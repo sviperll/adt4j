@@ -63,6 +63,7 @@ class Types {
     private final AbstractJClass _Serializable;
     private final AbstractJClass _String;
     private final AbstractJClass _StringBuilder;
+    private final AbstractJClass _IllegalStateException;
 
     private Types(JCodeModel codeModel) {
         _void = codeModel.VOID;
@@ -83,6 +84,7 @@ class Types {
         _Serializable = codeModel.ref(Serializable.class);
         _String = codeModel.ref(String.class);
         _StringBuilder = codeModel.ref(StringBuilder.class);
+        _IllegalStateException = codeModel.ref(IllegalStateException.class);
     }
 
     public JPrimitiveType _void() {
@@ -160,5 +162,9 @@ class Types {
 
     public AbstractJClass _StringBuilder() {
         return _StringBuilder;
+    }
+
+    AbstractJClass _IllegalStateException() {
+        return _IllegalStateException;
     }
 }

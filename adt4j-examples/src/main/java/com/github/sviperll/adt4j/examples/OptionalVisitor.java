@@ -30,12 +30,12 @@
 package com.github.sviperll.adt4j.examples;
 
 import com.github.sviperll.adt4j.GenerateValueClassForVisitor;
-import javax.annotation.Nonnull;
+import com.github.sviperll.adt4j.Getter;
 
 @GenerateValueClassForVisitor(resultVariableName = "R",
                               exceptionVariableName = "E",
                               valueClassName = "OptionalValue")
 public interface OptionalVisitor<T, R, E extends Exception> {
     R missing() throws E;
-    R present(@Nonnull T value) throws E;
+    R present(@Getter("getValue") T value) throws E;
 }
