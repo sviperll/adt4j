@@ -30,7 +30,8 @@
 package com.github.sviperll.adt4j.examples;
 
 import com.github.sviperll.adt4j.GenerateValueClassForVisitor;
-import com.github.sviperll.adt4j.examples.UserKeyVisitor;
+import com.github.sviperll.adt4j.Getter;
+import com.github.sviperll.adt4j.Updater;
 
 /**
  *
@@ -38,5 +39,5 @@ import com.github.sviperll.adt4j.examples.UserKeyVisitor;
  */
 @GenerateValueClassForVisitor(resultVariableName = "R", valueClassIsSerializable = true, valueClassIsPublic = true)
 public interface UserVisitor<R> {
-    R valueOf(UserKey key, String name, SomeNotSerializableClass c);
+    R valueOf(UserKey key, @Getter("name") @Updater("withName") String name);
 }
