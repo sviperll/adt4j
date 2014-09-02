@@ -46,4 +46,5 @@ public @interface GenerateValueClassForVisitor {
     boolean valueClassIsPublic() default false;
     int valueClassHashCodeBase() default 27;
     boolean valueClassIsSerializable() default false;
+    long valueClassSerialVersionUID() default 1L;
 }

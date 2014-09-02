@@ -127,6 +127,7 @@ class ValueClassModel {
             }
             if (isSerializable) {
                 valueClass._implements(types._Serializable());
+                valueClass.field(JMod.PRIVATE | JMod.FINAL | JMod.STATIC, types._long(), "serialVersionUID", JExpr.lit(visitorInterface.serialVersionUID()));
             }
 
             JDefinedClass acceptingInterface = createAcceptingInterface(valueClass, visitorInterface, types);
@@ -401,6 +402,11 @@ class ValueClassModel {
         AbstractJClass usedAcceptingInterfaceType = Types.narrow(acceptingInterface, caseClass.typeParams());
         AbstractJClass usedValueClassType = Types.narrow(valueClass, caseClass.typeParams());
         caseClass._implements(usedAcceptingInterfaceType);
+
+        if (visitorInterface.shouldBeSerializable()) {
+            caseClass._implements(types._Serializable());
+            caseClass.field(JMod.PRIVATE | JMod.FINAL | JMod.STATIC, types._long(), "serialVersionUID", JExpr.lit(visitorInterface.serialVersionUID()));
+        }
 
         JMethod constructor = caseClass.constructor(JMod.NONE);
         for (JVar param: interfaceMethod.params()) {

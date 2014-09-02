@@ -170,4 +170,8 @@ class ValueVisitorInterfaceModel {
     boolean shouldBeSerializable() {
         return annotationInstance.valueClassIsSerializable();
     }
+
+    long serialVersionUID() {
+        return annotationInstance.valueClassSerialVersionUID();
+    }
 }
