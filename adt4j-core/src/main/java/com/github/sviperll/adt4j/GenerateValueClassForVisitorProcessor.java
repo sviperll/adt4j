@@ -31,6 +31,7 @@ package com.github.sviperll.adt4j;
 
 import com.helger.jcodemodel.JCodeModel;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Set;
 import javax.annotation.processing.AbstractProcessor;
 import javax.annotation.processing.RoundEnvironment;
@@ -41,11 +42,13 @@ import javax.lang.model.element.Element;
 import javax.lang.model.element.TypeElement;
 import javax.tools.Diagnostic;
 import java.util.HashSet;
+import java.util.List;
 
 @SupportedAnnotationTypes("com.github.sviperll.adt4j.GenerateValueClassForVisitor")
 @SupportedSourceVersion(SourceVersion.RELEASE_6)
 public class GenerateValueClassForVisitorProcessor extends AbstractProcessor {
     private Set<String> remainingElements = new HashSet<String>();
+    private List<String> errors = new ArrayList<String>();
 
     @Override
     public boolean process(Set<? extends TypeElement> annotations,
@@ -53,7 +56,10 @@ public class GenerateValueClassForVisitorProcessor extends AbstractProcessor {
         try {
             if (roundEnv.processingOver()) {
                 for (String path: remainingElements) {
-                    processingEnv.getMessager().printMessage(Diagnostic.Kind.ERROR, "Unable to process " + path);
+                    errors.add("Unable to process " + path);
+                }
+                for (String error: errors) {
+                    processingEnv.getMessager().printMessage(Diagnostic.Kind.ERROR, error);
                 }
             } else {
                 Set<TypeElement> elements = new HashSet<TypeElement>();
@@ -89,11 +95,11 @@ public class GenerateValueClassForVisitorProcessor extends AbstractProcessor {
             } catch (ErrorTypeFound ex) {
                 remainingElements.add(element.getQualifiedName().toString());
             } catch (CodeGenerationException ex) {
-                processingEnv.getMessager().printMessage(Diagnostic.Kind.ERROR, element + ": " + ex.getMessage());
+                errors.add(element + ": " + ex.getMessage());
             } catch (SourceException ex) {
-                processingEnv.getMessager().printMessage(Diagnostic.Kind.ERROR, element + ": " + ex.getMessage());
+                errors.add(element + ": " + ex.getMessage());
             } catch (RuntimeException ex) {
-                processingEnv.getMessager().printMessage(Diagnostic.Kind.ERROR, element + ": " + ex.getMessage());
+                errors.add(element + ": " + ex.getMessage());
                 ex.printStackTrace(System.err);
             }
         }
