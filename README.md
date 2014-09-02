@@ -12,8 +12,8 @@ It allows you to easily define custom data types. Like this:
                                   selfReferenceVariableName="E")
     interface ExpressionVisitor<E, R> {
         R int(int i);
-        R sum(Getter("leftOperand") E e1, Getter("rightOperand") E e2);
-        R mul(Getter("leftOperand") E e1, Getter("rightOperand") E e2);
+        R sum(@Getter("leftOperand") E e1, @Getter("rightOperand") E e2);
+        R mul(@Getter("leftOperand") E e1, @Getter("rightOperand") E e2);
     }
 
 And that's it. `Expression` class will be generated and you'll be able to define expressions like this:
