@@ -1,6 +1,6 @@
 dependencies {
     // compile(group: 'com.sun.codemodel', name: 'codemodel', version: '2.6')
-    compile(group: 'com.helger', name: 'jcodemodel', version: '2.7.4')
+    compile(group: 'com.helger', name: 'jcodemodel', version: '2.7.6-SNAPSHOT')
     compile(group: "com.google.code.findbugs", name: "annotations", version: "2.0.3")
 }
 

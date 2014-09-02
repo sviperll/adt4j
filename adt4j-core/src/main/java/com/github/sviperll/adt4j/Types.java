@@ -32,16 +32,10 @@ package com.github.sviperll.adt4j;
 import com.helger.jcodemodel.AbstractJClass;
 import com.helger.jcodemodel.AbstractJType;
 import com.helger.jcodemodel.JCodeModel;
-import com.helger.jcodemodel.JDefinedClass;
 import com.helger.jcodemodel.JPrimitiveType;
-import com.helger.jcodemodel.JTypeVar;
 import java.io.Serializable;
 
 class Types {
-    public static AbstractJClass narrow(JDefinedClass definedClass, JTypeVar[] typeParams) {
-        return typeParams.length == 0 ? definedClass : definedClass.narrow(typeParams);
-    }
-
     public static Types createInstance(JCodeModel codeModel) {
         return new Types(codeModel);
     }

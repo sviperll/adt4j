@@ -210,50 +210,50 @@ class ValueClassModelBuilder {
                     AbstractJType parameterType = toJType(parameterTypeMirror);
                     JVar param = method.param(toJMod(variable.getModifiers()), parameterType, parameterName);
                     for (AnnotationMirror annotation: variable.getAnnotationMirrors()) {
-                        AnnotationUsage annotationUsage = Annotations.annotate(param, (AbstractJClass)toJType(annotation.getAnnotationType()));
+                        JAnnotationUse annotationUse = param.annotate((AbstractJClass)toJType(annotation.getAnnotationType()));
                         for (Map.Entry<? extends ExecutableElement, ? extends AnnotationValue> annotationValueAssignment: annotation.getElementValues().entrySet()) {
                             String name = annotationValueAssignment.getKey().getSimpleName().toString();
                             Object value = annotationValueAssignment.getValue().getValue();
                             if (value instanceof String)
-                                annotationUsage.param(name, (String)value);
+                                annotationUse.param(name, (String)value);
                             else if (value instanceof Integer)
-                                annotationUsage.param(name, (Integer)value);
+                                annotationUse.param(name, (Integer)value);
                             else if (value instanceof Long)
-                                annotationUsage.param(name, (Long)value);
+                                annotationUse.param(name, (Long)value);
                             else if (value instanceof Short)
-                                annotationUsage.param(name, (Short)value);
+                                annotationUse.param(name, (Short)value);
                             else if (value instanceof Float)
-                                annotationUsage.param(name, (Float)value);
+                                annotationUse.param(name, (Float)value);
                             else if (value instanceof Double)
-                                annotationUsage.param(name, (Double)value);
+                                annotationUse.param(name, (Double)value);
                             else if (value instanceof Byte)
-                                annotationUsage.param(name, (Byte)value);
+                                annotationUse.param(name, (Byte)value);
                             else if (value instanceof Character)
-                                annotationUsage.param(name, (Character)value);
+                                annotationUse.param(name, (Character)value);
                             else if (value instanceof Class)
-                                annotationUsage.param(name, (Class)value);
+                                annotationUse.param(name, (Class)value);
                             else if (value instanceof Enum)
-                                annotationUsage.param(name, (Enum)value);
+                                annotationUse.param(name, (Enum)value);
                             else if (value instanceof String[])
-                                annotationUsage.param(name, (String[])value);
+                                annotationUse.paramArray(name, (String[])value);
                             else if (value instanceof int[])
-                                annotationUsage.param(name, (int[])value);
+                                annotationUse.paramArray(name, (int[])value);
                             else if (value instanceof long[])
-                                annotationUsage.param(name, (long[])value);
+                                annotationUse.paramArray(name, (long[])value);
                             else if (value instanceof short[])
-                                annotationUsage.param(name, (short[])value);
+                                annotationUse.paramArray(name, (short[])value);
                             else if (value instanceof float[])
-                                annotationUsage.param(name, (float[])value);
+                                annotationUse.paramArray(name, (float[])value);
                             else if (value instanceof double[])
-                                annotationUsage.param(name, (double[])value);
+                                annotationUse.paramArray(name, (double[])value);
                             else if (value instanceof byte[])
-                                annotationUsage.param(name, (byte[])value);
+                                annotationUse.paramArray(name, (byte[])value);
                             else if (value instanceof char[])
-                                annotationUsage.param(name, (char[])value);
+                                annotationUse.paramArray(name, (char[])value);
                             else if (value instanceof Class[])
-                                annotationUsage.param(name, (Class[])value);
+                                annotationUse.paramArray(name, (Class[])value);
                             else if (value instanceof Enum[])
-                                annotationUsage.param(name, (Enum[])value);
+                                annotationUse.paramArray(name, (Enum[])value);
                         }
                     }
                 }
