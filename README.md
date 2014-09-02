@@ -12,8 +12,8 @@ It allows you to easily define custom data types. Like this:
                                   selfReferenceVariableName="E")
     interface ExpressionVisitor<E, R> {
         R int(int i);
-        R sum(E e1, E e2);
-        R mul(E e1, E e2);
+        R sum(Getter("leftOperand") E e1, Getter("rightOperand") E e2);
+        R mul(Getter("leftOperand") E e1, Getter("rightOperand") E e2);
     }
 
 And that's it. `Expression` class will be generated and you'll be able to define expressions like this:
@@ -32,11 +32,11 @@ You can process expressions with "pattern-matching" a. k. a. visitor-pattern:
             return i;
         }
         @Override
-        public Integer sum(Getter("leftOperand") Expression e1, Getter("rightOperand") Expression e2) {
+        public Integer sum(Expression e1, Expression e2) {
             return e1.accept(this) + e2.accept(this);
         }
         @Override
-        public Integer mul(Getter("leftOperand") Expression e1, Getter("rightOperand") Expression e2) {
+        public Integer mul(Expression e1, Expression e2) {
             return e1.accept(this) * e2.accept(this);
         }
     });
