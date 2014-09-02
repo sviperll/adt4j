@@ -41,6 +41,15 @@ You can process expressions with "pattern-matching" a. k. a. visitor-pattern:
         }
     });
 
+Features
+--------
+
+ * Support recursive data types
+ * Generate hashCode, equals and toString implementations with value semantics
+ * Generate getters and "updaters" with additional annotations
+ * Optionally generate serializable classes
+ * Support generated class extention through standard Java's inheritance.
+
 License
 -------
 
@@ -54,7 +63,7 @@ Use maven dependency to use ADT4J:
     <dependency>
         <groupId>com.github.sviperll</groupId>
         <artifactId>adt4j-core</artifactId>
-        <version>0.7</version>
+        <version>0.8</version>
     </dependency>
 
 Usage
