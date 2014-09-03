@@ -63,7 +63,7 @@ Use maven dependency to use ADT4J:
     <dependency>
         <groupId>com.github.sviperll</groupId>
         <artifactId>adt4j-core</artifactId>
-        <version>0.8</version>
+        <version>0.8.1</version>
     </dependency>
 
 Usage
