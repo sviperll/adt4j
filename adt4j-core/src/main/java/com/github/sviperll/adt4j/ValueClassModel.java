@@ -221,6 +221,11 @@ class ValueClassModel {
         AbstractJClass usedAcceptingInterfaceType = acceptingInterface.narrow(proxyClass.typeParams());
         proxyClass._implements(usedAcceptingInterfaceType);
 
+        if (visitorInterface.shouldBeSerializable()) {
+            proxyClass._implements(types._Serializable());
+            proxyClass.field(JMod.PRIVATE | JMod.FINAL | JMod.STATIC, types._long(), "serialVersionUID", JExpr.lit(visitorInterface.serialVersionUID()));
+        }
+
         JMethod constructor = proxyClass.constructor(JMod.NONE);
         AbstractJClass usedValueClassType = valueClass.narrow(proxyClass.typeParams());
         proxyClass.field(JMod.PRIVATE | JMod.FINAL, usedValueClassType, "implementation");
