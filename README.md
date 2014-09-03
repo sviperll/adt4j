@@ -178,12 +178,12 @@ an example of ADT4J usage.
             }
 
             private MyOptional(OptionalBase<T> value) {
-                // protected constructor from OptionalValue class
+                // protected constructor from OptionalBase class
                 super(value);
             }
 
             //
-            // equals and hashCode are correctly inherited from OptionalValue
+            // equals and hashCode are correctly inherited from OptionalBase
             //
 
             public <U> MyOptional<U> flatMap(final Function<T, MyOptional<U>> function) {
