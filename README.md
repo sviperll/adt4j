@@ -11,7 +11,9 @@ It allows you to easily define custom data types. Like this:
     @GenerateValueClassForVisitor(resultVariableName="R",
                                   selfReferenceVariableName="E")
     interface ExpressionVisitor<E, R> {
-        R int(int i);
+        @GeneratePredicate("isLiteral");
+        R lit(int i);
+
         R sum(@Getter("leftOperand") E e1, @Getter("rightOperand") E e2);
         R mul(@Getter("leftOperand") E e1, @Getter("rightOperand") E e2);
     }
@@ -46,8 +48,10 @@ Features
 
  * Support recursive data types
  * Generate hashCode, equals and toString implementations with value semantics
- * Generate getters and "updaters" with additional annotations
- * Optionally generate serializable classes
+ * Generate predicates, getters and "updaters" with additional annotations
+ * Optionally generate Comparable implementation with presise compile-time type-check if it is possible
+ * Optionally generate serializable classes with presise compile-time type-check if it is possible
+ * Sensible error messages
  * Support generated class extention through standard Java's inheritance.
 
 License

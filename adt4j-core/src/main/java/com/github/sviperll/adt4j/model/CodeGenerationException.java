@@ -27,13 +27,18 @@
  *  (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
  *  EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package com.github.sviperll.adt4j;
+package com.github.sviperll.adt4j.model;
 
-/**
- *
- * @author Victor Nazarov <asviraspossible@gmail.com>
- */
-class ErrorTypeFound extends Exception {
-    public ErrorTypeFound() {
+import com.helger.jcodemodel.JClassAlreadyExistsException;
+
+public class CodeGenerationException extends Exception {
+
+    public CodeGenerationException(JClassAlreadyExistsException ex) {
+        super(ex);
     }
+
+    CodeGenerationException(ClassNotFoundException ex) {
+        super(ex);
+    }
+
 }

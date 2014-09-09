@@ -29,6 +29,8 @@
  */
 package com.github.sviperll.adt4j;
 
+import com.github.sviperll.adt4j.model.SourceException;
+
 /**
  *
  * @author Victor Nazarov <asviraspossible@gmail.com>

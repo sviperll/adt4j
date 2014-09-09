@@ -29,6 +29,7 @@
  */
 package com.github.sviperll.adt4j.examples;
 
+import com.github.sviperll.adt4j.GeneratePredicate;
 import com.github.sviperll.adt4j.GenerateValueClassForVisitor;
 import com.github.sviperll.adt4j.Getter;
 import com.github.sviperll.adt4j.Updater;
@@ -39,5 +40,6 @@ import com.github.sviperll.adt4j.Updater;
 public interface ListVisitor<T, S, R> {
     R cons(@Getter("head") @Updater("withHead") T head,
            @Getter("tail") S tail);
+    @GeneratePredicate("isEmpty")
     R nil();
 }

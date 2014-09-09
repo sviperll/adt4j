@@ -27,8 +27,9 @@
  *  (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
  *  EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package com.github.sviperll.adt4j;
+package com.github.sviperll.adt4j.model;
 
+import com.github.sviperll.adt4j.GenerateValueClassForVisitor;
 import com.helger.jcodemodel.AbstractJClass;
 import com.helger.jcodemodel.JDefinedClass;
 import com.helger.jcodemodel.JFormatter;
@@ -41,14 +42,14 @@ import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 
-class ValueVisitorInterfaceModel {
+public class ValueVisitorInterfaceModel {
     private static final String VISITOR_SUFFIX = "Visitor";
     private static final String VALUE_SUFFIX = "Value";
 
     private final JDefinedClass visitorInterfaceModel;
     private final GenerateValueClassForVisitor annotationInstance;
 
-    ValueVisitorInterfaceModel(JDefinedClass visitorInterfaceModel, GenerateValueClassForVisitor dataVisitor) {
+    public ValueVisitorInterfaceModel(JDefinedClass visitorInterfaceModel, GenerateValueClassForVisitor dataVisitor) {
         this.visitorInterfaceModel = visitorInterfaceModel;
         this.annotationInstance = dataVisitor;
     }
@@ -173,5 +174,9 @@ class ValueVisitorInterfaceModel {
 
     long serialVersionUID() {
         return annotationInstance.valueClassSerialVersionUID();
+    }
+
+    boolean shouldBeComparable() {
+        return annotationInstance.valueClassIsComparable();
     }
 }

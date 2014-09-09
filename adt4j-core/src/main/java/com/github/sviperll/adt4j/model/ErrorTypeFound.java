@@ -27,12 +27,13 @@
  *  (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
  *  EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package com.github.sviperll.adt4j;
+package com.github.sviperll.adt4j.model;
 
-class SourceException extends Exception {
-
-    public SourceException(String message) {
-        super(message);
+/**
+ *
+ * @author Victor Nazarov <asviraspossible@gmail.com>
+ */
+public class ErrorTypeFound extends Exception {
+    public ErrorTypeFound() {
     }
-
 }

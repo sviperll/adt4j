@@ -35,17 +35,13 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
+/**
+ *
+ * @author Victor Nazarov <asviraspossible@gmail.com>
+ */
 @Retention(RetentionPolicy.SOURCE)
-@Target(ElementType.TYPE)
+@Target(ElementType.METHOD)
 @Documented
-public @interface GenerateValueClassForVisitor {
-    String resultVariableName();
-    String exceptionVariableName() default ":none";
-    String selfReferenceVariableName() default ":none";
-    String valueClassName() default ":auto";
-    boolean valueClassIsPublic() default false;
-    int valueClassHashCodeBase() default 27;
-    boolean valueClassIsSerializable() default false;
-    boolean valueClassIsComparable() default false;
-    long valueClassSerialVersionUID() default 1L;
+public @interface GeneratePredicate {
+    String value();
 }

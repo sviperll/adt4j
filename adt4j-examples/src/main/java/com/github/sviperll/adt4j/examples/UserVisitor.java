@@ -37,7 +37,10 @@ import com.github.sviperll.adt4j.Updater;
  *
  * @author Victor Nazarov <asviraspossible@gmail.com>
  */
-@GenerateValueClassForVisitor(resultVariableName = "R", valueClassIsSerializable = true, valueClassIsPublic = true)
+@GenerateValueClassForVisitor(resultVariableName = "R",
+                              valueClassIsSerializable = true,
+                              valueClassIsPublic = true,
+                              valueClassIsComparable = false)
 public interface UserVisitor<R> {
     R valueOf(UserKey key, @Getter("name") @Updater("withName") String name);
 }

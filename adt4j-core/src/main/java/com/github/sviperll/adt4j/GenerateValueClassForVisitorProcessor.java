@@ -29,6 +29,9 @@
  */
 package com.github.sviperll.adt4j;
 
+import com.github.sviperll.adt4j.model.SourceException;
+import com.github.sviperll.adt4j.model.CodeGenerationException;
+import com.github.sviperll.adt4j.model.ErrorTypeFound;
 import com.helger.jcodemodel.JCodeModel;
 import java.io.IOException;
 import java.util.ArrayList;

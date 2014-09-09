@@ -72,7 +72,15 @@ public class Main {
         System.out.println();
         System.out.println("oa == oe ---> " + (oa == oe));
         System.out.println("oa.equals(oe) ---> " + ob.equals(oe));
-        System.out.println(List.cons("aaa", List.cons("bbb", List.nil())));
+        System.out.println(List.cons("aaa", List.cons("bbb", List.<String>nil())));
+        List<Integer> list = List.cons(1, List.cons(2, List.cons(3, List.<Integer>nil())));
+        List<Integer> tail = list;
+        int sum = 0;
+        while (!tail.isEmpty()) {
+            sum += tail.head();
+            tail = tail.tail();
+        }
+        System.out.println(list + " sum is " + sum);
     }
 
     public static String toString(Optional<String> optional) {

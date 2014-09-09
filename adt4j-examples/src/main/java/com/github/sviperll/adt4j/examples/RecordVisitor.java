@@ -32,7 +32,6 @@ package com.github.sviperll.adt4j.examples;
 import com.github.sviperll.adt4j.GenerateValueClassForVisitor;
 import com.github.sviperll.adt4j.Getter;
 import com.github.sviperll.adt4j.Updater;
-import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 @GenerateValueClassForVisitor(resultVariableName = "R",
@@ -45,13 +44,14 @@ public interface RecordVisitor<R> {
               @Getter("getL") @Updater("withL") long l,
               @Getter("getF") @Updater("withF") float f,
               @Getter("getD") @Updater("withD") double d,
-              @Getter("getO") @Updater("withO") Object o,
+              @Getter("getO") @Updater("withO") Object result,
               @Getter("getBoola") @Updater("withBoola") @Nullable boolean[] boola,
-              @Getter("getBa") @Updater("withBa") byte[] ba,
+              @Getter("getBa") @Updater("withBa") byte[][] ba,
               @Getter("getCa") @Updater("withCa") char[] ca,
               @Getter("getIa") @Updater("withIa") int[] ia,
               @Getter("getLa") @Updater("withLa") long[] la,
               @Getter("getFa") @Updater("withFa") float[] fa,
               @Getter("getDa") @Updater("withDa") double[] da,
-              @Getter("getOa") @Updater("withOa") @Nullable Object[] oa);
+              @Getter("getOa") @Updater("withOa") @Nullable Object[] newValue
+              );
 }

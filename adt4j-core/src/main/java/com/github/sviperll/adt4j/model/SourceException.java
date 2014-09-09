@@ -27,25 +27,12 @@
  *  (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
  *  EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package com.github.sviperll.adt4j;
+package com.github.sviperll.adt4j.model;
 
-import java.lang.annotation.Documented;
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
+public class SourceException extends Exception {
 
-@Retention(RetentionPolicy.SOURCE)
-@Target(ElementType.TYPE)
-@Documented
-public @interface GenerateValueClassForVisitor {
-    String resultVariableName();
-    String exceptionVariableName() default ":none";
-    String selfReferenceVariableName() default ":none";
-    String valueClassName() default ":auto";
-    boolean valueClassIsPublic() default false;
-    int valueClassHashCodeBase() default 27;
-    boolean valueClassIsSerializable() default false;
-    boolean valueClassIsComparable() default false;
-    long valueClassSerialVersionUID() default 1L;
+    public SourceException(String message) {
+        super(message);
+    }
+
 }
