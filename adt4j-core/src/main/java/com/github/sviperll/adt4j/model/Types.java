@@ -183,7 +183,7 @@ class Types {
         if (type.isPrimitive() || type.isArray())
             return type.isPrimitive() || type.isArray() && isSerializable(type.elementType());
         else {
-            return isSubtype(_Serializable, type);
+            return type.isSubtypeOf(_Serializable);
         }
     }
 
@@ -191,75 +191,9 @@ class Types {
         if (type.isPrimitive() || type.isArray())
             return type.isPrimitive() || type.isArray() && isComparable(type.elementType());
         else {
-            return isSubtype(_Comparable.narrow(type), type);
+            AbstractJClass klass = (AbstractJClass)type;
+            boolean result = klass.isSubtypeOf(_Comparable.narrow(klass.wildcardSuper()));
+            return result;
         }
-    }
-
-    private boolean isSubtype(AbstractJType type1, AbstractJType type2) {
-        if (type1.isArray() && type2.isArray()) {
-            return type1.elementType() == type2.elementType();
-        } else if (type1.isPrimitive() && type2.isPrimitive()) {
-            return type1 == type2;
-        } else if (type1.isReference() && type2.isReference()) {
-            AbstractJClass class1 = (AbstractJClass)type1;
-            AbstractJClass class2 = (AbstractJClass)type2;
-
-            if (class2 instanceof JNullType)
-                return true;
-            else if (class1 == _Object)
-                return true;
-            else if (class1 == class2)
-                return true;
-            else if (isUnifiable(class1, class2)) {
-                return true;
-            } else if (class1.erasure() == class2.erasure()) {
-                if (!class1.isParameterized() || !class2.isParameterized())
-                    return true;
-                else {
-                    for (int i = 0; i < class1.getTypeParameters().size(); i++) {
-                        AbstractJClass parameter1 = class1.getTypeParameters().get(i);
-                        AbstractJClass parameter2 = class2.getTypeParameters().get(i);
-                        if (!isUnifiable(parameter1, parameter2)) {
-                            return false;
-                        }
-                    }
-                    return true;
-                }
-            } else {
-                AbstractJClass class2Base = class2._extends();
-                if (class2Base != null && isSubtype(class1, class2Base))
-                    return true;
-                else {
-                    Iterator<AbstractJClass> i = class2._implements();
-                    while (i.hasNext()) {
-                        if (isSubtype(class1, i.next()))
-                            return true;
-                    }
-                    return false;
-                }
-            }
-        } else
-            return false;
-    }
-
-    private boolean isUnifiable(AbstractJClass type1, AbstractJClass type2) {
-        if (type1 == type2)
-            return true;
-        else if (type1 instanceof JTypeWildcard) {
-            JTypeWildcard wild1 = (JTypeWildcard)type1;
-            if (wild1.boundMode() == JTypeWildcard.EBoundMode.EXTENDS) {
-                return isSubtype(wild1.bound(), type2);
-            } else {
-                return isSubtype(type2, wild1.bound());
-            }
-        } else if (type2 instanceof JTypeWildcard) {
-            JTypeWildcard wild2 = (JTypeWildcard)type1;
-            if (wild2.boundMode() == JTypeWildcard.EBoundMode.EXTENDS) {
-                return isSubtype(wild2.bound(), type1);
-            } else {
-                return isSubtype(type1, wild2.bound());
-            }
-        } else
-            return false;
     }
 }

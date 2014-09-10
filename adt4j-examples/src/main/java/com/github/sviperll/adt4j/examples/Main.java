@@ -31,7 +31,7 @@ package com.github.sviperll.adt4j.examples;
 
 public class Main {
     public static void main(String[] args) {
-        User user = User.valueOf(UserKey.valueOf(1), "Victor");
+        User<String> user = User.<String>valueOf(UserKey.valueOf(1), ComparableList.<String>nil(), "Victor");
         System.out.println(user);
         System.out.println(user.withName("Peter"));
         System.out.println("lookup(\"a\") -> " + toString(lookup("a")));

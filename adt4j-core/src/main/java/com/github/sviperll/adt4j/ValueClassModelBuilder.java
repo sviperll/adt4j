@@ -46,6 +46,7 @@ import com.helger.jcodemodel.AbstractJType;
 import com.helger.jcodemodel.IJAnnotatable;
 import com.helger.jcodemodel.JAnnotationUse;
 import com.helger.jcodemodel.JTypeVar;
+import com.helger.jcodemodel.JTypeWildcard;
 import com.helger.jcodemodel.JVar;
 import java.util.Collection;
 import java.util.List;
@@ -329,7 +330,25 @@ class ValueClassModelBuilder {
 
                 @Override
                 public AbstractJType visitWildcard(WildcardType t, Void p) {
-                    throw new UnsupportedOperationException("wildcards are not supported in convertion to JClass."); //To change body of generated methods, choose Tools | Templates.
+                    try {
+                        TypeMirror extendsBoundMirror = t.getExtendsBound();
+                        if (extendsBoundMirror != null) {
+                            AbstractJClass extendsBound = (AbstractJClass)toJType(extendsBoundMirror, environment);
+                            return extendsBound.wildcard(JTypeWildcard.EBoundMode.EXTENDS);
+                        }
+                        TypeMirror superBoundMirror = t.getSuperBound();
+                        if (superBoundMirror != null) {
+                            AbstractJClass superBound = (AbstractJClass)toJType(superBoundMirror, environment);
+                            return superBound.wildcard(JTypeWildcard.EBoundMode.SUPER);
+                        }
+                        return codeModel.wildcard();
+                    } catch (CodeGenerationException ex) {
+                        throw new RuntimeCodeGenerationException(ex);
+                    } catch (SourceException ex) {
+                        throw new RuntimeSourceException(ex);
+                    } catch (ErrorTypeFound ex) {
+                        throw new RuntimeErrorTypeFound(ex);
+                    }
                 }
 
                 @Override
