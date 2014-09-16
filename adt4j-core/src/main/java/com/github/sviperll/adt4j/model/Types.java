@@ -33,10 +33,8 @@ import com.helger.jcodemodel.AbstractJClass;
 import com.helger.jcodemodel.AbstractJType;
 import com.helger.jcodemodel.IJGenerifiable;
 import com.helger.jcodemodel.JCodeModel;
-import com.helger.jcodemodel.JNullType;
 import com.helger.jcodemodel.JPrimitiveType;
 import com.helger.jcodemodel.JTypeVar;
-import com.helger.jcodemodel.JTypeWildcard;
 import java.io.Serializable;
 import java.util.Iterator;
 
@@ -183,7 +181,7 @@ class Types {
         if (type.isPrimitive() || type.isArray())
             return type.isPrimitive() || type.isArray() && isSerializable(type.elementType());
         else {
-            return type.isSubtypeOf(_Serializable);
+            return _Serializable.isAssignableFrom(type);
         }
     }
 
@@ -192,7 +190,7 @@ class Types {
             return type.isPrimitive() || type.isArray() && isComparable(type.elementType());
         else {
             AbstractJClass klass = (AbstractJClass)type;
-            boolean result = klass.isSubtypeOf(_Comparable.narrow(klass.wildcardSuper()));
+            boolean result = _Comparable.narrow(klass.wildcardSuper()).isAssignableFrom(klass);
             return result;
         }
     }

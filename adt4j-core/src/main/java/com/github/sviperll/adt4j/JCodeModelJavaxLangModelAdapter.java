@@ -29,22 +29,20 @@
  */
 package com.github.sviperll.adt4j;
 
-import com.github.sviperll.adt4j.model.SourceException;
 import com.github.sviperll.adt4j.model.CodeGenerationException;
 import com.github.sviperll.adt4j.model.ErrorTypeFound;
+import com.github.sviperll.adt4j.model.SourceException;
 import com.github.sviperll.adt4j.model.TypeEnvironment;
-import com.github.sviperll.adt4j.model.ValueVisitorInterfaceModel;
-import com.github.sviperll.adt4j.model.ValueClassModel;
-import com.helger.jcodemodel.EClassType;
 import com.helger.jcodemodel.AbstractJClass;
+import com.helger.jcodemodel.AbstractJType;
+import com.helger.jcodemodel.EClassType;
+import com.helger.jcodemodel.IJAnnotatable;
+import com.helger.jcodemodel.JAnnotationUse;
 import com.helger.jcodemodel.JClassAlreadyExistsException;
 import com.helger.jcodemodel.JCodeModel;
 import com.helger.jcodemodel.JDefinedClass;
 import com.helger.jcodemodel.JMethod;
 import com.helger.jcodemodel.JMod;
-import com.helger.jcodemodel.AbstractJType;
-import com.helger.jcodemodel.IJAnnotatable;
-import com.helger.jcodemodel.JAnnotationUse;
 import com.helger.jcodemodel.JTypeVar;
 import com.helger.jcodemodel.JTypeWildcard;
 import com.helger.jcodemodel.JVar;
@@ -55,22 +53,8 @@ import javax.lang.model.element.AnnotationMirror;
 import javax.lang.model.element.AnnotationValue;
 import javax.lang.model.element.Element;
 import javax.lang.model.element.ElementKind;
-import static javax.lang.model.element.ElementKind.ANNOTATION_TYPE;
-import static javax.lang.model.element.ElementKind.CLASS;
-import static javax.lang.model.element.ElementKind.ENUM;
-import static javax.lang.model.element.ElementKind.INTERFACE;
 import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.Modifier;
-import static javax.lang.model.element.Modifier.ABSTRACT;
-import static javax.lang.model.element.Modifier.FINAL;
-import static javax.lang.model.element.Modifier.NATIVE;
-import static javax.lang.model.element.Modifier.PRIVATE;
-import static javax.lang.model.element.Modifier.PROTECTED;
-import static javax.lang.model.element.Modifier.PUBLIC;
-import static javax.lang.model.element.Modifier.STATIC;
-import static javax.lang.model.element.Modifier.SYNCHRONIZED;
-import static javax.lang.model.element.Modifier.TRANSIENT;
-import static javax.lang.model.element.Modifier.VOLATILE;
 import javax.lang.model.element.TypeElement;
 import javax.lang.model.element.TypeParameterElement;
 import javax.lang.model.element.VariableElement;
@@ -82,21 +66,12 @@ import javax.lang.model.type.NoType;
 import javax.lang.model.type.NullType;
 import javax.lang.model.type.PrimitiveType;
 import javax.lang.model.type.TypeKind;
-import static javax.lang.model.type.TypeKind.CHAR;
 import javax.lang.model.type.TypeMirror;
 import javax.lang.model.type.TypeVariable;
 import javax.lang.model.type.WildcardType;
 import javax.lang.model.util.AbstractTypeVisitor6;
 
-class ValueClassModelBuilder {
-    private static TypeElement toTypeElement(Element element) throws SourceException {
-        if (!(element instanceof TypeElement))
-            throw new SourceException("DataVisitor annotation is only allowed to interfaces");
-        else
-            return (TypeElement)element;
-    }
-    private final JCodeModel codeModel;
-
+class JCodeModelJavaxLangModelAdapter {
     private static int toJMod(Collection<Modifier> modifierCollection) {
         int modifiers = 0;
         for (Modifier modifier: modifierCollection) {
@@ -147,34 +122,17 @@ class ValueClassModelBuilder {
         }
     }
 
-    public ValueClassModelBuilder(JCodeModel codeModel) {
+    private final JCodeModel codeModel;
+
+    JCodeModelJavaxLangModelAdapter(JCodeModel codeModel) {
         this.codeModel = codeModel;
     }
 
-    public ValueClassModel build(TypeElement visitorElement, GenerateValueClassForVisitor dataVisitor) throws SourceException, CodeGenerationException, ErrorTypeFound {
-        ValueVisitorInterfaceModel visitorInterfaceModel = buildVisitorInterface(visitorElement, dataVisitor);
-        ValueClassModel result = build(visitorInterfaceModel);
-        return result;
+    JDefinedClass _class(TypeElement element) throws JClassAlreadyExistsException, SourceException, ErrorTypeFound, CodeGenerationException {
+        return _class(element, new TypeEnvironment());
     }
 
-    public ValueClassModel build(Element visitorElement, GenerateValueClassForVisitor dataVisitor) throws SourceException, CodeGenerationException, ErrorTypeFound {
-        return build((TypeElement)visitorElement, dataVisitor);
-    }
-
-    private ValueVisitorInterfaceModel buildVisitorInterface(TypeElement visitorElement, GenerateValueClassForVisitor dataVisitor) throws SourceException, CodeGenerationException, ErrorTypeFound {
-        try {
-            JDefinedClass visitorInterfaceModel = createJDefinedClass(visitorElement, new TypeEnvironment());
-            return new ValueVisitorInterfaceModel(visitorInterfaceModel, dataVisitor);
-        } catch (JClassAlreadyExistsException ex) {
-            throw new CodeGenerationException(ex);
-        }
-    }
-
-    ValueClassModel build(ValueVisitorInterfaceModel visitorInterface) throws SourceException, CodeGenerationException {
-        return ValueClassModel.createInstance(codeModel, visitorInterface);
-    }
-
-    private JDefinedClass createJDefinedClass(TypeElement element, TypeEnvironment environment) throws JClassAlreadyExistsException, SourceException, ErrorTypeFound, CodeGenerationException {
+    private JDefinedClass _class(TypeElement element, TypeEnvironment environment) throws JClassAlreadyExistsException, SourceException, ErrorTypeFound, CodeGenerationException {
         EClassType classType = toClassType(element.getKind());
         int modifiers = toJMod(element.getModifiers());
         if (classType.equals(EClassType.INTERFACE))
@@ -232,17 +190,21 @@ class ValueClassModelBuilder {
         return newClass;
     }
 
-    private AbstractJClass toJClass(TypeElement element) throws CodeGenerationException, SourceException, ErrorTypeFound {
+    AbstractJClass ref(TypeElement element) throws CodeGenerationException, SourceException, ErrorTypeFound {
         try {
             Class<?> klass = Class.forName(element.getQualifiedName().toString());
-            AbstractJType declaredClass = codeModel._ref(klass);
+            AbstractJType declaredClass = codeModel.ref(klass);
             return (AbstractJClass)declaredClass;
         } catch (ClassNotFoundException ex) {
             try {
                 AbstractJClass result = codeModel._getClass(element.getQualifiedName().toString());
-                if (result == null)
-                    result = createJDefinedClass(element, new TypeEnvironment());
-                return result;
+                if (result != null)
+                    return result;
+                else {
+                    JDefinedClass jclass = _class(element, new TypeEnvironment());
+                    jclass.hide();
+                    return jclass;
+                }
             } catch (JClassAlreadyExistsException ex1) {
                 throw new RuntimeException(ex1);
             }
@@ -300,7 +262,7 @@ class ValueClassModelBuilder {
                 public AbstractJType visitDeclared(DeclaredType t, Void p) {
                     try {
                         TypeElement element = (TypeElement)t.asElement();
-                        AbstractJClass _class = toJClass(element);
+                        AbstractJClass _class = ref(element);
                         for (TypeMirror typeArgument: t.getTypeArguments()) {
                             _class = _class.narrow(toJType(typeArgument, environment));
                         }

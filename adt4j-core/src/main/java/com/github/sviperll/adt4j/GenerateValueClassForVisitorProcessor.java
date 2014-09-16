@@ -29,12 +29,17 @@
  */
 package com.github.sviperll.adt4j;
 
-import com.github.sviperll.adt4j.model.SourceException;
 import com.github.sviperll.adt4j.model.CodeGenerationException;
 import com.github.sviperll.adt4j.model.ErrorTypeFound;
+import com.github.sviperll.adt4j.model.SourceException;
+import com.github.sviperll.adt4j.model.ValueClassModelFactory;
+import com.helger.jcodemodel.JClassAlreadyExistsException;
 import com.helger.jcodemodel.JCodeModel;
+import com.helger.jcodemodel.JDefinedClass;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import javax.annotation.processing.AbstractProcessor;
 import javax.annotation.processing.RoundEnvironment;
@@ -44,8 +49,6 @@ import javax.lang.model.SourceVersion;
 import javax.lang.model.element.Element;
 import javax.lang.model.element.TypeElement;
 import javax.tools.Diagnostic;
-import java.util.HashSet;
-import java.util.List;
 
 @SupportedAnnotationTypes("com.github.sviperll.adt4j.GenerateValueClassForVisitor")
 @SupportedSourceVersion(SourceVersion.RELEASE_6)
@@ -86,8 +89,10 @@ public class GenerateValueClassForVisitorProcessor extends AbstractProcessor {
             try {
                 JCodeModel jCodeModel = new JCodeModel();
                 GenerateValueClassForVisitor dataVisitor = element.getAnnotation(GenerateValueClassForVisitor.class);
-                ValueClassModelBuilder builder = new ValueClassModelBuilder(jCodeModel);
-                builder.build(element, dataVisitor);
+                JCodeModelJavaxLangModelAdapter adapter = new JCodeModelJavaxLangModelAdapter(jCodeModel);
+                JDefinedClass visitorModel = adapter._class(element);
+                visitorModel.hide();
+                ValueClassModelFactory.createValueClass(visitorModel, dataVisitor);
                 processingEnv.getMessager().printMessage(Diagnostic.Kind.NOTE, "Generated value class for " + element);
                 FilerCodeWriter writer = new FilerCodeWriter(processingEnv.getFiler(), processingEnv.getMessager());
                 try {
@@ -101,6 +106,9 @@ public class GenerateValueClassForVisitorProcessor extends AbstractProcessor {
                 errors.add(element + ": " + ex.getMessage());
             } catch (SourceException ex) {
                 errors.add(element + ": " + ex.getMessage());
+            } catch (JClassAlreadyExistsException ex) {
+                errors.add(element + ": " + ex.getMessage());
+                ex.printStackTrace(System.err);
             } catch (RuntimeException ex) {
                 errors.add(element + ": " + ex.getMessage());
                 ex.printStackTrace(System.err);

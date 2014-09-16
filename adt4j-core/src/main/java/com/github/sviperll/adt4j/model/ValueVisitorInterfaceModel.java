@@ -29,115 +29,46 @@
  */
 package com.github.sviperll.adt4j.model;
 
-import com.github.sviperll.adt4j.GenerateValueClassForVisitor;
 import com.helger.jcodemodel.AbstractJClass;
-import com.helger.jcodemodel.JDefinedClass;
-import com.helger.jcodemodel.JFormatter;
-import com.helger.jcodemodel.JMethod;
 import com.helger.jcodemodel.AbstractJType;
+import com.helger.jcodemodel.JDefinedClass;
+import com.helger.jcodemodel.JMethod;
 import com.helger.jcodemodel.JTypeVar;
-import java.io.StringWriter;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
+import javax.annotation.Nullable;
 
 public class ValueVisitorInterfaceModel {
-    private static final String VISITOR_SUFFIX = "Visitor";
-    private static final String VALUE_SUFFIX = "Value";
-
     private final JDefinedClass visitorInterfaceModel;
-    private final GenerateValueClassForVisitor annotationInstance;
+    private final ValueVisitorTypeParameters typeParameters;
 
-    public ValueVisitorInterfaceModel(JDefinedClass visitorInterfaceModel, GenerateValueClassForVisitor dataVisitor) {
+    public ValueVisitorInterfaceModel(JDefinedClass visitorInterfaceModel, ValueVisitorTypeParameters typeParameters) {
         this.visitorInterfaceModel = visitorInterfaceModel;
-        this.annotationInstance = dataVisitor;
-    }
-
-    String getPackageName() {
-        return visitorInterfaceModel._package().name();
-    }
-
-    String getValueClassName() {
-        if (!annotationInstance.valueClassName().equals(":auto")) {
-            return annotationInstance.valueClassName();
-        } else {
-            String visitorName = visitorInterfaceModel.name();
-            String valueName;
-            if (visitorName.endsWith(VISITOR_SUFFIX))
-                valueName = visitorName.substring(0, visitorName.length() - VISITOR_SUFFIX.length());
-            else
-                valueName = visitorName + VALUE_SUFFIX;
-            return valueName;
-        }
-    }
-
-    boolean generatesPublicClass() {
-        return annotationInstance.valueClassIsPublic();
-    }
-
-    int hashCodeBase() {
-        return annotationInstance.valueClassHashCodeBase();
-    }
-
-    Collection<JTypeVar> getDataTypeParameters() {
-        List<JTypeVar> result = new ArrayList<JTypeVar>();
-        for (JTypeVar typeVariable: visitorInterfaceModel.typeParams()) {
-            if (!shouldBeOverridenOnInvocation(typeVariable.name()) && !isSelf(typeVariable))
-                result.add(typeVariable);
-        }
-        return result;
-    }
-
-    private boolean shouldBeOverridenOnInvocation(String name) {
-        return name.equals(annotationInstance.resultVariableName()) || name.equals(annotationInstance.exceptionVariableName());
-    }
-
-    boolean isSelf(AbstractJType type) {
-        return type.fullName().equals(annotationInstance.selfReferenceVariableName());
+        this.typeParameters = typeParameters;
     }
 
     JTypeVar getResultTypeParameter() {
-        for (JTypeVar typeVariable: visitorInterfaceModel.typeParams()) {
-            if (typeVariable.name().equals(annotationInstance.resultVariableName()))
-                return typeVariable;
-        }
-        return null;
+        return typeParameters.getResultTypeParameter();
     }
 
+    @Nullable
     JTypeVar getExceptionTypeParameter() {
-        for (JTypeVar typeVariable: visitorInterfaceModel.typeParams()) {
-            if (typeVariable.name().equals(annotationInstance.exceptionVariableName()))
-                return typeVariable;
-        }
-        return null;
-    }
-
-    private JTypeVar getSelfTypeParameter() {
-        for (JTypeVar typeVariable: visitorInterfaceModel.typeParams()) {
-            if (isSelf(typeVariable))
-                return typeVariable;
-        }
-        return null;
+        return typeParameters.getExceptionTypeParameter();
     }
 
     AbstractJClass narrowed(AbstractJClass usedDataType, AbstractJType resultType, AbstractJType exceptionType) {
         return narrowed(usedDataType, resultType, exceptionType, usedDataType);
     }
 
-    AbstractJClass narrowed(AbstractJClass usedDataType, AbstractJType resultType, AbstractJType exceptionType, AbstractJType selfType) {
+    private AbstractJClass narrowed(AbstractJClass usedDataType, AbstractJType resultType, AbstractJType exceptionType, AbstractJType selfType) {
         Iterator<? extends AbstractJClass> dataTypeArgumentIterator = usedDataType.getTypeParameters().iterator();
         AbstractJClass result = visitorInterfaceModel;
         for (JTypeVar typeVariable: visitorInterfaceModel.typeParams()) {
-            if (typeVariable.name().equals(annotationInstance.exceptionVariableName()))
-                result = result.narrow(exceptionType);
-            else if (typeVariable.name().equals(annotationInstance.resultVariableName()))
-                result = result.narrow(resultType);
-            else if (isSelf(typeVariable))
-                result = result.narrow(selfType);
-            else {
+            if (typeParameters.isSpecial(typeVariable))
+                result = result.narrow(typeParameters.substituteSpecialType(typeVariable, usedDataType, resultType, exceptionType));
+            else
                 result = result.narrow(dataTypeArgumentIterator.next());
-            }
         }
         return result;
     }
@@ -146,37 +77,15 @@ public class ValueVisitorInterfaceModel {
         return visitorInterfaceModel.methods();
     }
 
-    @Override
-    public String toString() {
-        StringWriter sb = new StringWriter();
-        visitorInterfaceModel.generate(new JFormatter(sb));
-        return sb.toString();
+    AbstractJType substituteSpecialType(AbstractJType typeVariable, AbstractJClass selfType, AbstractJType resultType, AbstractJType exceptionType) {
+        return typeParameters.substituteSpecialType(typeVariable, selfType, resultType, exceptionType);
     }
 
-    AbstractJType substituteTypeParameter(AbstractJType type, AbstractJClass usedDataType, AbstractJType resultType, AbstractJType exceptionType) {
-        if (type.fullName().equals(annotationInstance.exceptionVariableName()))
-            return exceptionType;
-        else if (type.fullName().equals(annotationInstance.resultVariableName()))
-            return resultType;
-        else if (isSelf(type))
-            return usedDataType;
-        else
-            return type;
+    boolean isSelf(AbstractJType type) {
+        return typeParameters.isSelf(type);
     }
 
-    boolean hasSelfTypeParameter() {
-        return getSelfTypeParameter() != null;
-    }
-
-    boolean shouldBeSerializable() {
-        return annotationInstance.valueClassIsSerializable();
-    }
-
-    long serialVersionUID() {
-        return annotationInstance.valueClassSerialVersionUID();
-    }
-
-    boolean shouldBeComparable() {
-        return annotationInstance.valueClassIsComparable();
+    List<JTypeVar> getValueTypeParameters() {
+        return typeParameters.getValueTypeParameters();
     }
 }
