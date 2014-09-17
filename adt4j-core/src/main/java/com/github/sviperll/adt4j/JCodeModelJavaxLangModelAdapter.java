@@ -32,7 +32,6 @@ package com.github.sviperll.adt4j;
 import com.github.sviperll.adt4j.model.CodeGenerationException;
 import com.github.sviperll.adt4j.model.ErrorTypeFound;
 import com.github.sviperll.adt4j.model.SourceException;
-import com.github.sviperll.adt4j.model.TypeEnvironment;
 import com.helger.jcodemodel.AbstractJClass;
 import com.helger.jcodemodel.AbstractJType;
 import com.helger.jcodemodel.EClassType;

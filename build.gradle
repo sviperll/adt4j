@@ -70,6 +70,7 @@ subprojects {
         doFirst {
             javacGeneratedSourcesDir.mkdirs()
         }
+        options.compilerArgs += ['-Xlint']
         options.compilerArgs += ['-s', javacGeneratedSourcesDir]
         source = source.filter { p -> !p.getPath().startsWith(javacGeneratedSourcesDir.getPath()) }
     }

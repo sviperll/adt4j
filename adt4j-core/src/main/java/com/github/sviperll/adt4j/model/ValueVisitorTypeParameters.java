@@ -39,13 +39,13 @@ import javax.annotation.Nullable;
  *
  * @author Victor Nazarov <asviraspossible@gmail.com>
  */
-public class ValueVisitorTypeParameters {
+class ValueVisitorTypeParameters {
     private final JTypeVar resultTypeParameter;
     private final @Nullable JTypeVar exceptionTypeParameter;
     private final @Nullable JTypeVar selfTypeParameter;
     private final List<JTypeVar> valueTypeParameters;
 
-    public ValueVisitorTypeParameters(JTypeVar resultTypeParameter,
+    ValueVisitorTypeParameters(JTypeVar resultTypeParameter,
                                       @Nullable JTypeVar exceptionTypeParameter,
                                       @Nullable JTypeVar selfTypeParameter,
                                       List<JTypeVar> valueTypeParameters) {
@@ -55,36 +55,36 @@ public class ValueVisitorTypeParameters {
         this.valueTypeParameters = valueTypeParameters;
     }
 
-    public JTypeVar getResultTypeParameter() {
+    JTypeVar getResultTypeParameter() {
         return resultTypeParameter;
     }
 
-    public JTypeVar getExceptionTypeParameter() {
+    JTypeVar getExceptionTypeParameter() {
         return exceptionTypeParameter;
     }
 
-    public JTypeVar getSelfTypeParameter() {
+    JTypeVar getSelfTypeParameter() {
         return selfTypeParameter;
     }
 
-    public List<JTypeVar> getValueTypeParameters() {
+    List<JTypeVar> getValueTypeParameters() {
         return valueTypeParameters;
     }
 
     boolean isSpecial(AbstractJType typeVariable) {
         return typeVariable != null
-               && (typeVariable == exceptionTypeParameter
-                   || typeVariable == resultTypeParameter
-                   || typeVariable == selfTypeParameter);
+               && (isSelf(typeVariable)
+                   || isResult(typeVariable)
+                   || isException(typeVariable));
     }
 
     AbstractJType substituteSpecialType(AbstractJType typeVariable, AbstractJClass selfType, AbstractJType resultType,
                                         AbstractJType exceptionType) {
-        if (typeVariable == exceptionTypeParameter)
+        if (isException(typeVariable))
             return exceptionType;
-        else if (typeVariable == resultTypeParameter)
+        else if (isResult(typeVariable))
             return resultType;
-        else if (typeVariable == selfTypeParameter)
+        else if (isSelf(typeVariable))
             return selfType;
         else {
             return typeVariable;
@@ -93,5 +93,13 @@ public class ValueVisitorTypeParameters {
 
     boolean isSelf(AbstractJType type) {
         return type == selfTypeParameter;
+    }
+
+    boolean isResult(AbstractJType type) {
+        return type == resultTypeParameter;
+    }
+
+    boolean isException(AbstractJType type) {
+        return type == exceptionTypeParameter;
     }
 }

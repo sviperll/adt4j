@@ -31,21 +31,23 @@ package com.github.sviperll.adt4j.model;
 
 import com.helger.jcodemodel.AbstractJClass;
 import com.helger.jcodemodel.AbstractJType;
-import com.helger.jcodemodel.JDefinedClass;
 import com.helger.jcodemodel.JMethod;
 import com.helger.jcodemodel.JTypeVar;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import javax.annotation.Nullable;
 
-public class ValueVisitorInterfaceModel {
-    private final JDefinedClass visitorInterfaceModel;
+class ValueVisitorInterfaceModel {
+    private final AbstractJClass visitorInterfaceModel;
     private final ValueVisitorTypeParameters typeParameters;
+    private final Map<String, JMethod> methods;
 
-    public ValueVisitorInterfaceModel(JDefinedClass visitorInterfaceModel, ValueVisitorTypeParameters typeParameters) {
+    ValueVisitorInterfaceModel(AbstractJClass visitorInterfaceModel, ValueVisitorTypeParameters typeParameters, Map<String, JMethod> methods) {
         this.visitorInterfaceModel = visitorInterfaceModel;
         this.typeParameters = typeParameters;
+        this.methods = methods;
     }
 
     JTypeVar getResultTypeParameter() {
@@ -55,6 +57,15 @@ public class ValueVisitorInterfaceModel {
     @Nullable
     JTypeVar getExceptionTypeParameter() {
         return typeParameters.getExceptionTypeParameter();
+    }
+
+    @Nullable
+    JTypeVar getSelfTypeParameter() {
+        return typeParameters.getSelfTypeParameter();
+    }
+
+    List<JTypeVar> getValueTypeParameters() {
+        return typeParameters.getValueTypeParameters();
     }
 
     AbstractJClass narrowed(AbstractJClass usedDataType, AbstractJType resultType, AbstractJType exceptionType) {
@@ -74,7 +85,7 @@ public class ValueVisitorInterfaceModel {
     }
 
     Collection<JMethod> methods() {
-        return visitorInterfaceModel.methods();
+        return methods.values();
     }
 
     AbstractJType substituteSpecialType(AbstractJType typeVariable, AbstractJClass selfType, AbstractJType resultType, AbstractJType exceptionType) {
@@ -85,7 +96,11 @@ public class ValueVisitorInterfaceModel {
         return typeParameters.isSelf(type);
     }
 
-    List<JTypeVar> getValueTypeParameters() {
-        return typeParameters.getValueTypeParameters();
+    boolean isResult(AbstractJType type) {
+        return typeParameters.isResult(type);
+    }
+
+    boolean isException(AbstractJType type) {
+        return typeParameters.isException(type);
     }
 }

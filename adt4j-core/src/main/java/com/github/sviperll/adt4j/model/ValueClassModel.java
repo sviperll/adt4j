@@ -49,6 +49,7 @@ import com.helger.jcodemodel.JInvocation;
 import com.helger.jcodemodel.JMethod;
 import com.helger.jcodemodel.JMod;
 import com.helger.jcodemodel.JOp;
+import com.helger.jcodemodel.JOpTernary;
 import com.helger.jcodemodel.JTypeVar;
 import com.helger.jcodemodel.JVar;
 import java.util.ArrayList;
@@ -60,7 +61,7 @@ import java.util.TreeSet;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
-public class ValueClassModel {
+class ValueClassModel {
     private static String capitalize(String s) {
         if (s.length() >= 2
             && Character.isHighSurrogate(s.charAt(0))
@@ -233,6 +234,8 @@ public class ValueClassModel {
 
             JMethod constructorMethod = constructorMethods.get(interfaceMethod.name());
             JInvocation staticInvoke = valueClass.staticInvoke(constructorMethod);
+            for (JTypeVar typeArgument: factoryClass.typeParams())
+                staticInvoke.narrow(typeArgument);
             for (JVar param: interfaceMethod.params()) {
                 AbstractJType argumentType = visitorInterface.substituteSpecialType(param.type(), usedValueClassType, usedValueClassType, runtimeException);
                 JVar argument = factoryMethod.param(param.mods().getValue(), argumentType, param.name());
@@ -743,6 +746,8 @@ public class ValueClassModel {
             JMethod visitorMethod1 = visitor.method(interfaceMethod1.mods().getValue() & ~JMod.ABSTRACT, usedValueClassType, interfaceMethod1.name());
             visitorMethod1.annotate(Override.class);
             JInvocation invocation = valueClass.staticInvoke(interfaceMethod1.name());
+            for (JTypeVar typeArgument: valueClass.typeParams())
+                invocation.narrow(typeArgument);
             for (JVar param: interfaceMethod1.params()) {
                 AbstractJType argumentType = visitorInterface.substituteSpecialType(param.type(), usedValueClassType, configuration.type().boxify(), types._RuntimeException());
                 JVar argument = visitorMethod1.param(param.mods().getValue(), argumentType, nameSource.get(param.name()));
@@ -952,10 +957,8 @@ public class ValueClassModel {
 
                 appendNotNullValue(types._int(), value1.ref("length"), value2.ref("length"));
             } else if (type.isPrimitive()) {
-                JInvocation compareInvocation = type.boxify().staticInvoke("compare");
-                compareInvocation.arg(value1);
-                compareInvocation.arg(value2);
-                body.assign(resultVariable, compareInvocation);
+                IJExpression condition = JOp.cond(value1.lt(value2), JExpr.lit(-1), JOp.cond(value1.eq(value2), JExpr.lit(0), JExpr.lit(1)));
+                body.assign(resultVariable, condition);
                 JConditional _if = body._if(resultVariable.ne(JExpr.lit(0)));
                 _if._then()._return(resultVariable);
             } else {

@@ -36,7 +36,7 @@ import java.util.TreeMap;
  *
  * @author Victor Nazarov <asviraspossible@gmail.com>
  */
-public class VariableNameSource {
+class VariableNameSource {
     private final Map<String, Integer> nameMap = new TreeMap<String, Integer>();
     private final VariableNameSource parent;
 
