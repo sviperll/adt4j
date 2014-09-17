@@ -75,6 +75,16 @@ subprojects {
         source = source.filter { p -> !p.getPath().startsWith(javacGeneratedSourcesDir.getPath()) }
     }
 
+    tasks.withType(JavaCompile) {
+        doFirst {
+            if (sourceCompatibility == '1.6' && System.env.JDK6_HOME != null) {
+                options.fork = true
+                options.bootClasspath = "$System.env.JDK6_HOME/jre/lib/rt.jar"
+                // options.bootClasspath += "$File.pathSeparator$System.env.JDK6_HOME/jre/lib/jsse.jar"
+                // options.bootClasspath += "$File.pathSeparator$System.env.JDK6_HOME/jre/lib/jce.jar"
+            }
+        }
+    }
 
     repositories {
        mavenLocal()
