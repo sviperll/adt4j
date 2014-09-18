@@ -70,6 +70,26 @@ Use maven dependency to use ADT4J:
         <version>0.8.1</version>
     </dependency>
 
+Build
+-----
+
+    $ git clone git@github.com:sviperll/adt4j.git
+    $ cd adt4j
+
+ADT4J is built to be compatible with Java 6.
+Reference to JDK6 is required even if you use Java 7 or 8 compiler.
+ADT4J is built with boot class path pointing to JDK6
+to prevent usage of some standard library routines missing from Java 6.
+
+    $ JDK6_HOME=#... For example JDK6_HOME=/usr/lib/jvm/java-6-openjdk-i386
+    $ export JDK6_HOME
+
+    $ gradle build
+
+You can install jars into local maven repository with
+
+    $ gradle install
+
 Usage
 -----
 
