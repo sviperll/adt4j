@@ -44,7 +44,6 @@ import com.helger.jcodemodel.JTypeVar;
 import com.helger.jcodemodel.JVar;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
@@ -125,15 +124,14 @@ public class ValueClassModelFactory {
                                           + ", found: " + method.type());
             }
 
-            // TODO: check that method throws no exceptions or throws single exception that is declared as type-variable
-            // Collection<AbstractJClass> exceptions = method._throws();
-            // if (exceptions.size() > 1)
-            //     throw new SourceException("Visitor methods are allowed to throw no exceptions or throw single exception, declared as type-variable: " + method.name());
-            // else if (exceptions.size() == 1) {
-            //     AbstractJClass exception = exceptions.iterator().next();
-            //     if (!typeParameters.isException(exception))
-            //         throw new SourceException("Visitor methods throws exception, not declared as type-variable: " + method.name() + ": " + exception);
-            // }
+            Collection<AbstractJClass> exceptions = method.getThrows();
+            if (exceptions.size() > 1)
+                throw new SourceException("Visitor methods are allowed to throw no exceptions or throw single exception, declared as type-variable: " + method.name());
+            else if (exceptions.size() == 1) {
+                AbstractJClass exception = exceptions.iterator().next();
+                if (!typeParameters.isException(exception))
+                    throw new SourceException("Visitor methods throws exception, not declared as type-variable: " + method.name() + ": " + exception);
+            }
 
             JMethod exitingValue = methods.put(method.name(), method);
             if (exitingValue != null) {
