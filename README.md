@@ -62,7 +62,7 @@ ADT4J is under BSD 3-clause license.
 Flattr
 ------
 
-<a href="https://flattr.com/submit/auto?user_id=sviperll&url=https%3A%2F%2Fgithub.com%2Fsviperll%2Fadt4j" target="_blank"><img src="//api.flattr.com/button/flattr-badge-large.png" alt="Flattr this" title="Flattr this" border="0"></a>
+[![Flattr this git repo](http://api.flattr.com/button/flattr-badge-large.png)](https://flattr.com/submit/auto?user_id=sviperll&url=https%3A%2F%2Fgithub.com%2Fsviperll%2Fadt4j&title=adt4j&language=Java&tags=github&category=software)
 
 Installation
 ------------
