@@ -29,6 +29,7 @@
  */
 package com.github.sviperll.adt4j.model;
 
+@SuppressWarnings("serial")
 public class SourceException extends Exception {
 
     public SourceException(String message) {

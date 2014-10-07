@@ -1,6 +1,8 @@
 *~
 /adt4j-core/build
+/adt4j-core/target
 /adt4j-examples/build
+/adt4j-examples/target
 /.nb-gradle
 /.gradle
 

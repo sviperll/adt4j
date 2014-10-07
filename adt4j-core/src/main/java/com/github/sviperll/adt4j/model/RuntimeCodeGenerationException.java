@@ -27,23 +27,24 @@
  *  (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
  *  EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package com.github.sviperll.adt4j;
+package com.github.sviperll.adt4j.model;
 
-import com.github.sviperll.adt4j.model.SourceException;
+import com.github.sviperll.adt4j.model.CodeGenerationException;
 
 /**
  *
  * @author Victor Nazarov <asviraspossible@gmail.com>
  */
-class RuntimeSourceException extends RuntimeException {
-    private final SourceException cause;
+@SuppressWarnings("serial")
+public class RuntimeCodeGenerationException extends RuntimeException {
+    private final CodeGenerationException cause;
 
-    public RuntimeSourceException(SourceException cause) {
+    public RuntimeCodeGenerationException(CodeGenerationException cause) {
         super(cause);
         this.cause = cause;
     }
     @Override
-    public SourceException getCause() {
+    public CodeGenerationException getCause() {
         return cause;
     }
 

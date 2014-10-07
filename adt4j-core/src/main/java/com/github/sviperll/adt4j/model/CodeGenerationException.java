@@ -31,6 +31,7 @@ package com.github.sviperll.adt4j.model;
 
 import com.helger.jcodemodel.JClassAlreadyExistsException;
 
+@SuppressWarnings("serial")
 public class CodeGenerationException extends Exception {
 
     public CodeGenerationException(JClassAlreadyExistsException ex) {

@@ -33,6 +33,7 @@ package com.github.sviperll.adt4j.model;
  *
  * @author Victor Nazarov <asviraspossible@gmail.com>
  */
+@SuppressWarnings("serial")
 public class ErrorTypeFound extends Exception {
     public ErrorTypeFound() {
     }

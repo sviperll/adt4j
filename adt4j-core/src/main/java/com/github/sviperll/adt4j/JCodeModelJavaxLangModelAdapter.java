@@ -29,6 +29,9 @@
  */
 package com.github.sviperll.adt4j;
 
+import com.github.sviperll.adt4j.model.RuntimeSourceException;
+import com.github.sviperll.adt4j.model.RuntimeErrorTypeFound;
+import com.github.sviperll.adt4j.model.RuntimeCodeGenerationException;
 import com.github.sviperll.adt4j.model.CodeGenerationException;
 import com.github.sviperll.adt4j.model.ErrorTypeFound;
 import com.github.sviperll.adt4j.model.SourceException;

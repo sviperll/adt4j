@@ -72,28 +72,53 @@ Use maven dependency to use ADT4J:
     <dependency>
         <groupId>com.github.sviperll</groupId>
         <artifactId>adt4j-core</artifactId>
-        <version>0.9</version>
+        <version>0.10</version>
     </dependency>
+
+Changelog
+---------
+
+Since 0.10
+
+ * Use maven as build system
+
+Since 0.9
+
+ * Predicates can be generated to test for specific case
+ * Comparable instances can be generated
 
 Build
 -----
 
     $ git clone git@github.com:sviperll/adt4j.git
     $ cd adt4j
+    $ mvn test
+
+Check for errors and warnings.
 
 ADT4J is built to be compatible with Java 6.
 Reference to JDK6 is required even if you use Java 7 or 8 compiler.
 ADT4J is built with boot class path pointing to JDK6
 to prevent usage of some standard library routines missing from Java 6.
 
-    $ JDK6_HOME=#... For example JDK6_HOME=/usr/lib/jvm/java-6-openjdk-i386
-    $ export JDK6_HOME
+To install adt4j run
 
-    $ gradle build
+    $ JDK6_HOME=<path-to-your-jdk-root> mvn clean install
 
-You can install jars into local maven repository with
+For example:
 
-    $ gradle install
+    $ JDK6_HOME=/usr/lib/jvm/java-6-openjdk-i386 mvn clean install
+
+It is recomended to compile without JDK6_HOME variable during development and
+to compile with JDK6_HOME only when all errors and warnings are cleared.
+
+When you compile without JDK6_HOME maven uses Java compiler API to compile project.
+When you compile with JDK6_HOME maven always forks javac executable.
+
+Forking javac is slow. Another drawback is error messages. When compiler API is used
+all compiler messages are passed back to maven and correctly printed.
+When javac executable is used maven has to process and parse it's output, this
+process is prone to errors and causes several warnings not to be outputed...
 
 Usage
 -----
