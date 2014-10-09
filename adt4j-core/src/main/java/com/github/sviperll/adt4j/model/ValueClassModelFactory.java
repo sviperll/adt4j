@@ -30,9 +30,11 @@
 package com.github.sviperll.adt4j.model;
 
 import com.github.sviperll.adt4j.GenerateValueClassForVisitor;
+import com.github.sviperll.adt4j.GenerateValueClassForVisitorProcessor;
 import com.helger.jcodemodel.AbstractJClass;
 import com.helger.jcodemodel.AbstractJType;
 import com.helger.jcodemodel.EClassType;
+import com.helger.jcodemodel.JAnnotationUse;
 import com.helger.jcodemodel.JClassAlreadyExistsException;
 import com.helger.jcodemodel.JDefinedClass;
 import com.helger.jcodemodel.JExpr;
@@ -47,7 +49,9 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
+import javax.annotation.Generated;
 import javax.annotation.Nullable;
+import javax.annotation.ParametersAreNonnullByDefault;
 
 public class ValueClassModelFactory {
     private static final String VISITOR_SUFFIX = "Visitor";
@@ -211,6 +215,9 @@ public class ValueClassModelFactory {
 
             int mods = annotation.valueClassIsPublic() ? JMod.PUBLIC: JMod.NONE;
             JDefinedClass valueClass = jpackage._class(mods, className, EClassType.CLASS);
+            JAnnotationUse generatedAnnotation = valueClass.annotate(Generated.class);
+            generatedAnnotation.param("value", GenerateValueClassForVisitorProcessor.class.getName());
+            valueClass.annotate(ParametersAreNonnullByDefault.class);
             for (JTypeVar visitorTypeParameter: visitorInterface.getValueTypeParameters()) {
                 Types.generifyWithBoundsFrom(valueClass, visitorTypeParameter.name(), visitorTypeParameter);
             }
