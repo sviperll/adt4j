@@ -72,11 +72,16 @@ Use maven dependency to use ADT4J:
     <dependency>
         <groupId>com.github.sviperll</groupId>
         <artifactId>adt4j-core</artifactId>
-        <version>0.10</version>
+        <version>0.11</version>
     </dependency>
 
 Changelog
 ---------
+
+Since 0.11
+
+ * Nullable and Nonnull annotations on generated methods
+ * No warnings from generated code
 
 Since 0.10
 
