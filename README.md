@@ -270,8 +270,8 @@ an example of ADT4J usage.
 
     or with anonymous classes:
 
-        lookup(key1).flatMap(new Function<String, Optional<String>>() {
-                public String apply(String key2) {
+        lookup(key1).flatMap(new Function<String, MyOptional<String>>() {
+                public MyOptional<String> apply(String key2) {
                     return lookup(key2);
                 }
             });
