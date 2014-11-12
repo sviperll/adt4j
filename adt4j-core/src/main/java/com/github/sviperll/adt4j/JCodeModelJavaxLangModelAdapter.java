@@ -178,14 +178,22 @@ class JCodeModelJavaxLangModelAdapter {
                     method._throws(throwable);
                 }
 
-                for (VariableElement variable: executable.getParameters()) {
+                List<? extends VariableElement> parameters = executable.getParameters();
+                int n = 0;
+                for (VariableElement variable: parameters) {
                     String parameterName = variable.getSimpleName().toString();
                     TypeMirror parameterTypeMirror = variable.asType();
-
                     AbstractJType parameterType = toJType(parameterTypeMirror, methodEnvironment);
-                    JVar param = method.param(toJMod(variable.getModifiers()), parameterType, parameterName);
+
+                    JVar param;
+                    if (executable.isVarArgs() && n == parameters.size() - 1) {
+                        param = method.varParam(toJMod(variable.getModifiers()), parameterType.elementType(), parameterName);
+                    } else {
+                        param = method.param(toJMod(variable.getModifiers()), parameterType, parameterName);
+                    }
                     Annotator parametorAnnotator = new Annotator(param, methodEnvironment);
                     parametorAnnotator.annotate(variable.getAnnotationMirrors());
+                    n++;
                 }
             }
         }
