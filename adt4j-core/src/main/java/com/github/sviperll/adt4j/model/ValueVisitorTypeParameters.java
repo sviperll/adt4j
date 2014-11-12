@@ -32,6 +32,8 @@ package com.github.sviperll.adt4j.model;
 import com.helger.jcodemodel.AbstractJClass;
 import com.helger.jcodemodel.AbstractJType;
 import com.helger.jcodemodel.JTypeVar;
+import com.helger.jcodemodel.JTypeWildcard;
+import java.util.ArrayList;
 import java.util.List;
 import javax.annotation.Nullable;
 
@@ -71,23 +73,47 @@ class ValueVisitorTypeParameters {
         return valueTypeParameters;
     }
 
-    boolean isSpecial(AbstractJType typeVariable) {
-        return typeVariable != null
-               && (isSelf(typeVariable)
-                   || isResult(typeVariable)
-                   || isException(typeVariable));
+    boolean isSpecial(AbstractJType type) {
+        return type != null
+               && (isSelf(type)
+                   || isResult(type)
+                   || isException(type));
     }
 
-    AbstractJType substituteSpecialType(AbstractJType typeVariable, AbstractJClass selfType, AbstractJType resultType,
-                                        AbstractJType exceptionType) {
-        if (isException(typeVariable))
+    AbstractJType substituteSpecialType(AbstractJType type,
+                                        AbstractJClass selfType,
+                                        AbstractJClass resultType,
+                                        AbstractJClass exceptionType) {
+        if (type instanceof AbstractJClass)
+            return substituteSpecialType((AbstractJClass)type, selfType, resultType, exceptionType);
+        else
+            return type;
+    }
+
+    AbstractJClass substituteSpecialType(AbstractJClass type,
+                                         AbstractJClass selfType,
+                                         AbstractJClass resultType,
+                                         AbstractJClass exceptionType) {
+        if (isException(type))
             return exceptionType;
-        else if (isResult(typeVariable))
+        else if (isResult(type))
             return resultType;
-        else if (isSelf(typeVariable))
+        else if (isSelf(type))
             return selfType;
         else {
-            return typeVariable;
+            if (type.isArray()) {
+                return substituteSpecialType(type.elementType(), selfType, resultType, exceptionType).array();
+            } else if (type instanceof JTypeWildcard) {
+                JTypeWildcard wildcard = (JTypeWildcard)type;
+                AbstractJClass bound = substituteSpecialType(wildcard.bound(), selfType, resultType, exceptionType);
+                return bound.wildcard(wildcard.boundMode());
+            } else {
+                List<AbstractJClass> typeArguments = new ArrayList<AbstractJClass>();
+                for (AbstractJClass originalArgument: type.getTypeParameters()) {
+                    typeArguments.add(substituteSpecialType(originalArgument, selfType, resultType, exceptionType));
+                }
+                return typeArguments.isEmpty() ? type : type.erasure().narrow(typeArguments);
+            }
         }
     }
 

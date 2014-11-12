@@ -223,13 +223,12 @@ class ValueClassModel {
     }
 
     private JDefinedClass buildFactoryClass(Map<String, JMethod> constructorMethods) throws JClassAlreadyExistsException {
-        AbstractJType runtimeException = types._RuntimeException();
         JDefinedClass factoryClass = valueClass._class(JMod.PRIVATE | JMod.STATIC, valueClass.name() + "Factory", EClassType.CLASS);
         for (JTypeVar visitorTypeParameter: visitorInterface.getValueTypeParameters()) {
             Types.generifyWithBoundsFrom(factoryClass, visitorTypeParameter.name(), visitorTypeParameter);
         }
         AbstractJClass usedValueClassType = valueClass.narrow(factoryClass.typeParams());
-        factoryClass._implements(visitorInterface.narrowed(usedValueClassType, usedValueClassType, runtimeException));
+        factoryClass._implements(visitorInterface.narrowed(usedValueClassType, usedValueClassType, types._RuntimeException()));
         for (JMethod interfaceMethod: visitorInterface.methods()) {
             JMethod factoryMethod = factoryClass.method(interfaceMethod.mods().getValue() & ~JMod.ABSTRACT, usedValueClassType, interfaceMethod.name());
             factoryMethod.annotate(Nonnull.class);
@@ -240,13 +239,13 @@ class ValueClassModel {
             for (JTypeVar typeArgument: factoryClass.typeParams())
                 staticInvoke.narrow(typeArgument);
             for (JVar param: interfaceMethod.params()) {
-                AbstractJType argumentType = visitorInterface.substituteSpecialType(param.type(), usedValueClassType, usedValueClassType, runtimeException);
+                AbstractJType argumentType = visitorInterface.substituteSpecialType(param.type(), usedValueClassType, usedValueClassType, types._RuntimeException());
                 JVar argument = factoryMethod.param(param.mods().getValue(), argumentType, param.name());
                 staticInvoke.arg(argument);
             }
             JVar param = interfaceMethod.listVarParam();
             if (param != null) {
-                AbstractJType argumentType = visitorInterface.substituteSpecialType(param.type().elementType(), usedValueClassType, usedValueClassType, runtimeException);
+                AbstractJType argumentType = visitorInterface.substituteSpecialType(param.type().elementType(), usedValueClassType, usedValueClassType, types._RuntimeException());
                 JVar argument = factoryMethod.varParam(param.mods().getValue(), argumentType, param.name());
                 staticInvoke.arg(argument);
             }

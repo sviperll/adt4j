@@ -68,11 +68,11 @@ class ValueVisitorInterfaceModel {
         return typeParameters.getValueTypeParameters();
     }
 
-    AbstractJClass narrowed(AbstractJClass usedDataType, AbstractJType resultType, AbstractJType exceptionType) {
+    AbstractJClass narrowed(AbstractJClass usedDataType, AbstractJClass resultType, AbstractJClass exceptionType) {
         return narrowed(usedDataType, resultType, exceptionType, usedDataType);
     }
 
-    private AbstractJClass narrowed(AbstractJClass usedDataType, AbstractJType resultType, AbstractJType exceptionType, AbstractJType selfType) {
+    private AbstractJClass narrowed(AbstractJClass usedDataType, AbstractJClass resultType, AbstractJClass exceptionType, AbstractJClass selfType) {
         Iterator<? extends AbstractJClass> dataTypeArgumentIterator = usedDataType.getTypeParameters().iterator();
         AbstractJClass result = visitorInterfaceModel;
         for (JTypeVar typeVariable: visitorInterfaceModel.typeParams()) {
@@ -88,7 +88,7 @@ class ValueVisitorInterfaceModel {
         return methods.values();
     }
 
-    AbstractJType substituteSpecialType(AbstractJType typeVariable, AbstractJClass selfType, AbstractJType resultType, AbstractJType exceptionType) {
+    AbstractJType substituteSpecialType(AbstractJType typeVariable, AbstractJClass selfType, AbstractJClass resultType, AbstractJClass exceptionType) {
         return typeParameters.substituteSpecialType(typeVariable, selfType, resultType, exceptionType);
     }
 
