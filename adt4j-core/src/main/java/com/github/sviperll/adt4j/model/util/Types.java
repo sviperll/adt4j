@@ -27,7 +27,7 @@
  *  (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
  *  EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package com.github.sviperll.adt4j.model;
+package com.github.sviperll.adt4j.model.util;
 
 import com.helger.jcodemodel.AbstractJClass;
 import com.helger.jcodemodel.AbstractJType;
@@ -38,12 +38,12 @@ import com.helger.jcodemodel.JTypeVar;
 import java.io.Serializable;
 import java.util.Iterator;
 
-class Types {
+public class Types {
     public static Types createInstance(JCodeModel codeModel) {
         return new Types(codeModel);
     }
 
-    static JTypeVar generifyWithBoundsFrom(IJGenerifiable generifiable, String typeParameterName, AbstractJClass typeParameterBounds) {
+    public static JTypeVar generifyWithBoundsFrom(IJGenerifiable generifiable, String typeParameterName, AbstractJClass typeParameterBounds) {
         JTypeVar result = generifiable.generify(typeParameterName);
         result.bound(typeParameterBounds._extends());
         Iterator<AbstractJClass> iterator = typeParameterBounds._implements();
@@ -52,26 +52,26 @@ class Types {
         return result;
     }
 
-    private final JPrimitiveType _void;
-    private final JPrimitiveType _long;
-    private final JPrimitiveType _boolean;
-    private final JPrimitiveType _int;
-    private final JPrimitiveType _float;
-    private final JPrimitiveType _double;
-    private final AbstractJClass _Object;
-    private final AbstractJClass _Boolean;
-    private final AbstractJClass _Integer;
-    private final AbstractJClass _Double;
-    private final AbstractJClass _Float;
-    private final AbstractJClass _RuntimeException;
-    private final AbstractJClass _Long;
-    private final AbstractJClass _NullPointerException;
-    private final AbstractJClass _Serializable;
-    private final AbstractJClass _Comparable;
-    private final AbstractJClass _String;
-    private final AbstractJClass _StringBuilder;
-    private final AbstractJClass _IllegalStateException;
-    private final AbstractJClass _Math;
+    public final JPrimitiveType _void;
+    public final JPrimitiveType _long;
+    public final JPrimitiveType _boolean;
+    public final JPrimitiveType _int;
+    public final JPrimitiveType _float;
+    public final JPrimitiveType _double;
+    public final AbstractJClass _Object;
+    public final AbstractJClass _Boolean;
+    public final AbstractJClass _Integer;
+    public final AbstractJClass _Double;
+    public final AbstractJClass _Float;
+    public final AbstractJClass _RuntimeException;
+    public final AbstractJClass _Long;
+    public final AbstractJClass _NullPointerException;
+    public final AbstractJClass _Serializable;
+    public final AbstractJClass _Comparable;
+    public final AbstractJClass _String;
+    public final AbstractJClass _StringBuilder;
+    public final AbstractJClass _IllegalStateException;
+    public final AbstractJClass _Math;
 
     private Types(JCodeModel codeModel) {
         _void = codeModel.VOID;
@@ -95,86 +95,6 @@ class Types {
         _StringBuilder = codeModel.ref(StringBuilder.class);
         _IllegalStateException = codeModel.ref(IllegalStateException.class);
         _Math = codeModel.ref(Math.class);
-    }
-
-    public JPrimitiveType _void() {
-        return _void;
-    }
-
-    public JPrimitiveType _int() {
-        return _int;
-    }
-
-    public JPrimitiveType _long() {
-        return _long;
-    }
-
-    public JPrimitiveType _boolean() {
-        return _boolean;
-    }
-
-    public JPrimitiveType _float() {
-        return _float;
-    }
-
-    public JPrimitiveType _double() {
-        return _double;
-    }
-
-    public AbstractJClass _Boolean() {
-        return _Boolean;
-    }
-
-    public AbstractJClass _Object() {
-        return _Object;
-    }
-
-    public AbstractJClass _RuntimeException() {
-        return _RuntimeException;
-    }
-
-    public AbstractJClass _Integer() {
-        return _Integer;
-    }
-
-    public AbstractJClass _Double() {
-        return _Double;
-    }
-
-    public AbstractJClass _Float() {
-        return _Float;
-    }
-
-    public AbstractJClass _Long() {
-        return _Long;
-    }
-
-    public AbstractJClass _NullPointerException() {
-        return _NullPointerException;
-    }
-
-    public AbstractJClass _Serializable() {
-        return _Serializable;
-    }
-
-    public AbstractJClass _Comparable() {
-        return _Comparable;
-    }
-
-    public AbstractJClass _String() {
-        return _String;
-    }
-
-    public AbstractJClass _StringBuilder() {
-        return _StringBuilder;
-    }
-
-    public AbstractJClass _IllegalStateException() {
-        return _IllegalStateException;
-    }
-
-    public AbstractJClass _Math() {
-        return _Math;
     }
 
     public boolean isSerializable(AbstractJType type) throws SourceException {

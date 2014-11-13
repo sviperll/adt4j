@@ -27,24 +27,35 @@
  *  (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
  *  EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package com.github.sviperll.adt4j.model;
-
-import com.github.sviperll.adt4j.model.ErrorTypeFound;
+package com.github.sviperll.adt4j.model.util;
 
 /**
  *
  * @author Victor Nazarov <asviraspossible@gmail.com>
  */
-@SuppressWarnings("serial")
-public class RuntimeErrorTypeFound extends RuntimeException {
-    private final ErrorTypeFound cause;
+public class Serialization {
 
-    public RuntimeErrorTypeFound(ErrorTypeFound cause) {
-        super(cause);
-        this.cause = cause;
+    public static Serialization notSerializable() {
+        return new Serialization(false, -1L);
     }
-    @Override
-    public ErrorTypeFound getCause() {
-        return cause;
+
+    public static Serialization serializable(long valueClassSerialVersionUID) {
+        return new Serialization(true, valueClassSerialVersionUID);
     }
+    private final boolean isSerializable;
+    private final long serialVersionUID;
+
+    private Serialization(boolean isSerializable, long serialVersionUID) {
+        this.isSerializable = isSerializable;
+        this.serialVersionUID = serialVersionUID;
+    }
+
+    public boolean isSerializable() {
+        return isSerializable;
+    }
+
+    public long serialVersionUID() {
+        return serialVersionUID;
+    }
+
 }

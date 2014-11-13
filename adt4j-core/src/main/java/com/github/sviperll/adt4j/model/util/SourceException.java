@@ -27,35 +27,13 @@
  *  (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
  *  EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package com.github.sviperll.adt4j.model;
+package com.github.sviperll.adt4j.model.util;
 
-/**
- *
- * @author Victor Nazarov <asviraspossible@gmail.com>
- */
-class Serialization {
+@SuppressWarnings("serial")
+public class SourceException extends Exception {
 
-    static Serialization notSerializable() {
-        return new Serialization(false, -1L);
-    }
-
-    static Serialization serializable(long valueClassSerialVersionUID) {
-        return new Serialization(true, valueClassSerialVersionUID);
-    }
-    private final boolean isSerializable;
-    private final long serialVersionUID;
-
-    private Serialization(boolean isSerializable, long serialVersionUID) {
-        this.isSerializable = isSerializable;
-        this.serialVersionUID = serialVersionUID;
-    }
-
-    boolean isSerializable() {
-        return isSerializable;
-    }
-
-    long serialVersionUID() {
-        return serialVersionUID;
+    public SourceException(String message) {
+        super(message);
     }
 
 }

@@ -29,23 +29,29 @@
  */
 package com.github.sviperll.adt4j.model;
 
-import com.github.sviperll.adt4j.model.CodeGenerationException;
-
 /**
  *
  * @author Victor Nazarov <asviraspossible@gmail.com>
  */
-@SuppressWarnings("serial")
-public class RuntimeCodeGenerationException extends RuntimeException {
-    private final CodeGenerationException cause;
+class FieldFlags {
+    static final FieldFlags DEFAULT = new FieldFlags(true, true);
+    private final boolean isNullable;
+    private final boolean isVarArg;
 
-    public RuntimeCodeGenerationException(CodeGenerationException cause) {
-        super(cause);
-        this.cause = cause;
-    }
-    @Override
-    public CodeGenerationException getCause() {
-        return cause;
+    FieldFlags(boolean isNullable, boolean isVarArg) {
+        this.isNullable = isNullable;
+        this.isVarArg = isVarArg;
     }
 
+    FieldFlags join(FieldFlags that) {
+        return new FieldFlags(this.isNullable && that.isNullable, this.isVarArg && that.isVarArg);
+    }
+
+    boolean isNullable() {
+        return isNullable;
+    }
+
+    boolean isVarArg() {
+        return isVarArg;
+    }
 }

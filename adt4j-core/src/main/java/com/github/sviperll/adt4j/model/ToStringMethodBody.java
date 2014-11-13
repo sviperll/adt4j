@@ -29,40 +29,30 @@
  */
 package com.github.sviperll.adt4j.model;
 
-import java.util.Map;
-import java.util.TreeMap;
+import com.helger.jcodemodel.AbstractJType;
+import com.helger.jcodemodel.IJExpression;
+import com.helger.jcodemodel.JBlock;
+import com.helger.jcodemodel.JInvocation;
+import com.helger.jcodemodel.JVar;
 
 /**
  *
  * @author Victor Nazarov <asviraspossible@gmail.com>
  */
-class VariableNameSource {
-    private final Map<String, Integer> nameMap = new TreeMap<String, Integer>();
-    private final VariableNameSource parent;
+class ToStringMethodBody {
+    private final JBlock body;
+    private final JVar result;
 
-    public VariableNameSource() {
-        parent = null;
+    public ToStringMethodBody(JBlock body, JVar result) {
+        this.body = body;
+        this.result = result;
     }
 
-    private VariableNameSource(VariableNameSource parent) {
-        this.parent = parent;
+    void appendParam(AbstractJType type, String name, IJExpression value) {
+        JInvocation invocation = body.invoke(result, "append");
+        invocation.arg(name + " = ");
+        invocation = body.invoke(result, "append");
+        invocation.arg(value);
     }
 
-    private Integer getWithoutUpdate(String baseName) {
-        Integer n = nameMap.get(baseName);
-        if (n != null || parent == null)
-            return n;
-        else
-            return parent.getWithoutUpdate(baseName);
-    }
-
-    public String get(String baseName) {
-        Integer n = getWithoutUpdate(baseName);
-        nameMap.put(baseName, n == null ? 1 : n + 1);
-        return n == null ? baseName : baseName + n;
-    }
-
-    public VariableNameSource forBlock() {
-        return new VariableNameSource(this);
-    }
 }

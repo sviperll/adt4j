@@ -29,6 +29,11 @@
  */
 package com.github.sviperll.adt4j.model;
 
+import com.github.sviperll.adt4j.model.util.Types;
+import com.github.sviperll.adt4j.model.util.ValueVisitorInterfaceModel;
+import com.github.sviperll.adt4j.model.util.Serialization;
+import com.github.sviperll.adt4j.model.util.VariableNameSource;
+import com.github.sviperll.adt4j.model.util.SourceException;
 import com.github.sviperll.adt4j.GeneratePredicate;
 import com.github.sviperll.adt4j.Getter;
 import com.github.sviperll.adt4j.Updater;
@@ -124,7 +129,7 @@ class ValueClassModel {
         JVar param = constructor.param(JMod.FINAL, usedValueClassType, "implementation");
         param.annotate(Nonnull.class);
         JConditional nullCheck = constructor.body()._if(JExpr.ref("implementation").eq(JExpr._null()));
-        JInvocation nullPointerExceptionConstruction = JExpr._new(types._NullPointerException());
+        JInvocation nullPointerExceptionConstruction = JExpr._new(types._NullPointerException);
         nullPointerExceptionConstruction.arg(JExpr.lit("Argument shouldn't be null: 'implementation' argument in class constructor invocation: " + valueClass.fullName()));
         nullCheck._then()._throw(nullPointerExceptionConstruction);
 
@@ -144,8 +149,8 @@ class ValueClassModel {
         proxyClass._implements(usedAcceptingInterfaceType);
 
         if (serialization.isSerializable()) {
-            proxyClass._implements(types._Serializable());
-            proxyClass.field(JMod.PRIVATE | JMod.FINAL | JMod.STATIC, types._long(), "serialVersionUID", JExpr.lit(serialization.serialVersionUID()));
+            proxyClass._implements(types._Serializable);
+            proxyClass.field(JMod.PRIVATE | JMod.FINAL | JMod.STATIC, types._long, "serialVersionUID", JExpr.lit(serialization.serialVersionUID()));
         }
 
         JMethod constructor = proxyClass.constructor(JMod.NONE);
@@ -154,7 +159,7 @@ class ValueClassModel {
         constructor.param(usedValueClassType, "implementation");
         constructor.body().assign(JExpr._this().ref("implementation"), JExpr.ref("implementation"));
 
-        JMethod acceptMethod = proxyClass.method(JMod.PUBLIC, types._void(), "accept");
+        JMethod acceptMethod = proxyClass.method(JMod.PUBLIC, types._void, "accept");
         acceptMethod.annotate(Override.class);
         JTypeVar visitorResultType = visitorInterface.getResultTypeParameter();
         JTypeVar resultType = Types.generifyWithBoundsFrom(acceptMethod, visitorResultType.name(), visitorResultType);
@@ -175,7 +180,7 @@ class ValueClassModel {
     }
 
     void buildAcceptMethod(JFieldVar acceptorField) {
-        JMethod acceptMethod = valueClass.method(JMod.PUBLIC | JMod.FINAL, types._void(), "accept");
+        JMethod acceptMethod = valueClass.method(JMod.PUBLIC | JMod.FINAL, types._void, "accept");
 
         JTypeVar visitorResultType = visitorInterface.getResultTypeParameter();
         JTypeVar resultType = Types.generifyWithBoundsFrom(acceptMethod, visitorResultType.name(), visitorResultType);
@@ -206,7 +211,7 @@ class ValueClassModel {
         paramArray.param("rawtypes");
 
         factoryField.init(JExpr._new(factory));
-        JMethod factoryMethod = valueClass.method(JMod.PUBLIC | JMod.STATIC, types._void(), "factory");
+        JMethod factoryMethod = valueClass.method(JMod.PUBLIC | JMod.STATIC, types._void, "factory");
         factoryMethod.annotate(Nonnull.class);
         JAnnotationUse methodAnnotationUse = factoryMethod.annotate(SuppressWarnings.class);
         methodAnnotationUse.param("value", "unchecked");
@@ -215,7 +220,7 @@ class ValueClassModel {
         }
         AbstractJClass usedValueClassType = valueClass.narrow(factoryMethod.typeParams());
         AbstractJClass usedFactoryType = factory.narrow(factoryMethod.typeParams());
-        factoryMethod.type(visitorInterface.narrowed(usedValueClassType, usedValueClassType, types._RuntimeException()));
+        factoryMethod.type(visitorInterface.narrowed(usedValueClassType, usedValueClassType, types._RuntimeException));
         IJExpression result = JExpr.ref("FACTORY");
         result = usedFactoryType.getTypeParameters().isEmpty() ? result : JExpr.cast(usedFactoryType, result);
         factoryMethod.body()._return(result);
@@ -228,7 +233,7 @@ class ValueClassModel {
             Types.generifyWithBoundsFrom(factoryClass, visitorTypeParameter.name(), visitorTypeParameter);
         }
         AbstractJClass usedValueClassType = valueClass.narrow(factoryClass.typeParams());
-        factoryClass._implements(visitorInterface.narrowed(usedValueClassType, usedValueClassType, types._RuntimeException()));
+        factoryClass._implements(visitorInterface.narrowed(usedValueClassType, usedValueClassType, types._RuntimeException));
         for (JMethod interfaceMethod: visitorInterface.methods()) {
             JMethod factoryMethod = factoryClass.method(interfaceMethod.mods().getValue() & ~JMod.ABSTRACT, usedValueClassType, interfaceMethod.name());
             factoryMethod.annotate(Nonnull.class);
@@ -239,13 +244,13 @@ class ValueClassModel {
             for (JTypeVar typeArgument: factoryClass.typeParams())
                 staticInvoke.narrow(typeArgument);
             for (JVar param: interfaceMethod.params()) {
-                AbstractJType argumentType = visitorInterface.substituteSpecialType(param.type(), usedValueClassType, usedValueClassType, types._RuntimeException());
+                AbstractJType argumentType = visitorInterface.substituteSpecialType(param.type(), usedValueClassType, usedValueClassType, types._RuntimeException);
                 JVar argument = factoryMethod.param(param.mods().getValue(), argumentType, param.name());
                 staticInvoke.arg(argument);
             }
             JVar param = interfaceMethod.listVarParam();
             if (param != null) {
-                AbstractJType argumentType = visitorInterface.substituteSpecialType(param.type().elementType(), usedValueClassType, usedValueClassType, types._RuntimeException());
+                AbstractJType argumentType = visitorInterface.substituteSpecialType(param.type().elementType(), usedValueClassType, usedValueClassType, types._RuntimeException);
                 JVar argument = factoryMethod.varParam(param.mods().getValue(), argumentType, param.name());
                 staticInvoke.arg(argument);
             }
@@ -259,7 +264,7 @@ class ValueClassModel {
 
         Map<String, JMethod> constructorMethods = new TreeMap<String, JMethod>();
         for (JMethod interfaceMethod: visitorInterface.methods()) {
-            JMethod constructorMethod = valueClass.method(interfaceMethod.mods().getValue() & ~JMod.ABSTRACT | JMod.STATIC, types._void(), interfaceMethod.name());
+            JMethod constructorMethod = valueClass.method(interfaceMethod.mods().getValue() & ~JMod.ABSTRACT | JMod.STATIC, types._void, interfaceMethod.name());
             constructorMethod.annotate(Nonnull.class);
             for (JTypeVar visitorTypeParameter: visitorInterface.getValueTypeParameters()) {
                 Types.generifyWithBoundsFrom(constructorMethod, visitorTypeParameter.name(), visitorTypeParameter);
@@ -267,14 +272,14 @@ class ValueClassModel {
             AbstractJClass usedValueClassType = valueClass.narrow(constructorMethod.typeParams());
             constructorMethod.type(usedValueClassType);
             for (JVar param: interfaceMethod.params()) {
-                AbstractJType paramType = visitorInterface.substituteSpecialType(param.type(), usedValueClassType, usedValueClassType, types._RuntimeException());
+                AbstractJType paramType = visitorInterface.substituteSpecialType(param.type(), usedValueClassType, usedValueClassType, types._RuntimeException);
                 JVar constructorMethodParam = constructorMethod.param(param.mods().getValue(), paramType, param.name());
                 if (param.type().isReference())
                     constructorMethodParam.annotate(isNullable(param) ? Nullable.class : Nonnull.class);
             }
             JVar param = interfaceMethod.listVarParam();
             if (param != null) {
-                AbstractJType paramType = visitorInterface.substituteSpecialType(param.type().elementType(), usedValueClassType, usedValueClassType, types._RuntimeException());
+                AbstractJType paramType = visitorInterface.substituteSpecialType(param.type().elementType(), usedValueClassType, usedValueClassType, types._RuntimeException);
                 JVar constructorMethodParam = constructorMethod.varParam(param.mods().getValue(), paramType, param.name());
                 if (param.type().isReference())
                     constructorMethodParam.annotate(isNullable(param) ? Nullable.class : Nonnull.class);
@@ -286,7 +291,7 @@ class ValueClassModel {
                 for (JVar param1: interfaceMethod.params()) {
                     if (param1.type().isReference() && !isNullable(param1)) {
                         JConditional nullCheck = constructorMethod.body()._if(JExpr.ref(param1.name()).eq(JExpr._null()));
-                        JInvocation nullPointerExceptionConstruction = JExpr._new(types._NullPointerException());
+                        JInvocation nullPointerExceptionConstruction = JExpr._new(types._NullPointerException);
                         nullPointerExceptionConstruction.arg(JExpr.lit("Argument shouldn't be null: '" + param1.name() + "' argument in static method invocation: '" + constructorMethod.name() + "' in class " + valueClass.fullName()));
                         nullCheck._then()._throw(nullPointerExceptionConstruction);
                         hasNullChecks = true;
@@ -296,7 +301,7 @@ class ValueClassModel {
                 if (param1 != null) {
                     if (param1.type().isReference() && !isNullable(param1)) {
                         JConditional nullCheck = constructorMethod.body()._if(JExpr.ref(param1.name()).eq(JExpr._null()));
-                        JInvocation nullPointerExceptionConstruction = JExpr._new(types._NullPointerException());
+                        JInvocation nullPointerExceptionConstruction = JExpr._new(types._NullPointerException);
                         nullPointerExceptionConstruction.arg(JExpr.lit("Argument shouldn't be null: '" + param1.name() + "' argument in static method invocation: '" + constructorMethod.name() + "' in class " + valueClass.fullName()));
                         nullCheck._then()._throw(nullPointerExceptionConstruction);
                         hasNullChecks = true;
@@ -361,26 +366,26 @@ class ValueClassModel {
         caseClass._implements(usedAcceptingInterfaceType);
 
         if (serialization.isSerializable()) {
-            caseClass._implements(types._Serializable());
-            caseClass.field(JMod.PRIVATE | JMod.FINAL | JMod.STATIC, types._long(), "serialVersionUID", JExpr.lit(serialization.serialVersionUID()));
+            caseClass._implements(types._Serializable);
+            caseClass.field(JMod.PRIVATE | JMod.FINAL | JMod.STATIC, types._long, "serialVersionUID", JExpr.lit(serialization.serialVersionUID()));
         }
 
         JMethod constructor = caseClass.constructor(JMod.NONE);
         for (JVar param: interfaceMethod.params()) {
-            AbstractJType paramType = visitorInterface.substituteSpecialType(param.type(), usedValueClassType, usedValueClassType, types._RuntimeException());
+            AbstractJType paramType = visitorInterface.substituteSpecialType(param.type(), usedValueClassType, usedValueClassType, types._RuntimeException);
             JFieldVar field = caseClass.field(JMod.PRIVATE | JMod.FINAL, paramType, param.name());
             JVar argument = constructor.param(paramType, param.name());
             constructor.body().assign(JExpr._this().ref(field), argument);
         }
         JVar param = interfaceMethod.listVarParam();
         if (param != null) {
-            AbstractJType paramType = visitorInterface.substituteSpecialType(param.type().elementType(), usedValueClassType, usedValueClassType, types._RuntimeException());
+            AbstractJType paramType = visitorInterface.substituteSpecialType(param.type().elementType(), usedValueClassType, usedValueClassType, types._RuntimeException);
             JFieldVar field = caseClass.field(JMod.PRIVATE | JMod.FINAL, paramType.array(), param.name());
             JVar argument = constructor.varParam(paramType, param.name());
             constructor.body().assign(JExpr._this().ref(field), argument);
         }
 
-        JMethod acceptMethod = caseClass.method(JMod.PUBLIC, types._void(), "accept");
+        JMethod acceptMethod = caseClass.method(JMod.PUBLIC, types._void, "accept");
         acceptMethod.annotate(Override.class);
 
         JTypeVar visitorResultType = visitorInterface.getResultTypeParameter();
@@ -405,16 +410,17 @@ class ValueClassModel {
             invocation.arg(JExpr._this().ref(param1.name()));
         }
         acceptMethod.body()._return(invocation);
+
         return caseClass;
     }
 
     void buildEqualsMethod() throws SourceException {
-        JMethod equalsMethod = valueClass.method(JMod.PUBLIC | JMod.FINAL, types._boolean(), "equals");
+        JMethod equalsMethod = valueClass.method(JMod.PUBLIC | JMod.FINAL, types._boolean, "equals");
         VariableNameSource nameSource = new VariableNameSource();
         equalsMethod.annotate(Override.class);
         JAnnotationUse annotationUse = equalsMethod.annotate(SuppressWarnings.class);
         annotationUse.param("value", "unchecked");
-        JVar thatObject = equalsMethod.param(types._Object(), nameSource.get("thatObject"));
+        JVar thatObject = equalsMethod.param(types._Object, nameSource.get("thatObject"));
         JConditional _if = equalsMethod.body()._if(JExpr._this().eq(thatObject));
         _if._then()._return(JExpr.TRUE);
         JConditional elseif = _if._elseif(thatObject._instanceof(valueClass).not());
@@ -422,11 +428,11 @@ class ValueClassModel {
         JBlock _else = elseif._else();
         AbstractJClass usedValueClassType = valueClass.narrow(valueClass.typeParams());
         JVar that = _else.decl(JMod.FINAL, usedValueClassType, nameSource.get("that"), JExpr.cast(usedValueClassType, thatObject));
-        AbstractJClass visitorType = visitorInterface.narrowed(usedValueClassType, types._Boolean(), types._RuntimeException());
+        AbstractJClass visitorType = visitorInterface.narrowed(usedValueClassType, types._Boolean, types._RuntimeException);
 
         JDefinedClass anonymousClass1 = valueClass.owner().anonymousClass(visitorType);
         for (JMethod interfaceMethod1: visitorInterface.methods()) {
-            JMethod visitorMethod1 = anonymousClass1.method(interfaceMethod1.mods().getValue() & ~JMod.ABSTRACT, types._Boolean(), interfaceMethod1.name());
+            JMethod visitorMethod1 = anonymousClass1.method(interfaceMethod1.mods().getValue() & ~JMod.ABSTRACT, types._Boolean, interfaceMethod1.name());
             visitorMethod1.annotate(Nonnull.class);
             visitorMethod1.annotate(Override.class);
 
@@ -434,20 +440,20 @@ class ValueClassModel {
             List<JVar> arguments1 = new ArrayList<JVar>();
             JVar varArgument1 = null;
             for (JVar param1: interfaceMethod1.params()) {
-                AbstractJType argumentType = visitorInterface.substituteSpecialType(param1.type(), usedValueClassType, types._Boolean(), types._RuntimeException());
+                AbstractJType argumentType = visitorInterface.substituteSpecialType(param1.type(), usedValueClassType, types._Boolean, types._RuntimeException);
                 JVar argument1 = visitorMethod1.param(param1.mods().getValue() | JMod.FINAL, argumentType, nameSource1.get(param1.name()));
                 arguments1.add(argument1);
             }
             JVar param1 = interfaceMethod1.listVarParam();
             if (param1 != null) {
-                AbstractJType argumentType = visitorInterface.substituteSpecialType(param1.type().elementType(), usedValueClassType, types._Boolean(), types._RuntimeException());
+                AbstractJType argumentType = visitorInterface.substituteSpecialType(param1.type().elementType(), usedValueClassType, types._Boolean, types._RuntimeException);
                 JVar argument1 = visitorMethod1.varParam(param1.mods().getValue() | JMod.FINAL, argumentType, nameSource1.get(param1.name()));
                 varArgument1 = argument1;
             }
 
             JDefinedClass anonymousClass2 = valueClass.owner().anonymousClass(visitorType);
             for (JMethod interfaceMethod2: visitorInterface.methods()) {
-                JMethod visitorMethod2 = anonymousClass2.method(interfaceMethod1.mods().getValue() & ~JMod.ABSTRACT, types._Boolean(), interfaceMethod2.name());
+                JMethod visitorMethod2 = anonymousClass2.method(interfaceMethod1.mods().getValue() & ~JMod.ABSTRACT, types._Boolean, interfaceMethod2.name());
                 visitorMethod2.annotate(Nonnull.class);
                 visitorMethod2.annotate(Override.class);
 
@@ -455,20 +461,20 @@ class ValueClassModel {
                 List<JVar> arguments2 = new ArrayList<JVar>();
                 JVar varArgument2 = null;
                 for (JVar param2: interfaceMethod2.params()) {
-                    AbstractJType argumentType = visitorInterface.substituteSpecialType(param2.type(), usedValueClassType, types._Boolean(), types._RuntimeException());
+                    AbstractJType argumentType = visitorInterface.substituteSpecialType(param2.type(), usedValueClassType, types._Boolean, types._RuntimeException);
                     JVar argument2 = visitorMethod2.param(param2.mods().getValue(), argumentType, nameSource2.get(param2.name()));
                     arguments2.add(argument2);
                 }
                 JVar param2 = interfaceMethod2.listVarParam();
                 if (param2 != null) {
-                    AbstractJType argumentType = visitorInterface.substituteSpecialType(param2.type().elementType(), usedValueClassType, types._Boolean(), types._RuntimeException());
+                    AbstractJType argumentType = visitorInterface.substituteSpecialType(param2.type().elementType(), usedValueClassType, types._Boolean, types._RuntimeException);
                     JVar argument2 = visitorMethod2.varParam(param2.mods().getValue(), argumentType, nameSource2.get(param2.name()));
                     varArgument2 = argument2;
                 }
                 if (!interfaceMethod1.name().equals(interfaceMethod2.name()))
                     visitorMethod2.body()._return(JExpr.FALSE);
                 else {
-                    EqualsBody body = new EqualsBody(visitorMethod2.body(), nameSource2);
+                    EqualsMethod body = new EqualsMethod(types, visitorMethod2.body(), nameSource2);
                     for (int i = 0; i < arguments1.size(); i++) {
                         JVar field1 = arguments1.get(i);
                         JVar field2 = arguments2.get(i);
@@ -499,34 +505,34 @@ class ValueClassModel {
     }
 
     void buildHashCodeMethod(int hashCodeBase) throws SourceException {
-        JMethod hashCodeMethod = valueClass.method(JMod.PUBLIC | JMod.FINAL, types._int(), "hashCode");
+        JMethod hashCodeMethod = valueClass.method(JMod.PUBLIC | JMod.FINAL, types._int, "hashCode");
         hashCodeMethod.annotate(Override.class);
         AbstractJClass usedValueClassType = valueClass.narrow(valueClass.typeParams());
-        AbstractJClass visitorType = visitorInterface.narrowed(usedValueClassType, types._Integer(), types._RuntimeException());
+        AbstractJClass visitorType = visitorInterface.narrowed(usedValueClassType, types._Integer, types._RuntimeException);
 
         JDefinedClass anonymousClass1 = valueClass.owner().anonymousClass(visitorType);
         int tag = 1;
         for (JMethod interfaceMethod1: visitorInterface.methods()) {
-            JMethod visitorMethod1 = anonymousClass1.method(interfaceMethod1.mods().getValue() & ~JMod.ABSTRACT, types._Integer(), interfaceMethod1.name());
+            JMethod visitorMethod1 = anonymousClass1.method(interfaceMethod1.mods().getValue() & ~JMod.ABSTRACT, types._Integer, interfaceMethod1.name());
             visitorMethod1.annotate(Nonnull.class);
             visitorMethod1.annotate(Override.class);
             VariableNameSource nameSource = new VariableNameSource();
             List<JVar> arguments = new ArrayList<JVar>();
             JVar varArgument = null;
             for (JVar param: interfaceMethod1.params()) {
-                AbstractJType argumentType = visitorInterface.substituteSpecialType(param.type(), usedValueClassType, types._Integer(), types._RuntimeException());
+                AbstractJType argumentType = visitorInterface.substituteSpecialType(param.type(), usedValueClassType, types._Integer, types._RuntimeException);
                 JVar argument = visitorMethod1.param(param.mods().getValue(), argumentType, nameSource.get(param.name()));
                 arguments.add(argument);
             }
             JVar param = interfaceMethod1.listVarParam();
             if (param != null) {
-                AbstractJType argumentType = visitorInterface.substituteSpecialType(param.type().elementType(), usedValueClassType, types._Integer(), types._RuntimeException());
+                AbstractJType argumentType = visitorInterface.substituteSpecialType(param.type().elementType(), usedValueClassType, types._Integer, types._RuntimeException);
                 JVar argument = visitorMethod1.varParam(param.mods().getValue(), argumentType, nameSource.get(param.name()));
                 varArgument = argument;
             }
 
-            JVar result = visitorMethod1.body().decl(types._int(), nameSource.get("result"), JExpr.lit(tag));
-            HashCodeBody body = new HashCodeBody(visitorMethod1.body(), result, hashCodeBase, nameSource);
+            HashCodeMethod methodModel = new HashCodeMethod(types, hashCodeBase, visitorMethod1.body(), nameSource);
+            HashCodeMethod.Body body = methodModel.createBody(tag);
             for (int i = 0; i < arguments.size(); i++) {
                 param = interfaceMethod1.params().get(i);
                 JVar argument = arguments.get(i);
@@ -541,7 +547,7 @@ class ValueClassModel {
                 else
                     body.appendNotNullValue(varArgument.type(), varArgument);
             }
-            visitorMethod1.body()._return(result);
+            visitorMethod1.body()._return(body.result());
             tag++;
         }
         JInvocation invocation1 = JExpr._this().invoke("accept");
@@ -550,35 +556,35 @@ class ValueClassModel {
     }
 
     void buildToStringMethod() throws SourceException {
-        JMethod toStringMethod = valueClass.method(JMod.PUBLIC | JMod.FINAL, types._String(), "toString");
+        JMethod toStringMethod = valueClass.method(JMod.PUBLIC | JMod.FINAL, types._String, "toString");
         toStringMethod.annotate(Override.class);
         AbstractJClass usedValueClassType = valueClass.narrow(valueClass.typeParams());
-        AbstractJClass visitorType = visitorInterface.narrowed(usedValueClassType, types._String(), types._RuntimeException());
+        AbstractJClass visitorType = visitorInterface.narrowed(usedValueClassType, types._String, types._RuntimeException);
 
         JDefinedClass anonymousClass1 = valueClass.owner().anonymousClass(visitorType);
         for (JMethod interfaceMethod1: visitorInterface.methods()) {
-            JMethod visitorMethod1 = anonymousClass1.method(interfaceMethod1.mods().getValue() & ~JMod.ABSTRACT, types._String(), interfaceMethod1.name());
+            JMethod visitorMethod1 = anonymousClass1.method(interfaceMethod1.mods().getValue() & ~JMod.ABSTRACT, types._String, interfaceMethod1.name());
             visitorMethod1.annotate(Nonnull.class);
             visitorMethod1.annotate(Override.class);
             VariableNameSource nameSource = new VariableNameSource();
             List<JVar> arguments = new ArrayList<JVar>();
             JVar varArgument = null;
             for (JVar param: interfaceMethod1.params()) {
-                AbstractJType argumentType = visitorInterface.substituteSpecialType(param.type(), usedValueClassType, types._Integer(), types._RuntimeException());
+                AbstractJType argumentType = visitorInterface.substituteSpecialType(param.type(), usedValueClassType, types._Integer, types._RuntimeException);
                 JVar argument = visitorMethod1.param(param.mods().getValue() | JMod.FINAL, argumentType, nameSource.get(param.name()));
                 arguments.add(argument);
             }
             JVar param = interfaceMethod1.listVarParam();
             if (param != null) {
-                AbstractJType argumentType = visitorInterface.substituteSpecialType(param.type().elementType(), usedValueClassType, types._Integer(), types._RuntimeException());
+                AbstractJType argumentType = visitorInterface.substituteSpecialType(param.type().elementType(), usedValueClassType, types._Integer, types._RuntimeException);
                 JVar argument = visitorMethod1.varParam(param.mods().getValue() | JMod.FINAL, argumentType, nameSource.get(param.name()));
                 varArgument = argument;
             }
 
-            JVar result = visitorMethod1.body().decl(types._StringBuilder(), nameSource.get("result"), JExpr._new(types._StringBuilder()));
+            JVar result = visitorMethod1.body().decl(types._StringBuilder, nameSource.get("result"), JExpr._new(types._StringBuilder));
             JInvocation invocation = visitorMethod1.body().invoke(result, "append");
             invocation.arg(valueClass.name() + "." + capitalize(interfaceMethod1.name()) + "{");
-            ToStringBody body = new ToStringBody(visitorMethod1.body(), result);
+            ToStringMethodBody body = new ToStringMethodBody(visitorMethod1.body(), result);
             if (!arguments.isEmpty() || varArgument != null) {
                 JVar argument = arguments.get(0);
                 body.appendParam(argument.type(), interfaceMethod1.params().get(0).name(), argument);
@@ -610,7 +616,7 @@ class ValueClassModel {
             for (JVar param: interfaceMethod.params()) {
                 for (JAnnotationUse annotationUsage: param.annotations()) {
                     if (annotationUsage.getAnnotationClass().fullName().equals(Getter.class.getName())) {
-                        AbstractJType paramType = visitorInterface.substituteSpecialType(param.type(), usedValueClassType, visitorInterface.getResultTypeParameter(), types._RuntimeException());
+                        AbstractJType paramType = visitorInterface.substituteSpecialType(param.type(), usedValueClassType, visitorInterface.getResultTypeParameter(), types._RuntimeException);
                         @SuppressWarnings("null") String getterName = (String)annotationUsage.getConstantParam("value").nativeValue();
                         boolean isNullable = isNullable(param);
                         FieldConfiguration configuration = gettersMap.get(getterName);
@@ -626,7 +632,7 @@ class ValueClassModel {
             if (param != null) {
                 for (JAnnotationUse annotationUsage: param.annotations()) {
                     if (annotationUsage.getAnnotationClass().fullName().equals(Getter.class.getName())) {
-                        AbstractJType paramType = visitorInterface.substituteSpecialType(param.type(), usedValueClassType, visitorInterface.getResultTypeParameter(), types._RuntimeException());
+                        AbstractJType paramType = visitorInterface.substituteSpecialType(param.type(), usedValueClassType, visitorInterface.getResultTypeParameter(), types._RuntimeException);
                         @SuppressWarnings("null") String getterName = (String)annotationUsage.getConstantParam("value").nativeValue();
                         boolean isNullable = isNullable(param);
                         FieldConfiguration configuration = gettersMap.get(getterName);
@@ -647,12 +653,12 @@ class ValueClassModel {
     private void generateGetter(FieldConfiguration configuration) {
         String getterName = configuration.name();
         JMethod getterMethod = valueClass.method(JMod.PUBLIC | JMod.FINAL, configuration.type(), getterName);
-        if (configuration.flags.isNullable)
+        if (configuration.flags().isNullable())
             getterMethod.annotate(Nullable.class);
         else
             getterMethod.annotate(Nonnull.class);
         AbstractJClass usedValueClassType = valueClass.narrow(valueClass.typeParams());
-        AbstractJClass visitorType = visitorInterface.narrowed(usedValueClassType, configuration.type().boxify(), types._RuntimeException());
+        AbstractJClass visitorType = visitorInterface.narrowed(usedValueClassType, configuration.type().boxify(), types._RuntimeException);
 
         JDefinedClass anonymousClass1 = valueClass.owner().anonymousClass(visitorType);
         GetterBody body = new GetterBody(configuration, anonymousClass1);
@@ -671,7 +677,7 @@ class ValueClassModel {
             for (JVar param: interfaceMethod.params()) {
                 for (JAnnotationUse annotationUsage: param.annotations()) {
                     if (annotationUsage.getAnnotationClass().fullName().equals(Updater.class.getName())) {
-                        AbstractJType paramType = visitorInterface.substituteSpecialType(param.type(), usedValueClassType, visitorInterface.getResultTypeParameter(), types._RuntimeException());
+                        AbstractJType paramType = visitorInterface.substituteSpecialType(param.type(), usedValueClassType, visitorInterface.getResultTypeParameter(), types._RuntimeException);
                         @SuppressWarnings("null") String updaterName = (String)annotationUsage.getConstantParam("value").nativeValue();
                         boolean isNullable = isNullable(param);
                         FieldConfiguration configuration = updatersMap.get(updaterName);
@@ -687,7 +693,7 @@ class ValueClassModel {
             if (param != null) {
                 for (JAnnotationUse annotationUsage: param.annotations()) {
                     if (annotationUsage.getAnnotationClass().fullName().equals(Updater.class.getName())) {
-                        AbstractJType paramType = visitorInterface.substituteSpecialType(param.type(), usedValueClassType, visitorInterface.getResultTypeParameter(), types._RuntimeException());
+                        AbstractJType paramType = visitorInterface.substituteSpecialType(param.type(), usedValueClassType, visitorInterface.getResultTypeParameter(), types._RuntimeException);
                         @SuppressWarnings("null") String updaterName = (String)annotationUsage.getConstantParam("value").nativeValue();
                         boolean isNullable = isNullable(param);
                         FieldConfiguration configuration = updatersMap.get(updaterName);
@@ -712,16 +718,16 @@ class ValueClassModel {
         JMethod updaterMethod = valueClass.method(JMod.PUBLIC | JMod.FINAL, usedValueClassType, updaterName);
         updaterMethod.annotate(Nonnull.class);
         JVar newValue;
-        if (configuration.flags.isVarArg)
+        if (configuration.flags().isVarArg())
             newValue = updaterMethod.varParam(JMod.FINAL, configuration.type().elementType(), nameSource.get("newValue"));
         else
             newValue = updaterMethod.param(JMod.FINAL, configuration.type(), nameSource.get("newValue"));
-        if (configuration.flags.isNullable) {
+        if (configuration.flags().isNullable()) {
             newValue.annotate(Nullable.class);
         } else {
             newValue.annotate(Nonnull.class);
         }
-        AbstractJClass visitorType = visitorInterface.narrowed(usedValueClassType, usedValueClassType, types._RuntimeException());
+        AbstractJClass visitorType = visitorInterface.narrowed(usedValueClassType, usedValueClassType, types._RuntimeException);
 
         JDefinedClass anonymousClass1 = valueClass.owner().anonymousClass(visitorType);
         UpdaterBody body = new UpdaterBody(configuration, anonymousClass1, newValue, nameSource);
@@ -750,21 +756,21 @@ class ValueClassModel {
 
     private void generatePredicate(String name) {
         AbstractJClass usedValueClassType = valueClass.narrow(valueClass.typeParams());
-        JMethod predicateMethod = valueClass.method(JMod.PUBLIC | JMod.FINAL, types._boolean(), name);
-        AbstractJClass visitorType = visitorInterface.narrowed(usedValueClassType, types._Boolean(), types._RuntimeException());
+        JMethod predicateMethod = valueClass.method(JMod.PUBLIC | JMod.FINAL, types._boolean, name);
+        AbstractJClass visitorType = visitorInterface.narrowed(usedValueClassType, types._Boolean, types._RuntimeException);
 
         JDefinedClass anonymousClass1 = valueClass.owner().anonymousClass(visitorType);
         for (JMethod interfaceMethod1: visitorInterface.methods()) {
-            JMethod visitorMethod1 = anonymousClass1.method(interfaceMethod1.mods().getValue() & ~JMod.ABSTRACT, types._Boolean(), interfaceMethod1.name());
+            JMethod visitorMethod1 = anonymousClass1.method(interfaceMethod1.mods().getValue() & ~JMod.ABSTRACT, types._Boolean, interfaceMethod1.name());
             visitorMethod1.annotate(Nonnull.class);
             visitorMethod1.annotate(Override.class);
             for (JVar param: interfaceMethod1.params()) {
-                AbstractJType argumentType = visitorInterface.substituteSpecialType(param.type(), usedValueClassType, types._Boolean(), types._RuntimeException());
+                AbstractJType argumentType = visitorInterface.substituteSpecialType(param.type(), usedValueClassType, types._Boolean, types._RuntimeException);
                 visitorMethod1.param(param.mods().getValue(), argumentType, param.name());
             }
             JVar param = interfaceMethod1.listVarParam();
             if (param != null) {
-                AbstractJType argumentType = visitorInterface.substituteSpecialType(param.type().elementType(), usedValueClassType, types._Boolean(), types._RuntimeException());
+                AbstractJType argumentType = visitorInterface.substituteSpecialType(param.type().elementType(), usedValueClassType, types._Boolean, types._RuntimeException);
                 visitorMethod1.varParam(param.mods().getValue(), argumentType, param.name());
             }
             boolean result = false;
@@ -786,18 +792,18 @@ class ValueClassModel {
     }
 
     void buildCompareTo() throws SourceException {
-        JMethod compareToMethod = valueClass.method(JMod.PUBLIC | JMod.FINAL, types._int(), "compareTo");
+        JMethod compareToMethod = valueClass.method(JMod.PUBLIC | JMod.FINAL, types._int, "compareTo");
         compareToMethod.annotate(Override.class);
         VariableNameSource nameSource = new VariableNameSource();
         AbstractJClass usedValueClassType = valueClass.narrow(valueClass.typeParams());
         JVar that = compareToMethod.param(JMod.FINAL, usedValueClassType, nameSource.get("that"));
-        AbstractJClass visitorType = visitorInterface.narrowed(usedValueClassType, types._Integer(), types._RuntimeException());
+        AbstractJClass visitorType = visitorInterface.narrowed(usedValueClassType, types._Integer, types._RuntimeException);
 
         JDefinedClass anonymousClass1 = valueClass.owner().anonymousClass(visitorType);
         JMethod[] methods = visitorInterface.methods().toArray(new JMethod[visitorInterface.methods().size()]);
         for (int interfaceMethodIndex1 = 0; interfaceMethodIndex1 < methods.length; interfaceMethodIndex1++) {
             JMethod interfaceMethod1 = methods[interfaceMethodIndex1];
-            JMethod visitorMethod1 = anonymousClass1.method(interfaceMethod1.mods().getValue() & ~JMod.ABSTRACT, types._Integer(), interfaceMethod1.name());
+            JMethod visitorMethod1 = anonymousClass1.method(interfaceMethod1.mods().getValue() & ~JMod.ABSTRACT, types._Integer, interfaceMethod1.name());
             visitorMethod1.annotate(Override.class);
             visitorMethod1.annotate(Nonnull.class);
 
@@ -805,13 +811,13 @@ class ValueClassModel {
             List<JVar> arguments1 = new ArrayList<JVar>();
             JVar varArgument1 = null;
             for (JVar param1: interfaceMethod1.params()) {
-                AbstractJType argumentType = visitorInterface.substituteSpecialType(param1.type(), usedValueClassType, types._Integer(), types._RuntimeException());
+                AbstractJType argumentType = visitorInterface.substituteSpecialType(param1.type(), usedValueClassType, types._Integer, types._RuntimeException);
                 JVar argument1 = visitorMethod1.param(param1.mods().getValue() | JMod.FINAL, argumentType, nameSource1.get(param1.name()));
                 arguments1.add(argument1);
             }
             JVar param1 = interfaceMethod1.listVarParam();
             if (param1 != null) {
-                AbstractJType argumentType = visitorInterface.substituteSpecialType(param1.type().elementType(), usedValueClassType, types._Integer(), types._RuntimeException());
+                AbstractJType argumentType = visitorInterface.substituteSpecialType(param1.type().elementType(), usedValueClassType, types._Integer, types._RuntimeException);
                 JVar argument1 = visitorMethod1.varParam(param1.mods().getValue() | JMod.FINAL, argumentType, nameSource1.get(param1.name()));
                 varArgument1 = argument1;
             }
@@ -819,7 +825,7 @@ class ValueClassModel {
             JDefinedClass anonymousClass2 = valueClass.owner().anonymousClass(visitorType);
             for (int interfaceMethodIndex2 = 0; interfaceMethodIndex2 < methods.length; interfaceMethodIndex2++) {
                 JMethod interfaceMethod2 = methods[interfaceMethodIndex2];
-                JMethod visitorMethod2 = anonymousClass2.method(interfaceMethod2.mods().getValue() & ~JMod.ABSTRACT, types._Integer(), interfaceMethod2.name());
+                JMethod visitorMethod2 = anonymousClass2.method(interfaceMethod2.mods().getValue() & ~JMod.ABSTRACT, types._Integer, interfaceMethod2.name());
                 visitorMethod2.annotate(Override.class);
                 visitorMethod2.annotate(Nonnull.class);
 
@@ -827,13 +833,13 @@ class ValueClassModel {
                 List<JVar> arguments2 = new ArrayList<JVar>();
                 JVar varArgument2 = null;
                 for (JVar param2: interfaceMethod2.params()) {
-                    AbstractJType argumentType = visitorInterface.substituteSpecialType(param2.type(), usedValueClassType, types._Integer(), types._RuntimeException());
+                    AbstractJType argumentType = visitorInterface.substituteSpecialType(param2.type(), usedValueClassType, types._Integer, types._RuntimeException);
                     JVar argument2 = visitorMethod2.param(param2.mods().getValue(), argumentType, nameSource2.get(param2.name()));
                     arguments2.add(argument2);
                 }
                 JVar param2 = interfaceMethod2.listVarParam();
                 if (param2 != null) {
-                    AbstractJType argumentType = visitorInterface.substituteSpecialType(param2.type().elementType(), usedValueClassType, types._Integer(), types._RuntimeException());
+                    AbstractJType argumentType = visitorInterface.substituteSpecialType(param2.type().elementType(), usedValueClassType, types._Integer, types._RuntimeException);
                     JVar argument2 = visitorMethod2.varParam(param2.mods().getValue(), argumentType, nameSource2.get(param2.name()));
                     varArgument2 = argument2;
                 }
@@ -843,8 +849,8 @@ class ValueClassModel {
                     visitorMethod2.body()._return(JExpr.lit(result));
                 } else {
                     if (!interfaceMethod1.params().isEmpty() || interfaceMethod1.hasVarArgs()) {
-                        JVar resultVariable = visitorMethod2.body().decl(types._int(), nameSource2.get("result"));
-                        CompareToBody body = new CompareToBody(visitorMethod2.body(), resultVariable, nameSource2);
+                        CompareToMethod compareToMethodModel = new CompareToMethod(types, visitorMethod2.body(), nameSource2);
+                        CompareToMethod.Body body = compareToMethodModel.createBody();
                         for (int i = 0; i < interfaceMethod1.params().size(); i++) {
                             JVar argument1 = arguments1.get(i);
                             JVar argument2 = arguments2.get(i);
@@ -887,13 +893,13 @@ class ValueClassModel {
             AbstractJClass usedValueClassType = valueClass.narrow(valueClass.typeParams());
             JMethod visitorMethod1 = visitor.method(interfaceMethod1.mods().getValue() & ~JMod.ABSTRACT, configuration.type().boxify(), interfaceMethod1.name());
             visitorMethod1.annotate(Override.class);
-            if (configuration.flags.isNullable)
+            if (configuration.flags().isNullable())
                 visitorMethod1.annotate(Nullable.class);
             else
                 visitorMethod1.annotate(Nonnull.class);
             boolean isGettable = false;
             for (JVar param: interfaceMethod1.params()) {
-                AbstractJType paramType = visitorInterface.substituteSpecialType(param.type(), usedValueClassType, configuration.type().boxify(), types._RuntimeException());
+                AbstractJType paramType = visitorInterface.substituteSpecialType(param.type(), usedValueClassType, configuration.type().boxify(), types._RuntimeException);
                 JVar argument = visitorMethod1.param(param.mods().getValue(), paramType, param.name());
                 if (configuration.isFieldValue(interfaceMethod1, param.name())) {
                     visitorMethod1.body()._return(argument);
@@ -902,7 +908,7 @@ class ValueClassModel {
             }
             JVar param = interfaceMethod1.listVarParam();
             if (param != null) {
-                AbstractJType paramType = visitorInterface.substituteSpecialType(param.type().elementType(), usedValueClassType, configuration.type().boxify(), types._RuntimeException());
+                AbstractJType paramType = visitorInterface.substituteSpecialType(param.type().elementType(), usedValueClassType, configuration.type().boxify(), types._RuntimeException);
                 JVar argument = visitorMethod1.varParam(param.mods().getValue(), paramType, param.name());
                 if (configuration.isFieldValue(interfaceMethod1, param.name())) {
                     visitorMethod1.body()._return(argument);
@@ -910,7 +916,7 @@ class ValueClassModel {
                 }
             }
             if (!isGettable) {
-                JInvocation exceptionInvocation = JExpr._new(types._IllegalStateException());
+                JInvocation exceptionInvocation = JExpr._new(types._IllegalStateException);
                 exceptionInvocation.arg(configuration.name() + " is not accessible in this case: " + interfaceMethod1.name());
                 visitorMethod1.body()._throw(exceptionInvocation);
             }
@@ -938,7 +944,7 @@ class ValueClassModel {
             for (JTypeVar typeArgument: valueClass.typeParams())
                 invocation.narrow(typeArgument);
             for (JVar param: interfaceMethod1.params()) {
-                AbstractJType argumentType = visitorInterface.substituteSpecialType(param.type(), usedValueClassType, configuration.type().boxify(), types._RuntimeException());
+                AbstractJType argumentType = visitorInterface.substituteSpecialType(param.type(), usedValueClassType, configuration.type().boxify(), types._RuntimeException);
                 JVar argument = visitorMethod1.param(param.mods().getValue(), argumentType, nameSource.get(param.name()));
                 if (configuration.isFieldValue(interfaceMethod1, param.name())) {
                     invocation.arg(newValue);
@@ -948,7 +954,7 @@ class ValueClassModel {
             }
             JVar param = interfaceMethod1.listVarParam();
             if (param != null) {
-                AbstractJType argumentType = visitorInterface.substituteSpecialType(param.type().elementType(), usedValueClassType, configuration.type().boxify(), types._RuntimeException());
+                AbstractJType argumentType = visitorInterface.substituteSpecialType(param.type().elementType(), usedValueClassType, configuration.type().boxify(), types._RuntimeException);
                 JVar argument = visitorMethod1.varParam(param.mods().getValue(), argumentType, nameSource.get(param.name()));
                 if (configuration.isFieldValue(interfaceMethod1, param.name())) {
                     invocation.arg(newValue);
@@ -960,228 +966,8 @@ class ValueClassModel {
         }
     }
 
-    private class EqualsBody {
-        private final JBlock body;
-        private final VariableNameSource nameSource;
 
-        private EqualsBody(JBlock body, VariableNameSource nameSource) {
-            this.body = body;
-            this.nameSource = nameSource;
-        }
 
-        private void appendNullableValue(AbstractJType type, IJExpression value1, IJExpression value2) {
-            if (!type.isReference()) {
-                throw new AssertionError("appendNullableValue called for non-reference type");
-            } else {
-                JConditional _if = body._if(value1.ne(value2));
-                IJExpression isNull = value1.eq(JExpr._null()).cor(value2.eq(JExpr._null()));
-                JConditional _if1 = _if._then()._if(isNull);
-                _if1._then()._return(JExpr.FALSE);
-                EqualsBody innerBody = new EqualsBody(_if._then(), nameSource);
-                innerBody.appendNotNullValue(type, value1, value2);
-            }
-        }
 
-        private void appendNotNullValue(AbstractJType type, IJExpression value1, IJExpression value2) {
-            if (type.isArray()) {
-                appendNotNullValue(types._int(), value1.ref("length"), value2.ref("length"));
 
-                VariableNameSource localNames = nameSource.forBlock();
-                JForLoop _for = body._for();
-                JVar i = _for.init(types._int(), localNames.get("i"), JExpr.lit(0));
-                _for.test(i.lt(value1.ref("length")));
-                _for.update(i.incr());
-                EqualsBody forBody = new EqualsBody(_for.body(), localNames);
-                if (type.elementType().isReference())
-                    forBody.appendNullableValue(type.elementType(), value1.component(i), value2.component(i));
-                else
-                    forBody.appendNotNullValue(type.elementType(), value1.component(i), value2.component(i));
-            } else if (type.isPrimitive()) {
-                JConditional _if = body._if(value1.ne(value2));
-                _if._then()._return(JExpr.FALSE);
-            } else {
-                JInvocation invocation = value1.invoke("equals");
-                invocation.arg(value2);
-                JConditional _if = body._if(invocation.not());
-                _if._then()._return(JExpr.FALSE);
-            }
-        }
-    }
-
-    private class HashCodeBody {
-        private final JBlock body;
-        private final JVar result;
-        private final int hashCodeBase;
-        private final VariableNameSource nameSource;
-
-        private HashCodeBody(JBlock body, JVar result, int hashCodeBase, VariableNameSource nameSource) {
-            this.body = body;
-            this.result = result;
-            this.hashCodeBase = hashCodeBase;
-            this.nameSource = nameSource;
-        }
-
-        private void appendNullableValue(AbstractJType type, IJExpression value) {
-            if (!type.isReference())
-                throw new AssertionError("appendNullableValue called for non-reference type");
-            else {
-                JConditional _if = body._if(value.eq(JExpr._null()));
-                HashCodeBody thenBody = new HashCodeBody(_if._then(), result, hashCodeBase, nameSource);
-                thenBody.appendNotNullValue(types._int(), JExpr.lit(0));
-                HashCodeBody elseBody = new HashCodeBody(_if._else(), result, hashCodeBase, nameSource);
-                elseBody.appendNotNullValue(type, value);
-            }
-        }
-
-        private void appendNotNullValue(AbstractJType type, IJExpression value) {
-            if (type.isArray()) {
-
-                VariableNameSource localNames = nameSource.forBlock();
-                JForLoop _for = body._for();
-                JVar i = _for.init(types._int(), localNames.get("i"), JExpr.lit(0));
-                _for.test(i.lt(value.ref("length")));
-                _for.update(i.incr());
-                HashCodeBody forBody = new HashCodeBody(_for.body(), result, hashCodeBase, localNames);
-                if (type.elementType().isReference())
-                    forBody.appendNullableValue(type.elementType(), value.component(i));
-                else
-                    forBody.appendNotNullValue(type.elementType(), value.component(i));
-            } else if (!type.isPrimitive()) {
-                appendNotNullValue(types._int(), value.invoke("hashCode"));
-            } else if (type.name().equals("double")) {
-                JInvocation invocation = types._Double().staticInvoke("doubleToLongBits");
-                invocation.arg(value);
-                appendNotNullValue(types._long(), invocation);
-            } else if (type.name().equals("float")) {
-                JInvocation invocation = types._Float().staticInvoke("floatToIntBits");
-                invocation.arg(value);
-                appendNotNullValue(types._int(), invocation);
-            } else if (type.name().equals("boolean")) {
-                appendNotNullValue(types._int(), JOp.cond(value, JExpr.lit(0), JExpr.lit(1)));
-            } else if (type.name().equals("long")) {
-                appendNotNullValue(types._int(), JExpr.cast(types._int(), value.xor(value.shrz(JExpr.lit(32)))));
-            } else {
-                body.assign(result, result.mul(JExpr.lit(hashCodeBase)).plus(value));
-            }
-        }
-    }
-
-    private class ToStringBody {
-        private final JBlock body;
-        private final JVar result;
-
-        public ToStringBody(JBlock body, JVar result) {
-            this.body = body;
-            this.result = result;
-        }
-
-        private void appendParam(AbstractJType type, String name, IJExpression value) {
-            JInvocation invocation = body.invoke(result, "append");
-            invocation.arg(name + " = ");
-            invocation = body.invoke(result, "append");
-            invocation.arg(value);
-        }
-    }
-
-    private static class FieldConfiguration {
-        private final Map<String, String> map = new TreeMap<String, String>();
-        private final AbstractJType type;
-        private final String name;
-        private FieldFlags flags = FieldFlags.DEFAULT;
-
-        FieldConfiguration(String name, AbstractJType paramType) {
-            this.type = paramType;
-            this.name = name;
-        }
-
-        void put(AbstractJType paramType, JMethod method, String paramName, FieldFlags flags) throws SourceException {
-            if (!type.equals(paramType))
-                throw new SourceException("Unable to generate " + name + " getter: inconsitent field types");
-            String oldField = map.put(method.name(), paramName);
-            if (oldField != null)
-                throw new SourceException(oldField + " and " + paramName + " parameters of " + method.name() + " method are accessable with the same " + name + " getter");
-            this.flags = this.flags.join(flags);
-        }
-
-        AbstractJType type() {
-            return type;
-        }
-
-        String name() {
-            return name;
-        }
-
-        boolean isFieldValue(JMethod method, String paramName) {
-            String getterParamName = map.get(method.name());
-            return getterParamName != null && getterParamName.equals(paramName);
-        }
-    }
-
-    private static class FieldFlags {
-        private static final FieldFlags DEFAULT = new FieldFlags(true, true);
-
-        final boolean isNullable;
-        final boolean isVarArg;
-        FieldFlags(boolean isNullable, boolean isVarArg) {
-            this.isNullable = isNullable;
-            this.isVarArg = isVarArg;
-        }
-        FieldFlags join(FieldFlags that) {
-            return new FieldFlags(this.isNullable && that.isNullable, this.isVarArg && that.isVarArg);
-        }
-    }
-
-    private class CompareToBody {
-        private final JBlock body;
-        private final JVar resultVariable;
-        private final VariableNameSource nameSource;
-
-        public CompareToBody(JBlock body, JVar resultVariable, VariableNameSource nameSource) {
-            this.body = body;
-            this.resultVariable = resultVariable;
-            this.nameSource = nameSource;
-        }
-
-        private void appendNullableValue(AbstractJType paramType, IJExpression field1, IJExpression field2) {
-            JBlock _then = body._if(field1.ne(JExpr._null()).cor(field2.ne(JExpr._null())))._then();
-            JConditional _if = _then._if(field1.eq(JExpr._null()));
-            _if._then()._return(JExpr.lit(-1));
-            JConditional _elseif = _if._elseif(field2.eq(JExpr._null()));
-            _elseif._then()._return(JExpr.lit(1));
-            CompareToBody ifbody = new CompareToBody(_elseif._else(), resultVariable, nameSource);
-            ifbody.appendNotNullValue(paramType, field1, field2);
-        }
-
-        private void appendNotNullValue(AbstractJType type, IJExpression value1, IJExpression value2) {
-            if (type.isArray()) {
-                JInvocation invocation = types._Math().staticInvoke("min");
-                invocation.arg(value1.ref("length"));
-                invocation.arg(value2.ref("length"));
-                JVar length = body.decl(types._int(), nameSource.get("length"), invocation);
-                VariableNameSource localNames = nameSource.forBlock();
-                JForLoop _for = body._for();
-                JVar i = _for.init(types._int(), localNames.get("i"), JExpr.lit(0));
-                _for.test(i.lt(length));
-                _for.update(i.incr());
-                CompareToBody forBody = new CompareToBody(_for.body(), resultVariable, localNames);
-                if (type.elementType().isReference())
-                    forBody.appendNullableValue(type.elementType(), value1.component(i), value2.component(i));
-                else
-                    forBody.appendNotNullValue(type.elementType(), value1.component(i), value2.component(i));
-
-                appendNotNullValue(types._int(), value1.ref("length"), value2.ref("length"));
-            } else if (type.isPrimitive()) {
-                IJExpression condition = JOp.cond(value1.lt(value2), JExpr.lit(-1), JOp.cond(value1.eq(value2), JExpr.lit(0), JExpr.lit(1)));
-                body.assign(resultVariable, condition);
-                JConditional _if = body._if(resultVariable.ne(JExpr.lit(0)));
-                _if._then()._return(resultVariable);
-            } else {
-                JInvocation invocation = value1.invoke("compareTo");
-                invocation.arg(value2);
-                body.assign(resultVariable, invocation);
-                JConditional _if = body._if(resultVariable.ne(JExpr.lit(0)));
-                _if._then()._return(resultVariable);
-            }
-        }
-    }
 }

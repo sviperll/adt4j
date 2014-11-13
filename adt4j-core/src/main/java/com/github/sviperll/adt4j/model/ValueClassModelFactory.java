@@ -29,6 +29,12 @@
  */
 package com.github.sviperll.adt4j.model;
 
+import com.github.sviperll.adt4j.model.util.Types;
+import com.github.sviperll.adt4j.model.util.ErrorTypeFound;
+import com.github.sviperll.adt4j.model.util.CodeGenerationException;
+import com.github.sviperll.adt4j.model.util.ValueVisitorInterfaceModel;
+import com.github.sviperll.adt4j.model.util.Serialization;
+import com.github.sviperll.adt4j.model.util.SourceException;
 import com.github.sviperll.adt4j.GenerateValueClassForVisitor;
 import com.github.sviperll.adt4j.GenerateValueClassForVisitorProcessor;
 import com.helger.jcodemodel.AbstractJClass;
@@ -44,13 +50,8 @@ import com.helger.jcodemodel.JMod;
 import com.helger.jcodemodel.JPackage;
 import com.helger.jcodemodel.JTypeVar;
 import com.helger.jcodemodel.JVar;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
 import java.util.Map;
-import java.util.TreeMap;
 import javax.annotation.Generated;
-import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;
 
 public class ValueClassModelFactory {
@@ -58,43 +59,12 @@ public class ValueClassModelFactory {
     private static final String VALUE_SUFFIX = "Value";
 
     public static JDefinedClass createValueClass(JDefinedClass jVisitorModel, GenerateValueClassForVisitor annotation) throws SourceException, CodeGenerationException, ErrorTypeFound {
-        ValueVisitorTypeParameters typeParameters = createValueVisitorTypeParameters(jVisitorModel, annotation);
-        String valueClassName = valueClassName(jVisitorModel, annotation);
-        Map<String, JMethod> methods = createMethodMap(jVisitorModel, typeParameters);
-        ValueVisitorInterfaceModel visitorModel = new ValueVisitorInterfaceModel(jVisitorModel, typeParameters, methods);
+        ValueVisitorInterfaceModel visitorModel = ValueVisitorInterfaceModel.createInstance(jVisitorModel, annotation);
         Serialization serialization = serialization(annotation);
+        String valueClassName = valueClassName(jVisitorModel, annotation);
         ValueClassModelFactory factory = new ValueClassModelFactory(jVisitorModel._package(), valueClassName, serialization, annotation);
         ValueClassModel valueClassModel = factory.createValueClass(visitorModel);
         return valueClassModel.getJDefinedClass();
-    }
-
-    private static ValueVisitorTypeParameters createValueVisitorTypeParameters(JDefinedClass jVisitorModel,
-                                                                               GenerateValueClassForVisitor annotation)
-            throws SourceException {
-        JTypeVar resultType = null;
-        @Nullable JTypeVar exceptionType = null;
-        @Nullable JTypeVar selfType = null;
-        List<JTypeVar> valueClassTypeParameters = new ArrayList<JTypeVar>();
-        for (JTypeVar typeVariable: jVisitorModel.typeParams()) {
-            if (typeVariable.name().equals(annotation.resultVariableName()))
-                resultType = typeVariable;
-            else if (typeVariable.name().equals(annotation.selfReferenceVariableName()))
-                selfType = typeVariable;
-            else if (typeVariable.name().equals(annotation.exceptionVariableName()))
-                exceptionType = typeVariable;
-            else
-                valueClassTypeParameters.add(typeVariable);
-        }
-        if (resultType == null) {
-            throw new SourceException("Result type-variable is not found for " + jVisitorModel + " visitor, expecting: " + annotation.resultVariableName());
-        }
-        if (exceptionType == null && !annotation.exceptionVariableName().equals(":none")) {
-            throw new SourceException("Exception type-variable is not found for " + jVisitorModel + " visitor, expecting: " + annotation.exceptionVariableName());
-        }
-        if (selfType == null && !annotation.selfReferenceVariableName().equals(":none")) {
-            throw new SourceException("Self reference type-variable is not found for " + jVisitorModel + " visitor, expecting: " + annotation.selfReferenceVariableName());
-        }
-        return new ValueVisitorTypeParameters(resultType, exceptionType, selfType, valueClassTypeParameters);
     }
 
     private static String valueClassName(JDefinedClass jVisitorModel, GenerateValueClassForVisitor annotation) {
@@ -114,35 +84,6 @@ public class ValueClassModelFactory {
             return Serialization.notSerializable();
         else
             return Serialization.serializable(annotation.valueClassSerialVersionUID());
-    }
-
-    private static Map<String, JMethod> createMethodMap(JDefinedClass jVisitorModel,
-                                                        ValueVisitorTypeParameters typeParameters) throws
-                                                                                                          SourceException {
-        Map<String, JMethod> methods = new TreeMap<String, JMethod>();
-        for (JMethod method: jVisitorModel.methods()) {
-            if (!typeParameters.isResult(method.type())) {
-                throw new SourceException("Visitor methods are only allowed to return type"
-                                          + " declared as a result type of visitor: " + method.name()
-                                          + ": expecting " + typeParameters.getResultTypeParameter()
-                                          + ", found: " + method.type());
-            }
-
-            Collection<AbstractJClass> exceptions = method.getThrows();
-            if (exceptions.size() > 1)
-                throw new SourceException("Visitor methods are allowed to throw no exceptions or throw single exception, declared as type-variable: " + method.name());
-            else if (exceptions.size() == 1) {
-                AbstractJClass exception = exceptions.iterator().next();
-                if (!typeParameters.isException(exception))
-                    throw new SourceException("Visitor methods throws exception, not declared as type-variable: " + method.name() + ": " + exception);
-            }
-
-            JMethod exitingValue = methods.put(method.name(), method);
-            if (exitingValue != null) {
-                throw new SourceException("Method overloading is not supported for visitor interfaces: two methods with the same name: " + method.name());
-            }
-        }
-        return methods;
     }
 
     private final Serialization serialization;
@@ -170,7 +111,7 @@ public class ValueClassModelFactory {
             Types.generifyWithBoundsFrom(acceptingInterface, visitorTypeParameter.name(), visitorTypeParameter);
         }
 
-        JMethod acceptMethod = acceptingInterface.method(JMod.PUBLIC, types._void(), "accept");
+        JMethod acceptMethod = acceptingInterface.method(JMod.PUBLIC, types._void, "accept");
 
         JTypeVar visitorResultType = visitorInterface.getResultTypeParameter();
         JTypeVar resultType = Types.generifyWithBoundsFrom(acceptMethod, visitorResultType.name(), visitorResultType);
@@ -234,17 +175,17 @@ public class ValueClassModelFactory {
                 Types.generifyWithBoundsFrom(valueClass, visitorTypeParameter.name(), visitorTypeParameter);
             }
             if (annotation.valueClassIsSerializable()) {
-                valueClass._implements(types._Serializable());
-                valueClass.field(JMod.PRIVATE | JMod.FINAL | JMod.STATIC, types._long(), "serialVersionUID", JExpr.lit(annotation.valueClassSerialVersionUID()));
+                valueClass._implements(types._Serializable);
+                valueClass.field(JMod.PRIVATE | JMod.FINAL | JMod.STATIC, types._long, "serialVersionUID", JExpr.lit(annotation.valueClassSerialVersionUID()));
             }
 
             if (annotation.valueClassIsComparable()) {
-                valueClass._implements(types._Comparable().narrow(valueClass.narrow(valueClass.typeParams())));
+                valueClass._implements(types._Comparable.narrow(valueClass.narrow(valueClass.typeParams())));
             }
 
             JDefinedClass acceptingInterface = createAcceptingInterface(valueClass, visitorInterface, types);
             if (annotation.valueClassIsSerializable()) {
-                acceptingInterface._extends(types._Serializable());
+                acceptingInterface._extends(types._Serializable);
             }
 
             ValueClassModel result = new ValueClassModel(valueClass, acceptingInterface, visitorInterface, types);

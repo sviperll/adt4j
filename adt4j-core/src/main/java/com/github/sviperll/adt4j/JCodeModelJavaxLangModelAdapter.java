@@ -29,12 +29,12 @@
  */
 package com.github.sviperll.adt4j;
 
-import com.github.sviperll.adt4j.model.RuntimeSourceException;
-import com.github.sviperll.adt4j.model.RuntimeErrorTypeFound;
-import com.github.sviperll.adt4j.model.RuntimeCodeGenerationException;
-import com.github.sviperll.adt4j.model.CodeGenerationException;
-import com.github.sviperll.adt4j.model.ErrorTypeFound;
-import com.github.sviperll.adt4j.model.SourceException;
+import com.github.sviperll.adt4j.model.util.RuntimeSourceException;
+import com.github.sviperll.adt4j.model.util.RuntimeErrorTypeFound;
+import com.github.sviperll.adt4j.model.util.RuntimeCodeGenerationException;
+import com.github.sviperll.adt4j.model.util.CodeGenerationException;
+import com.github.sviperll.adt4j.model.util.ErrorTypeFound;
+import com.github.sviperll.adt4j.model.util.SourceException;
 import com.helger.jcodemodel.AbstractJClass;
 import com.helger.jcodemodel.AbstractJType;
 import com.helger.jcodemodel.EClassType;

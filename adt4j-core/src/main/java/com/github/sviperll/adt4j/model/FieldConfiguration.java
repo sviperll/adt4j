@@ -29,12 +29,51 @@
  */
 package com.github.sviperll.adt4j.model;
 
+import com.github.sviperll.adt4j.model.util.SourceException;
+import com.helger.jcodemodel.AbstractJType;
+import com.helger.jcodemodel.JMethod;
+import java.util.Map;
+import java.util.TreeMap;
+
 /**
  *
  * @author Victor Nazarov <asviraspossible@gmail.com>
  */
-@SuppressWarnings("serial")
-public class ErrorTypeFound extends Exception {
-    public ErrorTypeFound() {
+class FieldConfiguration {
+    private final Map<String, String> map = new TreeMap<String, String>();
+    private final AbstractJType type;
+    private final String name;
+    private FieldFlags flags = FieldFlags.DEFAULT;
+
+    FieldConfiguration(String name, AbstractJType paramType) {
+        this.type = paramType;
+        this.name = name;
     }
+
+    void put(AbstractJType paramType, JMethod method, String paramName, FieldFlags flags) throws SourceException {
+        if (!type.equals(paramType))
+            throw new SourceException("Unable to generate " + name + " getter: inconsitent field types");
+        String oldField = map.put(method.name(), paramName);
+        if (oldField != null)
+            throw new SourceException(oldField + " and " + paramName + " parameters of " + method.name() + " method are accessable with the same " + name + " getter");
+        this.flags = this.flags.join(flags);
+    }
+
+    AbstractJType type() {
+        return type;
+    }
+
+    String name() {
+        return name;
+    }
+
+    FieldFlags flags() {
+        return flags;
+    }
+
+    boolean isFieldValue(JMethod method, String paramName) {
+        String getterParamName = map.get(method.name());
+        return getterParamName != null && getterParamName.equals(paramName);
+    }
+
 }

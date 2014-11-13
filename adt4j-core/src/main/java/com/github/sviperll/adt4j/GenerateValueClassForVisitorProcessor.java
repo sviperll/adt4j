@@ -29,9 +29,9 @@
  */
 package com.github.sviperll.adt4j;
 
-import com.github.sviperll.adt4j.model.CodeGenerationException;
-import com.github.sviperll.adt4j.model.ErrorTypeFound;
-import com.github.sviperll.adt4j.model.SourceException;
+import com.github.sviperll.adt4j.model.util.CodeGenerationException;
+import com.github.sviperll.adt4j.model.util.ErrorTypeFound;
+import com.github.sviperll.adt4j.model.util.SourceException;
 import com.github.sviperll.adt4j.model.ValueClassModelFactory;
 import com.helger.jcodemodel.JClassAlreadyExistsException;
 import com.helger.jcodemodel.JCodeModel;
