@@ -29,12 +29,10 @@
  */
 package com.github.sviperll.adt4j;
 
-import com.github.sviperll.adt4j.model.util.RuntimeSourceException;
-import com.github.sviperll.adt4j.model.util.RuntimeErrorTypeFound;
-import com.github.sviperll.adt4j.model.util.RuntimeCodeGenerationException;
 import com.github.sviperll.adt4j.model.util.CodeGenerationException;
 import com.github.sviperll.adt4j.model.util.ErrorTypeFound;
-import com.github.sviperll.adt4j.model.util.SourceException;
+import com.github.sviperll.adt4j.model.util.ProcessingException;
+import com.github.sviperll.adt4j.model.util.RuntimeProcessingException;
 import com.helger.jcodemodel.AbstractJClass;
 import com.helger.jcodemodel.AbstractJType;
 import com.helger.jcodemodel.EClassType;
@@ -130,17 +128,22 @@ class JCodeModelJavaxLangModelAdapter {
         this.codeModel = codeModel;
     }
 
-    JDefinedClass _class(TypeElement element) throws JClassAlreadyExistsException, SourceException, ErrorTypeFound, CodeGenerationException {
+    JDefinedClass _class(TypeElement element) throws ProcessingException {
         return _class(element, new TypeEnvironment());
     }
 
-    private JDefinedClass _class(TypeElement element, TypeEnvironment environment) throws JClassAlreadyExistsException, SourceException, ErrorTypeFound, CodeGenerationException {
+    private JDefinedClass _class(TypeElement element, TypeEnvironment environment) throws ProcessingException {
         EClassType classType = toClassType(element.getKind());
         int modifiers = toJMod(element.getModifiers());
         if (classType.equals(EClassType.INTERFACE))
             modifiers = modifiers & ~JMod.ABSTRACT;
 
-        JDefinedClass newClass = codeModel._class(modifiers, element.getQualifiedName().toString(), classType);
+        JDefinedClass newClass;
+        try {
+            newClass = codeModel._class(modifiers, element.getQualifiedName().toString(), classType);
+        } catch (JClassAlreadyExistsException ex) {
+            throw new CodeGenerationException(ex);
+        }
         newClass.hide();
         Annotator classAnnotator = new Annotator(newClass, environment);
         classAnnotator.annotate(element.getAnnotationMirrors());
@@ -200,28 +203,24 @@ class JCodeModelJavaxLangModelAdapter {
         return newClass;
     }
 
-    AbstractJClass ref(TypeElement element) throws CodeGenerationException, SourceException, ErrorTypeFound {
+    AbstractJClass ref(TypeElement element) throws ProcessingException {
         try {
             Class<?> klass = Class.forName(element.getQualifiedName().toString());
             AbstractJType declaredClass = codeModel.ref(klass);
             return (AbstractJClass)declaredClass;
         } catch (ClassNotFoundException ex) {
-            try {
-                AbstractJClass result = codeModel._getClass(element.getQualifiedName().toString());
-                if (result != null)
-                    return result;
-                else {
-                    JDefinedClass jclass = _class(element, new TypeEnvironment());
-                    jclass.hide();
-                    return jclass;
-                }
-            } catch (JClassAlreadyExistsException ex1) {
-                throw new RuntimeException(ex1);
+            AbstractJClass result = codeModel._getClass(element.getQualifiedName().toString());
+            if (result != null)
+                return result;
+            else {
+                JDefinedClass jclass = _class(element, new TypeEnvironment());
+                jclass.hide();
+                return jclass;
             }
         }
     }
 
-    private AbstractJType toJType(TypeMirror type, final TypeEnvironment environment) throws ErrorTypeFound, SourceException, CodeGenerationException {
+    private AbstractJType toJType(TypeMirror type, final TypeEnvironment environment) throws ProcessingException {
         try {
             return type.accept(new AbstractTypeVisitor6<AbstractJType, Void>() {
 
@@ -259,12 +258,8 @@ class JCodeModelJavaxLangModelAdapter {
                     try {
                         AbstractJType componentType = toJType(t.getComponentType(), environment);
                         return componentType.array();
-                    } catch (ErrorTypeFound ex) {
-                        throw new RuntimeErrorTypeFound(ex);
-                    } catch (CodeGenerationException ex) {
-                        throw new RuntimeCodeGenerationException(ex);
-                    } catch (SourceException ex) {
-                        throw new RuntimeSourceException(ex);
+                    } catch (ProcessingException ex) {
+                        throw new RuntimeProcessingException(ex);
                     }
                 }
 
@@ -277,12 +272,8 @@ class JCodeModelJavaxLangModelAdapter {
                             _class = _class.narrow(toJType(typeArgument, environment));
                         }
                         return _class;
-                    } catch (CodeGenerationException ex) {
-                        throw new RuntimeCodeGenerationException(ex);
-                    } catch (SourceException ex) {
-                        throw new RuntimeSourceException(ex);
-                    } catch (ErrorTypeFound ex) {
-                        throw new RuntimeErrorTypeFound(ex);
+                    } catch (ProcessingException ex) {
+                        throw new RuntimeProcessingException(ex);
                     }
                 }
 
@@ -290,8 +281,8 @@ class JCodeModelJavaxLangModelAdapter {
                 public AbstractJType visitError(ErrorType t, Void p) {
                     try {
                         throw new ErrorTypeFound();
-                    } catch (ErrorTypeFound ex) {
-                        throw new RuntimeErrorTypeFound(ex);
+                    } catch (ProcessingException ex) {
+                        throw new RuntimeProcessingException(ex);
                     }
                 }
 
@@ -314,12 +305,8 @@ class JCodeModelJavaxLangModelAdapter {
                             return superBound.wildcard(JTypeWildcard.EBoundMode.SUPER);
                         }
                         return codeModel.wildcard();
-                    } catch (CodeGenerationException ex) {
-                        throw new RuntimeCodeGenerationException(ex);
-                    } catch (SourceException ex) {
-                        throw new RuntimeSourceException(ex);
-                    } catch (ErrorTypeFound ex) {
-                        throw new RuntimeErrorTypeFound(ex);
+                    } catch (ProcessingException ex) {
+                        throw new RuntimeProcessingException(ex);
                     }
                 }
 
@@ -338,11 +325,7 @@ class JCodeModelJavaxLangModelAdapter {
                     throw new IllegalArgumentException("unknown can't be JClass."); //To change body of generated methods, choose Tools | Templates.
                 }
             }, null);
-        } catch (RuntimeErrorTypeFound ex) {
-            throw ex.getCause();
-        } catch (RuntimeSourceException ex) {
-            throw ex.getCause();
-        } catch (RuntimeCodeGenerationException ex) {
+        } catch (RuntimeProcessingException ex) {
             throw ex.getCause();
         }
     }
@@ -355,7 +338,7 @@ class JCodeModelJavaxLangModelAdapter {
             this.typeEnvironment = typeEnvironment;
         }
 
-        private void annotate(List<? extends AnnotationMirror> annotationMirrors) throws ErrorTypeFound, SourceException, CodeGenerationException {
+        private void annotate(List<? extends AnnotationMirror> annotationMirrors) throws ProcessingException {
             for (AnnotationMirror annotation: annotationMirrors) {
                 JAnnotationUse annotationUse = annotatable.annotate((AbstractJClass)toJType(annotation.getAnnotationType(), typeEnvironment));
                 for (Map.Entry<? extends ExecutableElement, ? extends AnnotationValue> annotationValueAssignment: annotation.getElementValues().entrySet()) {

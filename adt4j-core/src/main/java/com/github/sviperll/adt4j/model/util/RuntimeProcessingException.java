@@ -29,23 +29,19 @@
  */
 package com.github.sviperll.adt4j.model.util;
 
-import com.github.sviperll.adt4j.model.util.SourceException;
-
 /**
  *
  * @author Victor Nazarov <asviraspossible@gmail.com>
  */
-@SuppressWarnings("serial")
-public class RuntimeSourceException extends RuntimeException {
-    private final SourceException cause;
+public class RuntimeProcessingException extends RuntimeException {
+    private final ProcessingException cause;
 
-    public RuntimeSourceException(SourceException cause) {
+    public RuntimeProcessingException(ProcessingException cause) {
         super(cause);
         this.cause = cause;
     }
     @Override
-    public SourceException getCause() {
+    public ProcessingException getCause() {
         return cause;
     }
-
 }

@@ -29,11 +29,9 @@
  */
 package com.github.sviperll.adt4j;
 
-import com.github.sviperll.adt4j.model.util.CodeGenerationException;
-import com.github.sviperll.adt4j.model.util.ErrorTypeFound;
-import com.github.sviperll.adt4j.model.util.SourceException;
 import com.github.sviperll.adt4j.model.ValueClassModelFactory;
-import com.helger.jcodemodel.JClassAlreadyExistsException;
+import com.github.sviperll.adt4j.model.util.ErrorTypeFound;
+import com.github.sviperll.adt4j.model.util.ProcessingException;
 import com.helger.jcodemodel.JCodeModel;
 import com.helger.jcodemodel.JDefinedClass;
 import java.io.IOException;
@@ -53,8 +51,8 @@ import javax.tools.Diagnostic;
 @SupportedAnnotationTypes("com.github.sviperll.adt4j.GenerateValueClassForVisitor")
 @SupportedSourceVersion(SourceVersion.RELEASE_6)
 public class GenerateValueClassForVisitorProcessor extends AbstractProcessor {
-    private Set<String> remainingElements = new HashSet<String>();
-    private List<String> errors = new ArrayList<String>();
+    private final Set<String> remainingElements = new HashSet<String>();
+    private final List<String> errors = new ArrayList<String>();
 
     @Override
     public boolean process(Set<? extends TypeElement> annotations,
@@ -102,13 +100,8 @@ public class GenerateValueClassForVisitorProcessor extends AbstractProcessor {
                 }
             } catch (ErrorTypeFound ex) {
                 remainingElements.add(element.getQualifiedName().toString());
-            } catch (CodeGenerationException ex) {
+            } catch (ProcessingException ex) {
                 errors.add(element + ": " + ex.getMessage());
-            } catch (SourceException ex) {
-                errors.add(element + ": " + ex.getMessage());
-            } catch (JClassAlreadyExistsException ex) {
-                errors.add(element + ": " + ex.getMessage());
-                ex.printStackTrace(System.err);
             } catch (RuntimeException ex) {
                 errors.add(element + ": " + ex.getMessage());
                 ex.printStackTrace(System.err);

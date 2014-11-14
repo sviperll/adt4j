@@ -29,23 +29,17 @@
  */
 package com.github.sviperll.adt4j.model.util;
 
-import com.github.sviperll.adt4j.model.util.CodeGenerationException;
-
 /**
  *
  * @author Victor Nazarov <asviraspossible@gmail.com>
  */
-@SuppressWarnings("serial")
-public class RuntimeCodeGenerationException extends RuntimeException {
-    private final CodeGenerationException cause;
-
-    public RuntimeCodeGenerationException(CodeGenerationException cause) {
-        super(cause);
-        this.cause = cause;
+public class ProcessingException extends Exception {
+    protected ProcessingException() {
     }
-    @Override
-    public CodeGenerationException getCause() {
-        return cause;
+    protected ProcessingException(Throwable ex) {
+        super(ex);
     }
-
+    protected ProcessingException(String message) {
+        super(message);
+    }
 }
