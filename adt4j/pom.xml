@@ -5,8 +5,8 @@
         <artifactId>adt4j-maven-parent</artifactId>
         <version>0.12-SNAPSHOT</version>
     </parent>
-    <artifactId>adt4j-core</artifactId>
-    <name>adt4j-core</name>
+    <artifactId>adt4j</artifactId>
+    <name>adt4j</name>
     <packaging>jar</packaging>
     <dependencies>
         <dependency>
@@ -21,4 +21,3 @@
         </dependency>
     </dependencies>
 </project>
-

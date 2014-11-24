@@ -15,7 +15,7 @@
         <netbeans.hint.license>BSD3</netbeans.hint.license>
     </properties>
     <modules>
-        <module>adt4j-core</module>
+        <module>adt4j</module>
         <module>adt4j-examples</module>
     </modules>
     <scm>

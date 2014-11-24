@@ -16,7 +16,7 @@
         </dependency>
         <dependency>
             <groupId>com.github.sviperll</groupId>
-            <artifactId>adt4j-core</artifactId>
+            <artifactId>adt4j</artifactId>
             <version>${project.version}</version>
         </dependency>
     </dependencies>
