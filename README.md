@@ -148,12 +148,12 @@ an example of ADT4J usage.
 
  1. Define an interface that will describe your Algebraic Data Type like this:
 
-```java
+    ```java
         interface OptionalVisitor<T, R> {
             R present(T value);
             R missing();
         }
-```
+    ```
 
     You must define a variation of visitor interface (see Visitor-pattern).
     This interface is a discription of your data-type.
@@ -173,25 +173,25 @@ an example of ADT4J usage.
 
  2. Add a `@GenerateValueClassForVisitor` and specify special type-variable names in arguments to annotation.
 
-```java
+    ```java
         @GenerateValueClassForVisitor(resultVariableName = "R")
         interface OptionalVisitor<T, R> {
             R present(T value);
             R missing();
         }
-```
+    ```
 
     Here we declare that type-variable `R` is used as a result-type of all interface methods.
 
     Note: you should always add @Nullable annotation to make any field nullable. Otherwise null checks are
     generated and exception is thrown upon construction:
 
-```java
+    ```java
         @GenerateValueClassForVisitor(resultVariableName = "R")
         interface Record<T, R> {
             R valueOf(T mandatory1, Object mandatory2, @Nullable Object optional);
         }
-```
+    ```
 
  3. We are ready to go.
 
@@ -199,14 +199,14 @@ an example of ADT4J usage.
 
     You can create instances of this class like this:
 
-```java
+    ```java
         Optional<String> optional1 = Optional.present("Test");
         Optional<String> optional2 = Optional.missing();
-```
+    ```
 
     You can use visitors as pattern-matching construct:
 
-```java
+    ```java
         OptionalVisitor<String, Void> printVisitor = new OptionalVisitor<>() {
            public Void present(String value) {
                System.out.println("present: " + value);
@@ -222,7 +222,7 @@ an example of ADT4J usage.
         optional1.accept(printVisitor);
         System.out.println("optional2:");
         optional2.accept(printVisitor);
-```
+    ```
 
     The result should be like this:
 
@@ -240,7 +240,7 @@ an example of ADT4J usage.
 
     You can customize class name with additional arguments. Like this:
 
-```java
+    ```java
         @GenerateValueClassForVisitor(resultVariableName = "R",
                                       valueClassName = "OptionalBase",
                                       valueClassIsPublic = false)
@@ -248,13 +248,13 @@ an example of ADT4J usage.
             R present(@Nonnull T value);
             R missing();
         }
-```
+    ```
 
     In the example above `OptionalBase` class will be generated instead of `Optional`.
 
     You can extend generated class to add more methods like this:
 
-```java
+    ```java
         public class MyOptional<T> extends OptionalBase<T> {
             public static <T> MyOptional<T> missing() {
                 return new MyOptional<>(OptionalBase.missing());
@@ -287,7 +287,7 @@ an example of ADT4J usage.
                 });
             }
         }
-```
+    ```
 
     Now you have `MyOptional` class similar to `Optional` class provided by Java 8.
 
@@ -295,19 +295,19 @@ an example of ADT4J usage.
 
     With Java 8 syntax:
 
-```java
+    ```java
         lookup(key1).flatMap((key2) -> lookup(key2));
-```
+    ```
 
     or with anonymous classes:
 
-```java
+    ```java
         lookup(key1).flatMap(new Function<String, MyOptional<String>>() {
                 public MyOptional<String> apply(String key2) {
                     return lookup(key2);
                 }
             });
         }
-```
+    ```
 
     See adt4j-examples project for more complete examples.
