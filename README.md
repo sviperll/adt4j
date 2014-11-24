@@ -7,6 +7,7 @@ ADT4J generates new class for each @GenerateValueClassForVisitor annotation.
 
 It allows you to easily define custom data types. Like this:
 
+```java
     // Define Expression data type
     @GenerateValueClassForVisitor(resultVariableName="R",
                                   selfReferenceVariableName="E")
@@ -17,17 +18,21 @@ It allows you to easily define custom data types. Like this:
         R sum(@Getter("leftOperand") E e1, @Getter("rightOperand") E e2);
         R mul(@Getter("leftOperand") E e1, @Getter("rightOperand") E e2);
     }
+```
 
 And that's it. `Expression` class will be generated and you'll be able to define expressions like this:
 
+```java
     import static ...Expression.*;
 
     /* ... */
 
     Expression e = mul(sum(lit(5), lit(1)), lit(2));
+```
 
 You can process expressions with "pattern-matching" a. k. a. visitor-pattern:
 
+```java
     int value = e.accept(new ExpressionVisitor<Expression, Integer>() {
         @Override
         public Integer int(int i) {
@@ -42,6 +47,7 @@ You can process expressions with "pattern-matching" a. k. a. visitor-pattern:
             return e1.accept(this) * e2.accept(this);
         }
     });
+```
 
 Features
 --------
@@ -180,10 +186,12 @@ an example of ADT4J usage.
     Note: you should always add @Nullable annotation to make any field nullable. Otherwise null checks are
     generated and exception is thrown upon construction:
 
+```java
         @GenerateValueClassForVisitor(resultVariableName = "R")
         interface Record<T, R> {
             R valueOf(T mandatory1, Object mandatory2, @Nullable Object optional);
         }
+```
 
  3. We are ready to go.
 
