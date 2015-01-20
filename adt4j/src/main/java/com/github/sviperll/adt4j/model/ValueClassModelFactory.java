@@ -198,7 +198,10 @@ public class ValueClassModelFactory {
             for (FieldConfiguration getter: gettersConfigutation.values()) {
                 methodBuilder.generateGetter(getter);
             }
-            result.buildUpdaters();
+            Map<String, FieldConfiguration> updatersConfiguration = result.getUpdatersConfiguration();
+            for (FieldConfiguration updater: updatersConfiguration.values()) {
+                methodBuilder.generateUpdater(updater);
+            }
             result.buildPredicates();
             if (annotation.valueClassIsComparable()) {
                 result.buildCompareTo();

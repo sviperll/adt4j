@@ -385,7 +385,7 @@ class ValueClassModel {
         return gettersMap;
     }
 
-    void buildUpdaters() throws SourceException {
+    Map<String, FieldConfiguration> getUpdatersConfiguration() throws SourceException {
         AbstractJClass usedValueClassType = valueClass.narrow(valueClass.typeParams());
         Map<String, FieldConfiguration> updatersMap = new TreeMap<String, FieldConfiguration>();
         for (JMethod interfaceMethod: visitorInterface.methods()) {
@@ -421,37 +421,7 @@ class ValueClassModel {
                 }
             }
         }
-        for (FieldConfiguration configuration: updatersMap.values()) {
-            generateUpdater(configuration);
-        }
-    }
-
-    private void generateUpdater(FieldConfiguration configuration) throws SourceException {
-        VariableNameSource nameSource = new VariableNameSource();
-        String updaterName = configuration.name();
-        AbstractJClass usedValueClassType = valueClass.narrow(valueClass.typeParams());
-        JMethod updaterMethod = valueClass.method(JMod.PUBLIC | JMod.FINAL, usedValueClassType, updaterName);
-        updaterMethod.annotate(Nonnull.class);
-        JVar newValue;
-        if (configuration.flags().isVarArg())
-            newValue = updaterMethod.varParam(JMod.FINAL, configuration.type().elementType(), nameSource.get("newValue"));
-        else
-            newValue = updaterMethod.param(JMod.FINAL, configuration.type(), nameSource.get("newValue"));
-        if (configuration.flags().isNullable()) {
-            newValue.annotate(Nullable.class);
-        } else {
-            newValue.annotate(Nonnull.class);
-        }
-        AbstractJClass visitorType = visitorInterface.narrowed(usedValueClassType, usedValueClassType, types._RuntimeException);
-
-        JDefinedClass anonymousClass1 = valueClass.owner().anonymousClass(visitorType);
-        UpdaterBody body = new UpdaterBody(configuration, anonymousClass1, newValue, nameSource);
-        for (JMethod interfaceMethod1: visitorInterface.methods()) {
-            body.generateCase(interfaceMethod1);
-        }
-        JInvocation invocation1 = JExpr._this().invoke("accept");
-        invocation1.arg(JExpr._new(anonymousClass1));
-        updaterMethod.body()._return(invocation1);
+        return updatersMap;
     }
 
     void buildPredicates() throws SourceException {
@@ -885,48 +855,98 @@ class ValueClassModel {
             }
         }
 
+        void generateUpdater(FieldConfiguration configuration) throws SourceException {
+            VariableNameSource nameSource = new VariableNameSource();
+            String updaterName = configuration.name();
+            AbstractJClass usedValueClassType = valueClass.narrow(valueClass.typeParams());
+
+            JMethod updaterMethod = acceptingInterface.method(JMod.PUBLIC, usedValueClassType, updaterName);
+            updaterMethod.annotate(Nonnull.class);
+            JVar newValueParam;
+            if (configuration.flags().isVarArg())
+                newValueParam = updaterMethod.varParam(JMod.FINAL, configuration.type().elementType(), nameSource.get("newValue"));
+            else
+                newValueParam = updaterMethod.param(JMod.FINAL, configuration.type(), nameSource.get("newValue"));
+            if (configuration.type().isReference()) {
+                if (configuration.flags().isNullable()) {
+                    newValueParam.annotate(Nullable.class);
+                } else {
+                    newValueParam.annotate(Nonnull.class);
+                }
+            }
+
+            nameSource = new VariableNameSource();
+            updaterMethod = valueClass.method(JMod.PUBLIC | JMod.FINAL, usedValueClassType, updaterName);
+            updaterMethod.annotate(Nonnull.class);
+            JVar newValue;
+            if (configuration.flags().isVarArg())
+                newValue = updaterMethod.varParam(JMod.FINAL, configuration.type().elementType(), nameSource.get("newValue"));
+            else
+                newValue = updaterMethod.param(JMod.FINAL, configuration.type(), nameSource.get("newValue"));
+            if (configuration.type().isReference()) {
+                if (configuration.flags().isNullable()) {
+                    newValue.annotate(Nullable.class);
+                } else {
+                    newValue.annotate(Nonnull.class);
+                }
+            }
+            JInvocation invocation1 = JExpr.refthis(acceptorField).invoke(updaterName);
+            invocation1.arg(newValue);
+            updaterMethod.body()._return(invocation1);
+
+            for (JMethod interfaceMethod1: visitorInterface.methods()) {
+                JDefinedClass caseClass = caseClasses.get(interfaceMethod1.name());
+                nameSource = new VariableNameSource();
+                updaterMethod = caseClass.method(JMod.PUBLIC | JMod.FINAL, usedValueClassType, updaterName);
+                updaterMethod.annotate(Nonnull.class);
+                updaterMethod.annotate(Override.class);
+                if (configuration.flags().isVarArg())
+                    newValue = updaterMethod.varParam(JMod.FINAL, configuration.type().elementType(), nameSource.get("newValue"));
+                else
+                    newValue = updaterMethod.param(JMod.FINAL, configuration.type(), nameSource.get("newValue"));
+                if (configuration.type().isReference()) {
+                    if (configuration.flags().isNullable()) {
+                        newValue.annotate(Nullable.class);
+                    } else {
+                        newValue.annotate(Nonnull.class);
+                    }
+                }
+                JInvocation invocation = valueClass.staticInvoke(interfaceMethod1.name());
+                for (JTypeVar typeArgument: valueClass.typeParams())
+                    invocation.narrow(typeArgument);
+                for (JVar param: interfaceMethod1.params()) {
+                    JFieldVar argument = caseClass.fields().get(param.name());
+                    if (configuration.isFieldValue(interfaceMethod1, param.name())) {
+                        invocation.arg(newValue);
+                    } else {
+                        invocation.arg(JExpr.refthis(argument));
+                    }
+                }
+                JVar param = interfaceMethod1.listVarParam();
+                if (param != null) {
+                    JFieldVar argument = caseClass.fields().get(param.name());
+                    if (configuration.isFieldValue(interfaceMethod1, param.name())) {
+                        invocation.arg(newValue);
+                    } else {
+                        invocation.arg(JExpr.refthis(argument));
+                    }
+                }
+                updaterMethod.body()._return(invocation);
+            }
+        }
     }
 
     private class UpdaterBody {
-        JDefinedClass visitor;
         private final FieldConfiguration configuration;
         private final JVar newValue;
         private final VariableNameSource nameSource;
-        UpdaterBody(FieldConfiguration configuration, JDefinedClass visitor, JVar newValue, VariableNameSource nameSource) {
-            this.visitor = visitor;
+        UpdaterBody(FieldConfiguration configuration, JVar newValue, VariableNameSource nameSource) {
             this.configuration = configuration;
             this.newValue = newValue;
             this.nameSource = nameSource;
         }
 
         private void generateCase(JMethod interfaceMethod1) {
-            AbstractJClass usedValueClassType = valueClass.narrow(valueClass.typeParams());
-            JMethod visitorMethod1 = visitor.method(interfaceMethod1.mods().getValue() & ~JMod.ABSTRACT, usedValueClassType, interfaceMethod1.name());
-            visitorMethod1.annotate(Override.class);
-            visitorMethod1.annotate(Nonnull.class);
-            JInvocation invocation = valueClass.staticInvoke(interfaceMethod1.name());
-            for (JTypeVar typeArgument: valueClass.typeParams())
-                invocation.narrow(typeArgument);
-            for (JVar param: interfaceMethod1.params()) {
-                AbstractJType argumentType = visitorInterface.substituteSpecialType(param.type(), usedValueClassType, configuration.type().boxify(), types._RuntimeException);
-                JVar argument = visitorMethod1.param(param.mods().getValue(), argumentType, nameSource.get(param.name()));
-                if (configuration.isFieldValue(interfaceMethod1, param.name())) {
-                    invocation.arg(newValue);
-                } else {
-                    invocation.arg(argument);
-                }
-            }
-            JVar param = interfaceMethod1.listVarParam();
-            if (param != null) {
-                AbstractJType argumentType = visitorInterface.substituteSpecialType(param.type().elementType(), usedValueClassType, configuration.type().boxify(), types._RuntimeException);
-                JVar argument = visitorMethod1.varParam(param.mods().getValue(), argumentType, nameSource.get(param.name()));
-                if (configuration.isFieldValue(interfaceMethod1, param.name())) {
-                    invocation.arg(newValue);
-                } else {
-                    invocation.arg(argument);
-                }
-            }
-            visitorMethod1.body()._return(invocation);
         }
     }
 
