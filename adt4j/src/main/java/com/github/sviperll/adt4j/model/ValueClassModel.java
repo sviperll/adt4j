@@ -49,15 +49,14 @@ import com.helger.jcodemodel.JConditional;
 import com.helger.jcodemodel.JDefinedClass;
 import com.helger.jcodemodel.JExpr;
 import com.helger.jcodemodel.JFieldVar;
-import com.helger.jcodemodel.JForLoop;
 import com.helger.jcodemodel.JInvocation;
 import com.helger.jcodemodel.JMethod;
 import com.helger.jcodemodel.JMod;
-import com.helger.jcodemodel.JOp;
 import com.helger.jcodemodel.JTypeVar;
 import com.helger.jcodemodel.JVar;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
@@ -70,9 +69,9 @@ class ValueClassModel {
         if (s.length() >= 2
             && Character.isHighSurrogate(s.charAt(0))
             && Character.isLowSurrogate(s.charAt(1))) {
-            return s.substring(0, 2).toUpperCase() + s.substring(2);
+            return s.substring(0, 2).toUpperCase(Locale.US) + s.substring(2);
         } else {
-            return s.substring(0, 1).toUpperCase() + s.substring(1);
+            return s.substring(0, 1).toUpperCase(Locale.US) + s.substring(1);
         }
     }
 
@@ -110,37 +109,19 @@ class ValueClassModel {
         return valueClass;
     }
 
-    JFieldVar buildAcceptorField() {
+    MethodBuilder createMethodBuilder(Serialization serialization) throws JClassAlreadyExistsException {
+        JDefinedClass proxyClass = buildProxyClass(serialization);
+        JFieldVar acceptorField = buildAcceptorField();
+        Map<String, JDefinedClass> caseClasses = buildCaseClasses(serialization);
+        return new MethodBuilder(proxyClass, caseClasses, acceptorField);
+    }
+
+    private JFieldVar buildAcceptorField() {
         AbstractJType usedAcceptingInterfaceType = acceptingInterface.narrow(valueClass.typeParams());
         return valueClass.field(JMod.PRIVATE | JMod.FINAL, usedAcceptingInterfaceType, "acceptor");
     }
 
-    void buildPrivateConstructor(JFieldVar acceptorField) {
-        JMethod constructor = valueClass.constructor(JMod.PRIVATE);
-        constructor.param(acceptorField.type(), acceptorField.name());
-        constructor.body().assign(JExpr.refthis(acceptorField.name()), JExpr.ref(acceptorField.name()));
-    }
-
-    void buildProtectedConstructor(JFieldVar acceptorField, Serialization serialization) throws JClassAlreadyExistsException {
-        JMethod constructor = valueClass.constructor(JMod.PROTECTED);
-        JAnnotationUse annotation = constructor.annotate(SuppressWarnings.class);
-        annotation.paramArray("value", "null");
-        AbstractJClass usedValueClassType = valueClass.narrow(valueClass.typeParams());
-        JVar param = constructor.param(JMod.FINAL, usedValueClassType, "implementation");
-        param.annotate(Nonnull.class);
-        JConditional nullCheck = constructor.body()._if(JExpr.ref("implementation").eq(JExpr._null()));
-        JInvocation nullPointerExceptionConstruction = JExpr._new(types._NullPointerException);
-        nullPointerExceptionConstruction.arg(JExpr.lit("Argument shouldn't be null: 'implementation' argument in class constructor invocation: " + valueClass.fullName()));
-        nullCheck._then()._throw(nullPointerExceptionConstruction);
-
-        JDefinedClass proxyClass = createProxyClass(serialization);
-        AbstractJClass usedProxyClassType = proxyClass.narrow(valueClass.typeParams());
-        JInvocation construction = JExpr._new(usedProxyClassType);
-        construction.arg(JExpr.ref("implementation"));
-        constructor.body().assign(JExpr.refthis(acceptorField.name()), construction);
-    }
-
-    private JDefinedClass createProxyClass(Serialization serialization) throws JClassAlreadyExistsException {
+    private JDefinedClass buildProxyClass(Serialization serialization) throws JClassAlreadyExistsException {
         JDefinedClass proxyClass = valueClass._class(JMod.PRIVATE | JMod.STATIC, "Proxy" + acceptingInterface.name(), EClassType.CLASS);
         for (JTypeVar visitorTypeParameter: acceptingInterface.typeParams()) {
             Types.generifyWithBoundsFrom(proxyClass, visitorTypeParameter.name(), visitorTypeParameter);
@@ -177,28 +158,6 @@ class ValueClassModel {
         invocation.arg(JExpr.ref("visitor"));
         acceptMethod.body()._return(invocation);
         return proxyClass;
-    }
-
-    void buildAcceptMethod(JFieldVar acceptorField) {
-        JMethod acceptMethod = valueClass.method(JMod.PUBLIC | JMod.FINAL, types._void, "accept");
-
-        JTypeVar visitorResultType = visitorInterface.getResultTypeParameter();
-        JTypeVar resultType = Types.generifyWithBoundsFrom(acceptMethod, visitorResultType.name(), visitorResultType);
-        acceptMethod.type(resultType);
-
-        JTypeVar visitorExceptionType = visitorInterface.getExceptionTypeParameter();
-        JTypeVar exceptionType = null;
-        if (visitorExceptionType != null) {
-            exceptionType = Types.generifyWithBoundsFrom(acceptMethod, visitorExceptionType.name(), visitorExceptionType);
-            acceptMethod._throws(exceptionType);
-        }
-
-        AbstractJClass usedValueClassType = valueClass.narrow(valueClass.typeParams());
-        AbstractJClass usedVisitorType = visitorInterface.narrowed(usedValueClassType, resultType, exceptionType);
-        acceptMethod.param(usedVisitorType, "visitor");
-        JInvocation invocation = acceptorField.invoke("accept");
-        invocation.arg(JExpr.ref("visitor"));
-        acceptMethod.body()._return(invocation);
     }
 
     JMethod buildFactory(Map<String, JMethod> constructorMethods) throws JClassAlreadyExistsException {
@@ -259,92 +218,7 @@ class ValueClassModel {
         return factoryClass;
     }
 
-    Map<String, JMethod> buildConstructorMethods(Map<String, JDefinedClass> caseClasses, Serialization serialization) throws JClassAlreadyExistsException, SourceException {
-        Map<String, JMethod> constructorMethods = new TreeMap<String, JMethod>();
-        for (JMethod interfaceMethod: visitorInterface.methods()) {
-            JMethod constructorMethod = valueClass.method(interfaceMethod.mods().getValue() & ~JMod.ABSTRACT | JMod.STATIC, types._void, interfaceMethod.name());
-            constructorMethod.annotate(Nonnull.class);
-            for (JTypeVar visitorTypeParameter: visitorInterface.getValueTypeParameters()) {
-                Types.generifyWithBoundsFrom(constructorMethod, visitorTypeParameter.name(), visitorTypeParameter);
-            }
-            AbstractJClass usedValueClassType = valueClass.narrow(constructorMethod.typeParams());
-            constructorMethod.type(usedValueClassType);
-            for (JVar param: interfaceMethod.params()) {
-                AbstractJType paramType = visitorInterface.substituteSpecialType(param.type(), usedValueClassType, usedValueClassType, types._RuntimeException);
-                JVar constructorMethodParam = constructorMethod.param(param.mods().getValue(), paramType, param.name());
-                if (param.type().isReference())
-                    constructorMethodParam.annotate(isNullable(param) ? Nullable.class : Nonnull.class);
-            }
-            JVar param = interfaceMethod.listVarParam();
-            if (param != null) {
-                AbstractJType paramType = visitorInterface.substituteSpecialType(param.type().elementType(), usedValueClassType, usedValueClassType, types._RuntimeException);
-                JVar constructorMethodParam = constructorMethod.varParam(param.mods().getValue(), paramType, param.name());
-                if (param.type().isReference())
-                    constructorMethodParam.annotate(isNullable(param) ? Nullable.class : Nonnull.class);
-            }
-
-            AbstractJClass usedCaseClassType = caseClasses.get(interfaceMethod.name()).narrow(constructorMethod.typeParams());
-            if (!interfaceMethod.params().isEmpty() || interfaceMethod.hasVarArgs()) {
-                boolean hasNullChecks = false;
-                for (JVar param1: interfaceMethod.params()) {
-                    if (param1.type().isReference() && !isNullable(param1)) {
-                        JConditional nullCheck = constructorMethod.body()._if(JExpr.ref(param1.name()).eq(JExpr._null()));
-                        JInvocation nullPointerExceptionConstruction = JExpr._new(types._NullPointerException);
-                        nullPointerExceptionConstruction.arg(JExpr.lit("Argument shouldn't be null: '" + param1.name() + "' argument in static method invocation: '" + constructorMethod.name() + "' in class " + valueClass.fullName()));
-                        nullCheck._then()._throw(nullPointerExceptionConstruction);
-                        hasNullChecks = true;
-                    }
-                }
-                JVar param1 = interfaceMethod.listVarParam();
-                if (param1 != null) {
-                    if (param1.type().isReference() && !isNullable(param1)) {
-                        JConditional nullCheck = constructorMethod.body()._if(JExpr.ref(param1.name()).eq(JExpr._null()));
-                        JInvocation nullPointerExceptionConstruction = JExpr._new(types._NullPointerException);
-                        nullPointerExceptionConstruction.arg(JExpr.lit("Argument shouldn't be null: '" + param1.name() + "' argument in static method invocation: '" + constructorMethod.name() + "' in class " + valueClass.fullName()));
-                        nullCheck._then()._throw(nullPointerExceptionConstruction);
-                        hasNullChecks = true;
-                    }
-                }
-                if (hasNullChecks) {
-                    JAnnotationUse annotation = constructorMethod.annotate(SuppressWarnings.class);
-                    annotation.paramArray("value", "null");
-                }
-
-                JInvocation caseClassConstructorInvocation = JExpr._new(usedCaseClassType);
-                for (JVar param2: interfaceMethod.params()) {
-                    caseClassConstructorInvocation.arg(JExpr.ref(param2.name()));
-                }
-                JVar param2 = interfaceMethod.listVarParam();
-                if (param2 != null) {
-                    caseClassConstructorInvocation.arg(JExpr.ref(param2.name()));
-                }
-                JInvocation constructorInvocation = JExpr._new(usedValueClassType);
-                constructorInvocation.arg(caseClassConstructorInvocation);
-                constructorMethod.body()._return(constructorInvocation);
-            } else {
-                JInvocation caseClassConstructorInvocation = JExpr._new(usedCaseClassType.erasure());
-                JInvocation initializer = JExpr._new(usedValueClassType.erasure());
-                initializer.arg(caseClassConstructorInvocation);
-                JFieldVar singletonInstanceField = valueClass.field(JMod.PRIVATE | JMod.STATIC | JMod.FINAL,
-                                                                    usedValueClassType.erasure(),
-                                                                    interfaceMethod.name().toUpperCase(),
-                                                                    initializer);
-                JAnnotationUse fieldAnnotationUse = singletonInstanceField.annotate(SuppressWarnings.class);
-                JAnnotationArrayMember paramArray = fieldAnnotationUse.paramArray("value");
-                paramArray.param("unchecked");
-                paramArray.param("rawtypes");
-
-                JAnnotationUse methodAnnotationUse = constructorMethod.annotate(SuppressWarnings.class);
-                methodAnnotationUse.param("value", "unchecked");
-                IJExpression result = usedValueClassType.getTypeParameters().isEmpty() ? singletonInstanceField : JExpr.cast(usedValueClassType, singletonInstanceField);
-                constructorMethod.body()._return(result);
-            }
-            constructorMethods.put(interfaceMethod.name(), constructorMethod);
-        }
-        return constructorMethods;
-    }
-
-    Map<String, JDefinedClass> buildCaseClasses(Serialization serialization) throws JClassAlreadyExistsException {
+    private Map<String, JDefinedClass> buildCaseClasses(Serialization serialization) throws JClassAlreadyExistsException {
         Map<String, JDefinedClass> caseClasses = new TreeMap<String, JDefinedClass>();
         for (JMethod interfaceMethod: visitorInterface.methods()) {
             JDefinedClass caseClass = buildCaseClass(interfaceMethod, serialization);
@@ -502,100 +376,7 @@ class ValueClassModel {
         _else._return(invocation1);
     }
 
-    void buildHashCodeMethod(JFieldVar acceptorField, Map<String, JDefinedClass> caseClasses, int hashCodeBase) throws SourceException {
-        JMethod hashCodeMethod = valueClass.method(JMod.PUBLIC | JMod.FINAL, types._int, "hashCode");
-        hashCodeMethod.annotate(Override.class);
-        JInvocation invocation1 = JExpr.refthis(acceptorField).invoke("hashCode");
-        hashCodeMethod.body()._return(invocation1);
-
-        int tag = 1;
-        for (JMethod interfaceMethod1: visitorInterface.methods()) {
-            JDefinedClass caseClass = caseClasses.get(interfaceMethod1.name());
-            JMethod caseHashCodeMethod = caseClass.method(JMod.PUBLIC | JMod.FINAL, types._int, "hashCode");
-            caseHashCodeMethod.annotate(Override.class);
-
-            VariableNameSource nameSource = new VariableNameSource();
-            List<JFieldVar> arguments = new ArrayList<JFieldVar>();
-            JFieldVar varArgument = null;
-            for (JVar param: interfaceMethod1.params()) {
-                arguments.add(caseClass.fields().get(param.name()));
-            }
-            JVar param = interfaceMethod1.listVarParam();
-            if (param != null) {
-                varArgument = caseClass.fields().get(param.name());
-            }
-
-            HashCodeMethod methodModel = new HashCodeMethod(types, hashCodeBase, caseHashCodeMethod.body(), nameSource);
-            HashCodeMethod.Body body = methodModel.createBody(tag);
-            for (int i = 0; i < arguments.size(); i++) {
-                param = interfaceMethod1.params().get(i);
-                JFieldVar argument = arguments.get(i);
-                if (isNullable(param))
-                    body.appendNullableValue(argument.type(), JExpr.refthis(argument));
-                else
-                    body.appendNotNullValue(argument.type(), JExpr.refthis(argument));
-            }
-            if (varArgument != null) {
-                if (isNullable(param))
-                    body.appendNullableValue(varArgument.type(), JExpr.refthis(varArgument));
-                else
-                    body.appendNotNullValue(varArgument.type(), JExpr.refthis(varArgument));
-            }
-            caseHashCodeMethod.body()._return(body.result());
-            tag++;
-        }
-    }
-
-    void buildToStringMethod(JFieldVar acceptorField, Map<String, JDefinedClass> caseClasses) throws SourceException {
-        JMethod toStringMethod = valueClass.method(JMod.PUBLIC | JMod.FINAL, types._String, "toString");
-        toStringMethod.annotate(Override.class);
-        JInvocation invocation1 = JExpr.refthis(acceptorField).invoke("toString");
-        toStringMethod.body()._return(invocation1);
-
-        for (JMethod interfaceMethod1: visitorInterface.methods()) {
-            JDefinedClass caseClass = caseClasses.get(interfaceMethod1.name());
-            JMethod caseToStringMethod = caseClass.method(JMod.PUBLIC | JMod.FINAL, types._String, "toString");
-            caseToStringMethod.annotate(Override.class);
-
-            VariableNameSource nameSource = new VariableNameSource();
-            List<JFieldVar> arguments = new ArrayList<JFieldVar>();
-            JFieldVar varArgument = null;
-            for (JVar param: interfaceMethod1.params()) {
-                arguments.add(caseClass.fields().get(param.name()));
-            }
-            JVar param = interfaceMethod1.listVarParam();
-            if (param != null) {
-                varArgument = caseClass.fields().get(param.name());
-            }
-
-            JVar result = caseToStringMethod.body().decl(types._StringBuilder, nameSource.get("result"), JExpr._new(types._StringBuilder));
-            JInvocation invocation = caseToStringMethod.body().invoke(result, "append");
-            invocation.arg(valueClass.name() + "." + capitalize(interfaceMethod1.name()) + "{");
-            ToStringMethodBody body = new ToStringMethodBody(caseToStringMethod.body(), result);
-            if (!arguments.isEmpty()) {
-                JFieldVar argument = arguments.get(0);
-                body.appendParam(argument.type(), interfaceMethod1.params().get(0).name(), JExpr.refthis(argument));
-                for (int i = 1; i < arguments.size(); i++) {
-                    invocation = caseToStringMethod.body().invoke(result, "append");
-                    invocation.arg(", ");
-                    argument = arguments.get(i);
-                    body.appendParam(argument.type(), interfaceMethod1.params().get(i).name(), JExpr.refthis(argument));
-                }
-            }
-            if (varArgument != null) {
-                if (!arguments.isEmpty()) {
-                    invocation = caseToStringMethod.body().invoke(result, "append");
-                    invocation.arg(", ");
-                }
-                body.appendParam(varArgument.type(), interfaceMethod1.listVarParam().name(), JExpr.refthis(varArgument));
-            }
-            invocation = caseToStringMethod.body().invoke(result, "append");
-            invocation.arg("}");
-            caseToStringMethod.body()._return(result.invoke("toString"));
-        }
-    }
-
-    void buildGetters() throws SourceException {
+    Map<String, FieldConfiguration> getGettersConfigutation() throws SourceException {
         AbstractJClass usedValueClassType = valueClass.narrow(valueClass.typeParams());
         Map<String, FieldConfiguration> gettersMap = new TreeMap<String, FieldConfiguration>();
         for (JMethod interfaceMethod: visitorInterface.methods()) {
@@ -631,29 +412,7 @@ class ValueClassModel {
                 }
             }
         }
-        for (FieldConfiguration configuration: gettersMap.values()) {
-            generateGetter(configuration);
-        }
-    }
-
-    private void generateGetter(FieldConfiguration configuration) {
-        String getterName = configuration.name();
-        JMethod getterMethod = valueClass.method(JMod.PUBLIC | JMod.FINAL, configuration.type(), getterName);
-        if (configuration.flags().isNullable())
-            getterMethod.annotate(Nullable.class);
-        else
-            getterMethod.annotate(Nonnull.class);
-        AbstractJClass usedValueClassType = valueClass.narrow(valueClass.typeParams());
-        AbstractJClass visitorType = visitorInterface.narrowed(usedValueClassType, configuration.type().boxify(), types._RuntimeException);
-
-        JDefinedClass anonymousClass1 = valueClass.owner().anonymousClass(visitorType);
-        GetterBody body = new GetterBody(configuration, anonymousClass1);
-        for (JMethod interfaceMethod1: visitorInterface.methods()) {
-            body.generateCase(interfaceMethod1);
-        }
-        JInvocation invocation1 = JExpr._this().invoke("accept");
-        invocation1.arg(JExpr._new(anonymousClass1));
-        getterMethod.body()._return(invocation1);
+        return gettersMap;
     }
 
     void buildUpdaters() throws SourceException {
@@ -867,46 +626,320 @@ class ValueClassModel {
         compareToMethod.body()._return(invocation1);
     }
 
-    private class GetterBody {
-        JDefinedClass visitor;
-        private final FieldConfiguration configuration;
-        GetterBody(FieldConfiguration configuration, JDefinedClass visitor) {
-            this.visitor = visitor;
-            this.configuration = configuration;
+    class MethodBuilder {
+        private final JDefinedClass proxyClass;
+        private final Map<String, JDefinedClass> caseClasses;
+        private final JFieldVar acceptorField;
+
+        private MethodBuilder(JDefinedClass proxyClass, Map<String, JDefinedClass> caseClasses, JFieldVar acceptorField) {
+            this.proxyClass = proxyClass;
+            this.caseClasses = caseClasses;
+            this.acceptorField = acceptorField;
         }
 
-        private void generateCase(JMethod interfaceMethod1) {
+        void buildPrivateConstructor() {
+            JMethod constructor = valueClass.constructor(JMod.PRIVATE);
+            constructor.param(acceptorField.type(), acceptorField.name());
+            constructor.body().assign(JExpr.refthis(acceptorField.name()), JExpr.ref(acceptorField.name()));
+        }
+
+        void buildProtectedConstructor(Serialization serialization) throws JClassAlreadyExistsException {
+            JMethod constructor = valueClass.constructor(JMod.PROTECTED);
+            JAnnotationUse annotation = constructor.annotate(SuppressWarnings.class);
+            annotation.paramArray("value", "null");
             AbstractJClass usedValueClassType = valueClass.narrow(valueClass.typeParams());
-            JMethod visitorMethod1 = visitor.method(interfaceMethod1.mods().getValue() & ~JMod.ABSTRACT, configuration.type().boxify(), interfaceMethod1.name());
-            visitorMethod1.annotate(Override.class);
-            if (configuration.flags().isNullable())
-                visitorMethod1.annotate(Nullable.class);
-            else
-                visitorMethod1.annotate(Nonnull.class);
-            boolean isGettable = false;
-            for (JVar param: interfaceMethod1.params()) {
-                AbstractJType paramType = visitorInterface.substituteSpecialType(param.type(), usedValueClassType, configuration.type().boxify(), types._RuntimeException);
-                JVar argument = visitorMethod1.param(param.mods().getValue(), paramType, param.name());
-                if (configuration.isFieldValue(interfaceMethod1, param.name())) {
-                    visitorMethod1.body()._return(argument);
-                    isGettable = true;
-                }
+            JVar param = constructor.param(JMod.FINAL, usedValueClassType, "implementation");
+            param.annotate(Nonnull.class);
+            JConditional nullCheck = constructor.body()._if(JExpr.ref("implementation").eq(JExpr._null()));
+            JInvocation nullPointerExceptionConstruction = JExpr._new(types._NullPointerException);
+            nullPointerExceptionConstruction.arg(JExpr.lit("Argument shouldn't be null: 'implementation' argument in class constructor invocation: " + valueClass.fullName()));
+            nullCheck._then()._throw(nullPointerExceptionConstruction);
+
+            AbstractJClass usedProxyClassType = proxyClass.narrow(valueClass.typeParams());
+            JInvocation construction = JExpr._new(usedProxyClassType);
+            construction.arg(JExpr.ref("implementation"));
+            constructor.body().assign(JExpr.refthis(acceptorField.name()), construction);
+        }
+
+        void buildAcceptMethod() {
+            JMethod acceptMethod = valueClass.method(JMod.PUBLIC | JMod.FINAL, types._void, "accept");
+
+            JTypeVar visitorResultType = visitorInterface.getResultTypeParameter();
+            JTypeVar resultType = Types.generifyWithBoundsFrom(acceptMethod, visitorResultType.name(), visitorResultType);
+            acceptMethod.type(resultType);
+
+            JTypeVar visitorExceptionType = visitorInterface.getExceptionTypeParameter();
+            JTypeVar exceptionType = null;
+            if (visitorExceptionType != null) {
+                exceptionType = Types.generifyWithBoundsFrom(acceptMethod, visitorExceptionType.name(), visitorExceptionType);
+                acceptMethod._throws(exceptionType);
             }
-            JVar param = interfaceMethod1.listVarParam();
-            if (param != null) {
-                AbstractJType paramType = visitorInterface.substituteSpecialType(param.type().elementType(), usedValueClassType, configuration.type().boxify(), types._RuntimeException);
-                JVar argument = visitorMethod1.varParam(param.mods().getValue(), paramType, param.name());
-                if (configuration.isFieldValue(interfaceMethod1, param.name())) {
-                    visitorMethod1.body()._return(argument);
-                    isGettable = true;
+
+            AbstractJClass usedValueClassType = valueClass.narrow(valueClass.typeParams());
+            AbstractJClass usedVisitorType = visitorInterface.narrowed(usedValueClassType, resultType, exceptionType);
+            acceptMethod.param(usedVisitorType, "visitor");
+            JInvocation invocation = acceptorField.invoke("accept");
+            invocation.arg(JExpr.ref("visitor"));
+            acceptMethod.body()._return(invocation);
+        }
+
+        Map<String, JMethod> buildConstructorMethods(Serialization serialization) throws JClassAlreadyExistsException, SourceException {
+            Map<String, JMethod> constructorMethods = new TreeMap<String, JMethod>();
+            for (JMethod interfaceMethod: visitorInterface.methods()) {
+                JMethod constructorMethod = valueClass.method(interfaceMethod.mods().getValue() & ~JMod.ABSTRACT | JMod.STATIC, types._void, interfaceMethod.name());
+                constructorMethod.annotate(Nonnull.class);
+                for (JTypeVar visitorTypeParameter: visitorInterface.getValueTypeParameters()) {
+                    Types.generifyWithBoundsFrom(constructorMethod, visitorTypeParameter.name(), visitorTypeParameter);
                 }
+                AbstractJClass usedValueClassType = valueClass.narrow(constructorMethod.typeParams());
+                constructorMethod.type(usedValueClassType);
+                for (JVar param: interfaceMethod.params()) {
+                    AbstractJType paramType = visitorInterface.substituteSpecialType(param.type(), usedValueClassType, usedValueClassType, types._RuntimeException);
+                    JVar constructorMethodParam = constructorMethod.param(param.mods().getValue(), paramType, param.name());
+                    if (param.type().isReference())
+                        constructorMethodParam.annotate(isNullable(param) ? Nullable.class : Nonnull.class);
+                }
+                JVar param = interfaceMethod.listVarParam();
+                if (param != null) {
+                    AbstractJType paramType = visitorInterface.substituteSpecialType(param.type().elementType(), usedValueClassType, usedValueClassType, types._RuntimeException);
+                    JVar constructorMethodParam = constructorMethod.varParam(param.mods().getValue(), paramType, param.name());
+                    if (param.type().isReference())
+                        constructorMethodParam.annotate(isNullable(param) ? Nullable.class : Nonnull.class);
+                }
+
+                AbstractJClass usedCaseClassType = caseClasses.get(interfaceMethod.name()).narrow(constructorMethod.typeParams());
+                if (!interfaceMethod.params().isEmpty() || interfaceMethod.hasVarArgs()) {
+                    boolean hasNullChecks = false;
+                    for (JVar param1: interfaceMethod.params()) {
+                        if (param1.type().isReference() && !isNullable(param1)) {
+                            JConditional nullCheck = constructorMethod.body()._if(JExpr.ref(param1.name()).eq(JExpr._null()));
+                            JInvocation nullPointerExceptionConstruction = JExpr._new(types._NullPointerException);
+                            nullPointerExceptionConstruction.arg(JExpr.lit("Argument shouldn't be null: '" + param1.name() + "' argument in static method invocation: '" + constructorMethod.name() + "' in class " + valueClass.fullName()));
+                            nullCheck._then()._throw(nullPointerExceptionConstruction);
+                            hasNullChecks = true;
+                        }
+                    }
+                    JVar param1 = interfaceMethod.listVarParam();
+                    if (param1 != null) {
+                        if (param1.type().isReference() && !isNullable(param1)) {
+                            JConditional nullCheck = constructorMethod.body()._if(JExpr.ref(param1.name()).eq(JExpr._null()));
+                            JInvocation nullPointerExceptionConstruction = JExpr._new(types._NullPointerException);
+                            nullPointerExceptionConstruction.arg(JExpr.lit("Argument shouldn't be null: '" + param1.name() + "' argument in static method invocation: '" + constructorMethod.name() + "' in class " + valueClass.fullName()));
+                            nullCheck._then()._throw(nullPointerExceptionConstruction);
+                            hasNullChecks = true;
+                        }
+                    }
+                    if (hasNullChecks) {
+                        JAnnotationUse annotation = constructorMethod.annotate(SuppressWarnings.class);
+                        annotation.paramArray("value", "null");
+                    }
+
+                    JInvocation caseClassConstructorInvocation = JExpr._new(usedCaseClassType);
+                    for (JVar param2: interfaceMethod.params()) {
+                        caseClassConstructorInvocation.arg(JExpr.ref(param2.name()));
+                    }
+                    JVar param2 = interfaceMethod.listVarParam();
+                    if (param2 != null) {
+                        caseClassConstructorInvocation.arg(JExpr.ref(param2.name()));
+                    }
+                    JInvocation constructorInvocation = JExpr._new(usedValueClassType);
+                    constructorInvocation.arg(caseClassConstructorInvocation);
+                    constructorMethod.body()._return(constructorInvocation);
+                } else {
+                    JInvocation caseClassConstructorInvocation = JExpr._new(usedCaseClassType.erasure());
+                    JInvocation initializer = JExpr._new(usedValueClassType.erasure());
+                    initializer.arg(caseClassConstructorInvocation);
+                    JFieldVar singletonInstanceField = valueClass.field(JMod.PRIVATE | JMod.STATIC | JMod.FINAL,
+                                                                        usedValueClassType.erasure(),
+                                                                        interfaceMethod.name().toUpperCase(Locale.US),
+                                                                        initializer);
+                    JAnnotationUse fieldAnnotationUse = singletonInstanceField.annotate(SuppressWarnings.class);
+                    JAnnotationArrayMember paramArray = fieldAnnotationUse.paramArray("value");
+                    paramArray.param("unchecked");
+                    paramArray.param("rawtypes");
+
+                    JAnnotationUse methodAnnotationUse = constructorMethod.annotate(SuppressWarnings.class);
+                    methodAnnotationUse.param("value", "unchecked");
+                    IJExpression result = usedValueClassType.getTypeParameters().isEmpty() ? singletonInstanceField : JExpr.cast(usedValueClassType, singletonInstanceField);
+                    constructorMethod.body()._return(result);
+                }
+                constructorMethods.put(interfaceMethod.name(), constructorMethod);
             }
-            if (!isGettable) {
-                JInvocation exceptionInvocation = JExpr._new(types._IllegalStateException);
-                exceptionInvocation.arg(configuration.name() + " is not accessible in this case: " + interfaceMethod1.name());
-                visitorMethod1.body()._throw(exceptionInvocation);
+            return constructorMethods;
+        }
+
+        void buildHashCodeMethod(int hashCodeBase) throws SourceException {
+            JMethod hashCodeMethod = proxyClass.method(JMod.PUBLIC | JMod.FINAL, types._int, "hashCode");
+            hashCodeMethod.annotate(Override.class);
+            JInvocation invocation = JExpr.refthis("implementation").invoke("hashCode");
+            hashCodeMethod.body()._return(invocation);
+
+            hashCodeMethod = valueClass.method(JMod.PUBLIC | JMod.FINAL, types._int, "hashCode");
+            hashCodeMethod.annotate(Override.class);
+            invocation = JExpr.refthis(acceptorField).invoke("hashCode");
+            hashCodeMethod.body()._return(invocation);
+
+            int tag = 1;
+            for (JMethod interfaceMethod1: visitorInterface.methods()) {
+                JDefinedClass caseClass = caseClasses.get(interfaceMethod1.name());
+                JMethod caseHashCodeMethod = caseClass.method(JMod.PUBLIC | JMod.FINAL, types._int, "hashCode");
+                caseHashCodeMethod.annotate(Override.class);
+
+                VariableNameSource nameSource = new VariableNameSource();
+                List<JFieldVar> arguments = new ArrayList<JFieldVar>();
+                JFieldVar varArgument = null;
+                for (JVar param: interfaceMethod1.params()) {
+                    arguments.add(caseClass.fields().get(param.name()));
+                }
+                JVar param = interfaceMethod1.listVarParam();
+                if (param != null) {
+                    varArgument = caseClass.fields().get(param.name());
+                }
+
+                HashCodeMethod methodModel = new HashCodeMethod(types, hashCodeBase, caseHashCodeMethod.body(), nameSource);
+                HashCodeMethod.Body body = methodModel.createBody(tag);
+                for (int i = 0; i < arguments.size(); i++) {
+                    param = interfaceMethod1.params().get(i);
+                    JFieldVar argument = arguments.get(i);
+                    if (isNullable(param))
+                        body.appendNullableValue(argument.type(), JExpr.refthis(argument));
+                    else
+                        body.appendNotNullValue(argument.type(), JExpr.refthis(argument));
+                }
+                if (varArgument != null) {
+                    if (isNullable(param))
+                        body.appendNullableValue(varArgument.type(), JExpr.refthis(varArgument));
+                    else
+                        body.appendNotNullValue(varArgument.type(), JExpr.refthis(varArgument));
+                }
+                caseHashCodeMethod.body()._return(body.result());
+                tag++;
             }
         }
+
+        void buildToStringMethod() throws SourceException {
+            JMethod toStringMethod = proxyClass.method(JMod.PUBLIC | JMod.FINAL, types._String, "toString");
+            toStringMethod.annotate(Override.class);
+            toStringMethod.annotate(Nonnull.class);
+            JInvocation invocation1 = JExpr.refthis("implementation").invoke("toString");
+            toStringMethod.body()._return(invocation1);
+
+            toStringMethod = valueClass.method(JMod.PUBLIC | JMod.FINAL, types._String, "toString");
+            toStringMethod.annotate(Override.class);
+            toStringMethod.annotate(Nonnull.class);
+            invocation1 = JExpr.refthis(acceptorField).invoke("toString");
+            toStringMethod.body()._return(invocation1);
+
+            for (JMethod interfaceMethod1: visitorInterface.methods()) {
+                JDefinedClass caseClass = caseClasses.get(interfaceMethod1.name());
+                JMethod caseToStringMethod = caseClass.method(JMod.PUBLIC | JMod.FINAL, types._String, "toString");
+                caseToStringMethod.annotate(Override.class);
+                caseToStringMethod.annotate(Nonnull.class);
+
+                VariableNameSource nameSource = new VariableNameSource();
+                List<JFieldVar> arguments = new ArrayList<JFieldVar>();
+                JFieldVar varArgument = null;
+                for (JVar param: interfaceMethod1.params()) {
+                    arguments.add(caseClass.fields().get(param.name()));
+                }
+                JVar param = interfaceMethod1.listVarParam();
+                if (param != null) {
+                    varArgument = caseClass.fields().get(param.name());
+                }
+
+                JVar result = caseToStringMethod.body().decl(types._StringBuilder, nameSource.get("result"), JExpr._new(types._StringBuilder));
+                JInvocation invocation = caseToStringMethod.body().invoke(result, "append");
+                invocation.arg(valueClass.name() + "." + capitalize(interfaceMethod1.name()) + "{");
+                ToStringMethodBody body = new ToStringMethodBody(caseToStringMethod.body(), result);
+                if (!arguments.isEmpty()) {
+                    JFieldVar argument = arguments.get(0);
+                    body.appendParam(argument.type(), interfaceMethod1.params().get(0).name(), JExpr.refthis(argument));
+                    for (int i = 1; i < arguments.size(); i++) {
+                        invocation = caseToStringMethod.body().invoke(result, "append");
+                        invocation.arg(", ");
+                        argument = arguments.get(i);
+                        body.appendParam(argument.type(), interfaceMethod1.params().get(i).name(), JExpr.refthis(argument));
+                    }
+                }
+                if (varArgument != null) {
+                    if (!arguments.isEmpty()) {
+                        invocation = caseToStringMethod.body().invoke(result, "append");
+                        invocation.arg(", ");
+                    }
+                    body.appendParam(varArgument.type(), interfaceMethod1.listVarParam().name(), JExpr.refthis(varArgument));
+                }
+                invocation = caseToStringMethod.body().invoke(result, "append");
+                invocation.arg("}");
+                caseToStringMethod.body()._return(result.invoke("toString"));
+            }
+        }
+
+        void generateGetter(FieldConfiguration configuration) {
+            String getterName = configuration.name();
+            JMethod getterMethod = acceptingInterface.method(JMod.PUBLIC, configuration.type(), getterName);
+            if (configuration.type().isReference()) {
+                if (configuration.flags().isNullable())
+                    getterMethod.annotate(Nullable.class);
+                else
+                    getterMethod.annotate(Nonnull.class);
+            }
+
+            getterMethod = valueClass.method(JMod.PUBLIC | JMod.FINAL, configuration.type(), getterName);
+            if (configuration.type().isReference()) {
+                if (configuration.flags().isNullable())
+                    getterMethod.annotate(Nullable.class);
+                else
+                    getterMethod.annotate(Nonnull.class);
+            }
+            JInvocation invocation1 = JExpr.refthis(acceptorField).invoke(getterName);
+            getterMethod.body()._return(invocation1);
+
+            getterMethod = proxyClass.method(JMod.PUBLIC | JMod.FINAL, configuration.type(), getterName);
+            getterMethod.annotate(Override.class);
+            if (configuration.type().isReference()) {
+                if (configuration.flags().isNullable())
+                    getterMethod.annotate(Nullable.class);
+                else
+                    getterMethod.annotate(Nonnull.class);
+            }
+            invocation1 = JExpr.refthis("implementation").invoke(getterName);
+            getterMethod.body()._return(invocation1);
+
+
+            for (JMethod interfaceMethod1: visitorInterface.methods()) {
+                JDefinedClass caseClass = caseClasses.get(interfaceMethod1.name());
+                JMethod geterMethod = caseClass.method(JMod.PUBLIC | JMod.FINAL, configuration.type(), getterName);
+                geterMethod.annotate(Override.class);
+                if (configuration.type().isReference()) {
+                    if (configuration.flags().isNullable())
+                        geterMethod.annotate(Nullable.class);
+                    else
+                        geterMethod.annotate(Nonnull.class);
+                }
+                boolean isGettable = false;
+                for (JVar param: interfaceMethod1.params()) {
+                    JFieldVar field = caseClass.fields().get(param.name());
+                    if (configuration.isFieldValue(interfaceMethod1, param.name())) {
+                        geterMethod.body()._return(field);
+                        isGettable = true;
+                    }
+                }
+                JVar param = interfaceMethod1.listVarParam();
+                if (param != null) {
+                    JFieldVar field = caseClass.fields().get(param.name());
+                    if (configuration.isFieldValue(interfaceMethod1, param.name())) {
+                        geterMethod.body()._return(field);
+                        isGettable = true;
+                    }
+                }
+                if (!isGettable) {
+                    JInvocation exceptionInvocation = JExpr._new(types._IllegalStateException);
+                    exceptionInvocation.arg(configuration.name() + " is not accessible in this case: " + interfaceMethod1.name());
+                    geterMethod.body()._throw(exceptionInvocation);
+                }
+            }
+        }
+
     }
 
     private class UpdaterBody {

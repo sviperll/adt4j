@@ -189,21 +189,23 @@ public class ValueClassModelFactory {
             }
 
             ValueClassModel result = new ValueClassModel(valueClass, acceptingInterface, visitorInterface, types);
-            Map<String, JDefinedClass> caseClasses = result.buildCaseClasses(serialization);
-            Map<String, JMethod> constructorMethods = result.buildConstructorMethods(caseClasses, serialization);
-            JFieldVar acceptorField = result.buildAcceptorField();
-            result.buildPrivateConstructor(acceptorField);
-            result.buildProtectedConstructor(acceptorField, serialization);
-            result.buildAcceptMethod(acceptorField);
-            result.buildGetters();
+            ValueClassModel.MethodBuilder methodBuilder = result.createMethodBuilder(serialization);
+            Map<String, JMethod> constructorMethods = methodBuilder.buildConstructorMethods(serialization);
+            methodBuilder.buildPrivateConstructor();
+            methodBuilder.buildProtectedConstructor(serialization);
+            methodBuilder.buildAcceptMethod();
+            Map<String, FieldConfiguration> gettersConfigutation = result.getGettersConfigutation();
+            for (FieldConfiguration getter: gettersConfigutation.values()) {
+                methodBuilder.generateGetter(getter);
+            }
             result.buildUpdaters();
             result.buildPredicates();
             if (annotation.valueClassIsComparable()) {
                 result.buildCompareTo();
             }
             result.buildEqualsMethod();
-            result.buildHashCodeMethod(acceptorField, caseClasses, annotation.valueClassHashCodeBase());
-            result.buildToStringMethod(acceptorField, caseClasses);
+            methodBuilder.buildHashCodeMethod(annotation.valueClassHashCodeBase());
+            methodBuilder.buildToStringMethod();
             result.buildFactory(constructorMethods);
 
             return result;
