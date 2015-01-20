@@ -203,7 +203,7 @@ public class ValueClassModelFactory {
             }
             result.buildEqualsMethod();
             result.buildHashCodeMethod(acceptorField, caseClasses, annotation.valueClassHashCodeBase());
-            result.buildToStringMethod();
+            result.buildToStringMethod(acceptorField, caseClasses);
             result.buildFactory(constructorMethods);
 
             return result;

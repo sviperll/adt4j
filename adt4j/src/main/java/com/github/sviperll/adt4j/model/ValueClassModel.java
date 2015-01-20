@@ -505,11 +505,8 @@ class ValueClassModel {
     void buildHashCodeMethod(JFieldVar acceptorField, Map<String, JDefinedClass> caseClasses, int hashCodeBase) throws SourceException {
         JMethod hashCodeMethod = valueClass.method(JMod.PUBLIC | JMod.FINAL, types._int, "hashCode");
         hashCodeMethod.annotate(Override.class);
-        JInvocation invocation1 = acceptorField.invoke("hashCode");
+        JInvocation invocation1 = JExpr.refthis(acceptorField).invoke("hashCode");
         hashCodeMethod.body()._return(invocation1);
-
-        AbstractJClass usedValueClassType = valueClass.narrow(valueClass.typeParams());
-        AbstractJClass visitorType = visitorInterface.narrowed(usedValueClassType, types._Integer, types._RuntimeException);
 
         int tag = 1;
         for (JMethod interfaceMethod1: visitorInterface.methods()) {
@@ -532,7 +529,7 @@ class ValueClassModel {
             HashCodeMethod.Body body = methodModel.createBody(tag);
             for (int i = 0; i < arguments.size(); i++) {
                 param = interfaceMethod1.params().get(i);
-                JVar argument = arguments.get(i);
+                JFieldVar argument = arguments.get(i);
                 if (isNullable(param))
                     body.appendNullableValue(argument.type(), JExpr.refthis(argument));
                 else
@@ -549,58 +546,53 @@ class ValueClassModel {
         }
     }
 
-    void buildToStringMethod() throws SourceException {
+    void buildToStringMethod(JFieldVar acceptorField, Map<String, JDefinedClass> caseClasses) throws SourceException {
         JMethod toStringMethod = valueClass.method(JMod.PUBLIC | JMod.FINAL, types._String, "toString");
         toStringMethod.annotate(Override.class);
-        AbstractJClass usedValueClassType = valueClass.narrow(valueClass.typeParams());
-        AbstractJClass visitorType = visitorInterface.narrowed(usedValueClassType, types._String, types._RuntimeException);
+        JInvocation invocation1 = JExpr.refthis(acceptorField).invoke("toString");
+        toStringMethod.body()._return(invocation1);
 
-        JDefinedClass anonymousClass1 = valueClass.owner().anonymousClass(visitorType);
         for (JMethod interfaceMethod1: visitorInterface.methods()) {
-            JMethod visitorMethod1 = anonymousClass1.method(interfaceMethod1.mods().getValue() & ~JMod.ABSTRACT, types._String, interfaceMethod1.name());
-            visitorMethod1.annotate(Nonnull.class);
-            visitorMethod1.annotate(Override.class);
+            JDefinedClass caseClass = caseClasses.get(interfaceMethod1.name());
+            JMethod caseToStringMethod = caseClass.method(JMod.PUBLIC | JMod.FINAL, types._String, "toString");
+            caseToStringMethod.annotate(Override.class);
+
             VariableNameSource nameSource = new VariableNameSource();
-            List<JVar> arguments = new ArrayList<JVar>();
-            JVar varArgument = null;
+            List<JFieldVar> arguments = new ArrayList<JFieldVar>();
+            JFieldVar varArgument = null;
             for (JVar param: interfaceMethod1.params()) {
-                AbstractJType argumentType = visitorInterface.substituteSpecialType(param.type(), usedValueClassType, types._Integer, types._RuntimeException);
-                JVar argument = visitorMethod1.param(param.mods().getValue() | JMod.FINAL, argumentType, nameSource.get(param.name()));
-                arguments.add(argument);
+                arguments.add(caseClass.fields().get(param.name()));
             }
             JVar param = interfaceMethod1.listVarParam();
             if (param != null) {
-                AbstractJType argumentType = visitorInterface.substituteSpecialType(param.type().elementType(), usedValueClassType, types._Integer, types._RuntimeException);
-                JVar argument = visitorMethod1.varParam(param.mods().getValue() | JMod.FINAL, argumentType, nameSource.get(param.name()));
-                varArgument = argument;
+                varArgument = caseClass.fields().get(param.name());
             }
 
-            JVar result = visitorMethod1.body().decl(types._StringBuilder, nameSource.get("result"), JExpr._new(types._StringBuilder));
-            JInvocation invocation = visitorMethod1.body().invoke(result, "append");
+            JVar result = caseToStringMethod.body().decl(types._StringBuilder, nameSource.get("result"), JExpr._new(types._StringBuilder));
+            JInvocation invocation = caseToStringMethod.body().invoke(result, "append");
             invocation.arg(valueClass.name() + "." + capitalize(interfaceMethod1.name()) + "{");
-            ToStringMethodBody body = new ToStringMethodBody(visitorMethod1.body(), result);
-            if (!arguments.isEmpty() || varArgument != null) {
-                JVar argument = arguments.get(0);
-                body.appendParam(argument.type(), interfaceMethod1.params().get(0).name(), argument);
+            ToStringMethodBody body = new ToStringMethodBody(caseToStringMethod.body(), result);
+            if (!arguments.isEmpty()) {
+                JFieldVar argument = arguments.get(0);
+                body.appendParam(argument.type(), interfaceMethod1.params().get(0).name(), JExpr.refthis(argument));
                 for (int i = 1; i < arguments.size(); i++) {
-                    invocation = visitorMethod1.body().invoke(result, "append");
+                    invocation = caseToStringMethod.body().invoke(result, "append");
                     invocation.arg(", ");
                     argument = arguments.get(i);
-                    body.appendParam(argument.type(), interfaceMethod1.params().get(i).name(), argument);
-                }
-                if (varArgument != null) {
-                    invocation = visitorMethod1.body().invoke(result, "append");
-                    invocation.arg(", ");
-                    body.appendParam(varArgument.type(), interfaceMethod1.listVarParam().name(), varArgument);
+                    body.appendParam(argument.type(), interfaceMethod1.params().get(i).name(), JExpr.refthis(argument));
                 }
             }
-            invocation = visitorMethod1.body().invoke(result, "append");
+            if (varArgument != null) {
+                if (!arguments.isEmpty()) {
+                    invocation = caseToStringMethod.body().invoke(result, "append");
+                    invocation.arg(", ");
+                }
+                body.appendParam(varArgument.type(), interfaceMethod1.listVarParam().name(), JExpr.refthis(varArgument));
+            }
+            invocation = caseToStringMethod.body().invoke(result, "append");
             invocation.arg("}");
-            visitorMethod1.body()._return(result.invoke("toString"));
+            caseToStringMethod.body()._return(result.invoke("toString"));
         }
-        JInvocation invocation1 = JExpr._this().invoke("accept");
-        invocation1.arg(JExpr._new(anonymousClass1));
-        toStringMethod.body()._return(invocation1);
     }
 
     void buildGetters() throws SourceException {
