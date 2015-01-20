@@ -189,7 +189,8 @@ public class ValueClassModelFactory {
             }
 
             ValueClassModel result = new ValueClassModel(valueClass, acceptingInterface, visitorInterface, types);
-            Map<String, JMethod> constructorMethods = result.buildConstructorMethods(serialization);
+            Map<String, JDefinedClass> caseClasses = result.buildCaseClasses(serialization);
+            Map<String, JMethod> constructorMethods = result.buildConstructorMethods(caseClasses, serialization);
             JFieldVar acceptorField = result.buildAcceptorField();
             result.buildPrivateConstructor(acceptorField);
             result.buildProtectedConstructor(acceptorField, serialization);
@@ -201,7 +202,7 @@ public class ValueClassModelFactory {
                 result.buildCompareTo();
             }
             result.buildEqualsMethod();
-            result.buildHashCodeMethod(annotation.valueClassHashCodeBase());
+            result.buildHashCodeMethod(acceptorField, caseClasses, annotation.valueClassHashCodeBase());
             result.buildToStringMethod();
             result.buildFactory(constructorMethods);
 

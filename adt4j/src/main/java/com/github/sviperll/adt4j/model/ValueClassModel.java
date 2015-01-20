@@ -259,9 +259,7 @@ class ValueClassModel {
         return factoryClass;
     }
 
-    Map<String, JMethod> buildConstructorMethods(Serialization serialization) throws JClassAlreadyExistsException, SourceException {
-        Map<String, JDefinedClass> caseClasses = buildCaseClasses(serialization);
-
+    Map<String, JMethod> buildConstructorMethods(Map<String, JDefinedClass> caseClasses, Serialization serialization) throws JClassAlreadyExistsException, SourceException {
         Map<String, JMethod> constructorMethods = new TreeMap<String, JMethod>();
         for (JMethod interfaceMethod: visitorInterface.methods()) {
             JMethod constructorMethod = valueClass.method(interfaceMethod.mods().getValue() & ~JMod.ABSTRACT | JMod.STATIC, types._void, interfaceMethod.name());
@@ -346,7 +344,7 @@ class ValueClassModel {
         return constructorMethods;
     }
 
-    private Map<String, JDefinedClass> buildCaseClasses(Serialization serialization) throws JClassAlreadyExistsException {
+    Map<String, JDefinedClass> buildCaseClasses(Serialization serialization) throws JClassAlreadyExistsException {
         Map<String, JDefinedClass> caseClasses = new TreeMap<String, JDefinedClass>();
         for (JMethod interfaceMethod: visitorInterface.methods()) {
             JDefinedClass caseClass = buildCaseClass(interfaceMethod, serialization);
@@ -504,55 +502,51 @@ class ValueClassModel {
         _else._return(invocation1);
     }
 
-    void buildHashCodeMethod(int hashCodeBase) throws SourceException {
+    void buildHashCodeMethod(JFieldVar acceptorField, Map<String, JDefinedClass> caseClasses, int hashCodeBase) throws SourceException {
         JMethod hashCodeMethod = valueClass.method(JMod.PUBLIC | JMod.FINAL, types._int, "hashCode");
         hashCodeMethod.annotate(Override.class);
+        JInvocation invocation1 = acceptorField.invoke("hashCode");
+        hashCodeMethod.body()._return(invocation1);
+
         AbstractJClass usedValueClassType = valueClass.narrow(valueClass.typeParams());
         AbstractJClass visitorType = visitorInterface.narrowed(usedValueClassType, types._Integer, types._RuntimeException);
 
-        JDefinedClass anonymousClass1 = valueClass.owner().anonymousClass(visitorType);
         int tag = 1;
         for (JMethod interfaceMethod1: visitorInterface.methods()) {
-            JMethod visitorMethod1 = anonymousClass1.method(interfaceMethod1.mods().getValue() & ~JMod.ABSTRACT, types._Integer, interfaceMethod1.name());
-            visitorMethod1.annotate(Nonnull.class);
-            visitorMethod1.annotate(Override.class);
+            JDefinedClass caseClass = caseClasses.get(interfaceMethod1.name());
+            JMethod caseHashCodeMethod = caseClass.method(JMod.PUBLIC | JMod.FINAL, types._int, "hashCode");
+            caseHashCodeMethod.annotate(Override.class);
+
             VariableNameSource nameSource = new VariableNameSource();
-            List<JVar> arguments = new ArrayList<JVar>();
-            JVar varArgument = null;
+            List<JFieldVar> arguments = new ArrayList<JFieldVar>();
+            JFieldVar varArgument = null;
             for (JVar param: interfaceMethod1.params()) {
-                AbstractJType argumentType = visitorInterface.substituteSpecialType(param.type(), usedValueClassType, types._Integer, types._RuntimeException);
-                JVar argument = visitorMethod1.param(param.mods().getValue(), argumentType, nameSource.get(param.name()));
-                arguments.add(argument);
+                arguments.add(caseClass.fields().get(param.name()));
             }
             JVar param = interfaceMethod1.listVarParam();
             if (param != null) {
-                AbstractJType argumentType = visitorInterface.substituteSpecialType(param.type().elementType(), usedValueClassType, types._Integer, types._RuntimeException);
-                JVar argument = visitorMethod1.varParam(param.mods().getValue(), argumentType, nameSource.get(param.name()));
-                varArgument = argument;
+                varArgument = caseClass.fields().get(param.name());
             }
 
-            HashCodeMethod methodModel = new HashCodeMethod(types, hashCodeBase, visitorMethod1.body(), nameSource);
+            HashCodeMethod methodModel = new HashCodeMethod(types, hashCodeBase, caseHashCodeMethod.body(), nameSource);
             HashCodeMethod.Body body = methodModel.createBody(tag);
             for (int i = 0; i < arguments.size(); i++) {
                 param = interfaceMethod1.params().get(i);
                 JVar argument = arguments.get(i);
                 if (isNullable(param))
-                    body.appendNullableValue(argument.type(), argument);
+                    body.appendNullableValue(argument.type(), JExpr.refthis(argument));
                 else
-                    body.appendNotNullValue(argument.type(), argument);
+                    body.appendNotNullValue(argument.type(), JExpr.refthis(argument));
             }
             if (varArgument != null) {
                 if (isNullable(param))
-                    body.appendNullableValue(varArgument.type(), varArgument);
+                    body.appendNullableValue(varArgument.type(), JExpr.refthis(varArgument));
                 else
-                    body.appendNotNullValue(varArgument.type(), varArgument);
+                    body.appendNotNullValue(varArgument.type(), JExpr.refthis(varArgument));
             }
-            visitorMethod1.body()._return(body.result());
+            caseHashCodeMethod.body()._return(body.result());
             tag++;
         }
-        JInvocation invocation1 = JExpr._this().invoke("accept");
-        invocation1.arg(JExpr._new(anonymousClass1));
-        hashCodeMethod.body()._return(invocation1);
     }
 
     void buildToStringMethod() throws SourceException {
