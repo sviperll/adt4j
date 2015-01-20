@@ -75,6 +75,16 @@ class ValueClassModel {
         }
     }
 
+    private static String decapitalize(String s) {
+        if (s.length() >= 2
+            && Character.isHighSurrogate(s.charAt(0))
+            && Character.isLowSurrogate(s.charAt(1))) {
+            return s.substring(0, 2).toLowerCase(Locale.US) + s.substring(2);
+        } else {
+            return s.substring(0, 1).toLowerCase(Locale.US) + s.substring(1);
+        }
+    }
+
     private static boolean isNullable(JVar param) throws SourceException {
         boolean hasNonnull = false;
         boolean hasNullable = false;
@@ -110,54 +120,14 @@ class ValueClassModel {
     }
 
     MethodBuilder createMethodBuilder(Serialization serialization) throws JClassAlreadyExistsException {
-        JDefinedClass proxyClass = buildProxyClass(serialization);
         JFieldVar acceptorField = buildAcceptorField();
         Map<String, JDefinedClass> caseClasses = buildCaseClasses(serialization);
-        return new MethodBuilder(proxyClass, caseClasses, acceptorField);
+        return new MethodBuilder(caseClasses, acceptorField);
     }
 
     private JFieldVar buildAcceptorField() {
         AbstractJType usedAcceptingInterfaceType = acceptingInterface.narrow(valueClass.typeParams());
         return valueClass.field(JMod.PRIVATE | JMod.FINAL, usedAcceptingInterfaceType, "acceptor");
-    }
-
-    private JDefinedClass buildProxyClass(Serialization serialization) throws JClassAlreadyExistsException {
-        JDefinedClass proxyClass = valueClass._class(JMod.PRIVATE | JMod.STATIC, "Proxy" + acceptingInterface.name(), EClassType.CLASS);
-        for (JTypeVar visitorTypeParameter: acceptingInterface.typeParams()) {
-            Types.generifyWithBoundsFrom(proxyClass, visitorTypeParameter.name(), visitorTypeParameter);
-        }
-        AbstractJClass usedAcceptingInterfaceType = acceptingInterface.narrow(proxyClass.typeParams());
-        proxyClass._implements(usedAcceptingInterfaceType);
-
-        if (serialization.isSerializable()) {
-            proxyClass._implements(types._Serializable);
-            proxyClass.field(JMod.PRIVATE | JMod.FINAL | JMod.STATIC, types._long, "serialVersionUID", JExpr.lit(serialization.serialVersionUID()));
-        }
-
-        JMethod constructor = proxyClass.constructor(JMod.NONE);
-        AbstractJClass usedValueClassType = valueClass.narrow(proxyClass.typeParams());
-        proxyClass.field(JMod.PRIVATE | JMod.FINAL, usedValueClassType, "implementation");
-        constructor.param(usedValueClassType, "implementation");
-        constructor.body().assign(JExpr._this().ref("implementation"), JExpr.ref("implementation"));
-
-        JMethod acceptMethod = proxyClass.method(JMod.PUBLIC, types._void, "accept");
-        acceptMethod.annotate(Override.class);
-        JTypeVar visitorResultType = visitorInterface.getResultTypeParameter();
-        JTypeVar resultType = Types.generifyWithBoundsFrom(acceptMethod, visitorResultType.name(), visitorResultType);
-        acceptMethod.type(resultType);
-        JTypeVar visitorExceptionType = visitorInterface.getExceptionTypeParameter();
-        JTypeVar exceptionType = null;
-        if (visitorExceptionType != null) {
-            exceptionType = Types.generifyWithBoundsFrom(acceptMethod, visitorExceptionType.name(), visitorExceptionType);
-            acceptMethod._throws(exceptionType);
-        }
-
-        AbstractJClass usedVisitorType = visitorInterface.narrowed(usedValueClassType, resultType, exceptionType);
-        acceptMethod.param(usedVisitorType, "visitor");
-        JInvocation invocation = JExpr.ref("implementation").invoke("accept");
-        invocation.arg(JExpr.ref("visitor"));
-        acceptMethod.body()._return(invocation);
-        return proxyClass;
     }
 
     JMethod buildFactory(Map<String, JMethod> constructorMethods) throws JClassAlreadyExistsException {
@@ -627,12 +597,10 @@ class ValueClassModel {
     }
 
     class MethodBuilder {
-        private final JDefinedClass proxyClass;
         private final Map<String, JDefinedClass> caseClasses;
         private final JFieldVar acceptorField;
 
-        private MethodBuilder(JDefinedClass proxyClass, Map<String, JDefinedClass> caseClasses, JFieldVar acceptorField) {
-            this.proxyClass = proxyClass;
+        private MethodBuilder(Map<String, JDefinedClass> caseClasses, JFieldVar acceptorField) {
             this.caseClasses = caseClasses;
             this.acceptorField = acceptorField;
         }
@@ -655,10 +623,7 @@ class ValueClassModel {
             nullPointerExceptionConstruction.arg(JExpr.lit("Argument shouldn't be null: 'implementation' argument in class constructor invocation: " + valueClass.fullName()));
             nullCheck._then()._throw(nullPointerExceptionConstruction);
 
-            AbstractJClass usedProxyClassType = proxyClass.narrow(valueClass.typeParams());
-            JInvocation construction = JExpr._new(usedProxyClassType);
-            construction.arg(JExpr.ref("implementation"));
-            constructor.body().assign(JExpr.refthis(acceptorField.name()), construction);
+            constructor.body().assign(JExpr.refthis(acceptorField), param.ref(acceptorField));
         }
 
         void buildAcceptMethod() {
@@ -769,20 +734,18 @@ class ValueClassModel {
         }
 
         void buildHashCodeMethod(int hashCodeBase) throws SourceException {
-            JMethod hashCodeMethod = proxyClass.method(JMod.PUBLIC | JMod.FINAL, types._int, "hashCode");
+            String hashCodeMethodName = decapitalize(valueClass.name()) + "HashCode";
+            JMethod hashCodeMethod = valueClass.method(JMod.PUBLIC | JMod.FINAL, types._int, "hashCode");
             hashCodeMethod.annotate(Override.class);
-            JInvocation invocation = JExpr.refthis("implementation").invoke("hashCode");
+            JInvocation invocation = JExpr.refthis(acceptorField).invoke(hashCodeMethodName);
             hashCodeMethod.body()._return(invocation);
 
-            hashCodeMethod = valueClass.method(JMod.PUBLIC | JMod.FINAL, types._int, "hashCode");
-            hashCodeMethod.annotate(Override.class);
-            invocation = JExpr.refthis(acceptorField).invoke("hashCode");
-            hashCodeMethod.body()._return(invocation);
+            acceptingInterface.method(JMod.PUBLIC, types._int, hashCodeMethodName);
 
             int tag = 1;
             for (JMethod interfaceMethod1: visitorInterface.methods()) {
                 JDefinedClass caseClass = caseClasses.get(interfaceMethod1.name());
-                JMethod caseHashCodeMethod = caseClass.method(JMod.PUBLIC | JMod.FINAL, types._int, "hashCode");
+                JMethod caseHashCodeMethod = caseClass.method(JMod.PUBLIC | JMod.FINAL, types._int, hashCodeMethodName);
                 caseHashCodeMethod.annotate(Override.class);
 
                 VariableNameSource nameSource = new VariableNameSource();
@@ -818,16 +781,10 @@ class ValueClassModel {
         }
 
         void buildToStringMethod() throws SourceException {
-            JMethod toStringMethod = proxyClass.method(JMod.PUBLIC | JMod.FINAL, types._String, "toString");
+            JMethod toStringMethod = valueClass.method(JMod.PUBLIC | JMod.FINAL, types._String, "toString");
             toStringMethod.annotate(Override.class);
             toStringMethod.annotate(Nonnull.class);
-            JInvocation invocation1 = JExpr.refthis("implementation").invoke("toString");
-            toStringMethod.body()._return(invocation1);
-
-            toStringMethod = valueClass.method(JMod.PUBLIC | JMod.FINAL, types._String, "toString");
-            toStringMethod.annotate(Override.class);
-            toStringMethod.annotate(Nonnull.class);
-            invocation1 = JExpr.refthis(acceptorField).invoke("toString");
+            JInvocation invocation1 = JExpr.refthis(acceptorField).invoke("toString");
             toStringMethod.body()._return(invocation1);
 
             for (JMethod interfaceMethod1: visitorInterface.methods()) {
@@ -893,18 +850,6 @@ class ValueClassModel {
             }
             JInvocation invocation1 = JExpr.refthis(acceptorField).invoke(getterName);
             getterMethod.body()._return(invocation1);
-
-            getterMethod = proxyClass.method(JMod.PUBLIC | JMod.FINAL, configuration.type(), getterName);
-            getterMethod.annotate(Override.class);
-            if (configuration.type().isReference()) {
-                if (configuration.flags().isNullable())
-                    getterMethod.annotate(Nullable.class);
-                else
-                    getterMethod.annotate(Nonnull.class);
-            }
-            invocation1 = JExpr.refthis("implementation").invoke(getterName);
-            getterMethod.body()._return(invocation1);
-
 
             for (JMethod interfaceMethod1: visitorInterface.methods()) {
                 JDefinedClass caseClass = caseClasses.get(interfaceMethod1.name());
