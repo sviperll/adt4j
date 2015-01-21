@@ -29,14 +29,14 @@
  */
 package com.github.sviperll.adt4j.model;
 
-import com.github.sviperll.adt4j.model.util.Types;
-import com.github.sviperll.adt4j.model.util.ValueVisitorInterfaceModel;
-import com.github.sviperll.adt4j.model.util.Serialization;
-import com.github.sviperll.adt4j.model.util.VariableNameSource;
-import com.github.sviperll.adt4j.model.util.SourceException;
 import com.github.sviperll.adt4j.GeneratePredicate;
 import com.github.sviperll.adt4j.Getter;
 import com.github.sviperll.adt4j.Updater;
+import com.github.sviperll.adt4j.model.util.Serialization;
+import com.github.sviperll.adt4j.model.util.SourceException;
+import com.github.sviperll.adt4j.model.util.Types;
+import com.github.sviperll.adt4j.model.util.ValueVisitorInterfaceModel;
+import com.github.sviperll.adt4j.model.util.VariableNameSource;
 import com.helger.jcodemodel.AbstractJClass;
 import com.helger.jcodemodel.AbstractJType;
 import com.helger.jcodemodel.EClassType;

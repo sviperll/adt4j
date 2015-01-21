@@ -29,14 +29,14 @@
  */
 package com.github.sviperll.adt4j.model;
 
-import com.github.sviperll.adt4j.model.util.Types;
-import com.github.sviperll.adt4j.model.util.ErrorTypeFound;
-import com.github.sviperll.adt4j.model.util.CodeGenerationException;
-import com.github.sviperll.adt4j.model.util.ValueVisitorInterfaceModel;
-import com.github.sviperll.adt4j.model.util.Serialization;
-import com.github.sviperll.adt4j.model.util.SourceException;
 import com.github.sviperll.adt4j.GenerateValueClassForVisitor;
 import com.github.sviperll.adt4j.GenerateValueClassForVisitorProcessor;
+import com.github.sviperll.adt4j.model.util.CodeGenerationException;
+import com.github.sviperll.adt4j.model.util.ErrorTypeFound;
+import com.github.sviperll.adt4j.model.util.Serialization;
+import com.github.sviperll.adt4j.model.util.SourceException;
+import com.github.sviperll.adt4j.model.util.Types;
+import com.github.sviperll.adt4j.model.util.ValueVisitorInterfaceModel;
 import com.helger.jcodemodel.AbstractJClass;
 import com.helger.jcodemodel.AbstractJType;
 import com.helger.jcodemodel.EClassType;
@@ -44,7 +44,6 @@ import com.helger.jcodemodel.JAnnotationUse;
 import com.helger.jcodemodel.JClassAlreadyExistsException;
 import com.helger.jcodemodel.JDefinedClass;
 import com.helger.jcodemodel.JExpr;
-import com.helger.jcodemodel.JFieldVar;
 import com.helger.jcodemodel.JMethod;
 import com.helger.jcodemodel.JMod;
 import com.helger.jcodemodel.JPackage;

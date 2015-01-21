@@ -75,7 +75,7 @@ class JCodeModelJavaxLangModelAdapter {
     private static int toJMod(Collection<Modifier> modifierCollection) {
         int modifiers = 0;
         for (Modifier modifier: modifierCollection) {
-            modifiers = modifiers | toJMod(modifier);
+            modifiers |= toJMod(modifier);
         }
         return modifiers;
     }
@@ -136,7 +136,7 @@ class JCodeModelJavaxLangModelAdapter {
         EClassType classType = toClassType(element.getKind());
         int modifiers = toJMod(element.getModifiers());
         if (classType.equals(EClassType.INTERFACE))
-            modifiers = modifiers & ~JMod.ABSTRACT;
+            modifiers &= ~JMod.ABSTRACT;
 
         JDefinedClass newClass;
         try {
@@ -281,7 +281,7 @@ class JCodeModelJavaxLangModelAdapter {
                 public AbstractJType visitError(ErrorType t, Void p) {
                     try {
                         throw new ErrorTypeFound();
-                    } catch (ProcessingException ex) {
+                    } catch (ErrorTypeFound ex) {
                         throw new RuntimeProcessingException(ex);
                     }
                 }
