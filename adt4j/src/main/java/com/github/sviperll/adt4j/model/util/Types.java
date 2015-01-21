@@ -113,6 +113,6 @@ public class Types {
             boolean result = _Comparable.narrow(klass.wildcardSuper()).isAssignableFrom(klass);
             return result;
         } else
-            throw new SourceException("Unexpected jcodemodel type: " + type);
+            throw new IllegalStateException("Unexpected jcodemodel type: " + type);
     }
 }
