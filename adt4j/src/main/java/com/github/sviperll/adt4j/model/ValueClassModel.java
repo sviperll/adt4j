@@ -256,96 +256,6 @@ class ValueClassModel {
         return caseClass;
     }
 
-    void buildEqualsMethod() throws SourceException {
-        JMethod equalsMethod = valueClass.method(JMod.PUBLIC | JMod.FINAL, types._boolean, "equals");
-        VariableNameSource nameSource = new VariableNameSource();
-        equalsMethod.annotate(Override.class);
-        JAnnotationUse annotationUse = equalsMethod.annotate(SuppressWarnings.class);
-        annotationUse.param("value", "unchecked");
-        JVar thatObject = equalsMethod.param(types._Object, nameSource.get("thatObject"));
-        JConditional _if = equalsMethod.body()._if(JExpr._this().eq(thatObject));
-        _if._then()._return(JExpr.TRUE);
-        JConditional elseif = _if._elseif(thatObject._instanceof(valueClass).not());
-        elseif._then()._return(JExpr.FALSE);
-        JBlock _else = elseif._else();
-        AbstractJClass usedValueClassType = valueClass.narrow(valueClass.typeParams());
-        JVar that = _else.decl(JMod.FINAL, usedValueClassType, nameSource.get("that"), JExpr.cast(usedValueClassType, thatObject));
-        AbstractJClass visitorType = visitorInterface.narrowed(usedValueClassType, types._Boolean, types._RuntimeException);
-
-        JDefinedClass anonymousClass1 = valueClass.owner().anonymousClass(visitorType);
-        for (JMethod interfaceMethod1: visitorInterface.methods()) {
-            JMethod visitorMethod1 = anonymousClass1.method(interfaceMethod1.mods().getValue() & ~JMod.ABSTRACT, types._Boolean, interfaceMethod1.name());
-            visitorMethod1.annotate(Nonnull.class);
-            visitorMethod1.annotate(Override.class);
-
-            VariableNameSource nameSource1 = nameSource.forBlock();
-            List<JVar> arguments1 = new ArrayList<JVar>();
-            JVar varArgument1 = null;
-            for (JVar param1: interfaceMethod1.params()) {
-                AbstractJType argumentType = visitorInterface.substituteSpecialType(param1.type(), usedValueClassType, types._Boolean, types._RuntimeException);
-                JVar argument1 = visitorMethod1.param(param1.mods().getValue() | JMod.FINAL, argumentType, nameSource1.get(param1.name()));
-                arguments1.add(argument1);
-            }
-            JVar param1 = interfaceMethod1.listVarParam();
-            if (param1 != null) {
-                AbstractJType argumentType = visitorInterface.substituteSpecialType(param1.type().elementType(), usedValueClassType, types._Boolean, types._RuntimeException);
-                JVar argument1 = visitorMethod1.varParam(param1.mods().getValue() | JMod.FINAL, argumentType, nameSource1.get(param1.name()));
-                varArgument1 = argument1;
-            }
-
-            JDefinedClass anonymousClass2 = valueClass.owner().anonymousClass(visitorType);
-            for (JMethod interfaceMethod2: visitorInterface.methods()) {
-                JMethod visitorMethod2 = anonymousClass2.method(interfaceMethod1.mods().getValue() & ~JMod.ABSTRACT, types._Boolean, interfaceMethod2.name());
-                visitorMethod2.annotate(Nonnull.class);
-                visitorMethod2.annotate(Override.class);
-
-                VariableNameSource nameSource2 = nameSource1.forBlock();
-                List<JVar> arguments2 = new ArrayList<JVar>();
-                JVar varArgument2 = null;
-                for (JVar param2: interfaceMethod2.params()) {
-                    AbstractJType argumentType = visitorInterface.substituteSpecialType(param2.type(), usedValueClassType, types._Boolean, types._RuntimeException);
-                    JVar argument2 = visitorMethod2.param(param2.mods().getValue(), argumentType, nameSource2.get(param2.name()));
-                    arguments2.add(argument2);
-                }
-                JVar param2 = interfaceMethod2.listVarParam();
-                if (param2 != null) {
-                    AbstractJType argumentType = visitorInterface.substituteSpecialType(param2.type().elementType(), usedValueClassType, types._Boolean, types._RuntimeException);
-                    JVar argument2 = visitorMethod2.varParam(param2.mods().getValue(), argumentType, nameSource2.get(param2.name()));
-                    varArgument2 = argument2;
-                }
-                if (!interfaceMethod1.name().equals(interfaceMethod2.name()))
-                    visitorMethod2.body()._return(JExpr.FALSE);
-                else {
-                    EqualsMethod body = new EqualsMethod(types, visitorMethod2.body(), nameSource2);
-                    for (int i = 0; i < arguments1.size(); i++) {
-                        JVar field1 = arguments1.get(i);
-                        JVar field2 = arguments2.get(i);
-                        JVar param = interfaceMethod1.params().get(i);
-                        if (isNullable(param))
-                            body.appendNullableValue(field1.type(), field1, field2);
-                        else
-                            body.appendNotNullValue(field1.type(), field1, field2);
-                    }
-                    if (varArgument1 != null) {
-                        JVar param = interfaceMethod1.listVarParam();
-                        if (isNullable(param))
-                            body.appendNullableValue(varArgument1.type(), varArgument1, varArgument2);
-                        else
-                            body.appendNotNullValue(varArgument1.type(), varArgument1, varArgument2);
-                    }
-                    visitorMethod2.body()._return(JExpr.TRUE);
-                }
-            }
-
-            JInvocation invocation2 = that.invoke("accept");
-            invocation2.arg(JExpr._new(anonymousClass2));
-            visitorMethod1.body()._return(invocation2);
-        }
-        JInvocation invocation1 = JExpr._this().invoke("accept");
-        invocation1.arg(JExpr._new(anonymousClass1));
-        _else._return(invocation1);
-    }
-
     Map<String, FieldConfiguration> getGettersConfigutation() throws SourceException {
         AbstractJClass usedValueClassType = valueClass.narrow(valueClass.typeParams());
         Map<String, FieldConfiguration> gettersMap = new TreeMap<String, FieldConfiguration>();
@@ -923,24 +833,97 @@ class ValueClassModel {
 
         }
 
-    }
+        void buildEqualsMethod() throws SourceException, JClassAlreadyExistsException {
+            AbstractJClass usedValueClassType = valueClass.narrow(valueClass.typeParams());
+            String equalsMethodName = decapitalize(valueClass.name()) + "Equals";
+            JMethod equalsMethod = acceptingInterface.method(JMod.PUBLIC, types._boolean, equalsMethodName);
+            VariableNameSource nameSource = new VariableNameSource();
+            equalsMethod.param(usedValueClassType, nameSource.get("that"));
 
-    private class UpdaterBody {
-        private final FieldConfiguration configuration;
-        private final JVar newValue;
-        private final VariableNameSource nameSource;
-        UpdaterBody(FieldConfiguration configuration, JVar newValue, VariableNameSource nameSource) {
-            this.configuration = configuration;
-            this.newValue = newValue;
-            this.nameSource = nameSource;
+            equalsMethod = valueClass.method(JMod.PUBLIC | JMod.FINAL, types._boolean, "equals");
+            nameSource = new VariableNameSource();
+            equalsMethod.annotate(Override.class);
+            JAnnotationUse annotationUse = equalsMethod.annotate(SuppressWarnings.class);
+            annotationUse.param("value", "unchecked");
+            JVar thatObject = equalsMethod.param(types._Object, nameSource.get("thatObject"));
+            JConditional _if = equalsMethod.body()._if(JExpr._this().eq(thatObject));
+            _if._then()._return(JExpr.TRUE);
+            JConditional elseif = _if._elseif(thatObject._instanceof(valueClass).not());
+            elseif._then()._return(JExpr.FALSE);
+            JBlock _else = elseif._else();
+            JVar that = _else.decl(JMod.FINAL, usedValueClassType, nameSource.get("that"), JExpr.cast(usedValueClassType, thatObject));
+            JInvocation invocation1 = JExpr.refthis(acceptorField).invoke(equalsMethodName);
+            invocation1.arg(that);
+            _else._return(invocation1);
+
+            AbstractJClass visitorType = visitorInterface.narrowed(usedValueClassType, types._Boolean, types._RuntimeException);
+            for (JMethod interfaceMethod1: visitorInterface.methods()) {
+                JDefinedClass caseClass = caseClasses.get(interfaceMethod1.name());
+                equalsMethod = caseClass.method(JMod.PUBLIC | JMod.FINAL, types._boolean, equalsMethodName);
+                equalsMethod.annotate(Override.class);
+                nameSource = new VariableNameSource();
+                equalsMethod.param(usedValueClassType, nameSource.get("that"));
+
+                List<JFieldVar> arguments1 = new ArrayList<JFieldVar>();
+                JFieldVar varArgument1 = null;
+                for (JVar param1: interfaceMethod1.params()) {
+                    arguments1.add(caseClass.fields().get(param1.name()));
+                }
+                JVar param1 = interfaceMethod1.listVarParam();
+                if (param1 != null) {
+                    varArgument1 = caseClass.fields().get(param1.name());
+                }
+
+                JDefinedClass equalsVisitorClass2 = caseClass._class(JMod.PRIVATE, caseClass.name() + "EqualsVisitor");
+                JFieldVar equalsVisitorField = caseClass.field(JMod.PRIVATE | JMod.FINAL, visitorType, "EQUALS_VISITOR", JExpr._new(equalsVisitorClass2));
+                equalsVisitorClass2._implements(visitorType);
+                JInvocation invocation2 = that.invoke("accept");
+                invocation2.arg(JExpr.refthis(equalsVisitorField));
+                equalsMethod.body()._return(invocation2);
+                for (JMethod interfaceMethod2: visitorInterface.methods()) {
+                    JMethod visitorMethod2 = equalsVisitorClass2.method(interfaceMethod1.mods().getValue() & ~JMod.ABSTRACT, types._Boolean, interfaceMethod2.name());
+                    visitorMethod2.annotate(Nonnull.class);
+                    visitorMethod2.annotate(Override.class);
+
+                    VariableNameSource nameSource2 = nameSource.forBlock();
+                    List<JVar> arguments2 = new ArrayList<JVar>();
+                    JVar varArgument2 = null;
+                    for (JVar param2: interfaceMethod2.params()) {
+                        AbstractJType argumentType = visitorInterface.substituteSpecialType(param2.type(), usedValueClassType, types._Boolean, types._RuntimeException);
+                        JVar argument2 = visitorMethod2.param(param2.mods().getValue(), argumentType, nameSource2.get(param2.name()));
+                        arguments2.add(argument2);
+                    }
+                    JVar param2 = interfaceMethod2.listVarParam();
+                    if (param2 != null) {
+                        AbstractJType argumentType = visitorInterface.substituteSpecialType(param2.type().elementType(), usedValueClassType, types._Boolean, types._RuntimeException);
+                        JVar argument2 = visitorMethod2.varParam(param2.mods().getValue(), argumentType, nameSource2.get(param2.name()));
+                        varArgument2 = argument2;
+                    }
+                    if (!interfaceMethod1.name().equals(interfaceMethod2.name()))
+                        visitorMethod2.body()._return(JExpr.FALSE);
+                    else {
+                        EqualsMethod body = new EqualsMethod(types, visitorMethod2.body(), nameSource2);
+                        for (int i = 0; i < arguments1.size(); i++) {
+                            JFieldVar field1 = arguments1.get(i);
+                            JVar field2 = arguments2.get(i);
+                            JVar param = interfaceMethod1.params().get(i);
+                            if (isNullable(param))
+                                body.appendNullableValue(field1.type(), caseClass.staticRef("this").ref(field1), field2);
+                            else
+                                body.appendNotNullValue(field1.type(), caseClass.staticRef("this").ref(field1), field2);
+                        }
+                        if (varArgument1 != null) {
+                            JVar param = interfaceMethod1.listVarParam();
+                            if (isNullable(param))
+                                body.appendNullableValue(varArgument1.type(), caseClass.staticRef("this").ref(varArgument1), varArgument2);
+                            else
+                                body.appendNotNullValue(varArgument1.type(), caseClass.staticRef("this").ref(varArgument1), varArgument2);
+                        }
+                        visitorMethod2.body()._return(JExpr.TRUE);
+                    }
+                }
+            }
         }
 
-        private void generateCase(JMethod interfaceMethod1) {
-        }
     }
-
-
-
-
-
 }

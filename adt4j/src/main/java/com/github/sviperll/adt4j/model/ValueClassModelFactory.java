@@ -210,7 +210,7 @@ public class ValueClassModelFactory {
             if (annotation.valueClassIsComparable()) {
                 result.buildCompareTo();
             }
-            result.buildEqualsMethod();
+            methodBuilder.buildEqualsMethod();
             methodBuilder.buildHashCodeMethod(annotation.valueClassHashCodeBase());
             methodBuilder.buildToStringMethod();
             result.buildFactory(constructorMethods);
