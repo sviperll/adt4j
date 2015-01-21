@@ -59,6 +59,7 @@ Features
  * Optionally generate serializable classes with presise compile-time type-check if it is possible
  * Sensible error messages
  * Support generated class extention through standard Java's inheritance.
+ * Reasonable fast
 
 License
 -------
@@ -79,12 +80,16 @@ Use maven dependency to use ADT4J:
     <dependency>
         <groupId>com.github.sviperll</groupId>
         <artifactId>adt4j</artifactId>
-        <version>0.12</version>
+        <version>0.13</version>
     </dependency>
 ```
 
 Changelog
 ---------
+
+Since 0.13
+
+ * Lots of performance improvements
 
 Since 0.12
 
