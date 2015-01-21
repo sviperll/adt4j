@@ -424,7 +424,7 @@ class ValueClassModel {
         return updatersMap;
     }
 
-    void buildPredicates() throws SourceException {
+    Set<String> getPredicates() throws SourceException {
         Set<String> predicates = new TreeSet<String>();
         for (JMethod interfaceMethod: visitorInterface.methods()) {
             for (JAnnotationUse annotationUsage: interfaceMethod.annotations()) {
@@ -434,46 +434,7 @@ class ValueClassModel {
                 }
             }
         }
-        for (String name: predicates) {
-            generatePredicate(name);
-        }
-    }
-
-    private void generatePredicate(String name) {
-        AbstractJClass usedValueClassType = valueClass.narrow(valueClass.typeParams());
-        JMethod predicateMethod = valueClass.method(JMod.PUBLIC | JMod.FINAL, types._boolean, name);
-        AbstractJClass visitorType = visitorInterface.narrowed(usedValueClassType, types._Boolean, types._RuntimeException);
-
-        JDefinedClass anonymousClass1 = valueClass.owner().anonymousClass(visitorType);
-        for (JMethod interfaceMethod1: visitorInterface.methods()) {
-            JMethod visitorMethod1 = anonymousClass1.method(interfaceMethod1.mods().getValue() & ~JMod.ABSTRACT, types._Boolean, interfaceMethod1.name());
-            visitorMethod1.annotate(Nonnull.class);
-            visitorMethod1.annotate(Override.class);
-            for (JVar param: interfaceMethod1.params()) {
-                AbstractJType argumentType = visitorInterface.substituteSpecialType(param.type(), usedValueClassType, types._Boolean, types._RuntimeException);
-                visitorMethod1.param(param.mods().getValue(), argumentType, param.name());
-            }
-            JVar param = interfaceMethod1.listVarParam();
-            if (param != null) {
-                AbstractJType argumentType = visitorInterface.substituteSpecialType(param.type().elementType(), usedValueClassType, types._Boolean, types._RuntimeException);
-                visitorMethod1.varParam(param.mods().getValue(), argumentType, param.name());
-            }
-            boolean result = false;
-            for (JAnnotationUse annotationUsage: interfaceMethod1.annotations()) {
-                if (annotationUsage.getAnnotationClass().fullName().equals(GeneratePredicate.class.getName())) {
-                    @SuppressWarnings("null") String predicateName = (String)annotationUsage.getConstantParam("value").nativeValue();
-                    if (predicateName.equals(name)) {
-                        result = true;
-                        break;
-                    }
-                }
-            }
-            visitorMethod1.body()._return(JExpr.lit(result));
-        }
-
-        JInvocation invocation1 = JExpr._this().invoke("accept");
-        invocation1.arg(JExpr._new(anonymousClass1));
-        predicateMethod.body()._return(invocation1);
+        return predicates;
     }
 
     void buildCompareTo() throws SourceException {
@@ -934,6 +895,34 @@ class ValueClassModel {
                 updaterMethod.body()._return(invocation);
             }
         }
+
+        void generatePredicate(String name) {
+            AbstractJClass usedValueClassType = valueClass.narrow(valueClass.typeParams());
+            acceptingInterface.method(JMod.PUBLIC, types._boolean, name);
+
+            JMethod predicateMethod = valueClass.method(JMod.PUBLIC | JMod.FINAL, types._boolean, name);
+            predicateMethod.body()._return(JExpr.refthis(acceptorField).invoke(name));
+
+            for (JMethod interfaceMethod1: visitorInterface.methods()) {
+                JDefinedClass caseClass = caseClasses.get(interfaceMethod1.name());
+                predicateMethod = caseClass.method(JMod.PUBLIC | JMod.FINAL, types._boolean, name);
+                predicateMethod.annotate(Override.class);
+
+                boolean result = false;
+                for (JAnnotationUse annotationUsage: interfaceMethod1.annotations()) {
+                    if (annotationUsage.getAnnotationClass().fullName().equals(GeneratePredicate.class.getName())) {
+                        @SuppressWarnings("null") String predicateName = (String)annotationUsage.getConstantParam("value").nativeValue();
+                        if (predicateName.equals(name)) {
+                            result = true;
+                            break;
+                        }
+                    }
+                }
+                predicateMethod.body()._return(JExpr.lit(result));
+            }
+
+        }
+
     }
 
     private class UpdaterBody {

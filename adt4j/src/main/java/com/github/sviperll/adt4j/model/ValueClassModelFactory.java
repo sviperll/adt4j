@@ -51,6 +51,7 @@ import com.helger.jcodemodel.JPackage;
 import com.helger.jcodemodel.JTypeVar;
 import com.helger.jcodemodel.JVar;
 import java.util.Map;
+import java.util.Set;
 import javax.annotation.Generated;
 import javax.annotation.ParametersAreNonnullByDefault;
 
@@ -202,7 +203,10 @@ public class ValueClassModelFactory {
             for (FieldConfiguration updater: updatersConfiguration.values()) {
                 methodBuilder.generateUpdater(updater);
             }
-            result.buildPredicates();
+            Set<String> predicates = result.getPredicates();
+            for (String predicate: predicates) {
+                methodBuilder.generatePredicate(predicate);
+            }
             if (annotation.valueClassIsComparable()) {
                 result.buildCompareTo();
             }
