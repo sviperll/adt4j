@@ -40,7 +40,6 @@ import com.github.sviperll.adt4j.Updater;
 import com.helger.jcodemodel.AbstractJClass;
 import com.helger.jcodemodel.AbstractJType;
 import com.helger.jcodemodel.EClassType;
-import com.helger.jcodemodel.IJExpression;
 import com.helger.jcodemodel.JAnnotationArrayMember;
 import com.helger.jcodemodel.JAnnotationUse;
 import com.helger.jcodemodel.JBlock;
@@ -148,11 +147,8 @@ class ValueClassModel {
             Types.generifyWithBoundsFrom(factoryMethod, visitorTypeParameter.name(), visitorTypeParameter);
         }
         AbstractJClass usedValueClassType = valueClass.narrow(factoryMethod.typeParams());
-        AbstractJClass usedFactoryType = factory.narrow(factoryMethod.typeParams());
         factoryMethod.type(visitorInterface.narrowed(usedValueClassType, usedValueClassType, types._RuntimeException));
-        IJExpression result = JExpr.ref("FACTORY");
-        result = usedFactoryType.getTypeParameters().isEmpty() ? result : JExpr.cast(usedFactoryType, result);
-        factoryMethod.body()._return(result);
+        factoryMethod.body()._return(factoryField);
         return factoryMethod;
     }
 
@@ -476,8 +472,7 @@ class ValueClassModel {
 
                     JAnnotationUse methodAnnotationUse = constructorMethod.annotate(SuppressWarnings.class);
                     methodAnnotationUse.param("value", "unchecked");
-                    IJExpression result = usedValueClassType.getTypeParameters().isEmpty() ? singletonInstanceField : JExpr.cast(usedValueClassType, singletonInstanceField);
-                    constructorMethod.body()._return(result);
+                    constructorMethod.body()._return(singletonInstanceField);
                 }
                 constructorMethods.put(interfaceMethod.name(), constructorMethod);
             }
