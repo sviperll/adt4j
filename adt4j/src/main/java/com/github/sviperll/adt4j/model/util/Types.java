@@ -108,10 +108,11 @@ public class Types {
     public boolean isComparable(AbstractJType type) throws SourceException {
         if (type.isPrimitive() || type.isArray())
             return type.isPrimitive() || type.isArray() && isComparable(type.elementType());
-        else {
+        else if (type instanceof AbstractJClass) {
             AbstractJClass klass = (AbstractJClass)type;
             boolean result = _Comparable.narrow(klass.wildcardSuper()).isAssignableFrom(klass);
             return result;
-        }
+        } else
+            throw new SourceException("Unexpected jcodemodel type: " + type);
     }
 }

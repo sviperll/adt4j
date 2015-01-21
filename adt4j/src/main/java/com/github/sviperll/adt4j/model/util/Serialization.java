@@ -43,19 +43,19 @@ public class Serialization {
         return new Serialization(true, valueClassSerialVersionUID);
     }
     private final boolean isSerializable;
-    private final long serialVersionUID;
+    private final long serialVersionUIDForGeneratedCode;
 
     private Serialization(boolean isSerializable, long serialVersionUID) {
         this.isSerializable = isSerializable;
-        this.serialVersionUID = serialVersionUID;
+        this.serialVersionUIDForGeneratedCode = serialVersionUID;
     }
 
     public boolean isSerializable() {
         return isSerializable;
     }
 
-    public long serialVersionUID() {
-        return serialVersionUID;
+    public long serialVersionUIDForGeneratedCode() {
+        return serialVersionUIDForGeneratedCode;
     }
 
 }

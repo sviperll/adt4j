@@ -205,7 +205,7 @@ class ValueClassModel {
 
         if (serialization.isSerializable()) {
             caseClass._implements(types._Serializable);
-            caseClass.field(JMod.PRIVATE | JMod.FINAL | JMod.STATIC, types._long, "serialVersionUID", JExpr.lit(serialization.serialVersionUID()));
+            caseClass.field(JMod.PRIVATE | JMod.FINAL | JMod.STATIC, types._long, "serialVersionUID", JExpr.lit(serialization.serialVersionUIDForGeneratedCode()));
         }
 
         JMethod constructor = caseClass.constructor(JMod.NONE);
