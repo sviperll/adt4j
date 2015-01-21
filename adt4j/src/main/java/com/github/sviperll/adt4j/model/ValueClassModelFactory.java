@@ -208,7 +208,7 @@ public class ValueClassModelFactory {
                 methodBuilder.generatePredicate(predicate);
             }
             if (annotation.valueClassIsComparable()) {
-                result.buildCompareTo();
+                methodBuilder.buildCompareTo();
             }
             methodBuilder.buildEqualsMethod();
             methodBuilder.buildHashCodeMethod(annotation.valueClassHashCodeBase());
