@@ -139,7 +139,7 @@ class ValueClassModel {
         paramArray.param("rawtypes");
 
         factoryField.init(JExpr._new(factory));
-        JMethod factoryMethod = valueClass.method(JMod.PUBLIC | JMod.STATIC, types._void, "factory");
+        JMethod factoryMethod = valueClass.method(visitorInterface.factoryMethodsModifiers() | JMod.STATIC, types._void, "factory");
         factoryMethod.annotate(Nonnull.class);
         JAnnotationUse methodAnnotationUse = factoryMethod.annotate(SuppressWarnings.class);
         methodAnnotationUse.param("value", "unchecked");
@@ -223,7 +223,7 @@ class ValueClassModel {
             constructor.body().assign(JExpr._this().ref(field), argument);
         }
 
-        JMethod acceptMethod = caseClass.method(JMod.PUBLIC, types._void, "accept");
+        JMethod acceptMethod = caseClass.method(JMod.PUBLIC, types._void, visitorInterface.acceptMethodName());
         acceptMethod.annotate(Override.class);
 
         JTypeVar visitorResultType = visitorInterface.getResultTypeParameter();
@@ -374,7 +374,7 @@ class ValueClassModel {
         }
 
         void buildAcceptMethod() {
-            JMethod acceptMethod = valueClass.method(JMod.PUBLIC | JMod.FINAL, types._void, "accept");
+            JMethod acceptMethod = valueClass.method(visitorInterface.acceptMethodModifiers() | JMod.FINAL, types._void, visitorInterface.acceptMethodName());
 
             JTypeVar visitorResultType = visitorInterface.getResultTypeParameter();
             JTypeVar resultType = Types.generifyWithBoundsFrom(acceptMethod, visitorResultType.name(), visitorResultType);
@@ -390,7 +390,7 @@ class ValueClassModel {
             AbstractJClass usedValueClassType = valueClass.narrow(valueClass.typeParams());
             AbstractJClass usedVisitorType = visitorInterface.narrowed(usedValueClassType, resultType, exceptionType);
             acceptMethod.param(usedVisitorType, "visitor");
-            JInvocation invocation = acceptorField.invoke("accept");
+            JInvocation invocation = acceptorField.invoke(visitorInterface.acceptMethodName());
             invocation.arg(JExpr.ref("visitor"));
             acceptMethod.body()._return(invocation);
         }
@@ -398,7 +398,7 @@ class ValueClassModel {
         Map<String, JMethod> buildConstructorMethods(Serialization serialization) throws JClassAlreadyExistsException, SourceException {
             Map<String, JMethod> constructorMethods = new TreeMap<String, JMethod>();
             for (JMethod interfaceMethod: visitorInterface.methods()) {
-                JMethod constructorMethod = valueClass.method(interfaceMethod.mods().getValue() & ~JMod.ABSTRACT | JMod.STATIC, types._void, interfaceMethod.name());
+                JMethod constructorMethod = valueClass.method(visitorInterface.factoryMethodsModifiers() | JMod.STATIC, types._void, interfaceMethod.name());
                 constructorMethod.annotate(Nonnull.class);
                 for (JTypeVar visitorTypeParameter: visitorInterface.getValueTypeParameters()) {
                     Types.generifyWithBoundsFrom(constructorMethod, visitorTypeParameter.name(), visitorTypeParameter);
@@ -781,7 +781,7 @@ class ValueClassModel {
                 JDefinedClass equalsVisitorClass2 = caseClass._class(JMod.PRIVATE, caseClass.name() + "EqualsVisitor");
                 JFieldVar equalsVisitorField = caseClass.field(JMod.PRIVATE | JMod.FINAL, visitorType, "equalsVisitor", JExpr._new(equalsVisitorClass2));
                 equalsVisitorClass2._implements(visitorType);
-                JInvocation invocation2 = that.invoke("accept");
+                JInvocation invocation2 = that.invoke(visitorInterface.acceptMethodName());
                 invocation2.arg(JExpr.refthis(equalsVisitorField));
                 equalsMethod.body()._return(invocation2);
                 for (JMethod interfaceMethod2: visitorInterface.methods()) {
@@ -867,7 +867,7 @@ class ValueClassModel {
                 JDefinedClass compareVisitorClass = caseClass._class(JMod.PRIVATE, caseClass.name() + "CompareVisitor");
                 compareVisitorClass._implements(visitorType);
                 JFieldVar field = caseClass.field(JMod.PRIVATE | JMod.FINAL, visitorType, "compareToVisitor", JExpr._new(compareVisitorClass));
-                JInvocation invocation2 = that.invoke("accept");
+                JInvocation invocation2 = that.invoke(visitorInterface.acceptMethodName());
                 invocation2.arg(JExpr.refthis(field));
                 compareToMethod.body()._return(invocation2);
                 for (int interfaceMethodIndex2 = 0; interfaceMethodIndex2 < methods.length; interfaceMethodIndex2++) {

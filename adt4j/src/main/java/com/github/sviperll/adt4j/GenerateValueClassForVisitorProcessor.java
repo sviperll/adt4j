@@ -39,6 +39,7 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.TreeSet;
 import javax.annotation.processing.AbstractProcessor;
 import javax.annotation.processing.RoundEnvironment;
 import javax.annotation.processing.SupportedAnnotationTypes;
@@ -70,11 +71,29 @@ public class GenerateValueClassForVisitorProcessor extends AbstractProcessor {
                 for (Element element: roundEnv.getElementsAnnotatedWith(GenerateValueClassForVisitor.class)) {
                     elements.add((TypeElement)element);
                 }
-                for (String path: remainingElements) {
-                    elements.add(processingEnv.getElementUtils().getTypeElement(path));
+                if (!elements.isEmpty()) {
+                    for (String path: remainingElements) {
+                        elements.add(processingEnv.getElementUtils().getTypeElement(path));
+                    }
+                    remainingElements.clear();
+                    processElements(elements);
+                } else {
+                    processingEnv.getMessager().printMessage(Diagnostic.Kind.NOTE, "Processing postponded elements");
+                    Set<String> oldRemainingElements = new TreeSet<String>();
+                    oldRemainingElements.addAll(remainingElements);
+                    for (String path: remainingElements) {
+                        elements.add(processingEnv.getElementUtils().getTypeElement(path));
+                    }
+                    remainingElements.clear();
+                    processElements(elements);
+                    oldRemainingElements.retainAll(remainingElements);
+                    if (oldRemainingElements.size() == remainingElements.size()) {
+                        for (String path: remainingElements) {
+                            processingEnv.getMessager().printMessage(Diagnostic.Kind.ERROR, "Unable to process " + path);
+                        }
+                        remainingElements.clear();
+                    }
                 }
-                remainingElements.clear();
-                processElements(elements);
             }
         } catch (IOException ex) {
             processingEnv.getMessager().printMessage(Diagnostic.Kind.ERROR, ex.getMessage());
@@ -88,8 +107,7 @@ public class GenerateValueClassForVisitorProcessor extends AbstractProcessor {
                 JCodeModel jCodeModel = new JCodeModel();
                 GenerateValueClassForVisitor dataVisitor = element.getAnnotation(GenerateValueClassForVisitor.class);
                 JCodeModelJavaxLangModelAdapter adapter = new JCodeModelJavaxLangModelAdapter(jCodeModel);
-                JDefinedClass visitorModel = adapter._class(element);
-                visitorModel.hide();
+                JDefinedClass visitorModel = adapter.getClass(element);
                 ValueClassModelFactory.createValueClass(visitorModel, dataVisitor);
                 processingEnv.getMessager().printMessage(Diagnostic.Kind.NOTE, "Generated value class for " + element);
                 FilerCodeWriter writer = new FilerCodeWriter(processingEnv.getFiler(), processingEnv.getMessager());
@@ -99,6 +117,7 @@ public class GenerateValueClassForVisitorProcessor extends AbstractProcessor {
                     writer.close();
                 }
             } catch (ErrorTypeFound ex) {
+                processingEnv.getMessager().printMessage(Diagnostic.Kind.NOTE, "Postponding processing of " + element);
                 remainingElements.add(element.getQualifiedName().toString());
             } catch (ProcessingException ex) {
                 errors.add(element + ": " + ex.getMessage());

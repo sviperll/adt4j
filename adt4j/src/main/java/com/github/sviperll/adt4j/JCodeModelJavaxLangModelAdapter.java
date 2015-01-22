@@ -43,6 +43,7 @@ import com.helger.jcodemodel.JCodeModel;
 import com.helger.jcodemodel.JDefinedClass;
 import com.helger.jcodemodel.JMethod;
 import com.helger.jcodemodel.JMod;
+import com.helger.jcodemodel.JPackage;
 import com.helger.jcodemodel.JTypeVar;
 import com.helger.jcodemodel.JTypeWildcard;
 import com.helger.jcodemodel.JVar;
@@ -55,6 +56,7 @@ import javax.lang.model.element.Element;
 import javax.lang.model.element.ElementKind;
 import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.Modifier;
+import javax.lang.model.element.PackageElement;
 import javax.lang.model.element.TypeElement;
 import javax.lang.model.element.TypeParameterElement;
 import javax.lang.model.element.VariableElement;
@@ -128,96 +130,92 @@ class JCodeModelJavaxLangModelAdapter {
         this.codeModel = codeModel;
     }
 
-    JDefinedClass _class(TypeElement element) throws ProcessingException {
-        return _class(element, new TypeEnvironment());
+    private JDefinedClass defineClass(TypeElement element) throws ProcessingException {
+        Element enclosingElement = element.getEnclosingElement();
+        if (enclosingElement instanceof PackageElement) {
+            return defineClass(element, new TypeEnvironment());
+        } else {
+            // Only top-level classes can be directly defined
+            return getClass(element);
+        }
     }
 
-    private JDefinedClass _class(TypeElement element, TypeEnvironment environment) throws ProcessingException {
+    private JDefinedClass defineClass(TypeElement element, TypeEnvironment environment) throws ProcessingException {
         EClassType classType = toClassType(element.getKind());
         int modifiers = toJMod(element.getModifiers());
-        if (classType.equals(EClassType.INTERFACE))
+        if (classType.equals(EClassType.INTERFACE)) {
             modifiers &= ~JMod.ABSTRACT;
+            modifiers &= ~JMod.STATIC;
+        }
 
+        Element enclosingElement = element.getEnclosingElement();
+        if (!(enclosingElement instanceof PackageElement)) {
+            throw new IllegalStateException("Expecting top level class");
+        }
+        PackageElement packageElement = (PackageElement)enclosingElement;
+        JPackage _package = codeModel._package(packageElement.getQualifiedName().toString());
         JDefinedClass newClass;
         try {
-            newClass = codeModel._class(modifiers, element.getQualifiedName().toString(), classType);
+            newClass = _package._class(modifiers, element.getSimpleName().toString(), classType);
         } catch (JClassAlreadyExistsException ex) {
             throw new CodeGenerationException(ex);
         }
-        newClass.hide();
-        Annotator classAnnotator = new Annotator(newClass, environment);
-        classAnnotator.annotate(element.getAnnotationMirrors());
-        for (TypeParameterElement parameter: element.getTypeParameters()) {
-            JTypeVar typeVariable = newClass.generify(parameter.getSimpleName().toString());
-            environment.put(typeVariable.name(), typeVariable);
-            for (TypeMirror type: parameter.getBounds()) {
-                typeVariable.bound((AbstractJClass)toJType(type, environment));
-            }
-        }
-        TypeMirror superclass = element.getSuperclass();
-        if (superclass != null && superclass.getKind() != TypeKind.NONE) {
-            newClass._extends((AbstractJClass)toJType(superclass, environment));
-        }
-        for (TypeMirror iface: element.getInterfaces()) {
-            newClass._implements((AbstractJClass)toJType(iface, environment));
-        }
-        for (Element enclosedElement: element.getEnclosedElements()) {
-            if (enclosedElement.getKind().equals(ElementKind.METHOD)) {
-                ExecutableElement executable = (ExecutableElement)enclosedElement;
-                JMethod method = newClass.method(toJMod(executable.getModifiers()), codeModel.VOID, executable.getSimpleName().toString());
-                TypeEnvironment methodEnvironment = environment.enclosed();
-                Annotator methodAnnotator = new Annotator(method, environment);
-                methodAnnotator.annotate(executable.getAnnotationMirrors());
-                for (TypeParameterElement parameter: executable.getTypeParameters()) {
-                    JTypeVar typeVariable = method.generify(parameter.getSimpleName().toString());
-                    methodEnvironment.put(typeVariable.name(), typeVariable);
-                    for (TypeMirror type: parameter.getBounds()) {
-                        typeVariable.bound((AbstractJClass)toJType(type, methodEnvironment));
-                    }
-                }
-                method.type(toJType(executable.getReturnType(), methodEnvironment));
-                for (TypeMirror type: executable.getThrownTypes()) {
-                    AbstractJClass throwable = (AbstractJClass)toJType(type, methodEnvironment);
-                    method._throws(throwable);
-                }
-
-                List<? extends VariableElement> parameters = executable.getParameters();
-                int n = 0;
-                for (VariableElement variable: parameters) {
-                    String parameterName = variable.getSimpleName().toString();
-                    TypeMirror parameterTypeMirror = variable.asType();
-                    AbstractJType parameterType = toJType(parameterTypeMirror, methodEnvironment);
-
-                    JVar param;
-                    if (executable.isVarArgs() && n == parameters.size() - 1) {
-                        param = method.varParam(toJMod(variable.getModifiers()), parameterType.elementType(), parameterName);
-                    } else {
-                        param = method.param(toJMod(variable.getModifiers()), parameterType, parameterName);
-                    }
-                    Annotator parametorAnnotator = new Annotator(param, methodEnvironment);
-                    parametorAnnotator.annotate(variable.getAnnotationMirrors());
-                    n++;
-                }
-            }
-        }
+        ClassFiller filler = new ClassFiller(newClass);
+        filler.fillClass(element, environment);
         return newClass;
     }
 
-    AbstractJClass ref(TypeElement element) throws ProcessingException {
+    private void defineInnerClass(JDefinedClass enclosingClass, TypeElement element, TypeEnvironment environment) throws ProcessingException {
+        EClassType classType = toClassType(element.getKind());
+        int modifiers = toJMod(element.getModifiers());
+        if (classType.equals(EClassType.INTERFACE)) {
+            modifiers &= ~JMod.ABSTRACT;
+            modifiers &= ~JMod.STATIC;
+        }
+        JDefinedClass newClass;
+        try {
+            newClass = enclosingClass._class(modifiers, element.getSimpleName().toString(), classType);
+        } catch (JClassAlreadyExistsException ex) {
+            throw new CodeGenerationException(ex);
+        }
+        ClassFiller filler = new ClassFiller(newClass);
+        filler.fillClass(element, environment);
+    }
+
+    private AbstractJClass ref(TypeElement element) throws ProcessingException {
         try {
             Class<?> klass = Class.forName(element.getQualifiedName().toString());
             AbstractJType declaredClass = codeModel.ref(klass);
             return (AbstractJClass)declaredClass;
         } catch (ClassNotFoundException ex) {
-            AbstractJClass result = codeModel._getClass(element.getQualifiedName().toString());
+            return getClass(element);
+        }
+    }
+
+    JDefinedClass getClass(TypeElement element) throws ProcessingException {
+        Element enclosingElement = element.getEnclosingElement();
+        if (enclosingElement instanceof PackageElement) {
+            PackageElement packageElement = (PackageElement)enclosingElement;
+            JPackage jpackage = codeModel._package(packageElement.getQualifiedName().toString());
+            JDefinedClass result = jpackage._getClass(element.getSimpleName().toString());
             if (result != null)
                 return result;
             else {
-                JDefinedClass jclass = _class(element, new TypeEnvironment());
+                JDefinedClass jclass = defineClass(element);
                 jclass.hide();
                 return jclass;
             }
-        }
+        } else if (enclosingElement instanceof TypeElement) {
+            JDefinedClass enclosingClass = getClass((TypeElement)enclosingElement);
+            for (JDefinedClass innerClass: enclosingClass.classes()) {
+                if (innerClass.fullName() != null
+                    && innerClass.fullName().equals(element.getQualifiedName().toString())) {
+                    return innerClass;
+                }
+            }
+            throw new IllegalStateException("Inner class should always be defined if outer class is defined");
+        } else
+            throw new IllegalStateException("Enclosing element should be package or class");
     }
 
     private AbstractJType toJType(TypeMirror type, final TypeEnvironment environment) throws ProcessingException {
@@ -327,6 +325,74 @@ class JCodeModelJavaxLangModelAdapter {
             }, null);
         } catch (RuntimeProcessingException ex) {
             throw ex.getCause();
+        }
+    }
+
+    private class ClassFiller {
+        private final JDefinedClass newClass;
+        ClassFiller(JDefinedClass newClass) {
+            this.newClass = newClass;
+        }
+
+        private void fillClass(TypeElement element, TypeEnvironment environment) throws ProcessingException {
+            newClass.hide();
+            Annotator classAnnotator = new Annotator(newClass, environment);
+            classAnnotator.annotate(element.getAnnotationMirrors());
+            for (TypeParameterElement parameter: element.getTypeParameters()) {
+                JTypeVar typeVariable = newClass.generify(parameter.getSimpleName().toString());
+                environment.put(typeVariable.name(), typeVariable);
+                for (TypeMirror type: parameter.getBounds()) {
+                    typeVariable.bound((AbstractJClass)toJType(type, environment));
+                }
+            }
+            TypeMirror superclass = element.getSuperclass();
+            if (superclass != null && superclass.getKind() != TypeKind.NONE) {
+                newClass._extends((AbstractJClass)toJType(superclass, environment));
+            }
+            for (TypeMirror iface: element.getInterfaces()) {
+                newClass._implements((AbstractJClass)toJType(iface, environment));
+            }
+            for (Element enclosedElement: element.getEnclosedElements()) {
+                if (enclosedElement.getKind().equals(ElementKind.INTERFACE) || enclosedElement.getKind().equals(ElementKind.CLASS)) {
+                    defineInnerClass(newClass, (TypeElement)enclosedElement, environment.enclosed());
+                } else if (enclosedElement.getKind().equals(ElementKind.METHOD)) {
+                    ExecutableElement executable = (ExecutableElement)enclosedElement;
+                    JMethod method = newClass.method(toJMod(executable.getModifiers()), codeModel.VOID, executable.getSimpleName().toString());
+                    TypeEnvironment methodEnvironment = environment.enclosed();
+                    Annotator methodAnnotator = new Annotator(method, environment);
+                    methodAnnotator.annotate(executable.getAnnotationMirrors());
+                    for (TypeParameterElement parameter: executable.getTypeParameters()) {
+                        JTypeVar typeVariable = method.generify(parameter.getSimpleName().toString());
+                        methodEnvironment.put(typeVariable.name(), typeVariable);
+                        for (TypeMirror type: parameter.getBounds()) {
+                            typeVariable.bound((AbstractJClass)toJType(type, methodEnvironment));
+                        }
+                    }
+                    method.type(toJType(executable.getReturnType(), methodEnvironment));
+                    for (TypeMirror type: executable.getThrownTypes()) {
+                        AbstractJClass throwable = (AbstractJClass)toJType(type, methodEnvironment);
+                        method._throws(throwable);
+                    }
+
+                    List<? extends VariableElement> parameters = executable.getParameters();
+                    int n = 0;
+                    for (VariableElement variable: parameters) {
+                        String parameterName = variable.getSimpleName().toString();
+                        TypeMirror parameterTypeMirror = variable.asType();
+                        AbstractJType parameterType = toJType(parameterTypeMirror, methodEnvironment);
+
+                        JVar param;
+                        if (executable.isVarArgs() && n == parameters.size() - 1) {
+                            param = method.varParam(toJMod(variable.getModifiers()), parameterType.elementType(), parameterName);
+                        } else {
+                            param = method.param(toJMod(variable.getModifiers()), parameterType, parameterName);
+                        }
+                        Annotator parametorAnnotator = new Annotator(param, methodEnvironment);
+                        parametorAnnotator.annotate(variable.getAnnotationMirrors());
+                        n++;
+                    }
+                }
+            }
         }
     }
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014, Victor Nazarov <asviraspossible@gmail.com>
+ * Copyright (c) 2015, Victor Nazarov <asviraspossible@gmail.com>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -27,26 +27,35 @@
  *  (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
  *  EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package com.github.sviperll.adt4j;
+package com.github.sviperll.adt4j.examples;
 
-import java.lang.annotation.Documented;
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
+/**
+ *
+ * @author Victor Nazarov <asviraspossible@gmail.com>
+ */
+public class FancyList<T> extends BaseFancyList<T> {
+    private FancyList<T> wrap(BaseFancyList<T> base) {
+        return base instanceof FancyList ? (FancyList<T>)base : new FancyList<T>(base);
+    }
 
-@Retention(RetentionPolicy.SOURCE)
-@Target(ElementType.TYPE)
-@Documented
-public @interface GenerateValueClassForVisitor {
-    String acceptMethodName() default "accept";
-    String resultVariableName();
-    String exceptionVariableName() default ":none";
-    String selfReferenceVariableName() default ":none";
-    String valueClassName() default ":auto";
-    boolean valueClassIsPublic() default false;
-    int valueClassHashCodeBase() default 27;
-    boolean valueClassIsSerializable() default false;
-    boolean valueClassIsComparable() default false;
-    long valueClassSerialVersionUID() default 1L;
+    private FancyList(BaseFancyList<T> base) {
+        super(base);
+    }
+
+    public interface Cases<T, R> extends BaseFancyListCases<FancyList<T>, T, R> {
+    }
+
+    public <R> R match(final Cases<T, R> cases) {
+        return this.match(new BaseFancyListCases<BaseFancyList<T>, T, R>() {
+            @Override
+            public R nil() {
+                return cases.nil();
+            }
+
+            @Override
+            public R list(T head, BaseFancyList<T> tail) {
+                return cases.list(head, wrap(tail));
+            }
+        });
+    }
 }

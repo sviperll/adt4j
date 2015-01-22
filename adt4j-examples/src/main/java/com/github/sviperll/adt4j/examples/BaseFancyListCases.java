@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014, Victor Nazarov <asviraspossible@gmail.com>
+ * Copyright (c) 2015, Victor Nazarov <asviraspossible@gmail.com>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -27,26 +27,20 @@
  *  (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
  *  EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package com.github.sviperll.adt4j;
+package com.github.sviperll.adt4j.examples;
 
-import java.lang.annotation.Documented;
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
+import com.github.sviperll.adt4j.GenerateValueClassForVisitor;
 
-@Retention(RetentionPolicy.SOURCE)
-@Target(ElementType.TYPE)
-@Documented
-public @interface GenerateValueClassForVisitor {
-    String acceptMethodName() default "accept";
-    String resultVariableName();
-    String exceptionVariableName() default ":none";
-    String selfReferenceVariableName() default ":none";
-    String valueClassName() default ":auto";
-    boolean valueClassIsPublic() default false;
-    int valueClassHashCodeBase() default 27;
-    boolean valueClassIsSerializable() default false;
-    boolean valueClassIsComparable() default false;
-    long valueClassSerialVersionUID() default 1L;
+/**
+ *
+ * @author Victor Nazarov <asviraspossible@gmail.com>
+ */
+@GenerateValueClassForVisitor(
+        resultVariableName = "R",
+        selfReferenceVariableName = "S",
+        valueClassName = "BaseFancyList",
+        acceptMethodName = "match")
+public interface BaseFancyListCases<S, T, R> {
+    R nil();
+    R list(T head, S tail);
 }

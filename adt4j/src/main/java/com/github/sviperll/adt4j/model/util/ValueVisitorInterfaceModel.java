@@ -34,6 +34,7 @@ import com.helger.jcodemodel.AbstractJClass;
 import com.helger.jcodemodel.AbstractJType;
 import com.helger.jcodemodel.JDefinedClass;
 import com.helger.jcodemodel.JMethod;
+import com.helger.jcodemodel.JMod;
 import com.helger.jcodemodel.JTypeVar;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -47,7 +48,7 @@ public class ValueVisitorInterfaceModel {
     public static ValueVisitorInterfaceModel createInstance(JDefinedClass jVisitorModel, GenerateValueClassForVisitor annotation) throws SourceException {
         ValueVisitorTypeParameters typeParameters = createValueVisitorTypeParameters(jVisitorModel, annotation);
         Map<String, JMethod> methods = createMethodMap(jVisitorModel, typeParameters);
-        return new ValueVisitorInterfaceModel(jVisitorModel, typeParameters, methods);
+        return new ValueVisitorInterfaceModel(jVisitorModel, typeParameters, methods, annotation.acceptMethodName());
     }
 
     private static ValueVisitorTypeParameters createValueVisitorTypeParameters(JDefinedClass jVisitorModel,
@@ -111,11 +112,13 @@ public class ValueVisitorInterfaceModel {
     private final AbstractJClass visitorInterfaceModel;
     private final ValueVisitorTypeParameters typeParameters;
     private final Map<String, JMethod> methods;
+    private final String acceptMethodName;
 
-    private ValueVisitorInterfaceModel(AbstractJClass visitorInterfaceModel, ValueVisitorTypeParameters typeParameters, Map<String, JMethod> methods) {
+    private ValueVisitorInterfaceModel(AbstractJClass visitorInterfaceModel, ValueVisitorTypeParameters typeParameters, Map<String, JMethod> methods, String acceptMethodName) {
         this.visitorInterfaceModel = visitorInterfaceModel;
         this.typeParameters = typeParameters;
         this.methods = methods;
+        this.acceptMethodName = acceptMethodName;
     }
 
     public JTypeVar getResultTypeParameter() {
@@ -170,5 +173,17 @@ public class ValueVisitorInterfaceModel {
 
     public boolean isException(AbstractJType type) {
         return typeParameters.isException(type);
+    }
+
+    public String acceptMethodName() {
+        return acceptMethodName;
+    }
+
+    public int factoryMethodsModifiers() {
+        return JMod.PUBLIC;
+    }
+
+    public int acceptMethodModifiers() {
+        return JMod.PUBLIC;
     }
 }

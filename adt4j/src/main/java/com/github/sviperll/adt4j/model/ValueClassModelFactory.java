@@ -111,7 +111,7 @@ public class ValueClassModelFactory {
             Types.generifyWithBoundsFrom(acceptingInterface, visitorTypeParameter.name(), visitorTypeParameter);
         }
 
-        JMethod acceptMethod = acceptingInterface.method(JMod.PUBLIC, types._void, "accept");
+        JMethod acceptMethod = acceptingInterface.method(JMod.PUBLIC, types._void, visitorInterface.acceptMethodName());
 
         JTypeVar visitorResultType = visitorInterface.getResultTypeParameter();
         JTypeVar resultType = Types.generifyWithBoundsFrom(acceptMethod, visitorResultType.name(), visitorResultType);
