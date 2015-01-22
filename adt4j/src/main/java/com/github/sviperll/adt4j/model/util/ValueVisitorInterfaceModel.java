@@ -148,7 +148,7 @@ public class ValueVisitorInterfaceModel {
         AbstractJClass result = visitorInterfaceModel;
         for (JTypeVar typeVariable: visitorInterfaceModel.typeParams()) {
             if (typeParameters.isSpecial(typeVariable))
-                result = result.narrow(typeParameters.substituteSpecialType(typeVariable, usedDataType, resultType, exceptionType));
+                result = result.narrow(typeParameters.substituteSpecialType(typeVariable, selfType, resultType, exceptionType));
             else
                 result = result.narrow(dataTypeArgumentIterator.next());
         }
