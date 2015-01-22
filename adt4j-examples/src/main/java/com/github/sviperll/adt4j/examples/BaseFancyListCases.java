@@ -37,10 +37,9 @@ import com.github.sviperll.adt4j.GenerateValueClassForVisitor;
  */
 @GenerateValueClassForVisitor(
         resultVariableName = "R",
-        selfReferenceVariableName = "S",
         valueClassName = "BaseFancyList",
         acceptMethodName = "match")
-public interface BaseFancyListCases<S, T, R> {
+interface BaseFancyListCases<S, T, R> {
     R nil();
     R list(T head, S tail);
 }

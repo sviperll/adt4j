@@ -33,12 +33,16 @@ package com.github.sviperll.adt4j.examples;
  *
  * @author Victor Nazarov <asviraspossible@gmail.com>
  */
-public class FancyList<T> extends BaseFancyList<T> {
-    private FancyList<T> wrap(BaseFancyList<T> base) {
-        return base instanceof FancyList ? (FancyList<T>)base : new FancyList<T>(base);
+public class FancyList<T> extends BaseFancyList<FancyList<T>, T> {
+    public static <T> FancyList<T> nil() {
+        return new FancyList<T>(BaseFancyList.<FancyList<T>, T>nil());
     }
 
-    private FancyList(BaseFancyList<T> base) {
+    public static <T> FancyList<T> list(T head, FancyList<T> tail) {
+        return new FancyList<T>(BaseFancyList.<FancyList<T>, T>list(head, tail));
+    }
+
+    private FancyList(BaseFancyList<FancyList<T>, T> base) {
         super(base);
     }
 
@@ -46,16 +50,6 @@ public class FancyList<T> extends BaseFancyList<T> {
     }
 
     public <R> R match(final Cases<T, R> cases) {
-        return this.match(new BaseFancyListCases<BaseFancyList<T>, T, R>() {
-            @Override
-            public R nil() {
-                return cases.nil();
-            }
-
-            @Override
-            public R list(T head, BaseFancyList<T> tail) {
-                return cases.list(head, wrap(tail));
-            }
-        });
+        return super.match(cases);
     }
 }
