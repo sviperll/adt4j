@@ -121,7 +121,7 @@ class ValueClassModel {
     MethodBuilder createMethodBuilder(Serialization serialization) throws JClassAlreadyExistsException {
         JFieldVar acceptorField = buildAcceptorField();
         Map<String, JDefinedClass> caseClasses = buildCaseClasses(serialization);
-        return new MethodBuilder(caseClasses, acceptorField);
+        return new MethodBuilder(caseClasses, acceptorField, serialization);
     }
 
     private JFieldVar buildAcceptorField() {
@@ -346,10 +346,12 @@ class ValueClassModel {
     class MethodBuilder {
         private final Map<String, JDefinedClass> caseClasses;
         private final JFieldVar acceptorField;
+        private final Serialization serialization;
 
-        private MethodBuilder(Map<String, JDefinedClass> caseClasses, JFieldVar acceptorField) {
+        private MethodBuilder(Map<String, JDefinedClass> caseClasses, JFieldVar acceptorField, Serialization serialization) {
             this.caseClasses = caseClasses;
             this.acceptorField = acceptorField;
+            this.serialization = serialization;
         }
 
         void buildPrivateConstructor() {
@@ -781,6 +783,11 @@ class ValueClassModel {
                 JDefinedClass equalsVisitorClass2 = caseClass._class(JMod.PRIVATE, caseClass.name() + "EqualsVisitor");
                 JFieldVar equalsVisitorField = caseClass.field(JMod.PRIVATE | JMod.FINAL, visitorType, "equalsVisitor", JExpr._new(equalsVisitorClass2));
                 equalsVisitorClass2._implements(visitorType);
+                if (serialization.isSerializable()) {
+                    equalsVisitorClass2._implements(types._Serializable);
+                    equalsVisitorClass2.field(JMod.PRIVATE | JMod.FINAL | JMod.STATIC, types._long, "serialVersionUID", JExpr.lit(serialization.serialVersionUIDForGeneratedCode()));
+                }
+
                 JInvocation invocation2 = that.invoke(visitorInterface.acceptMethodName());
                 invocation2.arg(JExpr.refthis(equalsVisitorField));
                 equalsMethod.body()._return(invocation2);
@@ -866,6 +873,10 @@ class ValueClassModel {
 
                 JDefinedClass compareVisitorClass = caseClass._class(JMod.PRIVATE, caseClass.name() + "CompareVisitor");
                 compareVisitorClass._implements(visitorType);
+                if (serialization.isSerializable()) {
+                    compareVisitorClass._implements(types._Serializable);
+                    compareVisitorClass.field(JMod.PRIVATE | JMod.FINAL | JMod.STATIC, types._long, "serialVersionUID", JExpr.lit(serialization.serialVersionUIDForGeneratedCode()));
+                }
                 JFieldVar field = caseClass.field(JMod.PRIVATE | JMod.FINAL, visitorType, "compareToVisitor", JExpr._new(compareVisitorClass));
                 JInvocation invocation2 = that.invoke(visitorInterface.acceptMethodName());
                 invocation2.arg(JExpr.refthis(field));
