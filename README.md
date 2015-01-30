@@ -257,7 +257,7 @@ You'll have to modify all this functions to thread color information through poi
    }
 ```
 
-You can refactor this methods to protect for future modifications of `Point` data-type:
+You can refactor these methods to protect for future modifications of `Point` data-type:
 
 ```java
    Point moveRight(Point base, int deltaX) {
@@ -358,7 +358,7 @@ visitor.
 
 ```java
 Resource resource = new Resource(permission1);
-System.out.println(isAccessGranted(user1, resource)); // Should always be true
+isAccessGranted(user1, resource); // Should always be true
 ```
 
 ### Null-values ###
@@ -379,15 +379,14 @@ We will use an implemetation of optional-type similar to `Optional` class provid
 
 ```java
     @GenerateValueClassForVisitor(resultVariableName = "R",
-                                  valueClassName = "OptionalBase",
-                                  valueClassIsPublic = false)
+                                  valueClassName = "OptionalBase")
     interface OptionalVisitor<T, R> {
         R present(@Nonnull T value);
         R missing();
     }
 ```
 
-In the example above `OptionalBase` class will be generated instead of `Optional`.
+In the example above `OptionalBase` class will be generated.
 
 You can extend generated class to add more methods like this:
 
@@ -448,7 +447,7 @@ or with anonymous classes:
 
 ### Recursive data types and open-recursion ###
 
-One of the most common example of algebraic data types is list type.
+One of the most common examples of algebraic data types is list type.
 
 To generate List data type we may try to use something like this:
 
@@ -460,7 +459,7 @@ To generate List data type we may try to use something like this:
    }
 ```
 
-But there is no List data-type yet. We can't reference it since it is to be generated.
+But there is no `List` class yet. We can't reference it since it is to be generated.
 Above declaration creates unbreakable cycle and will result in compile-time error.
 
 But we still can create List class with trick known as _open-recursion_.
@@ -519,8 +518,8 @@ To achieve this goal `selfReferenceVariableName` parameter is used.
     }
 ```
 
-Above code will generate `List` class that will only accept instances of `OpenListVisitor`-interface
-where type-variable `L` is set to `List`-class itself as a visitor.
+Above code will generate `List` class that will accept instances of `OpenListVisitor`-interface
+as a visitor in only case when type-variable `L` is set to `List`-class itself.
 
 ```java
     // Type of second argument of prepend method is List:
