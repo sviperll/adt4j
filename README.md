@@ -282,7 +282,7 @@ ADT4J allows you to automatically generate withX method for you. You can generat
         resultVariableName="R",
         valueClassName = "Point")
     interface PointVisitor<R> {
-       R valueOf(@Getter("getX") @Updater("withX") int x, @Getter("getY") @Updater("withX") int y);
+       R valueOf(@Getter("getX") @Updater("withX") int x, @Getter("getY") @Updater("withY") int y);
     }
 ```
 
