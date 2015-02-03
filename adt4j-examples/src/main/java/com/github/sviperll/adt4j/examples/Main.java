@@ -29,11 +29,10 @@
  */
 package com.github.sviperll.adt4j.examples;
 
+import java.io.IOException;
+
 public class Main {
-    public static void main(String[] args) {
-        User<String> user = User.<String>valueOf(UserKey.valueOf(1), ComparableList.<String>nil(), "Victor");
-        System.out.println(user);
-        System.out.println(user.withName("Peter"));
+    public static void main(String[] args) throws IOException, ClassNotFoundException {
         System.out.println("lookup(\"a\") -> " + toString(lookup("a")));
         System.out.println("lookup(\"b\") -> " + toString(lookup("b")));
         System.out.println("lookup(\"c\") -> " + toString(lookup("c")));

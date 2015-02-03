@@ -43,8 +43,9 @@ import com.github.sviperll.adt4j.Updater;
                               valueClassIsPublic = true,
                               valueClassIsComparable = true)
 public interface ComparableListVisitor<T extends Comparable<? super T>, S, R> {
-    R cons(@Getter("head") @Updater("withHead") T head,
-           @Getter("tail") S tail);
     @GeneratePredicate("isEmpty")
-    R nil();
+    R empty();
+
+    R prepend(@Getter("head") @Updater("withHead") T head,
+              @Getter("tail") S tail);
 }

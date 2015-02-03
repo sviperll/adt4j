@@ -42,5 +42,5 @@ import com.github.sviperll.adt4j.Updater;
                               valueClassIsPublic = true,
                               valueClassIsComparable = true)
 public interface UserVisitor<E extends Comparable<E>, R> {
-    R valueOf(UserKey key, ComparableList<E> list, @Getter("name") @Updater("withName") String name);
+    R valueOf(@Getter("key") UserKey key, @Getter("list") ComparableList<E> list, @Getter("name") @Updater("withName") String name);
 }
