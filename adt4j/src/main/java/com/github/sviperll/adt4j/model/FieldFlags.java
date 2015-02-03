@@ -29,22 +29,31 @@
  */
 package com.github.sviperll.adt4j.model;
 
+import com.github.sviperll.adt4j.AccessLevel;
+
 /**
  *
  * @author Victor Nazarov <asviraspossible@gmail.com>
  */
 class FieldFlags {
-    static final FieldFlags DEFAULT = new FieldFlags(true, true);
     private final boolean isNullable;
     private final boolean isVarArg;
+    private final AccessLevel accessLevel;
 
-    FieldFlags(boolean isNullable, boolean isVarArg) {
-        this.isNullable = isNullable;
-        this.isVarArg = isVarArg;
+    FieldFlags(AccessLevel accessLevel) {
+        this(true, true, accessLevel);
     }
 
-    FieldFlags join(FieldFlags that) {
-        return new FieldFlags(this.isNullable && that.isNullable, this.isVarArg && that.isVarArg);
+    FieldFlags(boolean isNullable, boolean isVarArg, AccessLevel accessLevel) {
+        this.isNullable = isNullable;
+        this.isVarArg = isVarArg;
+        this.accessLevel = accessLevel;
+    }
+
+    FieldFlags join(FieldFlags that) throws FieldFlagsException {
+        if (this.accessLevel != that.accessLevel)
+            throw new FieldFlagsException("Inconsitent access levels");
+        return new FieldFlags(this.isNullable && that.isNullable, this.isVarArg && that.isVarArg, this.accessLevel);
     }
 
     boolean isNullable() {
@@ -54,4 +63,9 @@ class FieldFlags {
     boolean isVarArg() {
         return isVarArg;
     }
+
+    AccessLevel accessLevel() {
+        return accessLevel;
+    }
+
 }

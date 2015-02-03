@@ -97,7 +97,7 @@ public class Types {
         _Math = codeModel.ref(Math.class);
     }
 
-    public boolean isSerializable(AbstractJType type) throws SourceException {
+    public boolean isSerializable(AbstractJType type) {
         if (type.isPrimitive() || type.isArray())
             return type.isPrimitive() || type.isArray() && isSerializable(type.elementType());
         else {
@@ -105,7 +105,7 @@ public class Types {
         }
     }
 
-    public boolean isComparable(AbstractJType type) throws SourceException {
+    public boolean isComparable(AbstractJType type) {
         if (type.isPrimitive() || type.isArray())
             return type.isPrimitive() || type.isArray() && isComparable(type.elementType());
         else if (type instanceof AbstractJClass) {

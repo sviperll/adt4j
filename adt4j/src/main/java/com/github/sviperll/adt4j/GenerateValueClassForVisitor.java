@@ -40,6 +40,7 @@ import java.lang.annotation.Target;
 @Documented
 public @interface GenerateValueClassForVisitor {
     String acceptMethodName() default "accept";
+    AccessLevel acceptMethodAccessLevel() default AccessLevel.PUBLIC;
     String resultVariableName();
     String exceptionVariableName() default ":none";
     String selfReferenceVariableName() default ":none";

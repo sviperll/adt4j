@@ -29,6 +29,7 @@
  */
 package com.github.sviperll.adt4j.model;
 
+import com.github.sviperll.adt4j.AccessLevel;
 import com.github.sviperll.adt4j.GeneratePredicate;
 import com.github.sviperll.adt4j.Getter;
 import com.github.sviperll.adt4j.Updater;
@@ -41,6 +42,7 @@ import com.helger.jcodemodel.AbstractJClass;
 import com.helger.jcodemodel.AbstractJType;
 import com.helger.jcodemodel.EClassType;
 import com.helger.jcodemodel.JAnnotationArrayMember;
+import com.helger.jcodemodel.JAnnotationStringValue;
 import com.helger.jcodemodel.JAnnotationUse;
 import com.helger.jcodemodel.JBlock;
 import com.helger.jcodemodel.JClassAlreadyExistsException;
@@ -53,17 +55,50 @@ import com.helger.jcodemodel.JMethod;
 import com.helger.jcodemodel.JMod;
 import com.helger.jcodemodel.JTypeVar;
 import com.helger.jcodemodel.JVar;
+import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import java.util.Set;
+import java.util.NoSuchElementException;
 import java.util.TreeMap;
-import java.util.TreeSet;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 class ValueClassModel {
+    private static AccessLevel getAccessLevelAnnotationArgument(JAnnotationUse annotation, String name) {
+        try {
+            return getAnnotationArgument(annotation, name, AccessLevel.class);
+        } catch (NoSuchElementException ex) {
+            return AccessLevel.PUBLIC;
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    private static <T> T getAnnotationArgument(JAnnotationUse annotation, String name, Class<T> klass) {
+        JAnnotationStringValue stringValue = annotation.getConstantParam(name);
+        if (stringValue != null)
+            return (T)stringValue.nativeValue();
+        else {
+            throw new NoSuchElementException(MessageFormat.format("{0} annotation argument not found for {1} annotation",
+                                                                  name, annotation));
+        }
+    }
+    private static int toJMod(AccessLevel accessLevel) {
+        switch (accessLevel) {
+            case PRIVATE:
+                return JMod.PRIVATE;
+            case PACKAGE:
+                return JMod.NONE;
+            case PROTECTED:
+                return JMod.PROTECTED;
+            case PUBLIC:
+                return JMod.PUBLIC;
+            default:
+                throw new IllegalStateException("Unsupported AccessLevel: " + accessLevel);
+        }
+    }
+
     private static String capitalize(String s) {
         if (s.length() >= 2
             && Character.isHighSurrogate(s.charAt(0))
@@ -139,7 +174,7 @@ class ValueClassModel {
         paramArray.param("rawtypes");
 
         factoryField.init(JExpr._new(factory));
-        JMethod factoryMethod = valueClass.method(visitorInterface.factoryMethodsModifiers() | JMod.STATIC, types._void, "factory");
+        JMethod factoryMethod = valueClass.method(toJMod(visitorInterface.factoryMethodAccessLevel()) | JMod.STATIC, types._void, "factory");
         factoryMethod.annotate(Nonnull.class);
         JAnnotationUse methodAnnotationUse = factoryMethod.annotate(SuppressWarnings.class);
         methodAnnotationUse.param("value", "unchecked");
@@ -260,14 +295,19 @@ class ValueClassModel {
                 for (JAnnotationUse annotationUsage: param.annotations()) {
                     if (annotationUsage.getAnnotationClass().fullName().equals(Getter.class.getName())) {
                         AbstractJType paramType = visitorInterface.substituteSpecialType(param.type(), usedValueClassType, visitorInterface.getResultTypeParameter(), types._RuntimeException);
-                        @SuppressWarnings("null") String getterName = (String)annotationUsage.getConstantParam("value").nativeValue();
+                        String getterName = getAnnotationArgument(annotationUsage, "value", String.class);
+                        AccessLevel accessLevel = getAccessLevelAnnotationArgument(annotationUsage, "accessLevel");
                         boolean isNullable = isNullable(param);
                         FieldConfiguration configuration = gettersMap.get(getterName);
                         if (configuration == null) {
-                            configuration = new FieldConfiguration(getterName, paramType);
+                            configuration = new FieldConfiguration(getterName, paramType, accessLevel);
                             gettersMap.put(getterName, configuration);
                         }
-                        configuration.put(paramType, interfaceMethod, param.name(), new FieldFlags(isNullable, false));
+                        try {
+                            configuration.put(paramType, interfaceMethod, param.name(), new FieldFlags(isNullable, false, accessLevel));
+                        } catch (FieldConfigurationException ex) {
+                            throw new SourceException("Unable to configure " + getterName + " getter: " + ex.getMessage(), ex);
+                        }
                     }
                 }
             }
@@ -276,14 +316,19 @@ class ValueClassModel {
                 for (JAnnotationUse annotationUsage: param.annotations()) {
                     if (annotationUsage.getAnnotationClass().fullName().equals(Getter.class.getName())) {
                         AbstractJType paramType = visitorInterface.substituteSpecialType(param.type(), usedValueClassType, visitorInterface.getResultTypeParameter(), types._RuntimeException);
-                        @SuppressWarnings("null") String getterName = (String)annotationUsage.getConstantParam("value").nativeValue();
+                        String getterName = getAnnotationArgument(annotationUsage, "value", String.class);
+                        AccessLevel accessLevel = getAccessLevelAnnotationArgument(annotationUsage, "accessLevel");
                         boolean isNullable = isNullable(param);
                         FieldConfiguration configuration = gettersMap.get(getterName);
                         if (configuration == null) {
-                            configuration = new FieldConfiguration(getterName, paramType);
+                            configuration = new FieldConfiguration(getterName, paramType, accessLevel);
                             gettersMap.put(getterName, configuration);
                         }
-                        configuration.put(paramType, interfaceMethod, param.name(), new FieldFlags(isNullable, true));
+                        try {
+                            configuration.put(paramType, interfaceMethod, param.name(), new FieldFlags(isNullable, true, accessLevel));
+                        } catch (FieldConfigurationException ex) {
+                            throw new SourceException("Unable to configure " + getterName + " getter: " + ex.getMessage(), ex);
+                        }
                     }
                 }
             }
@@ -299,14 +344,19 @@ class ValueClassModel {
                 for (JAnnotationUse annotationUsage: param.annotations()) {
                     if (annotationUsage.getAnnotationClass().fullName().equals(Updater.class.getName())) {
                         AbstractJType paramType = visitorInterface.substituteSpecialType(param.type(), usedValueClassType, visitorInterface.getResultTypeParameter(), types._RuntimeException);
-                        @SuppressWarnings("null") String updaterName = (String)annotationUsage.getConstantParam("value").nativeValue();
+                        String updaterName = getAnnotationArgument(annotationUsage, "value", String.class);
+                        AccessLevel accessLevel = getAccessLevelAnnotationArgument(annotationUsage, "accessLevel");
                         boolean isNullable = isNullable(param);
                         FieldConfiguration configuration = updatersMap.get(updaterName);
                         if (configuration == null) {
-                            configuration = new FieldConfiguration(updaterName, paramType);
+                            configuration = new FieldConfiguration(updaterName, paramType, accessLevel);
                             updatersMap.put(updaterName, configuration);
                         }
-                        configuration.put(paramType, interfaceMethod, param.name(), new FieldFlags(isNullable, false));
+                        try {
+                            configuration.put(paramType, interfaceMethod, param.name(), new FieldFlags(isNullable, false, accessLevel));
+                        } catch (FieldConfigurationException ex) {
+                            throw new SourceException("Unable to configure " + updaterName + " updater: " + ex.getMessage(), ex);
+                        }
                     }
                 }
             }
@@ -315,14 +365,19 @@ class ValueClassModel {
                 for (JAnnotationUse annotationUsage: param.annotations()) {
                     if (annotationUsage.getAnnotationClass().fullName().equals(Updater.class.getName())) {
                         AbstractJType paramType = visitorInterface.substituteSpecialType(param.type(), usedValueClassType, visitorInterface.getResultTypeParameter(), types._RuntimeException);
-                        @SuppressWarnings("null") String updaterName = (String)annotationUsage.getConstantParam("value").nativeValue();
+                        String updaterName = getAnnotationArgument(annotationUsage, "value", String.class);
+                        AccessLevel accessLevel = getAccessLevelAnnotationArgument(annotationUsage, "accessLevel");
                         boolean isNullable = isNullable(param);
                         FieldConfiguration configuration = updatersMap.get(updaterName);
                         if (configuration == null) {
-                            configuration = new FieldConfiguration(updaterName, paramType);
+                            configuration = new FieldConfiguration(updaterName, paramType, accessLevel);
                             updatersMap.put(updaterName, configuration);
                         }
-                        configuration.put(paramType, interfaceMethod, param.name(), new FieldFlags(isNullable, true));
+                        try {
+                            configuration.put(paramType, interfaceMethod, param.name(), new FieldFlags(isNullable, true, accessLevel));
+                        } catch (FieldConfigurationException ex) {
+                            throw new SourceException("Unable to configure " + updaterName + " updater: " + ex.getMessage(), ex);
+                        }
                     }
                 }
             }
@@ -330,13 +385,19 @@ class ValueClassModel {
         return updatersMap;
     }
 
-    Set<String> getPredicates() throws SourceException {
-        Set<String> predicates = new TreeSet<String>();
+    Map<String, AccessLevel> getPredicates() throws SourceException {
+        Map<String, AccessLevel> predicates = new TreeMap<String, AccessLevel>();
         for (JMethod interfaceMethod: visitorInterface.methods()) {
             for (JAnnotationUse annotationUsage: interfaceMethod.annotations()) {
                 if (annotationUsage.getAnnotationClass().fullName().equals(GeneratePredicate.class.getName())) {
-                    @SuppressWarnings("null") String predicateName = (String)annotationUsage.getConstantParam("value").nativeValue();
-                    predicates.add(predicateName);
+                    String predicateName = getAnnotationArgument(annotationUsage, "value", String.class);
+                    AccessLevel accessLevel = getAccessLevelAnnotationArgument(annotationUsage, "accessLevel");
+                    AccessLevel knownAccessLevel = predicates.get(predicateName);
+                    if (knownAccessLevel == null) {
+                        predicates.put(predicateName, accessLevel);
+                    } else if (knownAccessLevel != accessLevel) {
+                        throw new SourceException("Unable to generate " + predicateName + " predicate: inconsistent access levels");
+                    }
                 }
             }
         }
@@ -376,7 +437,7 @@ class ValueClassModel {
         }
 
         void buildAcceptMethod() {
-            JMethod acceptMethod = valueClass.method(visitorInterface.acceptMethodModifiers() | JMod.FINAL, types._void, visitorInterface.acceptMethodName());
+            JMethod acceptMethod = valueClass.method(toJMod(visitorInterface.acceptMethodAccessLevel()) | JMod.FINAL, types._void, visitorInterface.acceptMethodName());
 
             JTypeVar visitorResultType = visitorInterface.getResultTypeParameter();
             JTypeVar resultType = Types.generifyWithBoundsFrom(acceptMethod, visitorResultType.name(), visitorResultType);
@@ -400,7 +461,7 @@ class ValueClassModel {
         Map<String, JMethod> buildConstructorMethods(Serialization serialization) throws JClassAlreadyExistsException, SourceException {
             Map<String, JMethod> constructorMethods = new TreeMap<String, JMethod>();
             for (JMethod interfaceMethod: visitorInterface.methods()) {
-                JMethod constructorMethod = valueClass.method(visitorInterface.factoryMethodsModifiers() | JMod.STATIC, types._void, interfaceMethod.name());
+                JMethod constructorMethod = valueClass.method(toJMod(visitorInterface.factoryMethodAccessLevel()) | JMod.STATIC, types._void, interfaceMethod.name());
                 constructorMethod.annotate(Nonnull.class);
                 for (JTypeVar visitorTypeParameter: visitorInterface.getValueTypeParameters()) {
                     Types.generifyWithBoundsFrom(constructorMethod, visitorTypeParameter.name(), visitorTypeParameter);
@@ -583,15 +644,15 @@ class ValueClassModel {
             String getterName = configuration.name();
             JMethod getterMethod = acceptingInterface.method(JMod.PUBLIC, configuration.type(), getterName);
             if (configuration.type().isReference()) {
-                if (configuration.flags().isNullable())
+                if (configuration.isNullable())
                     getterMethod.annotate(Nullable.class);
                 else
                     getterMethod.annotate(Nonnull.class);
             }
 
-            getterMethod = valueClass.method(JMod.PUBLIC | JMod.FINAL, configuration.type(), getterName);
+            getterMethod = valueClass.method(toJMod(configuration.accessLevel()) | JMod.FINAL, configuration.type(), getterName);
             if (configuration.type().isReference()) {
-                if (configuration.flags().isNullable())
+                if (configuration.isNullable())
                     getterMethod.annotate(Nullable.class);
                 else
                     getterMethod.annotate(Nonnull.class);
@@ -604,7 +665,7 @@ class ValueClassModel {
                 JMethod geterMethod = caseClass.method(JMod.PUBLIC | JMod.FINAL, configuration.type(), getterName);
                 geterMethod.annotate(Override.class);
                 if (configuration.type().isReference()) {
-                    if (configuration.flags().isNullable())
+                    if (configuration.isNullable())
                         geterMethod.annotate(Nullable.class);
                     else
                         geterMethod.annotate(Nonnull.class);
@@ -641,12 +702,12 @@ class ValueClassModel {
             JMethod updaterMethod = acceptingInterface.method(JMod.PUBLIC, usedValueClassType, updaterName);
             updaterMethod.annotate(Nonnull.class);
             JVar newValueParam;
-            if (configuration.flags().isVarArg())
+            if (configuration.isVarArg())
                 newValueParam = updaterMethod.varParam(configuration.type().elementType(), nameSource.get("newValue"));
             else
                 newValueParam = updaterMethod.param(configuration.type(), nameSource.get("newValue"));
             if (configuration.type().isReference()) {
-                if (configuration.flags().isNullable()) {
+                if (configuration.isNullable()) {
                     newValueParam.annotate(Nullable.class);
                 } else {
                     newValueParam.annotate(Nonnull.class);
@@ -654,15 +715,15 @@ class ValueClassModel {
             }
 
             nameSource = new VariableNameSource();
-            updaterMethod = valueClass.method(JMod.PUBLIC | JMod.FINAL, usedValueClassType, updaterName);
+            updaterMethod = valueClass.method(toJMod(configuration.accessLevel()) | JMod.FINAL, usedValueClassType, updaterName);
             updaterMethod.annotate(Nonnull.class);
             JVar newValue;
-            if (configuration.flags().isVarArg())
+            if (configuration.isVarArg())
                 newValue = updaterMethod.varParam(configuration.type().elementType(), nameSource.get("newValue"));
             else
                 newValue = updaterMethod.param(configuration.type(), nameSource.get("newValue"));
             if (configuration.type().isReference()) {
-                if (configuration.flags().isNullable()) {
+                if (configuration.isNullable()) {
                     newValue.annotate(Nullable.class);
                 } else {
                     newValue.annotate(Nonnull.class);
@@ -678,12 +739,12 @@ class ValueClassModel {
                 updaterMethod = caseClass.method(JMod.PUBLIC | JMod.FINAL, usedValueClassType, updaterName);
                 updaterMethod.annotate(Nonnull.class);
                 updaterMethod.annotate(Override.class);
-                if (configuration.flags().isVarArg())
+                if (configuration.isVarArg())
                     newValue = updaterMethod.varParam(configuration.type().elementType(), nameSource.get("newValue"));
                 else
                     newValue = updaterMethod.param(configuration.type(), nameSource.get("newValue"));
                 if (configuration.type().isReference()) {
-                    if (configuration.flags().isNullable()) {
+                    if (configuration.isNullable()) {
                         newValue.annotate(Nullable.class);
                     } else {
                         newValue.annotate(Nonnull.class);
@@ -713,10 +774,10 @@ class ValueClassModel {
             }
         }
 
-        void generatePredicate(String name) {
+        void generatePredicate(String name, AccessLevel accessLevel) {
             acceptingInterface.method(JMod.PUBLIC, types._boolean, name);
 
-            JMethod predicateMethod = valueClass.method(JMod.PUBLIC | JMod.FINAL, types._boolean, name);
+            JMethod predicateMethod = valueClass.method(toJMod(accessLevel) | JMod.FINAL, types._boolean, name);
             predicateMethod.body()._return(JExpr.refthis(acceptorField).invoke(name));
 
             for (JMethod interfaceMethod1: visitorInterface.methods()) {
@@ -727,7 +788,7 @@ class ValueClassModel {
                 boolean result = false;
                 for (JAnnotationUse annotationUsage: interfaceMethod1.annotations()) {
                     if (annotationUsage.getAnnotationClass().fullName().equals(GeneratePredicate.class.getName())) {
-                        @SuppressWarnings("null") String predicateName = (String)annotationUsage.getConstantParam("value").nativeValue();
+                        String predicateName = getAnnotationArgument(annotationUsage, "value", String.class);
                         if (predicateName.equals(name)) {
                             result = true;
                             break;

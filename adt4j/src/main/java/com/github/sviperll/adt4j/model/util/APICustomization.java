@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014, Victor Nazarov <asviraspossible@gmail.com>
+ * Copyright (c) 2015, Victor Nazarov <asviraspossible@gmail.com>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -27,22 +27,34 @@
  *  (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
  *  EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package com.github.sviperll.adt4j;
+package com.github.sviperll.adt4j.model.util;
 
-import java.lang.annotation.Documented;
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
+import com.github.sviperll.adt4j.AccessLevel;
 
 /**
  *
  * @author Victor Nazarov <asviraspossible@gmail.com>
  */
-@Retention(RetentionPolicy.SOURCE)
-@Target(ElementType.METHOD)
-@Documented
-public @interface GeneratePredicate {
-    String value();
-    AccessLevel accessLevel() default AccessLevel.PUBLIC;
+public class APICustomization {
+    private final String acceptMethodName;
+    private final boolean isValueClassPublic;
+    private final AccessLevel acceptMethodAccessLevel;
+    public APICustomization(String acceptMethodName, AccessLevel acceptMethodAccessLevel, boolean isValueClassPublic) {
+        this.acceptMethodName = acceptMethodName;
+        this.isValueClassPublic = isValueClassPublic;
+        this.acceptMethodAccessLevel = acceptMethodAccessLevel;
+    }
+
+    public String acceptMethodName() {
+        return acceptMethodName;
+    }
+
+    public boolean isValueClassPublic() {
+        return isValueClassPublic;
+    }
+
+    AccessLevel acceptMethodAccessLevel() {
+        return acceptMethodAccessLevel;
+    }
+
 }

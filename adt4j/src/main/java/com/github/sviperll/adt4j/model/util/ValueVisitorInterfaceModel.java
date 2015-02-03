@@ -29,12 +29,12 @@
  */
 package com.github.sviperll.adt4j.model.util;
 
+import com.github.sviperll.adt4j.AccessLevel;
 import com.github.sviperll.adt4j.GenerateValueClassForVisitor;
 import com.helger.jcodemodel.AbstractJClass;
 import com.helger.jcodemodel.AbstractJType;
 import com.helger.jcodemodel.JDefinedClass;
 import com.helger.jcodemodel.JMethod;
-import com.helger.jcodemodel.JMod;
 import com.helger.jcodemodel.JTypeVar;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -48,7 +48,8 @@ public class ValueVisitorInterfaceModel {
     public static ValueVisitorInterfaceModel createInstance(JDefinedClass jVisitorModel, GenerateValueClassForVisitor annotation) throws SourceException {
         ValueVisitorTypeParameters typeParameters = createValueVisitorTypeParameters(jVisitorModel, annotation);
         Map<String, JMethod> methods = createMethodMap(jVisitorModel, typeParameters);
-        return new ValueVisitorInterfaceModel(jVisitorModel, typeParameters, methods, annotation.acceptMethodName());
+        APICustomization apiCustomization = new APICustomization(annotation.acceptMethodName(), annotation.acceptMethodAccessLevel(), annotation.valueClassIsPublic());
+        return new ValueVisitorInterfaceModel(jVisitorModel, typeParameters, methods, apiCustomization);
     }
 
     private static ValueVisitorTypeParameters createValueVisitorTypeParameters(JDefinedClass jVisitorModel,
@@ -112,13 +113,13 @@ public class ValueVisitorInterfaceModel {
     private final AbstractJClass visitorInterfaceModel;
     private final ValueVisitorTypeParameters typeParameters;
     private final Map<String, JMethod> methods;
-    private final String acceptMethodName;
+    private final APICustomization apiCustomization;
 
-    private ValueVisitorInterfaceModel(AbstractJClass visitorInterfaceModel, ValueVisitorTypeParameters typeParameters, Map<String, JMethod> methods, String acceptMethodName) {
+    private ValueVisitorInterfaceModel(AbstractJClass visitorInterfaceModel, ValueVisitorTypeParameters typeParameters, Map<String, JMethod> methods, APICustomization apiCustomization) {
         this.visitorInterfaceModel = visitorInterfaceModel;
         this.typeParameters = typeParameters;
         this.methods = methods;
-        this.acceptMethodName = acceptMethodName;
+        this.apiCustomization = apiCustomization;
     }
 
     public JTypeVar getResultTypeParameter() {
@@ -176,14 +177,14 @@ public class ValueVisitorInterfaceModel {
     }
 
     public String acceptMethodName() {
-        return acceptMethodName;
+        return apiCustomization.acceptMethodName();
     }
 
-    public int factoryMethodsModifiers() {
-        return JMod.PUBLIC;
+    public AccessLevel factoryMethodAccessLevel() {
+        return apiCustomization.isValueClassPublic() ? AccessLevel.PUBLIC : AccessLevel.PACKAGE;
     }
 
-    public int acceptMethodModifiers() {
-        return JMod.PUBLIC;
+    public AccessLevel acceptMethodAccessLevel() {
+        return apiCustomization.acceptMethodAccessLevel();
     }
 }

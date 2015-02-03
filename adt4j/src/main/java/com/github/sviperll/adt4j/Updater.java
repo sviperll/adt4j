@@ -44,4 +44,5 @@ import java.lang.annotation.Target;
 @Documented
 public @interface Updater {
     String value();
+    AccessLevel accessLevel() default AccessLevel.PUBLIC;
 }

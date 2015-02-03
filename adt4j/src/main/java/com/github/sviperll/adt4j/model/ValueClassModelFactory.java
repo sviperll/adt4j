@@ -29,12 +29,13 @@
  */
 package com.github.sviperll.adt4j.model;
 
+import com.github.sviperll.adt4j.AccessLevel;
+import com.github.sviperll.adt4j.model.util.SourceException;
 import com.github.sviperll.adt4j.GenerateValueClassForVisitor;
 import com.github.sviperll.adt4j.GenerateValueClassForVisitorProcessor;
 import com.github.sviperll.adt4j.model.util.CodeGenerationException;
 import com.github.sviperll.adt4j.model.util.ErrorTypeFound;
 import com.github.sviperll.adt4j.model.util.Serialization;
-import com.github.sviperll.adt4j.model.util.SourceException;
 import com.github.sviperll.adt4j.model.util.Types;
 import com.github.sviperll.adt4j.model.util.ValueVisitorInterfaceModel;
 import com.helger.jcodemodel.AbstractJClass;
@@ -50,7 +51,6 @@ import com.helger.jcodemodel.JPackage;
 import com.helger.jcodemodel.JTypeVar;
 import com.helger.jcodemodel.JVar;
 import java.util.Map;
-import java.util.Set;
 import javax.annotation.Generated;
 import javax.annotation.ParametersAreNonnullByDefault;
 
@@ -202,9 +202,9 @@ public class ValueClassModelFactory {
             for (FieldConfiguration updater: updatersConfiguration.values()) {
                 methodBuilder.generateUpdater(updater);
             }
-            Set<String> predicates = result.getPredicates();
-            for (String predicate: predicates) {
-                methodBuilder.generatePredicate(predicate);
+            Map<String, AccessLevel> predicates = result.getPredicates();
+            for (Map.Entry<String, AccessLevel> predicate: predicates.entrySet()) {
+                methodBuilder.generatePredicate(predicate.getKey(), predicate.getValue());
             }
             if (annotation.valueClassIsComparable()) {
                 methodBuilder.buildCompareTo();

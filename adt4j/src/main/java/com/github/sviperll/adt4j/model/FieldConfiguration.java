@@ -29,7 +29,7 @@
  */
 package com.github.sviperll.adt4j.model;
 
-import com.github.sviperll.adt4j.model.util.SourceException;
+import com.github.sviperll.adt4j.AccessLevel;
 import com.helger.jcodemodel.AbstractJType;
 import com.helger.jcodemodel.JMethod;
 import java.util.Map;
@@ -43,20 +43,25 @@ class FieldConfiguration {
     private final Map<String, String> map = new TreeMap<String, String>();
     private final AbstractJType type;
     private final String name;
-    private FieldFlags flags = FieldFlags.DEFAULT;
+    private FieldFlags flags;
 
-    FieldConfiguration(String name, AbstractJType paramType) {
+    FieldConfiguration(String name, AbstractJType paramType, AccessLevel accessLevel) {
         this.type = paramType;
         this.name = name;
+        this.flags = new FieldFlags(accessLevel);
     }
 
-    void put(AbstractJType paramType, JMethod method, String paramName, FieldFlags flags) throws SourceException {
+    void put(AbstractJType paramType, JMethod method, String paramName, FieldFlags flags) throws FieldConfigurationException {
         if (!type.equals(paramType))
-            throw new SourceException("Unable to generate " + name + " getter: inconsitent field types");
+            throw new FieldConfigurationException("Unable to config " + name + " field: inconsitent field types");
         String oldField = map.put(method.name(), paramName);
         if (oldField != null)
-            throw new SourceException(oldField + " and " + paramName + " parameters of " + method.name() + " method are accessable with the same " + name + " getter");
-        this.flags = this.flags.join(flags);
+            throw new FieldConfigurationException("Unable to config " + name + " field: both " + oldField + " and " + paramName + " parameters of " + method.name() + " are referenced as the single " + name + " field");
+        try {
+            this.flags = this.flags.join(flags);
+        } catch (FieldFlagsException ex) {
+            throw new FieldConfigurationException("Unable to config " + name + " field: " + ex.getMessage(), ex);
+        }
     }
 
     AbstractJType type() {
@@ -67,13 +72,21 @@ class FieldConfiguration {
         return name;
     }
 
-    FieldFlags flags() {
-        return flags;
+    AccessLevel accessLevel() {
+        return flags.accessLevel();
+    }
+
+    boolean isNullable() {
+        return flags.isNullable();
     }
 
     boolean isFieldValue(JMethod method, String paramName) {
         String getterParamName = map.get(method.name());
         return getterParamName != null && getterParamName.equals(paramName);
+    }
+
+    boolean isVarArg() {
+        return flags.isVarArg();
     }
 
 }

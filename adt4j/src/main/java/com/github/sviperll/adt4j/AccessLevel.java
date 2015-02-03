@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014, Victor Nazarov <asviraspossible@gmail.com>
+ * Copyright (c) 2015, Victor Nazarov <asviraspossible@gmail.com>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -29,20 +29,10 @@
  */
 package com.github.sviperll.adt4j;
 
-import java.lang.annotation.Documented;
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
-
 /**
  *
  * @author Victor Nazarov <asviraspossible@gmail.com>
  */
-@Retention(RetentionPolicy.SOURCE)
-@Target(ElementType.METHOD)
-@Documented
-public @interface GeneratePredicate {
-    String value();
-    AccessLevel accessLevel() default AccessLevel.PUBLIC;
+public enum AccessLevel {
+    PRIVATE, PACKAGE, PROTECTED, PUBLIC;
 }

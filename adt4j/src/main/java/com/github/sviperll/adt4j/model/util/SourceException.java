@@ -36,4 +36,7 @@ public class SourceException extends ProcessingException {
         super(message);
     }
 
+    public SourceException(String message, Exception ex) {
+        super(message, ex);
+    }
 }

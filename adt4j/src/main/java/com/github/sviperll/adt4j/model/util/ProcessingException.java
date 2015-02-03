@@ -43,4 +43,7 @@ public class ProcessingException extends Exception {
     protected ProcessingException(String message) {
         super(message);
     }
+    protected ProcessingException(String message, Throwable ex) {
+        super(message, ex);
+    }
 }
