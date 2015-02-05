@@ -31,6 +31,7 @@ package com.github.sviperll.adt4j.examples;
 
 import com.github.sviperll.adt4j.AccessLevel;
 import com.github.sviperll.adt4j.GenerateValueClassForVisitor;
+import com.github.sviperll.adt4j.Updater;
 
 /**
  *
@@ -43,5 +44,5 @@ import com.github.sviperll.adt4j.GenerateValueClassForVisitor;
         acceptMethodAccessLevel = AccessLevel.PACKAGE)
 interface BaseFancyListCases<S, T, R> {
     R nil();
-    R list(T head, S tail);
+    R list(@Updater(value = "withHead", access = AccessLevel.PROTECTED) T head, S tail);
 }

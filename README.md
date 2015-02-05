@@ -55,11 +55,12 @@ Features
  * Support recursive data types
  * Generate hashCode, equals and toString implementations with value semantics
  * Generate predicates, getters and "updaters" with additional annotations
- * Optionally generate Comparable implementation with presise compile-time type-check if it is possible
- * Optionally generate serializable classes with presise compile-time type-check if it is possible
+ * Fully customizable API: custom names and access levels for generated methods
+ * Optionally generate Comparable implementation with precise compile-time type-check if it is possible
+ * Optionally generate serializable classes with precise compile-time type-check if it is possible
  * Sensible error messages
  * Support generated class extention through standard Java's inheritance.
- * Reasonable fast
+ * Reasonably fast
 
 License
 -------
@@ -80,12 +81,16 @@ Use maven dependency to use ADT4J:
     <dependency>
         <groupId>com.github.sviperll</groupId>
         <artifactId>adt4j</artifactId>
-        <version>0.13</version>
+        <version>0.14</version>
     </dependency>
 ```
 
 Changelog
 ---------
+
+Since 0.14
+
+ * Fully customizable access levels for generated API
 
 Since 0.13
 
@@ -167,7 +172,7 @@ You can construct instances of `User` type like this
 The following string will be printed:
 
 ```java
-User.ValueOf(name=John, age=19)
+User.ValueOf{name=John, age=19}
 ```
 
 `Equals` and `hashCode` methods use field values instead of object-identity.

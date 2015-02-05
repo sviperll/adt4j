@@ -47,9 +47,14 @@ import com.helger.jcodemodel.JPackage;
 import com.helger.jcodemodel.JTypeVar;
 import com.helger.jcodemodel.JTypeWildcard;
 import com.helger.jcodemodel.JVar;
+import java.lang.reflect.Field;
+import java.text.MessageFormat;
 import java.util.Collection;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.lang.model.element.AnnotationMirror;
 import javax.lang.model.element.AnnotationValue;
 import javax.lang.model.element.Element;
@@ -72,6 +77,7 @@ import javax.lang.model.type.TypeMirror;
 import javax.lang.model.type.TypeVariable;
 import javax.lang.model.type.WildcardType;
 import javax.lang.model.util.AbstractTypeVisitor6;
+import javax.lang.model.util.Elements;
 
 class JCodeModelJavaxLangModelAdapter {
     private static int toJMod(Collection<Modifier> modifierCollection) {
@@ -125,9 +131,11 @@ class JCodeModelJavaxLangModelAdapter {
     }
 
     private final JCodeModel codeModel;
+    private final Elements elementUtils;
 
-    JCodeModelJavaxLangModelAdapter(JCodeModel codeModel) {
+    JCodeModelJavaxLangModelAdapter(JCodeModel codeModel, Elements elementUtils) {
         this.codeModel = codeModel;
+        this.elementUtils = elementUtils;
     }
 
     private JDefinedClass defineClass(TypeElement element) throws ProcessingException {
@@ -407,7 +415,8 @@ class JCodeModelJavaxLangModelAdapter {
         private void annotate(List<? extends AnnotationMirror> annotationMirrors) throws ProcessingException {
             for (AnnotationMirror annotation: annotationMirrors) {
                 JAnnotationUse annotationUse = annotatable.annotate((AbstractJClass)toJType(annotation.getAnnotationType(), typeEnvironment));
-                for (Map.Entry<? extends ExecutableElement, ? extends AnnotationValue> annotationValueAssignment: annotation.getElementValues().entrySet()) {
+                Map<? extends ExecutableElement, ? extends AnnotationValue> annotationArguments = elementUtils.getElementValuesWithDefaults(annotation);
+                for (Map.Entry<? extends ExecutableElement, ? extends AnnotationValue> annotationValueAssignment: annotationArguments.entrySet()) {
                     String name = annotationValueAssignment.getKey().getSimpleName().toString();
                     Object value = annotationValueAssignment.getValue().getValue();
                     if (value instanceof String)
@@ -426,32 +435,152 @@ class JCodeModelJavaxLangModelAdapter {
                         annotationUse.param(name, (Byte)value);
                     else if (value instanceof Character)
                         annotationUse.param(name, (Character)value);
+                    else if (value instanceof Boolean)
+                        annotationUse.param(name, (Boolean)value);
                     else if (value instanceof Class)
                         annotationUse.param(name, (Class)value);
-                    else if (value instanceof Enum)
-                        annotationUse.param(name, (Enum)value);
-                    else if (value instanceof String[])
-                        annotationUse.paramArray(name, (String[])value);
-                    else if (value instanceof int[])
-                        annotationUse.paramArray(name, (int[])value);
-                    else if (value instanceof long[])
-                        annotationUse.paramArray(name, (long[])value);
-                    else if (value instanceof short[])
-                        annotationUse.paramArray(name, (short[])value);
-                    else if (value instanceof float[])
-                        annotationUse.paramArray(name, (float[])value);
-                    else if (value instanceof double[])
-                        annotationUse.paramArray(name, (double[])value);
-                    else if (value instanceof byte[])
-                        annotationUse.paramArray(name, (byte[])value);
-                    else if (value instanceof char[])
-                        annotationUse.paramArray(name, (char[])value);
-                    else if (value instanceof Class[])
-                        annotationUse.paramArray(name, (Class[])value);
-                    else if (value instanceof Enum[])
-                        annotationUse.paramArray(name, (Enum[])value);
+                    else if (value instanceof VariableElement) {
+                        try {
+                            annotationUse.param(name, actualEnumConstantValue((VariableElement)value));
+                        } catch (ClassNotFoundException ex) {
+                            Logger.getLogger(Annotator.class.getName()).log(Level.WARNING, "Not processing annotation argument: {0}: {1}", new Object[]{name, value});
+                        }
+                    } else if (value instanceof List) {
+                        @SuppressWarnings("unchecked")
+                        List<? extends AnnotationValue> list = (List<? extends AnnotationValue>)value;
+                        Iterator<? extends AnnotationValue> iterator = list.iterator();
+                        if (iterator.hasNext()) {
+                            AnnotationValue firstElementValue = iterator.next();
+                            Object element = firstElementValue.getValue();
+                            if (element instanceof String) {
+                                String[] elements = new String[list.size()];
+                                int i = 0;
+                                for (AnnotationValue elementValue: list) {
+                                    elements[i] = (String)elementValue.getValue();
+                                    i++;
+                                }
+                                annotationUse.paramArray(name, elements);
+                            } else if (element instanceof Integer) {
+                                int[] elements = new int[list.size()];
+                                int i = 0;
+                                for (AnnotationValue elementValue: list) {
+                                    elements[i] = (Integer)elementValue.getValue();
+                                    i++;
+                                }
+                                annotationUse.paramArray(name, elements);
+                            } else if (element instanceof Long) {
+                                long[] elements = new long[list.size()];
+                                int i = 0;
+                                for (AnnotationValue elementValue: list) {
+                                    elements[i] = (Long)elementValue.getValue();
+                                    i++;
+                                }
+                                annotationUse.paramArray(name, elements);
+                            } else if (element instanceof Short) {
+                                short[] elements = new short[list.size()];
+                                int i = 0;
+                                for (AnnotationValue elementValue: list) {
+                                    elements[i] = (Short)elementValue.getValue();
+                                    i++;
+                                }
+                                annotationUse.paramArray(name, elements);
+                            } else if (element instanceof Float) {
+                                float[] elements = new float[list.size()];
+                                int i = 0;
+                                for (AnnotationValue elementValue: list) {
+                                    elements[i] = (Float)elementValue.getValue();
+                                    i++;
+                                }
+                                annotationUse.paramArray(name, elements);
+                            } else if (element instanceof Double) {
+                                double[] elements = new double[list.size()];
+                                int i = 0;
+                                for (AnnotationValue elementValue: list) {
+                                    elements[i] = (Double)elementValue.getValue();
+                                    i++;
+                                }
+                                annotationUse.paramArray(name, elements);
+                            } else if (element instanceof Byte) {
+                                byte[] elements = new byte[list.size()];
+                                int i = 0;
+                                for (AnnotationValue elementValue: list) {
+                                    elements[i] = (Byte)elementValue.getValue();
+                                    i++;
+                                }
+                                annotationUse.paramArray(name, elements);
+                            } else if (element instanceof Character) {
+                                char[] elements = new char[list.size()];
+                                int i = 0;
+                                for (AnnotationValue elementValue: list) {
+                                    elements[i] = (Character)elementValue.getValue();
+                                    i++;
+                                }
+                                annotationUse.paramArray(name, elements);
+                            } else if (element instanceof Boolean) {
+                                boolean[] elements = new boolean[list.size()];
+                                int i = 0;
+                                for (AnnotationValue elementValue: list) {
+                                    elements[i] = (Boolean)elementValue.getValue();
+                                    i++;
+                                }
+                                annotationUse.paramArray(name, elements);
+                            } else if (element instanceof Class) {
+                                Class<?>[] elements = new Class<?>[list.size()];
+                                int i = 0;
+                                for (AnnotationValue elementValue: list) {
+                                    elements[i] = (Class<?>)elementValue.getValue();
+                                    i++;
+                                }
+                                annotationUse.paramArray(name, elements);
+                            } else if (element instanceof VariableElement) {
+                                try {
+                                    Enum<?>[] elements = new Enum<?>[list.size()];
+                                    int i = 0;
+                                    for (AnnotationValue elementValue: list) {
+                                        elements[i] = actualEnumConstantValue((VariableElement)elementValue.getValue());
+                                        i++;
+                                    }
+                                    annotationUse.paramArray(name, elements);
+                                } catch (ClassNotFoundException ex) {
+                                    Logger.getLogger(Annotator.class.getName()).log(Level.WARNING, "Not processing annotation argument: {0}: {1}", new Object[]{name, list});
+                                }
+                            }
+                        }
+                    } else
+                        throw new IllegalStateException(MessageFormat.format("Unknown annotation argument: {0}: {1} ({2})",
+                                                                             name, value, value.getClass()));
                 }
             }
+        }
+
+        private Enum<?> actualEnumConstantValue(VariableElement variableElement) throws ClassNotFoundException {
+            TypeElement enumClassElement = (TypeElement)variableElement.getEnclosingElement();
+            Class<?> enumClass = Class.forName(enumClassElement.getQualifiedName().toString());
+            Field enumConstantField;
+            try {
+                enumConstantField = enumClass.getField(variableElement.getSimpleName().toString());
+            } catch (NoSuchFieldException ex) {
+                throw new IllegalStateException(MessageFormat.format("Unable to load enum constant: {0}.{1}",
+                                                                     enumClassElement.getQualifiedName().toString(),
+                                                                     variableElement.getSimpleName().toString()), ex);
+            } catch (SecurityException ex) {
+                throw new IllegalStateException(MessageFormat.format("Unable to load enum constant: {0}.{1}",
+                                                                     enumClassElement.getQualifiedName().toString(),
+                                                                     variableElement.getSimpleName().toString()), ex);
+            }
+            Enum<?> enumValue;
+            try {
+                enumValue = (Enum<?>)enumConstantField.get(null);
+            } catch (IllegalArgumentException ex) {
+                throw new IllegalStateException(MessageFormat.format("Unable to load enum constant actual value: {0}.{1}",
+                                                                     enumClassElement.getQualifiedName().toString(),
+                                                                     variableElement.getSimpleName().toString()), ex);
+            } catch (IllegalAccessException ex) {
+                throw new IllegalStateException(MessageFormat.format("Unable to load enum constant actual value: {0}.{1}",
+                                                                     enumClassElement.getQualifiedName().toString(),
+                                                                     variableElement.getSimpleName().toString()), ex);
+            }
+            return enumValue;
         }
     }
 }

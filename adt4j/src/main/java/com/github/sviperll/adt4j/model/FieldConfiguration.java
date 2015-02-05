@@ -32,6 +32,7 @@ package com.github.sviperll.adt4j.model;
 import com.github.sviperll.adt4j.AccessLevel;
 import com.helger.jcodemodel.AbstractJType;
 import com.helger.jcodemodel.JMethod;
+import java.text.MessageFormat;
 import java.util.Map;
 import java.util.TreeMap;
 
@@ -53,14 +54,17 @@ class FieldConfiguration {
 
     void put(AbstractJType paramType, JMethod method, String paramName, FieldFlags flags) throws FieldConfigurationException {
         if (!type.equals(paramType))
-            throw new FieldConfigurationException("Unable to config " + name + " field: inconsitent field types");
+            throw new FieldConfigurationException(MessageFormat.format("Unable to config {0} field: inconsitent field types",
+                                                                       name));
         String oldField = map.put(method.name(), paramName);
         if (oldField != null)
-            throw new FieldConfigurationException("Unable to config " + name + " field: both " + oldField + " and " + paramName + " parameters of " + method.name() + " are referenced as the single " + name + " field");
+            throw new FieldConfigurationException(MessageFormat.format("Unable to config {0} field: both {1} and {2} parameters of {3} are referenced as the single {4} field",
+                                                                       name, oldField, paramName, method.name(), name));
         try {
             this.flags = this.flags.join(flags);
         } catch (FieldFlagsException ex) {
-            throw new FieldConfigurationException("Unable to config " + name + " field: " + ex.getMessage(), ex);
+            throw new FieldConfigurationException(MessageFormat.format("Unable to config {0} field: {1}", name,
+                                                                       ex.getMessage()), ex);
         }
     }
 

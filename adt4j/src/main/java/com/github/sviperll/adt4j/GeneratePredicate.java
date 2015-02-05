@@ -44,5 +44,5 @@ import java.lang.annotation.Target;
 @Documented
 public @interface GeneratePredicate {
     String value();
-    AccessLevel accessLevel() default AccessLevel.PUBLIC;
+    AccessLevel access() default AccessLevel.PUBLIC;
 }

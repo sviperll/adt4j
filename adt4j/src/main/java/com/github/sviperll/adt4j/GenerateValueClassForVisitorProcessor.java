@@ -87,7 +87,7 @@ public class GenerateValueClassForVisitorProcessor extends AbstractProcessor {
             try {
                 JCodeModel jCodeModel = new JCodeModel();
                 GenerateValueClassForVisitor dataVisitor = element.getAnnotation(GenerateValueClassForVisitor.class);
-                JCodeModelJavaxLangModelAdapter adapter = new JCodeModelJavaxLangModelAdapter(jCodeModel);
+                JCodeModelJavaxLangModelAdapter adapter = new JCodeModelJavaxLangModelAdapter(jCodeModel, processingEnv.getElementUtils());
                 JDefinedClass visitorModel = adapter.getClass(element);
                 JDefinedClass valueClass = ValueClassModelFactory.createValueClass(visitorModel, dataVisitor);
                 processingEnv.getMessager().printMessage(Diagnostic.Kind.NOTE, "Generated value class " + valueClass.fullName() + " for " + element + " visitor interface");
