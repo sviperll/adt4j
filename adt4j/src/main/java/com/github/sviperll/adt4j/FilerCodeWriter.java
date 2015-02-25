@@ -33,6 +33,7 @@ import com.helger.jcodemodel.AbstractCodeWriter;
 import com.helger.jcodemodel.JPackage;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.List;
 import javax.annotation.processing.Filer;
@@ -47,8 +48,7 @@ class FilerCodeWriter extends AbstractCodeWriter {
     private final Messager messager;
 
     public FilerCodeWriter(Filer filer, Messager messager) {
-        // Null means: use system default encoding
-        super(null);
+        super(Charset.defaultCharset());
         this.filer = filer;
         this.messager = messager;
     }
