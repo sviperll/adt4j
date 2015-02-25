@@ -33,6 +33,22 @@ import java.io.IOException;
 
 public class Main {
     public static void main(String[] args) throws IOException, ClassNotFoundException {
+        final GADT<Integer> a = GADT.number(1);
+        final GADT<Integer> b = GADT.number(5);
+        final GADT<Integer> c = GADT.number(7);
+        GADT<Function<Integer, Integer>> f = GADT.lambda(new Function<Integer, GADT<Integer>>() {
+
+            @Override
+            public GADT<Integer> apply(Integer argument) {
+                return GADT.if_(GADT.isLessOrEqual(GADT.number(argument), a), b, c);
+            }
+        });
+        GADT<Integer> test1 = GADT.apply(f, GADT.number(1));
+        System.out.println(test1 + " = " + test1.eval());
+
+        GADT<Integer> test2 = GADT.apply(f, GADT.number(3));
+        System.out.println(test2 + " = " + test2.eval());
+
         System.out.println("lookup(\"a\") -> " + toString(lookup("a")));
         System.out.println("lookup(\"b\") -> " + toString(lookup("b")));
         System.out.println("lookup(\"c\") -> " + toString(lookup("c")));
@@ -42,8 +58,8 @@ public class Main {
         System.out.println("lookup2(\"c\") -> " + toString(lookup2("c")));
         System.out.println("lookup2(\"d\") -> " + toString(lookup2("d")));
 
-        String a = "begin";
-        Optional<String> oa = Optional.present(a + "ning");
+        String aa = "begin";
+        Optional<String> oa = Optional.present(aa + "ning");
         Optional<String> ob = Optional.present("beginning");
         Optional<String> oc = ob;
         Optional<String> od = Optional.present("beginning!");
