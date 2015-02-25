@@ -35,6 +35,7 @@ import com.helger.jcodemodel.AbstractJClass;
 import com.helger.jcodemodel.AbstractJType;
 import com.helger.jcodemodel.JDefinedClass;
 import com.helger.jcodemodel.JMethod;
+import com.helger.jcodemodel.JNarrowedClass;
 import com.helger.jcodemodel.JTypeVar;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -145,13 +146,9 @@ public class ValueVisitorInterfaceModel {
     }
 
     private AbstractJClass narrowed(AbstractJClass usedDataType, AbstractJClass resultType, AbstractJClass exceptionType, AbstractJClass selfType) {
-        Iterator<? extends AbstractJClass> dataTypeArgumentIterator = usedDataType.getTypeParameters().iterator();
         AbstractJClass result = visitorInterfaceModel;
         for (JTypeVar typeVariable: visitorInterfaceModel.typeParams()) {
-            if (typeParameters.isSpecial(typeVariable))
-                result = result.narrow(typeParameters.substituteSpecialType(typeVariable, selfType, resultType, exceptionType));
-            else
-                result = result.narrow(dataTypeArgumentIterator.next());
+            result = result.narrow(typeParameters.substituteSpecialType(typeVariable, selfType, resultType, exceptionType));
         }
         return result;
     }
@@ -160,8 +157,32 @@ public class ValueVisitorInterfaceModel {
         return methods.values();
     }
 
-    public AbstractJType substituteSpecialType(AbstractJType typeVariable, AbstractJClass selfType, AbstractJClass resultType, AbstractJClass exceptionType) {
-        return typeParameters.substituteSpecialType(typeVariable, selfType, resultType, exceptionType);
+    public AbstractJType narrowType(AbstractJType typeVariable, AbstractJClass usedDataType, AbstractJClass resultType, AbstractJClass exceptionType) {
+        return narrowType(typeVariable, usedDataType, resultType, exceptionType, usedDataType);
+    }
+
+    public AbstractJType narrowType(AbstractJType typeVariable, AbstractJClass usedDataType, AbstractJClass resultType, AbstractJClass exceptionType, AbstractJClass selfType) {
+        typeVariable = typeParameters.substituteSpecialType(typeVariable, selfType, resultType, exceptionType);
+        List<? extends AbstractJClass> dataTypeArguments = usedDataType.getTypeParameters();
+        for (int i = 0; i < visitorInterfaceModel.typeParams().length; i++) {
+            JTypeVar typeParameter = visitorInterfaceModel.typeParams()[i];
+            if (typeVariable == typeParameter)
+                return dataTypeArguments.get(i);
+        }
+        if (!(typeVariable instanceof AbstractJClass)) {
+            return typeVariable;
+        } else {
+            AbstractJClass narrowedType = (AbstractJClass)typeVariable;
+            if (narrowedType.getTypeParameters().isEmpty()) {
+                return narrowedType;
+            } else {
+                AbstractJClass result = narrowedType.erasure();
+                for (AbstractJClass typeArgument: narrowedType.getTypeParameters()) {
+                    result = result.narrow(narrowType(typeArgument, usedDataType, resultType, exceptionType, selfType));
+                }
+                return result;
+            }
+        }
     }
 
     public boolean isSelf(AbstractJType type) {

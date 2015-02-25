@@ -55,22 +55,32 @@ class EqualsMethod {
         this.nameSource = nameSource;
     }
 
-    void appendNullableValue(AbstractJType type, IJExpression value1, IJExpression value2) {
+    void appendNullableValue(AbstractJType type, IJExpression value1, IJExpression value2, boolean isLast) {
         if (!type.isReference()) {
             throw new AssertionError("appendNullableValue called for non-reference type");
         } else {
-            JConditional _if = body._if(value1.ne(value2));
-            IJExpression isNull = value1.eq(JExpr._null()).cor(value2.eq(JExpr._null()));
-            JConditional _if1 = _if._then()._if(isNull);
-            _if1._then()._return(JExpr.FALSE);
-            EqualsMethod innerBody = new EqualsMethod(types, _if._then(), nameSource);
-            innerBody.appendNotNullValue(type, value1, value2);
+            if (!isLast) {
+                JConditional _if = body._if(value1.ne(value2));
+                IJExpression isNull = value1.eq(JExpr._null()).cor(value2.eq(JExpr._null()));
+                JConditional _if1 = _if._then()._if(isNull);
+                _if1._then()._return(JExpr.FALSE);
+                EqualsMethod innerBody = new EqualsMethod(types, _if._then(), nameSource);
+                innerBody.appendNotNullValue(type, value1, value2, false);
+            } else {
+                JConditional _if = body._if(value1.eq(value2));
+                _if._then()._return(JExpr.TRUE);
+                IJExpression isNull = value1.eq(JExpr._null()).cor(value2.eq(JExpr._null()));
+                JConditional _if1 = _if._else()._if(isNull);
+                _if1._then()._return(JExpr.FALSE);
+                EqualsMethod innerBody = new EqualsMethod(types, _if._else(), nameSource);
+                innerBody.appendNotNullValue(type, value1, value2, true);
+            }
         }
     }
 
-    void appendNotNullValue(AbstractJType type, IJExpression value1, IJExpression value2) {
+    void appendNotNullValue(AbstractJType type, IJExpression value1, IJExpression value2, boolean isLast) {
         if (type.isArray()) {
-            appendNotNullValue(types._int, value1.ref("length"), value2.ref("length"));
+            appendNotNullValue(types._int, value1.ref("length"), value2.ref("length"), false);
             VariableNameSource localNames = nameSource.forBlock();
             JForLoop _for = body._for();
             JVar i = _for.init(types._int, localNames.get("i"), JExpr.lit(0));
@@ -78,17 +88,27 @@ class EqualsMethod {
             _for.update(i.incr());
             EqualsMethod forBody = new EqualsMethod(types, _for.body(), localNames);
             if (type.elementType().isReference())
-                forBody.appendNullableValue(type.elementType(), value1.component(i), value2.component(i));
+                forBody.appendNullableValue(type.elementType(), value1.component(i), value2.component(i), false);
             else
-                forBody.appendNotNullValue(type.elementType(), value1.component(i), value2.component(i));
+                forBody.appendNotNullValue(type.elementType(), value1.component(i), value2.component(i), false);
+            if (isLast)
+                body._return(JExpr.TRUE);
         } else if (type.isPrimitive()) {
-            JConditional _if = body._if(value1.ne(value2));
-            _if._then()._return(JExpr.FALSE);
+            if (isLast) {
+                body._return(value1.eq(value2));
+            } else {
+                JConditional _if = body._if(value1.ne(value2));
+                _if._then()._return(JExpr.FALSE);
+            }
         } else {
             JInvocation invocation = value1.invoke("equals");
             invocation.arg(value2);
-            JConditional _if = body._if(invocation.not());
-            _if._then()._return(JExpr.FALSE);
+            if (isLast) {
+                body._return(invocation);
+            } else {
+                JConditional _if = body._if(invocation.not());
+                _if._then()._return(JExpr.FALSE);
+            }
         }
     }
 
