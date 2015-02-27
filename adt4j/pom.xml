@@ -19,5 +19,10 @@
             <artifactId>jcodemodel</artifactId>
             <version>2.7.8</version>
         </dependency>
+        <dependency>
+            <groupId>com.github.sviperll</groupId>
+            <artifactId>metachicory</artifactId>
+            <version>0.17</version>
+        </dependency>
     </dependencies>
 </project>

@@ -29,7 +29,7 @@
  */
 package com.github.sviperll.adt4j.model;
 
-import com.github.sviperll.adt4j.AccessLevel;
+import com.github.sviperll.metachicory.AccessLevel;
 
 /**
  *

@@ -29,9 +29,11 @@
  */
 package com.github.sviperll.adt4j;
 
+import com.github.sviperll.metachicory.JCodeModelJavaxLangModelAdapter;
+import com.github.sviperll.metachicory.FilerCodeWriter;
 import com.github.sviperll.adt4j.model.ValueClassModelFactory;
-import com.github.sviperll.adt4j.model.util.ErrorTypeFound;
-import com.github.sviperll.adt4j.model.util.ProcessingException;
+import com.github.sviperll.metachicory.ErrorTypeFound;
+import com.github.sviperll.metachicory.ProcessingException;
 import com.helger.jcodemodel.JCodeModel;
 import com.helger.jcodemodel.JDefinedClass;
 import java.io.IOException;
