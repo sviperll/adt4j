@@ -29,7 +29,7 @@
  */
 package com.github.sviperll.adt4j.model.util;
 
-import com.github.sviperll.metachicory.ProcessingException;
+import com.github.sviperll.meta.ProcessingException;
 
 @SuppressWarnings("serial")
 public class SourceException extends ProcessingException {

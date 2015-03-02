@@ -88,6 +88,10 @@ Use maven dependency to use ADT4J:
 Changelog
 ---------
 
+Since 0.15
+
+ * Add dependency to metachicory package which provides some generic metaprogramming support.
+
 Since 0.14
 
  * Fully customizable access levels for generated API

@@ -29,12 +29,12 @@
  */
 package com.github.sviperll.adt4j.model;
 
-import com.github.sviperll.metachicory.AccessLevel;
+import com.github.sviperll.meta.AccessLevel;
 import com.github.sviperll.adt4j.model.util.SourceException;
 import com.github.sviperll.adt4j.GenerateValueClassForVisitor;
 import com.github.sviperll.adt4j.GenerateValueClassForVisitorProcessor;
-import com.github.sviperll.metachicory.CodeGenerationException;
-import com.github.sviperll.metachicory.ErrorTypeFound;
+import com.github.sviperll.meta.CodeGenerationException;
+import com.github.sviperll.meta.ErrorTypeFound;
 import com.github.sviperll.adt4j.model.util.Serialization;
 import com.github.sviperll.adt4j.model.util.Types;
 import com.github.sviperll.adt4j.model.util.ValueVisitorInterfaceModel;

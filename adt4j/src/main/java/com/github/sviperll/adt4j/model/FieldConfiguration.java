@@ -29,7 +29,7 @@
  */
 package com.github.sviperll.adt4j.model;
 
-import com.github.sviperll.metachicory.AccessLevel;
+import com.github.sviperll.meta.AccessLevel;
 import com.helger.jcodemodel.AbstractJType;
 import com.helger.jcodemodel.JMethod;
 import java.text.MessageFormat;
