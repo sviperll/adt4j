@@ -42,9 +42,9 @@ import com.github.sviperll.meta.Visitor;
 @GenerateValueClassForVisitor(isPublic = true, isComparable = true)
 @Visitor(resultVariableName = "R", selfReferenceVariableName = "S")
 public interface ComparableListVisitor<T extends Comparable<? super T>, S, R> {
-    @GeneratePredicate("isEmpty")
+    @GeneratePredicate
     R empty();
 
-    R prepend(@Getter("head") @Updater("withHead") T head,
-              @Getter("tail") S tail);
+    R prepend(@Getter @Updater T head,
+              @Getter S tail);
 }

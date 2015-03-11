@@ -38,21 +38,21 @@ import javax.annotation.Nullable;
 @GenerateValueClassForVisitor(hashCodeBase = 49)
 @Visitor(resultVariableName = "R")
 public interface RecordVisitor<R> {
-    R valueOf(@Getter("getBool") @Updater("withBool") boolean bool,
-              @Getter("getB") @Updater("withB") byte b,
-              @Getter("getC") @Updater("withC") char c,
-              @Getter("getI") @Updater("withI") int i,
-              @Getter("getL") @Updater("withL") long l,
-              @Getter("getF") @Updater("withF") float f,
-              @Getter("getD") @Updater("withD") double d,
-              @Getter("getO") @Updater("withO") Object result,
-              @Getter("getBoola") @Updater("withBoola") @Nullable boolean[] boola,
-              @Getter("getBa") @Updater("withBa") byte[][] ba,
-              @Getter("getCa") @Updater("withCa") char[] ca,
-              @Getter("getIa") @Updater("withIa") int[] ia,
-              @Getter("getLa") @Updater("withLa") long[] la,
-              @Getter("getFa") @Updater("withFa") float[] fa,
-              @Getter("getDa") @Updater("withDa") double[] da,
-              @Getter("getOa") @Updater("withOa") @Nullable Object[] newValue
+    R valueOf(@Getter(name = "getBool") @Updater(name = "withBool") boolean bool,
+              @Getter(name = "getB") @Updater(name = "withB") byte b,
+              @Getter(name = "getC") @Updater(name = "withC") char c,
+              @Getter(name = "getI") @Updater(name = "withI") int i,
+              @Getter(name = "getL") @Updater(name = "withL") long l,
+              @Getter(name = "getF") @Updater(name = "withF") float f,
+              @Getter(name = "getD") @Updater(name = "withD") double d,
+              @Getter(name = "getO") @Updater(name = "withO") Object result,
+              @Getter(name = "getBoola") @Updater(name = "withBoola") @Nullable boolean[] boola,
+              @Getter(name = "getBa") @Updater(name = "withBa") byte[][] ba,
+              @Getter(name = "getCa") @Updater(name = "withCa") char[] ca,
+              @Getter(name = "getIa") @Updater(name = "withIa") int[] ia,
+              @Getter(name = "getLa") @Updater(name = "withLa") long[] la,
+              @Getter(name = "getFa") @Updater(name = "withFa") float[] fa,
+              @Getter(name = "getDa") @Updater(name = "withDa") double[] da,
+              @Getter(name = "getOa") @Updater(name = "withOa") @Nullable Object[] newValue
               );
 }

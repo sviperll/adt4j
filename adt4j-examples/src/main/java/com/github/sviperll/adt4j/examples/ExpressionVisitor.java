@@ -40,7 +40,7 @@ import com.github.sviperll.meta.Visitor;
 @GenerateValueClassForVisitor(isPublic = true)
 @Visitor(resultVariableName = "R", selfReferenceVariableName = "S")
 public interface ExpressionVisitor<S, R> {
-    R add(@Getter("left") S left, @Getter("right") S right);
-    R mul(@Getter("left") S left, @Getter("right") S right);
+    R add(@Getter S left, @Getter S right);
+    R mul(@Getter S left, @Getter S right);
     R lit(int value);
 }

@@ -37,5 +37,5 @@ import com.github.sviperll.meta.Visitor;
 @Visitor(resultVariableName = "R", exceptionVariableName = "E")
 public interface OptionalVisitor<T, R, E extends Exception> {
     R missing() throws E;
-    R present(@Getter("getValue") T value) throws E;
+    R present(@Getter(name = "getValue") T value) throws E;
 }

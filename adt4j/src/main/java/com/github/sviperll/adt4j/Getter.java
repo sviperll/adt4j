@@ -37,6 +37,9 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
+ * Generates getter for specified method argument.
+ * <p>
+ * For example, <tt>getHead</tt> and <tt>getTail</tt> getters can be used to access sigle-linked list head and tail.
  *
  * @author Victor Nazarov <asviraspossible@gmail.com>
  */
@@ -44,6 +47,20 @@ import java.lang.annotation.Target;
 @Target(ElementType.PARAMETER)
 @Documented
 public @interface Getter {
-    String value();
+    /**
+     * Name of generated getter.
+     * <p>
+     * Name argument for Getter annotation can be omitted.
+     * In such case annotated method argument name will be used.
+     *
+     * @return Name of generated getter.
+     */
+    String name() default ":auto";
+
+    /**
+     * Java's access modifier for generated getter.
+     *
+     * @return Java's access modifier for generated getter.
+     */
     MemberAccess access() default MemberAccess.PUBLIC;
 }

@@ -37,6 +37,11 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
+ * Generates predicate for specified case
+ * <p>
+ * Predicate is used to test any ADT-value to find out if it represents some specific case.
+ * <p>
+ * For example, <tt>isEmpty</tt> predicate can be used to test if given single-linked list is empty.
  *
  * @author Victor Nazarov <asviraspossible@gmail.com>
  */
@@ -44,6 +49,32 @@ import java.lang.annotation.Target;
 @Target(ElementType.METHOD)
 @Documented
 public @interface GeneratePredicate {
-    String value();
+    /**
+     * Name of generated predicate.
+     * <p>
+     * Name argument for GeneratePredicate annotation can be omitted.
+     * In such case visitor-interface method name with <tt>is</tt> prefix will be used.
+     * <p>
+     * {@code
+     *     interface ListVisitor<L, T, R> {
+     *
+     *         @GeneratePredicate
+     *         R empty();
+     *
+     *         R prepend(T head, L tail);
+     *     }
+     * }
+     * <p>
+     * <tt>isEmpty</tt> predicate will be generated in the example above.
+     * 
+     * @return Name of generated predicate
+     */
+    String name() default ":auto";
+
+    /**
+     * Java's access modifier for generated predicate.
+     *
+     * @return Java's access modifier for generated predicate.
+     */
     MemberAccess access() default MemberAccess.PUBLIC;
 }

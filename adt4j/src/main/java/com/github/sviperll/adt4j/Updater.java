@@ -37,6 +37,9 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
+ * Generates updater for specified method argument.
+ * <p>
+ * For example, <tt>withHead</tt> can be used to create new single-linked list with new head, but same tail as original.
  *
  * @author Victor Nazarov <asviraspossible@gmail.com>
  */
@@ -44,6 +47,30 @@ import java.lang.annotation.Target;
 @Target(ElementType.PARAMETER)
 @Documented
 public @interface Updater {
-    String value();
+    /**
+     * Name of generated updater.
+     * <p>
+     * Name argument for Updater annotation can be omitted.
+     * In such case annotated method argument name with <tt>with</tt> prefix will be used.
+     * <p>
+     * {@code
+     *     interface ListVisitor<L, T, R> {
+     *         R empty();
+     *
+     *         R prepend(@Updater T head, L tail);
+     *     }
+     * }
+     * <p>
+     * <tt>withHead</tt> updater will be generated in the example above.
+     *
+     * @return Name of generated predicate
+     */
+    String name() default ":auto";
+
+    /**
+     * Java's access modifier for generated updater.
+     *
+     * @return Java's access modifier for generated updater.
+     */
     MemberAccess access() default MemberAccess.PUBLIC;
 }

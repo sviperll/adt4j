@@ -43,5 +43,5 @@ import com.github.sviperll.meta.Visitor;
                               isComparable = true)
 @Visitor(resultVariableName = "R")
 public interface UserVisitor<E extends Comparable<E>, R> {
-    R valueOf(@Getter("key") UserKey key, @Getter("list") ComparableList<E> list, @Getter("name") @Updater("withName") String name);
+    R valueOf(@Getter UserKey key, @Getter ComparableList<E> list, @Getter @Updater String name);
 }

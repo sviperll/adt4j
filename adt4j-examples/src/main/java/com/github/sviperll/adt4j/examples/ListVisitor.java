@@ -38,8 +38,8 @@ import com.github.sviperll.meta.Visitor;
 @GenerateValueClassForVisitor(isPublic = true)
 @Visitor(resultVariableName = "R", selfReferenceVariableName = "S")
 public interface ListVisitor<T, S, R> {
-    R cons(@Getter("head") @Updater("withHead") T head,
-           @Getter("tail") S tail);
-    @GeneratePredicate("isEmpty")
+    R cons(@Getter @Updater T head,
+           @Getter S tail);
+    @GeneratePredicate(name = "isEmpty")
     R nil();
 }

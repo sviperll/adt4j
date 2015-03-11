@@ -41,5 +41,5 @@ import com.github.sviperll.meta.Visitor;
 @GenerateValueClassForVisitor
 @Visitor(resultVariableName = "R")
 interface VarArgContainerVisitor<R> {
-    R of(int a, @Getter("bs") @Updater("bs") String... bs);
+    R of(int a, @Getter(name = "bs") @Updater(name = "bs") String... bs);
 }

@@ -299,7 +299,9 @@ class ValueClassModel {
                 for (JAnnotationUse annotationUsage: param.annotations()) {
                     if (annotationUsage.getAnnotationClass().fullName().equals(Getter.class.getName())) {
                         AbstractJType paramType = toDeclarable(visitorInterface.narrowType(param.type(), usedValueClassType, visitorInterface.getResultTypeParameter(), types._RuntimeException));
-                        String getterName = getAnnotationArgument(annotationUsage, "value", String.class);
+                        String getterName = getAnnotationArgument(annotationUsage, "name", String.class);
+                        if (getterName.equals(":auto"))
+                            getterName = param.name();
                         MemberAccess accessLevel = getAnnotationArgument(annotationUsage, "access", MemberAccess.class);
                         boolean isNullable = isNullable(param);
                         FieldConfiguration configuration = gettersMap.get(getterName);
@@ -321,7 +323,9 @@ class ValueClassModel {
                 for (JAnnotationUse annotationUsage: param.annotations()) {
                     if (annotationUsage.getAnnotationClass().fullName().equals(Getter.class.getName())) {
                         AbstractJType paramType = toDeclarable(visitorInterface.narrowType(param.type(), usedValueClassType, visitorInterface.getResultTypeParameter(), types._RuntimeException));
-                        String getterName = getAnnotationArgument(annotationUsage, "value", String.class);
+                        String getterName = getAnnotationArgument(annotationUsage, "name", String.class);
+                        if (getterName.equals(":auto"))
+                            getterName = param.name();
                         MemberAccess accessLevel = getAnnotationArgument(annotationUsage, "access", MemberAccess.class);
                         boolean isNullable = isNullable(param);
                         FieldConfiguration configuration = gettersMap.get(getterName);
@@ -350,7 +354,9 @@ class ValueClassModel {
                 for (JAnnotationUse annotationUsage: param.annotations()) {
                     if (annotationUsage.getAnnotationClass().fullName().equals(Updater.class.getName())) {
                         AbstractJType paramType = toDeclarable(visitorInterface.narrowType(param.type(), usedValueClassType, visitorInterface.getResultTypeParameter(), types._RuntimeException));
-                        String updaterName = getAnnotationArgument(annotationUsage, "value", String.class);
+                        String updaterName = getAnnotationArgument(annotationUsage, "name", String.class);
+                        if (updaterName.equals(":auto"))
+                            updaterName = "with" + capitalize(param.name());
                         MemberAccess accessLevel = getAnnotationArgument(annotationUsage, "access", MemberAccess.class);
                         boolean isNullable = isNullable(param);
                         FieldConfiguration configuration = updatersMap.get(updaterName);
@@ -372,7 +378,9 @@ class ValueClassModel {
                 for (JAnnotationUse annotationUsage: param.annotations()) {
                     if (annotationUsage.getAnnotationClass().fullName().equals(Updater.class.getName())) {
                         AbstractJType paramType = toDeclarable(visitorInterface.narrowType(param.type(), usedValueClassType, visitorInterface.getResultTypeParameter(), types._RuntimeException));
-                        String updaterName = getAnnotationArgument(annotationUsage, "value", String.class);
+                        String updaterName = getAnnotationArgument(annotationUsage, "name", String.class);
+                        if (updaterName.equals(":auto"))
+                            updaterName = "with" + capitalize(param.name());
                         MemberAccess accessLevel = getAnnotationArgument(annotationUsage, "access", MemberAccess.class);
                         boolean isNullable = isNullable(param);
                         FieldConfiguration configuration = updatersMap.get(updaterName);
@@ -398,7 +406,10 @@ class ValueClassModel {
         for (JMethod interfaceMethod: visitorInterface.methods()) {
             for (JAnnotationUse annotationUsage: interfaceMethod.annotations()) {
                 if (annotationUsage.getAnnotationClass().fullName().equals(GeneratePredicate.class.getName())) {
-                    String predicateName = getAnnotationArgument(annotationUsage, "value", String.class);
+                    String predicateName = getAnnotationArgument(annotationUsage, "name", String.class);
+                    if (predicateName.equals(":auto")) {
+                        predicateName = "is" + capitalize(interfaceMethod.name());
+                    }
                     MemberAccess accessLevel = getAnnotationArgument(annotationUsage, "access", MemberAccess.class);
                     MemberAccess knownAccessLevel = predicates.get(predicateName);
                     if (knownAccessLevel == null) {
@@ -803,7 +814,10 @@ class ValueClassModel {
                 boolean result = false;
                 for (JAnnotationUse annotationUsage: interfaceMethod1.annotations()) {
                     if (annotationUsage.getAnnotationClass().fullName().equals(GeneratePredicate.class.getName())) {
-                        String predicateName = getAnnotationArgument(annotationUsage, "value", String.class);
+                        String predicateName = getAnnotationArgument(annotationUsage, "name", String.class);
+                        if (predicateName.equals(":auto")) {
+                            predicateName = "is" + capitalize(interfaceMethod1.name());
+                        }
                         if (predicateName.equals(name)) {
                             result = true;
                             break;

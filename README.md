@@ -12,11 +12,11 @@ It allows you to easily define custom data types. Like this:
     @GenerateValueClassForVisitor
     @Visitor(resultVariableName="R", selfReferenceVariableName="E")
     interface ExpressionVisitor<E, R> {
-        @GeneratePredicate("isLiteral");
+        @GeneratePredicate(name = "isLiteral");
         R lit(int i);
 
-        R sum(@Getter("leftOperand") E e1, @Getter("rightOperand") E e2);
-        R mul(@Getter("leftOperand") E e1, @Getter("rightOperand") E e2);
+        R sum(@Getter(name = "leftOperand") E e1, @Getter(name = "rightOperand") E e2);
+        R mul(@Getter(name = "leftOperand") E e1, @Getter(name = "rightOperand") E e2);
     }
 ```
 
@@ -90,6 +90,8 @@ Changelog
 
 Since 0.15
 
+ * Add default names for generated getters, updaters and predicates. Allow to omit name parameter.
+ * API-breaking change: rename value argument to name argument of @Getter, @Updater and @GeneratePredicate annotations
  * API-breaking change: use com.github.sviperll.meta.Visitor annotation from metachicory package.
  * Add dependency to metachicory package which provides some generic metaprogramming support.
 
@@ -205,7 +207,7 @@ ADT4J can automatically generate getters. We need to modify `UserVisitor` interf
     @GenerateValueClassForVisitor(className = "User")
     @Visitor(resultVariableName="R")
     interface UserVisitor<R> {
-       R valueOf(@Getter("getName") String name, @Getter("getAge") int age);
+       R valueOf(@Getter(name = "getName") String name, @Getter(name = "getAge") int age);
     }
 ```
 
@@ -290,7 +292,7 @@ ADT4J allows you to automatically generate withX method for you. You can generat
     @GenerateValueClassForVisitor(className = "Point")
     @Visitor(resultVariableName="R")
     interface PointVisitor<R> {
-       R valueOf(@Getter("getX") @Updater("withX") int x, @Getter("getY") @Updater("withY") int y);
+       R valueOf(@Getter(name = "getX") @Updater(name = "withX") int x, @Getter(name = "getY") @Updater(name = "withY") int y);
     }
 ```
 

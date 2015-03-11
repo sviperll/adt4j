@@ -45,5 +45,5 @@ import com.github.sviperll.meta.Visitor;
 @Visitor(resultVariableName = "R")
 interface BaseFancyListCases<S, T, R> {
     R nil();
-    R list(@Updater(value = "withHead", access = MemberAccess.PROTECTED) T head, S tail);
+    R list(@Updater(name = "withHead", access = MemberAccess.PROTECTED) T head, S tail);
 }
