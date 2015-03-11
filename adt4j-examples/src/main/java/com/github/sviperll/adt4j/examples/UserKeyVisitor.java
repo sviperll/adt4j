@@ -30,11 +30,12 @@
 package com.github.sviperll.adt4j.examples;
 
 import com.github.sviperll.adt4j.GenerateValueClassForVisitor;
+import com.github.sviperll.meta.Visitor;
 
-@GenerateValueClassForVisitor(resultVariableName = "R",
-                              valueClassIsSerializable = true,
-                              valueClassIsPublic = true,
-                              valueClassIsComparable = true)
+@GenerateValueClassForVisitor(isSerializable = true,
+                              isPublic = true,
+                              isComparable = true)
+@Visitor(resultVariableName = "R")
 public interface UserKeyVisitor<R> {
     R valueOf(int key);
 }

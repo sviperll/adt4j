@@ -32,15 +32,16 @@ package com.github.sviperll.adt4j.examples;
 import com.github.sviperll.adt4j.GenerateValueClassForVisitor;
 import com.github.sviperll.adt4j.Getter;
 import com.github.sviperll.adt4j.Updater;
+import com.github.sviperll.meta.Visitor;
 
 /**
  *
  * @author Victor Nazarov <asviraspossible@gmail.com>
  */
-@GenerateValueClassForVisitor(resultVariableName = "R",
-                              valueClassIsSerializable = false,
-                              valueClassIsPublic = true,
-                              valueClassIsComparable = true)
+@GenerateValueClassForVisitor(isSerializable = false,
+                              isPublic = true,
+                              isComparable = true)
+@Visitor(resultVariableName = "R")
 public interface UserVisitor<E extends Comparable<E>, R> {
     R valueOf(@Getter("key") UserKey key, @Getter("list") ComparableList<E> list, @Getter("name") @Updater("withName") String name);
 }

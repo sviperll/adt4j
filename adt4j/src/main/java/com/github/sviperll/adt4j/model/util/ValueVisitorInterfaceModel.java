@@ -29,32 +29,32 @@
  */
 package com.github.sviperll.adt4j.model.util;
 
-import com.github.sviperll.meta.AccessLevel;
+import com.github.sviperll.meta.SourceException;
+import com.github.sviperll.meta.MemberAccess;
 import com.github.sviperll.adt4j.GenerateValueClassForVisitor;
+import com.github.sviperll.meta.Visitor;
 import com.helger.jcodemodel.AbstractJClass;
 import com.helger.jcodemodel.AbstractJType;
 import com.helger.jcodemodel.JDefinedClass;
 import com.helger.jcodemodel.JMethod;
-import com.helger.jcodemodel.JNarrowedClass;
 import com.helger.jcodemodel.JTypeVar;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 import javax.annotation.Nullable;
 
 public class ValueVisitorInterfaceModel {
-    public static ValueVisitorInterfaceModel createInstance(JDefinedClass jVisitorModel, GenerateValueClassForVisitor annotation) throws SourceException {
-        ValueVisitorTypeParameters typeParameters = createValueVisitorTypeParameters(jVisitorModel, annotation);
+    public static ValueVisitorInterfaceModel createInstance(JDefinedClass jVisitorModel, Visitor visitorAnnotation, GenerateValueClassForVisitor annotation) throws SourceException {
+        ValueVisitorTypeParameters typeParameters = createValueVisitorTypeParameters(jVisitorModel, visitorAnnotation);
         Map<String, JMethod> methods = createMethodMap(jVisitorModel, typeParameters);
-        APICustomization apiCustomization = new APICustomization(annotation.acceptMethodName(), annotation.acceptMethodAccessLevel(), annotation.valueClassIsPublic());
+        APICustomization apiCustomization = new APICustomization(annotation.acceptMethodName(), annotation.acceptMethodAccess(), annotation.isPublic());
         return new ValueVisitorInterfaceModel(jVisitorModel, typeParameters, methods, apiCustomization);
     }
 
     private static ValueVisitorTypeParameters createValueVisitorTypeParameters(JDefinedClass jVisitorModel,
-                                                                               GenerateValueClassForVisitor annotation)
+                                                                               Visitor annotation)
             throws SourceException {
         JTypeVar resultType = null;
         @Nullable JTypeVar exceptionType = null;
@@ -201,11 +201,11 @@ public class ValueVisitorInterfaceModel {
         return apiCustomization.acceptMethodName();
     }
 
-    public AccessLevel factoryMethodAccessLevel() {
-        return apiCustomization.isValueClassPublic() ? AccessLevel.PUBLIC : AccessLevel.PACKAGE;
+    public MemberAccess factoryMethodAccessLevel() {
+        return apiCustomization.isValueClassPublic() ? MemberAccess.PUBLIC : MemberAccess.PACKAGE;
     }
 
-    public AccessLevel acceptMethodAccessLevel() {
+    public MemberAccess acceptMethodAccessLevel() {
         return apiCustomization.acceptMethodAccessLevel();
     }
 }

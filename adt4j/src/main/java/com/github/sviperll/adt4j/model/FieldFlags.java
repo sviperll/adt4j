@@ -29,7 +29,7 @@
  */
 package com.github.sviperll.adt4j.model;
 
-import com.github.sviperll.meta.AccessLevel;
+import com.github.sviperll.meta.MemberAccess;
 
 /**
  *
@@ -38,13 +38,13 @@ import com.github.sviperll.meta.AccessLevel;
 class FieldFlags {
     private final boolean isNullable;
     private final boolean isVarArg;
-    private final AccessLevel accessLevel;
+    private final MemberAccess accessLevel;
 
-    FieldFlags(AccessLevel accessLevel) {
+    FieldFlags(MemberAccess accessLevel) {
         this(true, true, accessLevel);
     }
 
-    FieldFlags(boolean isNullable, boolean isVarArg, AccessLevel accessLevel) {
+    FieldFlags(boolean isNullable, boolean isVarArg, MemberAccess accessLevel) {
         this.isNullable = isNullable;
         this.isVarArg = isVarArg;
         this.accessLevel = accessLevel;
@@ -64,7 +64,7 @@ class FieldFlags {
         return isVarArg;
     }
 
-    AccessLevel accessLevel() {
+    MemberAccess accessLevel() {
         return accessLevel;
     }
 

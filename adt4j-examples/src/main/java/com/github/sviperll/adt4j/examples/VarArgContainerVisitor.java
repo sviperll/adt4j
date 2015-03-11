@@ -32,12 +32,14 @@ package com.github.sviperll.adt4j.examples;
 import com.github.sviperll.adt4j.GenerateValueClassForVisitor;
 import com.github.sviperll.adt4j.Getter;
 import com.github.sviperll.adt4j.Updater;
+import com.github.sviperll.meta.Visitor;
 
 /**
  *
  * @author Victor Nazarov <asviraspossible@gmail.com>
  */
-@GenerateValueClassForVisitor(resultVariableName = "R")
+@GenerateValueClassForVisitor
+@Visitor(resultVariableName = "R")
 interface VarArgContainerVisitor<R> {
     R of(int a, @Getter("bs") @Updater("bs") String... bs);
 }

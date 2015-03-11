@@ -29,20 +29,21 @@
  */
 package com.github.sviperll.adt4j.examples;
 
-import com.github.sviperll.meta.AccessLevel;
+import com.github.sviperll.meta.MemberAccess;
 import com.github.sviperll.adt4j.GenerateValueClassForVisitor;
 import com.github.sviperll.adt4j.Updater;
+import com.github.sviperll.meta.Visitor;
 
 /**
  *
  * @author Victor Nazarov <asviraspossible@gmail.com>
  */
 @GenerateValueClassForVisitor(
-        resultVariableName = "R",
-        valueClassName = "BaseFancyList",
+        className = "BaseFancyList",
         acceptMethodName = "match",
-        acceptMethodAccessLevel = AccessLevel.PACKAGE)
+        acceptMethodAccess = MemberAccess.PACKAGE)
+@Visitor(resultVariableName = "R")
 interface BaseFancyListCases<S, T, R> {
     R nil();
-    R list(@Updater(value = "withHead", access = AccessLevel.PROTECTED) T head, S tail);
+    R list(@Updater(value = "withHead", access = MemberAccess.PROTECTED) T head, S tail);
 }

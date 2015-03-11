@@ -30,13 +30,15 @@
 package com.github.sviperll.adt4j.examples;
 
 import com.github.sviperll.adt4j.GenerateValueClassForVisitor;
+import com.github.sviperll.meta.Visitor;
 
 /**
  *
  * @author Victor Nazarov <asviraspossible@gmail.com>
  */
 
-@GenerateValueClassForVisitor(resultVariableName = "R", valueClassName = "GADTBase")
+@GenerateValueClassForVisitor(className = "GADTBase")
+@Visitor(resultVariableName = "R")
 interface GADTBaseVisitor<A, SF, SA, SB, SI, SBOOL, CAST_F_TO_T, CAST_B_TO_T, CAST_INT_TO_T, CAST_BOOL_TO_T, ST, R> {
     R lambda(Function<A, SB> function, CAST_F_TO_T cast);
     R apply(SF function, SA argument, CAST_B_TO_T cast);

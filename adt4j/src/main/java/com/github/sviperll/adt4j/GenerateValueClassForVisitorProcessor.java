@@ -34,6 +34,8 @@ import com.github.sviperll.meta.FilerCodeWriter;
 import com.github.sviperll.adt4j.model.ValueClassModelFactory;
 import com.github.sviperll.meta.ErrorTypeFound;
 import com.github.sviperll.meta.ProcessingException;
+import com.github.sviperll.meta.SourceException;
+import com.github.sviperll.meta.Visitor;
 import com.helger.jcodemodel.JCodeModel;
 import com.helger.jcodemodel.JDefinedClass;
 import java.io.IOException;
@@ -88,10 +90,13 @@ public class GenerateValueClassForVisitorProcessor extends AbstractProcessor {
         for (TypeElement element: elements) {
             try {
                 JCodeModel jCodeModel = new JCodeModel();
-                GenerateValueClassForVisitor dataVisitor = element.getAnnotation(GenerateValueClassForVisitor.class);
+                Visitor visitorAnnotation = element.getAnnotation(Visitor.class);
+                if (visitorAnnotation == null)
+                    throw new SourceException("No " + Visitor.class.getName() + " annotation for " + element.getQualifiedName() + " class annotated with " + GenerateValueClassForVisitor.class.getName() + " annotation");
+                GenerateValueClassForVisitor generateAnnotation = element.getAnnotation(GenerateValueClassForVisitor.class);
                 JCodeModelJavaxLangModelAdapter adapter = new JCodeModelJavaxLangModelAdapter(jCodeModel, processingEnv.getElementUtils());
                 JDefinedClass visitorModel = adapter.getClass(element);
-                JDefinedClass valueClass = ValueClassModelFactory.createValueClass(visitorModel, dataVisitor);
+                JDefinedClass valueClass = ValueClassModelFactory.createValueClass(visitorModel, visitorAnnotation, generateAnnotation);
                 processingEnv.getMessager().printMessage(Diagnostic.Kind.NOTE, "Generated value class " + valueClass.fullName() + " for " + element + " visitor interface");
                 FilerCodeWriter writer = new FilerCodeWriter(processingEnv.getFiler(), processingEnv.getMessager());
                 try {

@@ -33,15 +33,14 @@ import com.github.sviperll.adt4j.GeneratePredicate;
 import com.github.sviperll.adt4j.GenerateValueClassForVisitor;
 import com.github.sviperll.adt4j.Getter;
 import com.github.sviperll.adt4j.Updater;
+import com.github.sviperll.meta.Visitor;
 
 /**
  *
  * @author Victor Nazarov <asviraspossible@gmail.com>
  */
-@GenerateValueClassForVisitor(resultVariableName = "R",
-                              selfReferenceVariableName = "S",
-                              valueClassIsPublic = true,
-                              valueClassIsComparable = true)
+@GenerateValueClassForVisitor(isPublic = true, isComparable = true)
+@Visitor(resultVariableName = "R", selfReferenceVariableName = "S")
 public interface ComparableListVisitor<T extends Comparable<? super T>, S, R> {
     @GeneratePredicate("isEmpty")
     R empty();

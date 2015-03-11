@@ -29,7 +29,7 @@
  */
 package com.github.sviperll.adt4j;
 
-import com.github.sviperll.meta.AccessLevel;
+import com.github.sviperll.meta.MemberAccess;
 import java.lang.annotation.Documented;
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -45,5 +45,5 @@ import java.lang.annotation.Target;
 @Documented
 public @interface Getter {
     String value();
-    AccessLevel access() default AccessLevel.PUBLIC;
+    MemberAccess access() default MemberAccess.PUBLIC;
 }

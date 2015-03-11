@@ -30,15 +30,15 @@
 package com.github.sviperll.adt4j.examples;
 
 import com.github.sviperll.adt4j.GenerateValueClassForVisitor;
+import com.github.sviperll.meta.Visitor;
 import java.util.List;
 
 /**
  *
  * @author Victor Nazarov <asviraspossible@gmail.com>
  */
-@GenerateValueClassForVisitor(
-        resultVariableName = "R",
-        selfReferenceVariableName = "S")
+@GenerateValueClassForVisitor
+@Visitor(resultVariableName = "R", selfReferenceVariableName = "S")
 public interface TreeVisitor<T, S, R> {
     R leaf(T value);
     R node(List<? extends S> subtrees);

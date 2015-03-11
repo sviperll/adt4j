@@ -31,10 +31,10 @@ package com.github.sviperll.adt4j.examples;
 
 import com.github.sviperll.adt4j.GenerateValueClassForVisitor;
 import com.github.sviperll.adt4j.Getter;
+import com.github.sviperll.meta.Visitor;
 
-@GenerateValueClassForVisitor(resultVariableName = "R",
-                              exceptionVariableName = "E",
-                              valueClassName = "OptionalValue")
+@GenerateValueClassForVisitor(className = "OptionalValue")
+@Visitor(resultVariableName = "R", exceptionVariableName = "E")
 public interface OptionalVisitor<T, R, E extends Exception> {
     R missing() throws E;
     R present(@Getter("getValue") T value) throws E;

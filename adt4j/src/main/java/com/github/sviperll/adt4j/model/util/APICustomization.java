@@ -29,7 +29,7 @@
  */
 package com.github.sviperll.adt4j.model.util;
 
-import com.github.sviperll.meta.AccessLevel;
+import com.github.sviperll.meta.MemberAccess;
 
 /**
  *
@@ -38,8 +38,8 @@ import com.github.sviperll.meta.AccessLevel;
 public class APICustomization {
     private final String acceptMethodName;
     private final boolean isValueClassPublic;
-    private final AccessLevel acceptMethodAccessLevel;
-    public APICustomization(String acceptMethodName, AccessLevel acceptMethodAccessLevel, boolean isValueClassPublic) {
+    private final MemberAccess acceptMethodAccessLevel;
+    public APICustomization(String acceptMethodName, MemberAccess acceptMethodAccessLevel, boolean isValueClassPublic) {
         this.acceptMethodName = acceptMethodName;
         this.isValueClassPublic = isValueClassPublic;
         this.acceptMethodAccessLevel = acceptMethodAccessLevel;
@@ -53,7 +53,7 @@ public class APICustomization {
         return isValueClassPublic;
     }
 
-    AccessLevel acceptMethodAccessLevel() {
+    MemberAccess acceptMethodAccessLevel() {
         return acceptMethodAccessLevel;
     }
 

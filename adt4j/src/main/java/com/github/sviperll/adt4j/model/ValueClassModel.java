@@ -29,12 +29,12 @@
  */
 package com.github.sviperll.adt4j.model;
 
-import com.github.sviperll.meta.AccessLevel;
+import com.github.sviperll.meta.MemberAccess;
 import com.github.sviperll.adt4j.GeneratePredicate;
 import com.github.sviperll.adt4j.Getter;
 import com.github.sviperll.adt4j.Updater;
 import com.github.sviperll.adt4j.model.util.Serialization;
-import com.github.sviperll.adt4j.model.util.SourceException;
+import com.github.sviperll.meta.SourceException;
 import com.github.sviperll.adt4j.model.util.Types;
 import com.github.sviperll.adt4j.model.util.ValueVisitorInterfaceModel;
 import com.github.sviperll.adt4j.model.util.VariableNameSource;
@@ -78,7 +78,7 @@ class ValueClassModel {
         }
     }
 
-    private static int toJMod(AccessLevel accessLevel) {
+    private static int toJMod(MemberAccess accessLevel) {
         switch (accessLevel) {
             case PRIVATE:
                 return JMod.PRIVATE;
@@ -300,7 +300,7 @@ class ValueClassModel {
                     if (annotationUsage.getAnnotationClass().fullName().equals(Getter.class.getName())) {
                         AbstractJType paramType = toDeclarable(visitorInterface.narrowType(param.type(), usedValueClassType, visitorInterface.getResultTypeParameter(), types._RuntimeException));
                         String getterName = getAnnotationArgument(annotationUsage, "value", String.class);
-                        AccessLevel accessLevel = getAnnotationArgument(annotationUsage, "access", AccessLevel.class);
+                        MemberAccess accessLevel = getAnnotationArgument(annotationUsage, "access", MemberAccess.class);
                         boolean isNullable = isNullable(param);
                         FieldConfiguration configuration = gettersMap.get(getterName);
                         if (configuration == null) {
@@ -322,7 +322,7 @@ class ValueClassModel {
                     if (annotationUsage.getAnnotationClass().fullName().equals(Getter.class.getName())) {
                         AbstractJType paramType = toDeclarable(visitorInterface.narrowType(param.type(), usedValueClassType, visitorInterface.getResultTypeParameter(), types._RuntimeException));
                         String getterName = getAnnotationArgument(annotationUsage, "value", String.class);
-                        AccessLevel accessLevel = getAnnotationArgument(annotationUsage, "access", AccessLevel.class);
+                        MemberAccess accessLevel = getAnnotationArgument(annotationUsage, "access", MemberAccess.class);
                         boolean isNullable = isNullable(param);
                         FieldConfiguration configuration = gettersMap.get(getterName);
                         if (configuration == null) {
@@ -351,7 +351,7 @@ class ValueClassModel {
                     if (annotationUsage.getAnnotationClass().fullName().equals(Updater.class.getName())) {
                         AbstractJType paramType = toDeclarable(visitorInterface.narrowType(param.type(), usedValueClassType, visitorInterface.getResultTypeParameter(), types._RuntimeException));
                         String updaterName = getAnnotationArgument(annotationUsage, "value", String.class);
-                        AccessLevel accessLevel = getAnnotationArgument(annotationUsage, "access", AccessLevel.class);
+                        MemberAccess accessLevel = getAnnotationArgument(annotationUsage, "access", MemberAccess.class);
                         boolean isNullable = isNullable(param);
                         FieldConfiguration configuration = updatersMap.get(updaterName);
                         if (configuration == null) {
@@ -373,7 +373,7 @@ class ValueClassModel {
                     if (annotationUsage.getAnnotationClass().fullName().equals(Updater.class.getName())) {
                         AbstractJType paramType = toDeclarable(visitorInterface.narrowType(param.type(), usedValueClassType, visitorInterface.getResultTypeParameter(), types._RuntimeException));
                         String updaterName = getAnnotationArgument(annotationUsage, "value", String.class);
-                        AccessLevel accessLevel = getAnnotationArgument(annotationUsage, "access", AccessLevel.class);
+                        MemberAccess accessLevel = getAnnotationArgument(annotationUsage, "access", MemberAccess.class);
                         boolean isNullable = isNullable(param);
                         FieldConfiguration configuration = updatersMap.get(updaterName);
                         if (configuration == null) {
@@ -393,14 +393,14 @@ class ValueClassModel {
         return updatersMap;
     }
 
-    Map<String, AccessLevel> getPredicates() throws SourceException {
-        Map<String, AccessLevel> predicates = new TreeMap<String, AccessLevel>();
+    Map<String, MemberAccess> getPredicates() throws SourceException {
+        Map<String, MemberAccess> predicates = new TreeMap<String, MemberAccess>();
         for (JMethod interfaceMethod: visitorInterface.methods()) {
             for (JAnnotationUse annotationUsage: interfaceMethod.annotations()) {
                 if (annotationUsage.getAnnotationClass().fullName().equals(GeneratePredicate.class.getName())) {
                     String predicateName = getAnnotationArgument(annotationUsage, "value", String.class);
-                    AccessLevel accessLevel = getAnnotationArgument(annotationUsage, "access", AccessLevel.class);
-                    AccessLevel knownAccessLevel = predicates.get(predicateName);
+                    MemberAccess accessLevel = getAnnotationArgument(annotationUsage, "access", MemberAccess.class);
+                    MemberAccess knownAccessLevel = predicates.get(predicateName);
                     if (knownAccessLevel == null) {
                         predicates.put(predicateName, accessLevel);
                     } else if (knownAccessLevel != accessLevel) {
@@ -789,7 +789,7 @@ class ValueClassModel {
             }
         }
 
-        void generatePredicate(String name, AccessLevel accessLevel) {
+        void generatePredicate(String name, MemberAccess accessLevel) {
             acceptingInterface.method(JMod.PUBLIC, types._boolean, name);
 
             JMethod predicateMethod = valueClass.method(toJMod(accessLevel) | JMod.FINAL, types._boolean, name);

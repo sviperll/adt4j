@@ -32,10 +32,11 @@ package com.github.sviperll.adt4j.examples;
 import com.github.sviperll.adt4j.GenerateValueClassForVisitor;
 import com.github.sviperll.adt4j.Getter;
 import com.github.sviperll.adt4j.Updater;
+import com.github.sviperll.meta.Visitor;
 import javax.annotation.Nullable;
 
-@GenerateValueClassForVisitor(resultVariableName = "R",
-                              valueClassHashCodeBase = 49)
+@GenerateValueClassForVisitor(hashCodeBase = 49)
+@Visitor(resultVariableName = "R")
 public interface RecordVisitor<R> {
     R valueOf(@Getter("getBool") @Updater("withBool") boolean bool,
               @Getter("getB") @Updater("withB") byte b,

@@ -31,14 +31,14 @@ package com.github.sviperll.adt4j.examples;
 
 import com.github.sviperll.adt4j.GenerateValueClassForVisitor;
 import com.github.sviperll.adt4j.Getter;
+import com.github.sviperll.meta.Visitor;
 
 /**
  *
  * @author Victor Nazarov <asviraspossible@gmail.com>
  */
-@GenerateValueClassForVisitor(resultVariableName = "R",
-                              selfReferenceVariableName = "S",
-                              valueClassIsPublic = true)
+@GenerateValueClassForVisitor(isPublic = true)
+@Visitor(resultVariableName = "R", selfReferenceVariableName = "S")
 public interface ExpressionVisitor<S, R> {
     R add(@Getter("left") S left, @Getter("right") S right);
     R mul(@Getter("left") S left, @Getter("right") S right);

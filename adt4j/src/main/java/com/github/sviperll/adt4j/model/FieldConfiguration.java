@@ -29,7 +29,7 @@
  */
 package com.github.sviperll.adt4j.model;
 
-import com.github.sviperll.meta.AccessLevel;
+import com.github.sviperll.meta.MemberAccess;
 import com.helger.jcodemodel.AbstractJType;
 import com.helger.jcodemodel.JMethod;
 import java.text.MessageFormat;
@@ -46,7 +46,7 @@ class FieldConfiguration {
     private final String name;
     private FieldFlags flags;
 
-    FieldConfiguration(String name, AbstractJType paramType, AccessLevel accessLevel) {
+    FieldConfiguration(String name, AbstractJType paramType, MemberAccess accessLevel) {
         this.type = paramType;
         this.name = name;
         this.flags = new FieldFlags(accessLevel);
@@ -76,7 +76,7 @@ class FieldConfiguration {
         return name;
     }
 
-    AccessLevel accessLevel() {
+    MemberAccess accessLevel() {
         return flags.accessLevel();
     }
 
