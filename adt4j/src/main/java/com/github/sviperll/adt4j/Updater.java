@@ -53,13 +53,13 @@ public @interface Updater {
      * Name argument for Updater annotation can be omitted.
      * In such case annotated method argument name with <tt>with</tt> prefix will be used.
      * <p>
-     * {@code
-     *     interface ListVisitor<L, T, R> {
+     * <blockquote><pre><code>
+     *     interface ListVisitor&lt;L, T, R&gt; {
      *         R empty();
      *
-     *         R prepend(@Updater T head, L tail);
+     *         R prepend(&#64;Updater T head, L tail);
      *     }
-     * }
+     * </code></pre></blockquote>
      * <p>
      * <tt>withHead</tt> updater will be generated in the example above.
      *

@@ -55,15 +55,15 @@ public @interface GeneratePredicate {
      * Name argument for GeneratePredicate annotation can be omitted.
      * In such case visitor-interface method name with <tt>is</tt> prefix will be used.
      * <p>
-     * {@code
-     *     interface ListVisitor<L, T, R> {
+     * <blockquote><pre><code>
+     *     interface ListVisitor&lt;L, T, R&gt; {
      *
-     *         @GeneratePredicate
+     *         &#64;GeneratePredicate
      *         R empty();
      *
      *         R prepend(T head, L tail);
      *     }
-     * }
+     * </code></pre></blockquote>
      * <p>
      * <tt>isEmpty</tt> predicate will be generated in the example above.
      * 
