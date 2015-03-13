@@ -33,6 +33,8 @@ import java.io.IOException;
 
 public class Main {
     public static void main(String[] args) throws IOException, ClassNotFoundException {
+        Tree<String> tree = Tree.<String>node(List.<Tree<String>>cons(Tree.<String>leaf("aaa"), List.<Tree<String>>nil()));
+        System.out.println(tree);
         final GADT<Integer> a = GADT.number(1);
         final GADT<Integer> b = GADT.number(5);
         final GADT<Integer> c = GADT.number(7);

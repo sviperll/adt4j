@@ -31,12 +31,13 @@ package com.github.sviperll.adt4j.examples;
 
 import com.github.sviperll.adt4j.GenerateValueClassForVisitor;
 import com.github.sviperll.meta.Visitor;
-import java.util.List;
+import javax.xml.bind.annotation.XmlType;
 
 /**
  *
  * @author Victor Nazarov <asviraspossible@gmail.com>
  */
+@XmlType(factoryClass = XmlType.DEFAULT.class)
 @GenerateValueClassForVisitor
 @Visitor(resultVariableName = "R", selfReferenceVariableName = "S")
 public interface TreeVisitor<T, S, R> {
