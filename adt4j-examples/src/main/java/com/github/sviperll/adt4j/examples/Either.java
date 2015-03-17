@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014, Victor Nazarov <asviraspossible@gmail.com>
+ * Copyright (c) 2015, Victor Nazarov <asviraspossible@gmail.com>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -29,18 +29,26 @@
  */
 package com.github.sviperll.adt4j.examples;
 
+import com.github.sviperll.adt4j.GeneratePredicate;
 import com.github.sviperll.adt4j.GenerateValueClassForVisitor;
-import com.github.sviperll.meta.Visitor;
-import javax.xml.bind.annotation.XmlType;
+import com.github.sviperll.adt4j.Getter;
 
 /**
  *
  * @author Victor Nazarov <asviraspossible@gmail.com>
  */
-@GenerateValueClassForVisitor
-@Visitor(resultVariableName = "R", selfReferenceVariableName = "S")
-@XmlType(factoryClass = XmlType.DEFAULT.class)
-public interface TreeVisitor<T, S, R> {
-    R leaf(T value);
-    R node(List<? extends S> subtrees);
+public class Either<T, U> extends EitherBase<T, U> {
+    private Either(EitherBase<T, U> value) {
+        super(value);
+    }
+
+    @GenerateValueClassForVisitor(className = "EitherBase")
+    @com.github.sviperll.meta.Visitor(resultVariableName = "R")
+    public interface Visitor<T, U, R> {
+        @GeneratePredicate
+        R left(@Getter T left);
+
+        @GeneratePredicate
+        R right(@Getter U right);
+    }
 }

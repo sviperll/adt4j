@@ -30,8 +30,6 @@
 package com.github.sviperll.adt4j;
 
 import com.github.sviperll.adt4j.examples.ComparableList;
-import com.github.sviperll.adt4j.examples.Main;
-import com.github.sviperll.adt4j.examples.Optional;
 import com.github.sviperll.adt4j.examples.User;
 import com.github.sviperll.adt4j.examples.UserKey;
 import com.github.sviperll.adt4j.examples.UserVisitor;
