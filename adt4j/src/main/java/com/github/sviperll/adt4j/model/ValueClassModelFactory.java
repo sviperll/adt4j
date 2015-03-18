@@ -138,13 +138,13 @@ public class ValueClassModelFactory {
                 for (JMethod interfaceMethod: visitorInterface.methods()) {
                     for (JVar param: interfaceMethod.params()) {
                         AbstractJType type = param.type();
-                        if (!visitorInterface.isSelf(type) && !types.isSerializable(type))
+                        if (!type.isError() && !visitorInterface.isSelf(type) && !types.isSerializable(type))
                             throw new SourceCodeValidationException("Value class can't be serializable: " + param.name() + " parameter in " + interfaceMethod.name() + " method is not serializable");
                     }
                     JVar param = interfaceMethod.listVarParam();
                     if (param != null) {
                         AbstractJType type = param.type();
-                        if (!visitorInterface.isSelf(type) && !types.isSerializable(type))
+                        if (!type.isError() && !visitorInterface.isSelf(type) && !types.isSerializable(type))
                             throw new SourceCodeValidationException("Value class can't be serializable: " + param.name() + " parameter in " + interfaceMethod.name() + " method is not serializable");
                     }
                 }
@@ -154,13 +154,13 @@ public class ValueClassModelFactory {
                 for (JMethod interfaceMethod: visitorInterface.methods()) {
                     for (JVar param: interfaceMethod.params()) {
                         AbstractJType type = param.type();
-                        if (!visitorInterface.isSelf(type) && !types.isComparable(type))
+                        if (!type.isError() && !visitorInterface.isSelf(type) && !types.isComparable(type))
                             throw new SourceCodeValidationException("Value class can't be comparable: " + param.name() + " parameter in " + interfaceMethod.name() + " method is not comparable");
                     }
                     JVar param = interfaceMethod.listVarParam();
                     if (param != null) {
                         AbstractJType type = param.type();
-                        if (!visitorInterface.isSelf(type) && !types.isComparable(type))
+                        if (!type.isError() && !visitorInterface.isSelf(type) && !types.isComparable(type))
                             throw new SourceCodeValidationException("Value class can't be comparable: " + param.name() + " parameter in " + interfaceMethod.name() + " method is not comparable");
                     }
                 }

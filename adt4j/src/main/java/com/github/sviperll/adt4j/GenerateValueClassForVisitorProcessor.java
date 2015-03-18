@@ -33,7 +33,6 @@ import com.github.sviperll.meta.JCodeModelJavaxLangModelAdapter;
 import com.github.sviperll.meta.FilerCodeWriter;
 import com.github.sviperll.adt4j.model.ValueClassModelFactory;
 import com.github.sviperll.meta.CodeModelBuildingException;
-import com.github.sviperll.meta.ErrorTypeUsedException;
 import com.github.sviperll.meta.SourceCodeValidationException;
 import com.github.sviperll.meta.Visitor;
 import com.helger.jcodemodel.JCodeModel;
@@ -97,7 +96,7 @@ public class GenerateValueClassForVisitorProcessor extends AbstractProcessor {
                 JCodeModelJavaxLangModelAdapter adapter = new JCodeModelJavaxLangModelAdapter(jCodeModel, processingEnv.getElementUtils());
                 JDefinedClass visitorModel = adapter.getClassWithErrorTypes(element);
                 JDefinedClass valueClass = ValueClassModelFactory.createValueClass(visitorModel, visitorAnnotation, generateAnnotation);
-                if (adapter.errorTypesAreGenerated()) {
+                if (jCodeModel.buildsErrorTypeRefs()) {
                     remainingElements.add(element.getQualifiedName().toString());
                 } else {
                     processingEnv.getMessager().printMessage(Diagnostic.Kind.NOTE, "Generated value class " + valueClass.fullName() + " for " + element + " visitor interface");
@@ -108,8 +107,6 @@ public class GenerateValueClassForVisitorProcessor extends AbstractProcessor {
                         writer.close();
                     }
                 }
-            } catch (ErrorTypeUsedException ex) {
-                remainingElements.add(element.getQualifiedName().toString());
             } catch (SourceCodeValidationException ex) {
                 errors.add(element + ": " + ex.getMessage());
             } catch (CodeModelBuildingException ex) {
