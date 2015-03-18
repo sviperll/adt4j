@@ -32,9 +32,9 @@ package com.github.sviperll.adt4j;
 import com.github.sviperll.meta.JCodeModelJavaxLangModelAdapter;
 import com.github.sviperll.meta.FilerCodeWriter;
 import com.github.sviperll.adt4j.model.ValueClassModelFactory;
-import com.github.sviperll.adt4j.model.util.SourceValidationException;
 import com.github.sviperll.meta.CodeModelBuildingException;
 import com.github.sviperll.meta.ErrorTypeUsedException;
+import com.github.sviperll.meta.SourceCodeValidationException;
 import com.github.sviperll.meta.Visitor;
 import com.helger.jcodemodel.JCodeModel;
 import com.helger.jcodemodel.JDefinedClass;
@@ -92,7 +92,7 @@ public class GenerateValueClassForVisitorProcessor extends AbstractProcessor {
                 JCodeModel jCodeModel = new JCodeModel();
                 Visitor visitorAnnotation = element.getAnnotation(Visitor.class);
                 if (visitorAnnotation == null)
-                    throw new SourceValidationException("No " + Visitor.class.getName() + " annotation for " + element.getQualifiedName() + " class annotated with " + GenerateValueClassForVisitor.class.getName() + " annotation");
+                    throw new SourceCodeValidationException("No " + Visitor.class.getName() + " annotation for " + element.getQualifiedName() + " class annotated with " + GenerateValueClassForVisitor.class.getName() + " annotation");
                 GenerateValueClassForVisitor generateAnnotation = element.getAnnotation(GenerateValueClassForVisitor.class);
                 JCodeModelJavaxLangModelAdapter adapter = new JCodeModelJavaxLangModelAdapter(jCodeModel, processingEnv.getElementUtils());
                 JDefinedClass visitorModel = adapter.getClassWithErrorTypes(element);
@@ -110,7 +110,7 @@ public class GenerateValueClassForVisitorProcessor extends AbstractProcessor {
                 }
             } catch (ErrorTypeUsedException ex) {
                 remainingElements.add(element.getQualifiedName().toString());
-            } catch (SourceValidationException ex) {
+            } catch (SourceCodeValidationException ex) {
                 errors.add(element + ": " + ex.getMessage());
             } catch (CodeModelBuildingException ex) {
                 errors.add(element + ": " + ex.getMessage());

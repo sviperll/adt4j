@@ -34,10 +34,10 @@ import com.github.sviperll.adt4j.GeneratePredicate;
 import com.github.sviperll.adt4j.Getter;
 import com.github.sviperll.adt4j.Updater;
 import com.github.sviperll.adt4j.model.util.Serialization;
-import com.github.sviperll.adt4j.model.util.SourceValidationException;
 import com.github.sviperll.adt4j.model.util.Types;
 import com.github.sviperll.adt4j.model.util.ValueVisitorInterfaceModel;
 import com.github.sviperll.adt4j.model.util.VariableNameSource;
+import com.github.sviperll.meta.SourceCodeValidationException;
 import com.helger.jcodemodel.AbstractJClass;
 import com.helger.jcodemodel.AbstractJType;
 import com.helger.jcodemodel.EClassType;
@@ -121,7 +121,7 @@ class ValueClassModel {
         }
     }
 
-    private static boolean isNullable(JVar param) throws SourceValidationException {
+    private static boolean isNullable(JVar param) throws SourceCodeValidationException {
         boolean hasNonnull = false;
         boolean hasNullable = false;
         for (JAnnotationUse annotationUse: param.annotations()) {
@@ -133,10 +133,10 @@ class ValueClassModel {
             }
         }
         if (hasNonnull && hasNullable)
-            throw new SourceValidationException(MessageFormat.format("Parameter {0} is declared as both @Nullable and @Nonnull",
+            throw new SourceCodeValidationException(MessageFormat.format("Parameter {0} is declared as both @Nullable and @Nonnull",
                                                            param.name()));
         if (!param.type().isReference() && hasNullable)
-            throw new SourceValidationException(MessageFormat.format("Parameter {0} is non-reference, but declared as @Nullable",
+            throw new SourceCodeValidationException(MessageFormat.format("Parameter {0} is non-reference, but declared as @Nullable",
                                                            param.name()));
         return hasNullable;
     }
@@ -291,7 +291,7 @@ class ValueClassModel {
         return caseClass;
     }
 
-    Map<String, FieldConfiguration> getGettersConfigutation() throws SourceValidationException {
+    Map<String, FieldConfiguration> getGettersConfigutation() throws SourceCodeValidationException {
         AbstractJClass usedValueClassType = valueClass.narrow(valueClass.typeParams());
         Map<String, FieldConfiguration> gettersMap = new TreeMap<String, FieldConfiguration>();
         for (JMethod interfaceMethod: visitorInterface.methods()) {
@@ -312,7 +312,7 @@ class ValueClassModel {
                         try {
                             configuration.put(paramType, interfaceMethod, param.name(), new FieldFlags(isNullable, false, accessLevel));
                         } catch (FieldConfigurationException ex) {
-                            throw new SourceValidationException(MessageFormat.format("Unable to configure {0} getter: {1}",
+                            throw new SourceCodeValidationException(MessageFormat.format("Unable to configure {0} getter: {1}",
                                                                            getterName, ex.getMessage()), ex);
                         }
                     }
@@ -336,7 +336,7 @@ class ValueClassModel {
                         try {
                             configuration.put(paramType, interfaceMethod, param.name(), new FieldFlags(isNullable, true, accessLevel));
                         } catch (FieldConfigurationException ex) {
-                            throw new SourceValidationException(MessageFormat.format("Unable to configure {0} getter: {1}",
+                            throw new SourceCodeValidationException(MessageFormat.format("Unable to configure {0} getter: {1}",
                                                                            getterName, ex.getMessage()), ex);
                         }
                     }
@@ -346,7 +346,7 @@ class ValueClassModel {
         return gettersMap;
     }
 
-    Map<String, FieldConfiguration> getUpdatersConfiguration() throws SourceValidationException {
+    Map<String, FieldConfiguration> getUpdatersConfiguration() throws SourceCodeValidationException {
         AbstractJClass usedValueClassType = valueClass.narrow(valueClass.typeParams());
         Map<String, FieldConfiguration> updatersMap = new TreeMap<String, FieldConfiguration>();
         for (JMethod interfaceMethod: visitorInterface.methods()) {
@@ -367,7 +367,7 @@ class ValueClassModel {
                         try {
                             configuration.put(paramType, interfaceMethod, param.name(), new FieldFlags(isNullable, false, accessLevel));
                         } catch (FieldConfigurationException ex) {
-                            throw new SourceValidationException(MessageFormat.format("Unable to configure {0} updater: {1}",
+                            throw new SourceCodeValidationException(MessageFormat.format("Unable to configure {0} updater: {1}",
                                                                            updaterName, ex.getMessage()), ex);
                         }
                     }
@@ -391,7 +391,7 @@ class ValueClassModel {
                         try {
                             configuration.put(paramType, interfaceMethod, param.name(), new FieldFlags(isNullable, true, accessLevel));
                         } catch (FieldConfigurationException ex) {
-                            throw new SourceValidationException(MessageFormat.format("Unable to configure {0} updater: {1}",
+                            throw new SourceCodeValidationException(MessageFormat.format("Unable to configure {0} updater: {1}",
                                                                            updaterName, ex.getMessage()), ex);
                         }
                     }
@@ -401,7 +401,7 @@ class ValueClassModel {
         return updatersMap;
     }
 
-    Map<String, MemberAccess> getPredicates() throws SourceValidationException {
+    Map<String, MemberAccess> getPredicates() throws SourceCodeValidationException {
         Map<String, MemberAccess> predicates = new TreeMap<String, MemberAccess>();
         for (JMethod interfaceMethod: visitorInterface.methods()) {
             for (JAnnotationUse annotationUsage: interfaceMethod.annotations()) {
@@ -415,7 +415,7 @@ class ValueClassModel {
                     if (knownAccessLevel == null) {
                         predicates.put(predicateName, accessLevel);
                     } else if (knownAccessLevel != accessLevel) {
-                        throw new SourceValidationException(MessageFormat.format("Unable to generate {0} predicate: inconsistent access levels",
+                        throw new SourceCodeValidationException(MessageFormat.format("Unable to generate {0} predicate: inconsistent access levels",
                                                                        predicateName));
                     }
                 }
@@ -478,7 +478,7 @@ class ValueClassModel {
             acceptMethod.body()._return(invocation);
         }
 
-        Map<String, JMethod> buildConstructorMethods(Serialization serialization) throws JClassAlreadyExistsException, SourceValidationException {
+        Map<String, JMethod> buildConstructorMethods(Serialization serialization) throws JClassAlreadyExistsException, SourceCodeValidationException {
             Map<String, JMethod> constructorMethods = new TreeMap<String, JMethod>();
             for (JMethod interfaceMethod: visitorInterface.methods()) {
                 JMethod constructorMethod = valueClass.method(toJMod(visitorInterface.factoryMethodAccessLevel()) | JMod.STATIC, types._void, interfaceMethod.name());
@@ -568,7 +568,7 @@ class ValueClassModel {
             return constructorMethods;
         }
 
-        void buildHashCodeMethod(int hashCodeBase) throws SourceValidationException {
+        void buildHashCodeMethod(int hashCodeBase) throws SourceCodeValidationException {
             String hashCodeMethodName = decapitalize(valueClass.name()) + "HashCode";
             JMethod hashCodeMethod = valueClass.method(JMod.PUBLIC | JMod.FINAL, types._int, "hashCode");
             hashCodeMethod.annotate(Override.class);
@@ -615,7 +615,7 @@ class ValueClassModel {
             }
         }
 
-        void buildToStringMethod() throws SourceValidationException {
+        void buildToStringMethod() throws SourceCodeValidationException {
             JMethod toStringMethod = valueClass.method(JMod.PUBLIC | JMod.FINAL, types._String, "toString");
             toStringMethod.annotate(Override.class);
             toStringMethod.annotate(Nonnull.class);
@@ -720,7 +720,7 @@ class ValueClassModel {
             }
         }
 
-        void generateUpdater(FieldConfiguration configuration) throws SourceValidationException {
+        void generateUpdater(FieldConfiguration configuration) throws SourceCodeValidationException {
             VariableNameSource nameSource = new VariableNameSource();
             String updaterName = configuration.name();
             AbstractJClass usedValueClassType = valueClass.narrow(valueClass.typeParams());
@@ -829,7 +829,7 @@ class ValueClassModel {
 
         }
 
-        void buildEqualsMethod() throws SourceValidationException, JClassAlreadyExistsException {
+        void buildEqualsMethod() throws SourceCodeValidationException, JClassAlreadyExistsException {
             AbstractJClass[] typeParams = new AbstractJClass[valueClass.typeParams().length];
             for (int i = 0; i < typeParams.length; i++)
                 typeParams[i] = valueClass.owner().wildcard();
@@ -923,7 +923,7 @@ class ValueClassModel {
             }
         }
 
-        void buildCompareTo() throws SourceValidationException, JClassAlreadyExistsException {
+        void buildCompareTo() throws SourceCodeValidationException, JClassAlreadyExistsException {
             AbstractJClass usedValueClassType = valueClass.narrow(valueClass.typeParams());
             AbstractJClass usedAcceptorType = acceptingInterface.narrow(valueClass.typeParams());
             JMethod compareToMethodImplementation = acceptingInterface.method(JMod.PUBLIC, types._int, "compareTo");
