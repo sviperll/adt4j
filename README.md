@@ -81,14 +81,14 @@ Use maven dependency to use ADT4J:
     <dependency>
         <groupId>com.github.sviperll</groupId>
         <artifactId>adt4j</artifactId>
-        <version>0.14</version>
+        <version>1.0</version>
     </dependency>
 ```
 
 Changelog
 ---------
 
-Since 0.15
+Since 1.0
 
  * Add default names for generated getters, updaters and predicates. Allow to omit name parameter.
  * API-breaking change: rename value argument to name argument of @Getter, @Updater and @GeneratePredicate annotations

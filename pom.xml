@@ -9,7 +9,7 @@
     <artifactId>adt4j-maven-parent</artifactId>
     <name>adt4j-maven-parent</name>
     <packaging>pom</packaging>
-    <version>0.15-SNAPSHOT</version>
+    <version>1.0-SNAPSHOT</version>
     <url>http://maven.apache.org</url>
     <properties>
         <netbeans.hint.license>BSD3</netbeans.hint.license>
@@ -22,8 +22,15 @@
         <connection>scm:git:git://github.com/sviperll/adt4j.git</connection>
         <developerConnection>scm:git:git@github.com:sviperll/adt4j.git</developerConnection>
         <url>https://github.com/sviperll/adt4j</url>
-      <tag>HEAD</tag>
-  </scm>
+        <tag>HEAD</tag>
+    </scm>
+    <distributionManagement>
+        <site>
+            <id>github</id>
+            <name>GitHub Pages</name>
+            <url>github:http://sviperll.github.io/adt4j/</url>
+        </site>
+    </distributionManagement>
     <licenses>
         <license>
             <name>The BSD 3-Clause License</name>
