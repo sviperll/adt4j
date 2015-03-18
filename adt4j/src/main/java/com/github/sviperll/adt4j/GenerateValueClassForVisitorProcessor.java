@@ -29,7 +29,7 @@
  */
 package com.github.sviperll.adt4j;
 
-import com.github.sviperll.meta.JCodeModelJavaxLangModelAdapter;
+import com.github.sviperll.meta.java.model.JCodeModelJavaxLangModelAdapter;
 import com.github.sviperll.meta.FilerCodeWriter;
 import com.github.sviperll.adt4j.model.ValueClassModelFactory;
 import com.github.sviperll.meta.CodeModelBuildingException;
