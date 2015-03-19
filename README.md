@@ -551,26 +551,6 @@ Build
 Check for errors and warnings.
 
 ADT4J is built to be compatible with Java 6.
-Reference to JDK6 is required even if you use Java 7 or 8 compiler.
-ADT4J is built with boot class path pointing to JDK6
-to prevent usage of some standard library routines missing from Java 6.
-
-To install adt4j run
-
-    $ JDK6_HOME=<path-to-your-jdk-root> mvn clean install
-
-For example:
-
-    $ JDK6_HOME=/usr/lib/jvm/java-6-openjdk-i386 mvn clean install
-
-It is recomended to compile without JDK6_HOME variable during development and
-to compile with JDK6_HOME only when all errors and warnings are cleared.
-
-When you compile without JDK6_HOME maven uses Java compiler API to compile project.
-When you compile with JDK6_HOME maven always forks javac executable.
-
-Forking javac is slow. Another drawback is error messages. When compiler API is used
-all compiler messages are passed back to maven and correctly printed.
-When javac executable is used maven has to process and parse it's output, this
-process is prone to errors and causes several warnings not to be outputed...
-
+See [building section](https://github.com/sviperll/sviperll-maven-parent-6/blob/master/README.md#building)
+of [sviperll-maven-parent-6](https://github.com/sviperll/sviperll-maven-parent-6) project's documentation
+for instructions about building projects compatible with JDK6.
