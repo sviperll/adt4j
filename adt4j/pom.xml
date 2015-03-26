@@ -17,12 +17,12 @@
         <dependency>
             <groupId>com.helger</groupId>
             <artifactId>jcodemodel</artifactId>
-            <version>2.7.9-SNAPSHOT</version>
+            <version>2.7.9</version>
         </dependency>
         <dependency>
             <groupId>com.github.sviperll</groupId>
             <artifactId>metachicory</artifactId>
-            <version>0.21-SNAPSHOT</version>
+            <version>0.22</version>
         </dependency>
     </dependencies>
 </project>
