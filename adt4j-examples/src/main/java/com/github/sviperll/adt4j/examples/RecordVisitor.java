@@ -37,6 +37,7 @@ import javax.annotation.Nullable;
 
 @GenerateValueClassForVisitor(hashCodeBase = 49)
 @Visitor(resultVariableName = "R")
+@ClassList(classes = Function.class)
 public interface RecordVisitor<R> {
     R valueOf(@Getter(name = "getBool") @Updater(name = "withBool") boolean bool,
               @Getter(name = "getB") @Updater(name = "withB") byte b,

@@ -29,15 +29,16 @@
  */
 package com.github.sviperll.adt4j.model.util;
 
-import com.github.sviperll.meta.SourceException;
 import com.github.sviperll.meta.MemberAccess;
 import com.github.sviperll.adt4j.GenerateValueClassForVisitor;
+import com.github.sviperll.meta.SourceCodeValidationException;
 import com.github.sviperll.meta.Visitor;
 import com.helger.jcodemodel.AbstractJClass;
 import com.helger.jcodemodel.AbstractJType;
 import com.helger.jcodemodel.JDefinedClass;
 import com.helger.jcodemodel.JMethod;
 import com.helger.jcodemodel.JTypeVar;
+import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -46,7 +47,7 @@ import java.util.TreeMap;
 import javax.annotation.Nullable;
 
 public class ValueVisitorInterfaceModel {
-    public static ValueVisitorInterfaceModel createInstance(JDefinedClass jVisitorModel, Visitor visitorAnnotation, GenerateValueClassForVisitor annotation) throws SourceException {
+    public static ValueVisitorInterfaceModel createInstance(JDefinedClass jVisitorModel, Visitor visitorAnnotation, GenerateValueClassForVisitor annotation) throws SourceCodeValidationException {
         ValueVisitorTypeParameters typeParameters = createValueVisitorTypeParameters(jVisitorModel, visitorAnnotation);
         Map<String, JMethod> methods = createMethodMap(jVisitorModel, typeParameters);
         APICustomization apiCustomization = new APICustomization(annotation.acceptMethodName(), annotation.acceptMethodAccess(), annotation.isPublic());
@@ -55,7 +56,7 @@ public class ValueVisitorInterfaceModel {
 
     private static ValueVisitorTypeParameters createValueVisitorTypeParameters(JDefinedClass jVisitorModel,
                                                                                Visitor annotation)
-            throws SourceException {
+            throws SourceCodeValidationException {
         JTypeVar resultType = null;
         @Nullable JTypeVar exceptionType = null;
         @Nullable JTypeVar selfType = null;
@@ -71,41 +72,48 @@ public class ValueVisitorInterfaceModel {
                 valueClassTypeParameters.add(typeVariable);
         }
         if (resultType == null) {
-            throw new SourceException("Result type-variable is not found for " + jVisitorModel + " visitor, expecting: " + annotation.resultVariableName());
+            throw new SourceCodeValidationException(MessageFormat.format("Result type-variable is not found for {0} visitor, expecting: {1}",
+                                                                     jVisitorModel, annotation.resultVariableName()));
         }
         if (exceptionType == null && !annotation.exceptionVariableName().equals(":none")) {
-            throw new SourceException("Exception type-variable is not found for " + jVisitorModel + " visitor, expecting: " + annotation.exceptionVariableName());
+            throw new SourceCodeValidationException(MessageFormat.format("Exception type-variable is not found for {0} visitor, expecting: {1}",
+                                                                     jVisitorModel, annotation.exceptionVariableName()));
         }
         if (selfType == null && !annotation.selfReferenceVariableName().equals(":none")) {
-            throw new SourceException("Self reference type-variable is not found for " + jVisitorModel + " visitor, expecting: " + annotation.selfReferenceVariableName());
+            throw new SourceCodeValidationException(MessageFormat.format("Self reference type-variable is not found for {0} visitor, expecting: {1}",
+                                                                     jVisitorModel,
+                                                                     annotation.selfReferenceVariableName()));
         }
         return new ValueVisitorTypeParameters(resultType, exceptionType, selfType, valueClassTypeParameters);
     }
 
     private static Map<String, JMethod> createMethodMap(JDefinedClass jVisitorModel,
                                                         ValueVisitorTypeParameters typeParameters) throws
-                                                                                                          SourceException {
+                                                                                                          SourceCodeValidationException {
         Map<String, JMethod> methods = new TreeMap<String, JMethod>();
         for (JMethod method: jVisitorModel.methods()) {
             if (!typeParameters.isResult(method.type())) {
-                throw new SourceException("Visitor methods are only allowed to return type"
-                                          + " declared as a result type of visitor: " + method.name()
-                                          + ": expecting " + typeParameters.getResultTypeParameter()
-                                          + ", found: " + method.type());
+                throw new SourceCodeValidationException(MessageFormat.format("Visitor methods are only allowed to return type declared as a result type of visitor: {0}: expecting {1}, found: {2}",
+                                                                         method.name(),
+                                                                         typeParameters.getResultTypeParameter(),
+                                                                         method.type()));
             }
 
             Collection<AbstractJClass> exceptions = method.getThrows();
             if (exceptions.size() > 1)
-                throw new SourceException("Visitor methods are allowed to throw no exceptions or throw single exception, declared as type-variable: " + method.name());
+                throw new SourceCodeValidationException(MessageFormat.format("Visitor methods are allowed to throw no exceptions or throw single exception, declared as type-variable: {0}",
+                                                                         method.name()));
             else if (exceptions.size() == 1) {
                 AbstractJClass exception = exceptions.iterator().next();
                 if (!typeParameters.isException(exception))
-                    throw new SourceException("Visitor methods throws exception, not declared as type-variable: " + method.name() + ": " + exception);
+                    throw new SourceCodeValidationException(MessageFormat.format("Visitor methods throws exception, not declared as type-variable: {0}: {1}",
+                                                                             method.name(), exception));
             }
 
             JMethod exitingValue = methods.put(method.name(), method);
             if (exitingValue != null) {
-                throw new SourceException("Method overloading is not supported for visitor interfaces: two methods with the same name: " + method.name());
+                throw new SourceCodeValidationException(MessageFormat.format("Method overloading is not supported for visitor interfaces: two methods with the same name: {0}",
+                                                                         method.name()));
             }
         }
         return methods;

@@ -29,12 +29,11 @@
  */
 package com.github.sviperll.adt4j;
 
-import com.github.sviperll.meta.JCodeModelJavaxLangModelAdapter;
+import com.github.sviperll.meta.java.model.JCodeModelJavaxLangModelAdapter;
 import com.github.sviperll.meta.FilerCodeWriter;
 import com.github.sviperll.adt4j.model.ValueClassModelFactory;
-import com.github.sviperll.meta.ErrorTypeFound;
-import com.github.sviperll.meta.ProcessingException;
-import com.github.sviperll.meta.SourceException;
+import com.github.sviperll.meta.CodeModelBuildingException;
+import com.github.sviperll.meta.SourceCodeValidationException;
 import com.github.sviperll.meta.Visitor;
 import com.helger.jcodemodel.JCodeModel;
 import com.helger.jcodemodel.JDefinedClass;
@@ -92,21 +91,25 @@ public class GenerateValueClassForVisitorProcessor extends AbstractProcessor {
                 JCodeModel jCodeModel = new JCodeModel();
                 Visitor visitorAnnotation = element.getAnnotation(Visitor.class);
                 if (visitorAnnotation == null)
-                    throw new SourceException("No " + Visitor.class.getName() + " annotation for " + element.getQualifiedName() + " class annotated with " + GenerateValueClassForVisitor.class.getName() + " annotation");
+                    throw new SourceCodeValidationException("No " + Visitor.class.getName() + " annotation for " + element.getQualifiedName() + " class annotated with " + GenerateValueClassForVisitor.class.getName() + " annotation");
                 GenerateValueClassForVisitor generateAnnotation = element.getAnnotation(GenerateValueClassForVisitor.class);
                 JCodeModelJavaxLangModelAdapter adapter = new JCodeModelJavaxLangModelAdapter(jCodeModel, processingEnv.getElementUtils());
-                JDefinedClass visitorModel = adapter.getClass(element);
+                JDefinedClass visitorModel = adapter.getClassWithErrorTypes(element);
                 JDefinedClass valueClass = ValueClassModelFactory.createValueClass(visitorModel, visitorAnnotation, generateAnnotation);
-                processingEnv.getMessager().printMessage(Diagnostic.Kind.NOTE, "Generated value class " + valueClass.fullName() + " for " + element + " visitor interface");
-                FilerCodeWriter writer = new FilerCodeWriter(processingEnv.getFiler(), processingEnv.getMessager());
-                try {
-                    jCodeModel.build(writer);
-                } finally {
-                    writer.close();
+                if (jCodeModel.buildsErrorTypeRefs()) {
+                    remainingElements.add(element.getQualifiedName().toString());
+                } else {
+                    processingEnv.getMessager().printMessage(Diagnostic.Kind.NOTE, "Generated value class " + valueClass.fullName() + " for " + element + " visitor interface");
+                    FilerCodeWriter writer = new FilerCodeWriter(processingEnv.getFiler(), processingEnv.getMessager());
+                    try {
+                        jCodeModel.build(writer);
+                    } finally {
+                        writer.close();
+                    }
                 }
-            } catch (ErrorTypeFound ex) {
-                remainingElements.add(element.getQualifiedName().toString());
-            } catch (ProcessingException ex) {
+            } catch (SourceCodeValidationException ex) {
+                errors.add(element + ": " + ex.getMessage());
+            } catch (CodeModelBuildingException ex) {
                 errors.add(element + ": " + ex.getMessage());
             } catch (RuntimeException ex) {
                 errors.add(element + ": " + ex.getMessage());

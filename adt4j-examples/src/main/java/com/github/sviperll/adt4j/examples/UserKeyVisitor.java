@@ -38,4 +38,11 @@ import com.github.sviperll.meta.Visitor;
 @Visitor(resultVariableName = "R")
 public interface UserKeyVisitor<R> {
     R valueOf(int key);
+
+    public abstract class UserKeyFunction<R> implements UserKeyVisitor<R>, Function<UserKey, R> {
+        @Override
+        public R apply(final UserKey input) {
+            return input.accept(this);
+        }
+    }
 }

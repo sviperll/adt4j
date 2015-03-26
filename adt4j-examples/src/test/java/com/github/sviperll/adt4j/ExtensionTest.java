@@ -29,18 +29,8 @@
  */
 package com.github.sviperll.adt4j;
 
-import com.github.sviperll.adt4j.examples.ComparableList;
-import com.github.sviperll.adt4j.examples.Main;
 import com.github.sviperll.adt4j.examples.Optional;
 import com.github.sviperll.adt4j.examples.OptionalVisitor;
-import com.github.sviperll.adt4j.examples.User;
-import com.github.sviperll.adt4j.examples.UserKey;
-import com.github.sviperll.adt4j.examples.UserVisitor;
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
 import org.junit.Test;
 import static org.junit.Assert.*;
 

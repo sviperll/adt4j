@@ -30,14 +30,13 @@
 package com.github.sviperll.adt4j.model;
 
 import com.github.sviperll.meta.MemberAccess;
-import com.github.sviperll.meta.SourceException;
 import com.github.sviperll.adt4j.GenerateValueClassForVisitor;
 import com.github.sviperll.adt4j.GenerateValueClassForVisitorProcessor;
-import com.github.sviperll.meta.CodeGenerationException;
-import com.github.sviperll.meta.ErrorTypeFound;
+import com.github.sviperll.meta.CodeModelBuildingException;
 import com.github.sviperll.adt4j.model.util.Serialization;
 import com.github.sviperll.adt4j.model.util.Types;
 import com.github.sviperll.adt4j.model.util.ValueVisitorInterfaceModel;
+import com.github.sviperll.meta.SourceCodeValidationException;
 import com.github.sviperll.meta.Visitor;
 import com.helger.jcodemodel.AbstractJClass;
 import com.helger.jcodemodel.AbstractJType;
@@ -59,7 +58,7 @@ public class ValueClassModelFactory {
     private static final String VISITOR_SUFFIX = "Visitor";
     private static final String VALUE_SUFFIX = "Value";
 
-    public static JDefinedClass createValueClass(JDefinedClass jVisitorModel, Visitor visitorAnnotation, GenerateValueClassForVisitor annotation) throws SourceException, CodeGenerationException, ErrorTypeFound {
+    public static JDefinedClass createValueClass(JDefinedClass jVisitorModel, Visitor visitorAnnotation, GenerateValueClassForVisitor annotation) throws SourceCodeValidationException, CodeModelBuildingException {
         ValueVisitorInterfaceModel visitorModel = ValueVisitorInterfaceModel.createInstance(jVisitorModel, visitorAnnotation, annotation);
         Serialization serialization = serialization(annotation);
         String valueClassName = valueClassName(jVisitorModel, annotation);
@@ -132,21 +131,21 @@ public class ValueClassModelFactory {
         return acceptingInterface;
     }
 
-    ValueClassModel createValueClass(ValueVisitorInterfaceModel visitorInterface) throws SourceException, CodeGenerationException {
+    ValueClassModel createValueClass(ValueVisitorInterfaceModel visitorInterface) throws SourceCodeValidationException, CodeModelBuildingException {
         try {
             Types types = Types.createInstance(jpackage.owner());
             if (annotation.isSerializable()) {
                 for (JMethod interfaceMethod: visitorInterface.methods()) {
                     for (JVar param: interfaceMethod.params()) {
                         AbstractJType type = param.type();
-                        if (!visitorInterface.isSelf(type) && !types.isSerializable(type))
-                            throw new SourceException("Value class can't be serializable: " + param.name() + " parameter in " + interfaceMethod.name() + " method is not serializable");
+                        if (!type.isError() && !visitorInterface.isSelf(type) && !types.isSerializable(type))
+                            throw new SourceCodeValidationException("Value class can't be serializable: " + param.name() + " parameter in " + interfaceMethod.name() + " method is not serializable");
                     }
                     JVar param = interfaceMethod.listVarParam();
                     if (param != null) {
                         AbstractJType type = param.type();
-                        if (!visitorInterface.isSelf(type) && !types.isSerializable(type))
-                            throw new SourceException("Value class can't be serializable: " + param.name() + " parameter in " + interfaceMethod.name() + " method is not serializable");
+                        if (!type.isError() && !visitorInterface.isSelf(type) && !types.isSerializable(type))
+                            throw new SourceCodeValidationException("Value class can't be serializable: " + param.name() + " parameter in " + interfaceMethod.name() + " method is not serializable");
                     }
                 }
             }
@@ -155,14 +154,14 @@ public class ValueClassModelFactory {
                 for (JMethod interfaceMethod: visitorInterface.methods()) {
                     for (JVar param: interfaceMethod.params()) {
                         AbstractJType type = param.type();
-                        if (!visitorInterface.isSelf(type) && !types.isComparable(type))
-                            throw new SourceException("Value class can't be comparable: " + param.name() + " parameter in " + interfaceMethod.name() + " method is not comparable");
+                        if (!type.isError() && !visitorInterface.isSelf(type) && !types.isComparable(type))
+                            throw new SourceCodeValidationException("Value class can't be comparable: " + param.name() + " parameter in " + interfaceMethod.name() + " method is not comparable");
                     }
                     JVar param = interfaceMethod.listVarParam();
                     if (param != null) {
                         AbstractJType type = param.type();
-                        if (!visitorInterface.isSelf(type) && !types.isComparable(type))
-                            throw new SourceException("Value class can't be comparable: " + param.name() + " parameter in " + interfaceMethod.name() + " method is not comparable");
+                        if (!type.isError() && !visitorInterface.isSelf(type) && !types.isComparable(type))
+                            throw new SourceCodeValidationException("Value class can't be comparable: " + param.name() + " parameter in " + interfaceMethod.name() + " method is not comparable");
                     }
                 }
             }
@@ -217,7 +216,7 @@ public class ValueClassModelFactory {
 
             return result;
         } catch (JClassAlreadyExistsException ex) {
-            throw new CodeGenerationException(ex);
+            throw new CodeModelBuildingException(ex);
         }
     }
 
