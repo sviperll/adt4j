@@ -81,12 +81,20 @@ Use maven dependency to use ADT4J:
     <dependency>
         <groupId>com.github.sviperll</groupId>
         <artifactId>adt4j</artifactId>
-        <version>1.0</version>
+        <version>1.1</version>
     </dependency>
 ```
 
 Changelog
 ---------
+
+Since 1.1
+
+ * As little information from source code as possible is used during code generation.
+   It's now possible to define fully customized single file data-type definitions, see `Either` example.
+
+ * metachicory is not required at runtime, since `@Visitor`-annotation retention is set to `SOURCE` now.
+   ADT4J has no run-time dependencies now.
 
 Since 1.0
 
