@@ -463,6 +463,34 @@ or with anonymous classes:
     });
 ```
 
+Visitor-interface can be defined as inner-interface enclosed into your extended class:
+
+```java
+    public class MyOptional<T> extends OptionalBase<T> {
+        public static <T> MyOptional<T> missing() {
+            return new MyOptional<>(OptionalBase.missing());
+        }
+
+        public static <T> MyOptional<T> present(T value) {
+            return new MyOptional<>(OptionalBase.present(value));
+        }
+
+        private MyOptional(OptionalBase<T> value) {
+            // protected constructor from OptionalBase class
+            super(value);
+        }
+
+        // ...
+
+        @GenerateValueClassForVisitor(className = "OptionalBase")
+        @Visitor(resultVariableName="R")
+        interface OptionalVisitor<T, R> {
+            R present(@Nonnull T value);
+            R missing();
+        }
+    }
+```
+
 ### Recursive data types and open-recursion ###
 
 One of the most common examples of algebraic data types is list type.
@@ -481,7 +509,7 @@ To generate List data type we may try to use something like this:
 But there is no `List` class yet. We can't reference it since it is to be generated.
 Above declaration creates unbreakable cycle and will result in compile-time error.
 
-But we still can create List class with trick known as _open-recursion_.
+But still we can create List class with a trick known as _open-recursion_.
 
 ```java
     @GenerateValueClassForVisitor
@@ -492,7 +520,7 @@ But we still can create List class with trick known as _open-recursion_.
     }
 ```
 
-Here we make list-type a type-variable. And hypothetically it can be anything.
+We make list-type a type-variable here. And hypothetically it can be anything.
 We can constrain this type-variable by extending generated class.
 
 ```java
