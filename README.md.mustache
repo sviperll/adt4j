@@ -1,0 +1,611 @@
+adt4j - Algebraic Data Types for Java
+=====================================
+
+This library implements [Algebraic Data Types](http://en.wikipedia.org/wiki/Algebraic_data_type) for Java.
+ADT4J provides annotation processor for @GenerateValueClassForVisitor annotation.
+ADT4J generates new class for each @GenerateValueClassForVisitor annotation.
+
+It allows you to easily define custom data types. Like this:
+
+```java
+    // Define Expression data type
+    @GenerateValueClassForVisitor
+    @Visitor(resultVariableName="R", selfReferenceVariableName="E")
+    interface ExpressionVisitor<E, R> {
+        @GeneratePredicate(name = "isLiteral");
+        R lit(int i);
+
+        R sum(@Getter(name = "leftOperand") E e1, @Getter(name = "rightOperand") E e2);
+        R mul(@Getter(name = "leftOperand") E e1, @Getter(name = "rightOperand") E e2);
+    }
+```
+
+And that's it. `Expression` class will be generated and you'll be able to define expressions like this:
+
+```java
+    import static ...Expression.*;
+
+    /* ... */
+
+    Expression e = mul(sum(lit(5), lit(1)), lit(2));
+```
+
+You can process expressions with "pattern-matching" a. k. a. visitor-pattern:
+
+```java
+    int value = e.accept(new ExpressionVisitor<Expression, Integer>() {
+        @Override
+        public Integer int(int i) {
+            return i;
+        }
+        @Override
+        public Integer sum(Expression e1, Expression e2) {
+            return e1.accept(this) + e2.accept(this);
+        }
+        @Override
+        public Integer mul(Expression e1, Expression e2) {
+            return e1.accept(this) * e2.accept(this);
+        }
+    });
+```
+
+Features
+--------
+
+ * Support recursive data types
+ * Generate hashCode, equals and toString implementations with value semantics
+ * Generate predicates, getters and "updaters" with additional annotations
+ * Fully customizable API: custom names and access levels for generated methods
+ * Optionally generate Comparable implementation with precise compile-time type-check if it is possible
+ * Optionally generate serializable classes with precise compile-time type-check if it is possible
+ * Sensible error messages
+ * Support generated class extention through standard Java's inheritance.
+ * Reasonably fast
+
+License
+-------
+
+ADT4J is under BSD 3-clause license.
+
+Flattr
+------
+
+[![Flattr this git repo](http://api.flattr.com/button/flattr-badge-large.png)](https://flattr.com/submit/auto?user_id=sviperll&url=https%3A%2F%2Fgithub.com%2Fsviperll%2Fadt4j&title=adt4j&language=Java&tags=github&category=software)
+
+Installation
+------------
+
+{{#version}}
+Use maven dependency to use ADT4J:
+
+```xml
+    <dependency>
+        <groupId>com.github.sviperll</groupId>
+        <artifactId>adt4j</artifactId>
+        <version>{{stable}}</version>
+    </dependency>
+```
+{{#unstable}}
+
+Or use latest unstable version instead:
+
+```xml
+    <dependency>
+        <groupId>com.github.sviperll</groupId>
+        <artifactId>adt4j</artifactId>
+        <version>{{unstable}}</version>
+    </dependency>
+```
+
+{{/unstable}}
+{{/version}}
+
+Changelog
+---------
+
+Since 1.2
+
+ * Add support for multiple predicate generation for single method with new `@GeneratePredicates` annotation.
+
+Since 1.1
+
+ * As little information from source code as possible is used during code generation.
+   It's now possible to define fully customized single file data-type definitions, see `Either` example.
+
+ * metachicory is not required at runtime, since `@Visitor`-annotation retention is set to `SOURCE` now.
+   ADT4J has no run-time dependencies now.
+
+Since 1.0
+
+ * Add default names for generated getters, updaters and predicates. Allow to omit name parameter.
+ * API-breaking change: rename value argument to name argument of @Getter, @Updater and @GeneratePredicate annotations
+ * API-breaking change: use com.github.sviperll.meta.Visitor annotation from metachicory package.
+ * Add dependency to metachicory package which provides some generic metaprogramming support.
+
+Since 0.14
+
+ * Fully customizable access levels for generated API
+
+Since 0.13
+
+ * Lots of performance improvements
+
+Since 0.12
+
+ * Fix recursive types support (see `TreeVisitor` example)
+ * Fix varargs support
+ * Code cleanup
+ * Rename `adt4j-core` artifact to `adt4j`
+
+Since 0.11
+
+ * Nullable and Nonnull annotations on generated methods
+ * No warnings from generated code
+
+Since 0.10
+
+ * Use maven as build system
+
+Since 0.9
+
+ * Predicates can be generated to test for specific case
+ * Comparable instances can be generated
+
+Usage
+-----
+
+### Records/tuples ###
+
+ADT4J allows to define record/tuple types.
+This is not the brightest side of adt4j. ADT4J provides functionality similar to
+[immutables.org](http://immutables.github.io/) or [google-auto/AutoValue](https://github.com/google/auto/tree/master/value).
+If you only need record types you may consider using any of these projects.
+Still adt4j may be a good choice as it allows you transparently switch to
+more flexible algebraic data types.
+
+We will use record types to introduce some basic adt4j features because
+record types are familiar to most people.
+
+With adt4j you can easily define record type like this:
+
+```java
+    @GenerateValueClassForVisitor(className = "User")
+    @Visitor(resultVariableName="R")
+    interface UserVisitor<R> {
+       R valueOf(String name, int age);
+    }
+```
+
+As a result new class `User` will be mechanically generated by adt4j.
+
+You can leave `className` parameter of `@GenerateValueClassForVisitor`-annotation out.
+Generated class name is chosen by removing `Visitor`-suffix from visitor-interface name.
+If visitor-interface name doesn't end with `Visitor`, `Value`-suffix is appended
+to visitor-interface name to form generated class name.
+
+```java
+    @GenerateValueClassForVisitor
+    @Visitor(resultVariableName="R")
+    interface UserVisitor<R> {
+       R valueOf(String name, int age);
+    }
+```
+
+You can construct instances of `User` type like this
+
+```java
+    User user1 = User.valueOf("John", 19);
+```
+
+`User`-class will have useful toString, equals and hashCode methods.
+
+```java
+    System.out.println(user1.toString());
+```
+
+The following string will be printed:
+
+```java
+User.ValueOf{name=John, age=19}
+```
+
+`Equals` and `hashCode` methods use field values instead of object-identity.
+
+ADT4J generated classes are always immutable. There is no way to directly modify any fields of generated classes.
+
+To access actual field values stored in an instance of `User`-type. You'll have to use visitor pattern.
+
+```java
+    void printName(User user) {
+        String name = user.access(new UserVisitor<String>() {
+            @Override
+            public String valueOf(String name1, int age) {
+                return name1;
+            }
+        });
+        System.out.println(name1);
+    }
+```
+
+This seems to be way too heavyweight. ADT4J provide a way to get rid of visitor pattern for simple field access.
+ADT4J can automatically generate getters. We need to modify `UserVisitor` interface to obtain getters from adt4j.
+
+```java
+    @GenerateValueClassForVisitor(className = "User")
+    @Visitor(resultVariableName="R")
+    interface UserVisitor<R> {
+       R valueOf(@Getter(name = "getName") String name, @Getter(name = "getAge") int age);
+    }
+```
+
+Out field access example will become
+
+```java
+    void printName(User user) {
+        System.out.println(user.getName());
+    }
+```
+
+Suppose that you have `Point` class. And you want to be able to
+move point horizontally. Like this:
+
+```java
+   Point point1 = Point.valueOf(10, 3);
+   Point point2 = moveRight(point1, 5);
+```
+
+`moveRight` function will look like this:
+
+```java
+   Point moveRight(Point base, int deltaX) {
+      return Point.valueOf(base.getX() + deltaX, base.getY());
+   }
+```
+
+You can have family of such functions like:
+
+```java
+   Point moveRight(Point base, int deltaX) {
+      return Point.valueOf(base.getX() + deltaX, base.getY());
+   }
+
+   Point moveLeft(Point base, int deltaX) {
+      return Point.valueOf(base.getX() - deltaX, base.getY());
+   }
+
+   Point moveToOrigin(Point base, int deltaX) {
+      return Point.valueOf(0, base.getY());
+   }
+```
+
+This seems quite right but it has a problem if you, for example, modify your point class to include color.
+You'll have to modify all this functions to thread color information through point instances:
+
+```java
+   Point moveRight(Point base, int deltaX) {
+      return Point.valueOf(base.getX() + deltaX, base.getY(), base.getColor());
+   }
+
+   Point moveLeft(Point base, int deltaX) {
+      return Point.valueOf(base.getX() - deltaX, base.getY(), base.getColor());
+   }
+
+   Point moveToOrigin(Point base, int deltaX) {
+      return Point.valueOf(0, base.getY(), base.getColor());
+   }
+```
+
+You can refactor these methods to protect for future modifications of `Point` data-type:
+
+```java
+   Point moveRight(Point base, int deltaX) {
+      return withX(base, base.getX() + deltaX);
+   }
+
+   Point moveLeft(Point base, int deltaX) {
+      return withX(base, base.getX() - deltaX);
+   }
+
+   Point moveToOrigin(Point base, int deltaX) {
+      return withX(base, 0);
+   }
+```
+
+If you ever change your `Point` data-type only `withX` method needs to be adjusted.
+
+ADT4J allows you to automatically generate withX method for you. You can generate `Point` class like this:
+
+```java
+    @GenerateValueClassForVisitor(className = "Point")
+    @Visitor(resultVariableName="R")
+    interface PointVisitor<R> {
+       R valueOf(@Getter(name = "getX") @Updater(name = "withX") int x, @Getter(name = "getY") @Updater(name = "withY") int y);
+    }
+```
+
+Methods for moving point become
+
+```java
+   Point moveRight(Point base, int deltaX) {
+      return base.withX(base.getX() + deltaX);
+   }
+
+   Point moveLeft(Point base, int deltaX) {
+      return base.withX(base.getX() - deltaX);
+   }
+
+   Point moveToOrigin(Point base, int deltaX) {
+      return base.withX(0);
+   }
+```
+
+### Disjoint-union types ###
+
+With disjoint-union types you obtain full power of algebraic data types.
+
+Lets examine the following example. Here we define possible permission required to obtain some resource.
+
+```java
+    @GenerateValueClassForVisitor(className = "Permission")
+    @Visitor(resultVariableName="R")
+    interface PermissionVisitor<R> {
+        R administrator();
+        R groupMember(Group group);
+        R onlyUser(User user);
+    }
+```
+
+`Permission` class will be generated and we will be able to use visitor-pattern to test if some user have access to
+given resource.
+
+```java
+    boolean isAccessGranted(final User user, Resource resource) {
+        Permission required = resource.requiredPermission();
+        return required.accept(new PermissionVisitor<Boolean> () {
+            @Override
+            public Boolean administrator() {
+                return user.isAdministrator();
+            }
+
+            @Override
+            public Boolean groupMember(Group group) {
+                return group.contains(user);
+            }
+
+            @Override
+            public Boolean onlyUser(User requiredUser) {
+                return requiredUser.equals(user);
+            }
+        });
+    }
+```
+
+If you miss some cases this will be compile-time error and this kind of bug will never slip into production.
+
+All visitor-interface methods become constructor-methods in generated class. We can use any one of these method
+to construct class instance:
+
+```java
+Permission permission1 = Permission.onlyUser(user1);
+```
+
+`permission1` instance represents `onlyUser`-case. `onlyUser`-method will always be called when permission1 accepts
+visitor.
+
+```java
+Resource resource = new Resource(permission1);
+isAccessGranted(user1, resource); // Should always be true
+```
+
+### Null-values ###
+
+You should always add @Nullable annotation to make any field nullable. Otherwise null checks are
+generated and exception is thrown upon construction:
+
+```java
+        @GenerateValueClassForVisitor
+        @Visitor(resultVariableName="R")
+        interface Record<T, R> {
+            R valueOf(T mandatory1, Object mandatory2, @Nullable Object optional);
+        }
+```
+
+### Extending generated classes ###
+
+We will use an implemetation of optional-type similar to `Optional` class provided by Java 8 .
+
+```java
+    @GenerateValueClassForVisitor(className = "OptionalBase")
+    @Visitor(resultVariableName="R")
+    interface OptionalVisitor<T, R> {
+        R present(@Nonnull T value);
+        R missing();
+    }
+```
+
+In the example above `OptionalBase` class will be generated.
+
+You can extend generated class to add more methods like this:
+
+```java
+    public class MyOptional<T> extends OptionalBase<T> {
+        public static <T> MyOptional<T> missing() {
+            return new MyOptional<>(OptionalBase.missing());
+        }
+
+        public static <T> MyOptional<T> present(T value) {
+            return new MyOptional<>(OptionalBase.present(value));
+        }
+
+        private MyOptional(OptionalBase<T> value) {
+            // protected constructor from OptionalBase class
+            super(value);
+        }
+
+        //
+        // equals and hashCode are correctly inherited from OptionalBase
+        //
+
+        public <U> MyOptional<U> flatMap(final Function<T, MyOptional<U>> function) {
+            return accept(new OptionalVisitor<T, MyOptional<U>>() {
+                @Override
+                public MyOptional<U> missing() {
+                    return MyOptional.missing();
+                }
+
+                @Override
+                public MyOptional<U> present(T value) {
+                    return function.apply(value);
+                }
+            });
+        }
+    }
+```
+
+Now you have `MyOptional` class similar to `Optional` class provided by Java 8.
+
+You can use it to chain optional operations:
+
+With Java 8 syntax:
+
+```java
+    lookup(key1).flatMap((key2) -> lookup(key2));
+```
+
+or with anonymous classes:
+
+```java
+    lookup(key1).flatMap(new Function<String, MyOptional<String>>() {
+        public MyOptional<String> apply(String key2) {
+            return lookup(key2);
+        }
+    });
+```
+
+Visitor-interface can be defined as inner-interface enclosed into your extended class:
+
+```java
+    public class MyOptional<T> extends OptionalBase<T> {
+        public static <T> MyOptional<T> missing() {
+            return new MyOptional<>(OptionalBase.missing());
+        }
+
+        public static <T> MyOptional<T> present(T value) {
+            return new MyOptional<>(OptionalBase.present(value));
+        }
+
+        private MyOptional(OptionalBase<T> value) {
+            // protected constructor from OptionalBase class
+            super(value);
+        }
+
+        // ...
+
+        @GenerateValueClassForVisitor(className = "OptionalBase")
+        @Visitor(resultVariableName="R")
+        interface OptionalVisitor<T, R> {
+            R present(@Nonnull T value);
+            R missing();
+        }
+    }
+```
+
+### Recursive data types and open-recursion ###
+
+One of the most common examples of algebraic data types is list type.
+
+To generate List data type we may try to use something like this:
+
+```java
+    @GenerateValueClassForVisitor
+    @Visitor(resultVariableName = "R")
+    interface ListVisitor<T, R> {
+        R empty();
+        R prepend(T head, List<T> tail);
+    }
+```
+
+But there is no `List` class yet. We can't reference it since it is to be generated.
+Above declaration creates unbreakable cycle and will result in compile-time error.
+
+But still we can create List class with a trick known as _open-recursion_.
+
+```java
+    @GenerateValueClassForVisitor
+    @Visitor(resultVariableName = "R")
+    interface OpenListVisitor<L, T, R> {
+        R empty();
+        R prepend(T head, L tail);
+    }
+```
+
+We make list-type a type-variable here. And hypothetically it can be anything.
+We can constrain this type-variable by extending generated class.
+
+```java
+    class List<T> extends OpenList<List<T>, T> {
+        public interface Visitor<T, R> extends OpenListVisitor<List<T>, T, R> {
+        }
+
+        public <R> R accept(Visitor<T, R> visitor) {
+            return super.accept(visitor);
+        }
+
+        public int length() {
+            return this.accept(new Visitor<T, Integer> () {
+                @Override
+                public Integer empty() {
+                    return 0;
+                }
+
+                @Override
+                public Integer prepend(T head, List<T> tail) {
+                    return 1 + tail.length();
+                }
+            });
+        }
+    }
+```
+
+`List` class is an extention of `OpenList` class with the constraint that tail is always of type `List`.
+`List.Visitor` interface is narrowed version of `OpenListVisitor` interface crafted specifically towards instances
+of `List` class.
+
+ADT4J allows you to avoid manual extention of generated classes when recursive data-types are required.
+To achieve this goal `selfReferenceVariableName` parameter is used.
+
+```java
+    @GenerateValueClassForVisitor(className = "List")
+    @Visitor(resultVariableName = "R", selfReferenceVariableName = "L")
+    interface OpenListVisitor<L, T, R> {
+        R empty();
+        R prepend(T head, L tail);
+    }
+```
+
+Above code will generate `List` class that will accept instances of `OpenListVisitor`-interface
+as a visitor in only case when type-variable `L` is set to `List`-class itself.
+
+```java
+    // Type of second argument of prepend method is List:
+    List<Integer> list1 = List.prepend(1, List.prepend(2, List.<Integer>empty()));
+
+    // Any other type is type-error:
+    // List<Integer> list2 = List.prepend(1, "tail");
+```
+
+See adt4j-examples project for more complete examples.
+
+Build
+-----
+
+    $ git clone git@github.com:sviperll/adt4j.git
+    $ cd adt4j
+    $ mvn test
+
+Check for errors and warnings.
+
+ADT4J is built to be compatible with Java 6.
+See [building section](https://github.com/sviperll/sviperll-maven-parent-6/blob/master/README.md#building)
+of [sviperll-maven-parent-6](https://github.com/sviperll/sviperll-maven-parent-6) project's documentation
+for instructions about building projects compatible with JDK6.
