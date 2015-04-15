@@ -81,7 +81,7 @@ Use maven dependency to use ADT4J:
     <dependency>
         <groupId>com.github.sviperll</groupId>
         <artifactId>adt4j</artifactId>
-        <version>1.1</version>
+        <version>1.2</version>
     </dependency>
 ```
 
