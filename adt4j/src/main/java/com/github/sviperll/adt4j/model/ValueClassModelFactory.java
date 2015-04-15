@@ -202,8 +202,8 @@ public class ValueClassModelFactory {
             for (FieldConfiguration updater: updatersConfiguration.values()) {
                 methodBuilder.generateUpdater(updater);
             }
-            Map<String, MemberAccess> predicates = result.getPredicates();
-            for (Map.Entry<String, MemberAccess> predicate: predicates.entrySet()) {
+            Map<String, PredicateConfigutation> predicates = result.getPredicates();
+            for (Map.Entry<String, PredicateConfigutation> predicate: predicates.entrySet()) {
                 methodBuilder.generatePredicate(predicate.getKey(), predicate.getValue());
             }
             if (annotation.isComparable()) {

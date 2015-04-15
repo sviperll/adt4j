@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014, Victor Nazarov <asviraspossible@gmail.com>
+ * Copyright (c) 2015, Victor Nazarov <asviraspossible@gmail.com>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -27,33 +27,17 @@
  *  (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
  *  EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package com.github.sviperll.adt4j.examples;
-
-import com.github.sviperll.adt4j.GeneratePredicate;
-import com.github.sviperll.adt4j.GeneratePredicates;
-import com.github.sviperll.adt4j.GenerateValueClassForVisitor;
-import com.github.sviperll.adt4j.Getter;
-import com.github.sviperll.meta.Visitor;
+package com.github.sviperll.adt4j.model;
 
 /**
  *
  * @author Victor Nazarov <asviraspossible@gmail.com>
  */
-@GenerateValueClassForVisitor(isPublic = true)
-@Visitor(resultVariableName = "R", selfReferenceVariableName = "S")
-public interface ExpressionVisitor<S, R> {
-    @GeneratePredicates({
-        @GeneratePredicate(name="isAdd"),
-        @GeneratePredicate(name="isBinary")
-    })
-    R add(@Getter S left, @Getter S right);
+@SuppressWarnings("serial")
+class PredicateConfigurationException extends Exception {
 
-    @GeneratePredicates({
-        @GeneratePredicate(name="isMul"),
-        @GeneratePredicate(name="isBinary")
-    })
-    R mul(@Getter S left, @Getter S right);
+    PredicateConfigurationException(String message) {
+        super(message);
+    }
 
-    @GeneratePredicate(name="isLiteral")
-    R lit(int value);
 }

@@ -88,6 +88,10 @@ Use maven dependency to use ADT4J:
 Changelog
 ---------
 
+Since 1.2
+
+ * Add support for multiple predicate generation for single method with new `@GeneratePredicates` annotation.
+
 Since 1.1
 
  * As little information from source code as possible is used during code generation.

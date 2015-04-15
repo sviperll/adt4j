@@ -27,33 +27,29 @@
  *  (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
  *  EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package com.github.sviperll.adt4j.examples;
+package com.github.sviperll.adt4j;
 
-import com.github.sviperll.adt4j.GeneratePredicate;
-import com.github.sviperll.adt4j.GeneratePredicates;
-import com.github.sviperll.adt4j.GenerateValueClassForVisitor;
-import com.github.sviperll.adt4j.Getter;
-import com.github.sviperll.meta.Visitor;
+import java.lang.annotation.Documented;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
 /**
+ * Generates predicate for specified case
+ * <p>
+ * Predicate is used to test any ADT-value to find out if it represents some specific case.
+ * <p>
+ * For example, <tt>isEmpty</tt> predicate can be used to test if given single-linked list is empty.
  *
  * @author Victor Nazarov <asviraspossible@gmail.com>
  */
-@GenerateValueClassForVisitor(isPublic = true)
-@Visitor(resultVariableName = "R", selfReferenceVariableName = "S")
-public interface ExpressionVisitor<S, R> {
-    @GeneratePredicates({
-        @GeneratePredicate(name="isAdd"),
-        @GeneratePredicate(name="isBinary")
-    })
-    R add(@Getter S left, @Getter S right);
-
-    @GeneratePredicates({
-        @GeneratePredicate(name="isMul"),
-        @GeneratePredicate(name="isBinary")
-    })
-    R mul(@Getter S left, @Getter S right);
-
-    @GeneratePredicate(name="isLiteral")
-    R lit(int value);
+@Retention(RetentionPolicy.SOURCE)
+@Target(ElementType.METHOD)
+@Documented
+public @interface GeneratePredicates {
+    /**
+     * List of predicates to generate.
+     */
+    GeneratePredicate[] value();
 }

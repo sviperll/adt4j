@@ -22,7 +22,7 @@
         <dependency>
             <groupId>com.github.sviperll</groupId>
             <artifactId>metachicory</artifactId>
-            <version>0.22</version>
+            <version>0.24-successor-SNAPSHOT</version>
         </dependency>
     </dependencies>
 </project>

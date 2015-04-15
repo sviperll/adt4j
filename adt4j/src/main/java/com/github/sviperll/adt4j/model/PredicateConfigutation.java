@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014, Victor Nazarov <asviraspossible@gmail.com>
+ * Copyright (c) 2015, Victor Nazarov <asviraspossible@gmail.com>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -27,33 +27,36 @@
  *  (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
  *  EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package com.github.sviperll.adt4j.examples;
+package com.github.sviperll.adt4j.model;
 
-import com.github.sviperll.adt4j.GeneratePredicate;
-import com.github.sviperll.adt4j.GeneratePredicates;
-import com.github.sviperll.adt4j.GenerateValueClassForVisitor;
-import com.github.sviperll.adt4j.Getter;
-import com.github.sviperll.meta.Visitor;
+import com.github.sviperll.meta.MemberAccess;
+import com.helger.jcodemodel.JMethod;
+import java.util.Set;
+import java.util.TreeSet;
 
 /**
  *
  * @author Victor Nazarov <asviraspossible@gmail.com>
  */
-@GenerateValueClassForVisitor(isPublic = true)
-@Visitor(resultVariableName = "R", selfReferenceVariableName = "S")
-public interface ExpressionVisitor<S, R> {
-    @GeneratePredicates({
-        @GeneratePredicate(name="isAdd"),
-        @GeneratePredicate(name="isBinary")
-    })
-    R add(@Getter S left, @Getter S right);
+class PredicateConfigutation {
+    private final Set<String> cases = new TreeSet<String> ();
+    private final MemberAccess accessLevel;
+    PredicateConfigutation(JMethod interfaceMethod, MemberAccess accessLevel) {
+        this.accessLevel = accessLevel;
+        cases.add(interfaceMethod.name());
+    }
 
-    @GeneratePredicates({
-        @GeneratePredicate(name="isMul"),
-        @GeneratePredicate(name="isBinary")
-    })
-    R mul(@Getter S left, @Getter S right);
+    void put(JMethod interfaceMethod, MemberAccess accessLevel) throws PredicateConfigurationException {
+        if (this.accessLevel != accessLevel)
+            throw new PredicateConfigurationException("Conflicting access level for predicate");
+        cases.add(interfaceMethod.name());
+    }
 
-    @GeneratePredicate(name="isLiteral")
-    R lit(int value);
+    MemberAccess accessLevel() {
+        return accessLevel;
+    }
+
+    boolean isTrueFor(JMethod interfaceMethod) {
+        return cases.contains(interfaceMethod.name());
+    }
 }

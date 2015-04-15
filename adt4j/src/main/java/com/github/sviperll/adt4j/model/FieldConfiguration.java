@@ -46,14 +46,14 @@ class FieldConfiguration {
     private final String name;
     private FieldFlags flags;
 
-    FieldConfiguration(String name, AbstractJType paramType, MemberAccess accessLevel) {
-        this.type = paramType;
+    FieldConfiguration(String name, AbstractJType type, FieldFlags flags) {
         this.name = name;
-        this.flags = new FieldFlags(accessLevel);
+        this.type = type;
+        this.flags = flags;
     }
 
-    void put(AbstractJType paramType, JMethod method, String paramName, FieldFlags flags) throws FieldConfigurationException {
-        if (!type.equals(paramType))
+    void merge(JMethod method, String paramName, FieldConfiguration that) throws FieldConfigurationException {
+        if (!this.type.equals(that.type))
             throw new FieldConfigurationException(MessageFormat.format("Unable to config {0} field: inconsitent field types",
                                                                        name));
         String oldField = map.put(method.name(), paramName);
@@ -61,7 +61,7 @@ class FieldConfiguration {
             throw new FieldConfigurationException(MessageFormat.format("Unable to config {0} field: both {1} and {2} parameters of {3} are referenced as the single {4} field",
                                                                        name, oldField, paramName, method.name(), name));
         try {
-            this.flags = this.flags.join(flags);
+            this.flags = this.flags.join(that.flags);
         } catch (FieldFlagsException ex) {
             throw new FieldConfigurationException(MessageFormat.format("Unable to config {0} field: {1}", name,
                                                                        ex.getMessage()), ex);
@@ -91,6 +91,10 @@ class FieldConfiguration {
 
     boolean isVarArg() {
         return flags.isVarArg();
+    }
+
+    FieldFlags flags() {
+        return flags;
     }
 
 }
