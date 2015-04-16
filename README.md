@@ -85,6 +85,17 @@ Use maven dependency to use ADT4J:
     </dependency>
 ```
 
+Or use latest unstable version instead:
+
+```xml
+    <dependency>
+        <groupId>com.github.sviperll</groupId>
+        <artifactId>adt4j</artifactId>
+        <version>1.3-beta1</version>
+    </dependency>
+```
+
+
 Changelog
 ---------
 
