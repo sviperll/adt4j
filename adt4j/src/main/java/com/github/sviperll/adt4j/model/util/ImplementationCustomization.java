@@ -29,32 +29,19 @@
  */
 package com.github.sviperll.adt4j.model.util;
 
-import com.github.sviperll.meta.MemberAccess;
+import com.github.sviperll.meta.MethodEvaluation;
 
 /**
  *
  * @author Victor Nazarov <asviraspossible@gmail.com>
  */
-class APICustomization {
-    private final String acceptMethodName;
-    private final boolean isValueClassPublic;
-    private final MemberAccess acceptMethodAccessLevel;
-    public APICustomization(String acceptMethodName, MemberAccess acceptMethodAccessLevel, boolean isValueClassPublic) {
-        this.acceptMethodName = acceptMethodName;
-        this.isValueClassPublic = isValueClassPublic;
-        this.acceptMethodAccessLevel = acceptMethodAccessLevel;
+class ImplementationCustomization {
+    private final MethodEvaluation hashCodeEvaluation;
+    ImplementationCustomization(MethodEvaluation hashCodeEvaluation) {
+        this.hashCodeEvaluation = hashCodeEvaluation;
     }
 
-    public String acceptMethodName() {
-        return acceptMethodName;
+    MethodEvaluation hashCodeEvaluation() {
+        return hashCodeEvaluation;
     }
-
-    public boolean isValueClassPublic() {
-        return isValueClassPublic;
-    }
-
-    MemberAccess acceptMethodAccessLevel() {
-        return acceptMethodAccessLevel;
-    }
-
 }

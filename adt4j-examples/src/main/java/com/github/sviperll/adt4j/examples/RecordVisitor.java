@@ -32,10 +32,11 @@ package com.github.sviperll.adt4j.examples;
 import com.github.sviperll.adt4j.GenerateValueClassForVisitor;
 import com.github.sviperll.adt4j.Getter;
 import com.github.sviperll.adt4j.Updater;
+import com.github.sviperll.meta.MethodEvaluation;
 import com.github.sviperll.meta.Visitor;
 import javax.annotation.Nullable;
 
-@GenerateValueClassForVisitor(hashCodeBase = 49)
+@GenerateValueClassForVisitor(hashCodeBase = 49, hashCodeEvaluation = MethodEvaluation.CACHED)
 @Visitor(resultVariableName = "R")
 @ClassList(classes = Function.class)
 public interface RecordVisitor<R> {

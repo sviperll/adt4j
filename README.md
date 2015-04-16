@@ -88,6 +88,11 @@ Use maven dependency to use ADT4J:
 Changelog
 ---------
 
+Since 1.3
+
+ * Add `hashCodeEvaluation` parameter to `@GenerateValueClassForVisitor` annotation to support
+   hash code caching, see `RecordVisitor` and `UserKeyVisitor` examples.
+
 Since 1.2
 
  * Add support for multiple predicate generation for single method with new `@GeneratePredicates` annotation.

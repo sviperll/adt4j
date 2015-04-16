@@ -38,10 +38,13 @@ import com.github.sviperll.adt4j.model.util.Source;
 import com.github.sviperll.adt4j.model.util.Types;
 import com.github.sviperll.adt4j.model.util.ValueVisitorInterfaceModel;
 import com.github.sviperll.adt4j.model.util.VariableNameSource;
+import com.github.sviperll.meta.MethodEvaluation;
 import com.github.sviperll.meta.SourceCodeValidationException;
 import com.helger.jcodemodel.AbstractJClass;
 import com.helger.jcodemodel.AbstractJType;
 import com.helger.jcodemodel.EClassType;
+import com.helger.jcodemodel.IJExpression;
+import com.helger.jcodemodel.IJStatement;
 import com.helger.jcodemodel.JAnnotationArrayMember;
 import com.helger.jcodemodel.JAnnotationUse;
 import com.helger.jcodemodel.JBlock;
@@ -49,10 +52,14 @@ import com.helger.jcodemodel.JClassAlreadyExistsException;
 import com.helger.jcodemodel.JConditional;
 import com.helger.jcodemodel.JDefinedClass;
 import com.helger.jcodemodel.JExpr;
+import com.helger.jcodemodel.JFieldRef;
 import com.helger.jcodemodel.JFieldVar;
+import com.helger.jcodemodel.JFormatter;
 import com.helger.jcodemodel.JInvocation;
 import com.helger.jcodemodel.JMethod;
 import com.helger.jcodemodel.JMod;
+import com.helger.jcodemodel.JOp;
+import com.helger.jcodemodel.JOpTernary;
 import com.helger.jcodemodel.JTypeVar;
 import com.helger.jcodemodel.JVar;
 import java.text.MessageFormat;
@@ -81,10 +88,20 @@ class ValueClassModel {
         return valueClass;
     }
 
+    String hashCodeAcceptorMethodName() {
+        return Source.decapitalize(valueClass.name()) + "HashCode";
+    }
+
     MethodBuilder createMethodBuilder(Serialization serialization) throws JClassAlreadyExistsException {
         JFieldVar acceptorField = buildAcceptorField();
         Map<String, JDefinedClass> caseClasses = buildCaseClasses(serialization);
-        return new MethodBuilder(caseClasses, acceptorField);
+        MethodEvaluation hashCode = visitorInterface.hashCodeEvaluation();
+        if (hashCode.isOrdinary())
+            return new MethodBuilder(caseClasses, acceptorField);
+        else {
+            JFieldVar hashCodeField = buildHashCodeCachedValueField(serialization);
+            return new MethodBuilder(caseClasses, acceptorField, hashCodeField);
+        }
     }
 
     private JFieldVar buildAcceptorField() {
@@ -262,19 +279,44 @@ class ValueClassModel {
         return predicates;
     }
 
+    private JFieldVar buildHashCodeCachedValueField(Serialization serialization) {
+        if (visitorInterface.hashCodeEvaluation().isOrdinary())
+            throw new IllegalStateException("Unsupported method evaluation to cache hash code: " + visitorInterface.hashCodeEvaluation());
+        else if (visitorInterface.hashCodeEvaluation() == MethodEvaluation.ON_CONSTRUCTION) {
+            return valueClass.field(JMod.PRIVATE | JMod.FINAL, types._int, "hashCodeCachedValue");
+        } else {
+            int mods = !serialization.isSerializable() ? JMod.PRIVATE : JMod.PRIVATE | JMod.TRANSIENT;
+            JFieldVar field = valueClass.field(mods, types._int, "hashCodeCachedValue", JExpr.lit(0));
+            if (visitorInterface.hashCodeEvaluation().requiresSerialization()) {
+                valueClass.field(mods | JMod.FINAL, types._Object, field.name() + "Lock", JExpr._new(types._Object));
+            }
+            return field;
+        }
+    }
+
     class MethodBuilder {
         private final Map<String, JDefinedClass> caseClasses;
         private final JFieldVar acceptorField;
+        private final JFieldVar hashCodeCachedValueField;
 
-        private MethodBuilder(Map<String, JDefinedClass> caseClasses, JFieldVar acceptorField) {
+        private MethodBuilder(Map<String, JDefinedClass> caseClasses, JFieldVar acceptorField, JFieldVar hashCodeCachedValueField) {
             this.caseClasses = caseClasses;
             this.acceptorField = acceptorField;
+            this.hashCodeCachedValueField = hashCodeCachedValueField;
+        }
+
+        private MethodBuilder(Map<String, JDefinedClass> caseClasses, JFieldVar acceptorField) {
+            this(caseClasses, acceptorField, null);
         }
 
         void buildPrivateConstructor() {
             JMethod constructor = valueClass.constructor(JMod.PRIVATE);
-            constructor.param(acceptorField.type(), acceptorField.name());
-            constructor.body().assign(JExpr.refthis(acceptorField.name()), JExpr.ref(acceptorField.name()));
+            JVar acceptorParam = constructor.param(acceptorField.type(), acceptorField.name());
+            if (visitorInterface.hashCodeEvaluation() == MethodEvaluation.ON_CONSTRUCTION) {
+                JInvocation invocation = acceptorParam.invoke(hashCodeAcceptorMethodName());
+                constructor.body().assign(JExpr.refthis(hashCodeCachedValueField), invocation);
+            }
+            constructor.body().assign(JExpr.refthis(acceptorField.name()), acceptorParam);
         }
 
         void buildProtectedConstructor(Serialization serialization) throws JClassAlreadyExistsException {
@@ -289,6 +331,8 @@ class ValueClassModel {
             nullPointerExceptionConstruction.arg(JExpr.lit("Argument shouldn't be null: 'implementation' argument in class constructor invocation: " + valueClass.fullName()));
             nullCheck._then()._throw(nullPointerExceptionConstruction);
 
+            if (visitorInterface.hashCodeEvaluation() != MethodEvaluation.ORDINARY)
+                constructor.body().assign(JExpr.refthis(hashCodeCachedValueField), param.ref(hashCodeCachedValueField));
             constructor.body().assign(JExpr.refthis(acceptorField), param.ref(acceptorField));
         }
 
@@ -405,11 +449,32 @@ class ValueClassModel {
         }
 
         void buildHashCodeMethod(int hashCodeBase) throws SourceCodeValidationException {
-            String hashCodeMethodName = Source.decapitalize(valueClass.name()) + "HashCode";
+            String hashCodeMethodName = hashCodeAcceptorMethodName();
             JMethod hashCodeMethod = valueClass.method(JMod.PUBLIC | JMod.FINAL, types._int, "hashCode");
             hashCodeMethod.annotate(Override.class);
-            JInvocation invocation = JExpr.refthis(acceptorField).invoke(hashCodeMethodName);
-            hashCodeMethod.body()._return(invocation);
+
+            if (visitorInterface.hashCodeEvaluation() == MethodEvaluation.ORDINARY) {
+                JInvocation invocation = JExpr.refthis(acceptorField).invoke(hashCodeMethodName);
+                hashCodeMethod.body()._return(invocation);
+            } else if (visitorInterface.hashCodeEvaluation() == MethodEvaluation.ON_CONSTRUCTION) {
+                hashCodeMethod.body()._return(hashCodeCachedValueField);
+            } else if (visitorInterface.hashCodeEvaluation() == MethodEvaluation.CACHED) {
+                JFieldRef code = JExpr.refthis(hashCodeCachedValueField);
+                JConditional _if = hashCodeMethod.body()._if(code.eq0());
+                JInvocation invocation = JExpr.refthis(acceptorField).invoke(hashCodeMethodName);
+                _if._then().assign(code, invocation);
+                _if._then().assign(code, JOp.cond(code.ne0(), code, JExpr.lit(Integer.MIN_VALUE)));
+                hashCodeMethod.body()._return(code);
+            } else if (visitorInterface.hashCodeEvaluation() == MethodEvaluation.SYNCRONIZED_CACHED) {
+                JFieldRef code = JExpr.refthis(hashCodeCachedValueField);
+                JFieldRef lockField = JExpr.refthis(hashCodeCachedValueField.name() + "Lock");
+                JBlock synchronizedBlock = Source.addSynchronizedBlock(hashCodeMethod.body(), lockField);
+                JConditional _if = synchronizedBlock._if(code.eq0());
+                JInvocation invocation = JExpr.refthis(acceptorField).invoke(hashCodeMethodName);
+                _if._then().assign(code, invocation);
+                _if._then().assign(code, JOp.cond(code.ne0(), code, JExpr.lit(Integer.MIN_VALUE)));
+                synchronizedBlock._return(code);
+            }
 
             acceptingInterface.method(JMod.PUBLIC, types._int, hashCodeMethodName);
 
@@ -676,7 +741,11 @@ class ValueClassModel {
             JVar that = _else.decl(usedValueClassType, nameSource.get("that"), JExpr.cast(usedValueClassType, thatObject));
             JInvocation invocation1 = JExpr.refthis(acceptorField).invoke(equalsImplementationMethod);
             invocation1.arg(that.ref(acceptorField));
-            _else._return(invocation1);
+            IJExpression hashCodeResult = invocation1;
+            if (visitorInterface.hashCodeEvaluation() == MethodEvaluation.ON_CONSTRUCTION) {
+                hashCodeResult = JExpr.refthis(hashCodeCachedValueField).eq(that.ref(hashCodeCachedValueField)).cand(invocation1);
+            }
+            _else._return(hashCodeResult);
 
             for (JMethod interfaceMethod1: visitorInterface.methods()) {
                 JDefinedClass caseClass = caseClasses.get(interfaceMethod1.name());

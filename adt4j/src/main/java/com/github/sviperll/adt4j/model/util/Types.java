@@ -45,7 +45,9 @@ public class Types {
 
     public static JTypeVar generifyWithBoundsFrom(IJGenerifiable generifiable, String typeParameterName, AbstractJClass typeParameterBounds) {
         JTypeVar result = generifiable.generify(typeParameterName);
-        result.bound(typeParameterBounds._extends());
+        AbstractJClass bound = typeParameterBounds._extends();
+        if (bound != null)
+            result.bound(bound);
         Iterator<AbstractJClass> iterator = typeParameterBounds._implements();
         while (iterator.hasNext())
             result.bound(iterator.next());
