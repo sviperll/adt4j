@@ -101,8 +101,8 @@ Changelog
 
 Since 1.3
 
- * Add `hashCodeEvaluation` parameter to `@GenerateValueClassForVisitor` annotation to support
-   hash code caching, see `RecordVisitor` and `UserKeyVisitor` examples.
+ * Add `hashCodeCaching` parameter to `@GenerateValueClassForVisitor` annotation to support
+   hash code caching, see `RecordVisitor`, `GroupNameVisitor`, `UserKeyVisitor` and `Expression` examples.
 
 Since 1.2
 

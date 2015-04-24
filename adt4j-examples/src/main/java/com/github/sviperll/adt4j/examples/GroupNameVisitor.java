@@ -30,31 +30,15 @@
 package com.github.sviperll.adt4j.examples;
 
 import com.github.sviperll.adt4j.GenerateValueClassForVisitor;
-import com.github.sviperll.adt4j.Getter;
-import com.github.sviperll.adt4j.Updater;
 import com.github.sviperll.Caching;
+import com.github.sviperll.adt4j.Getter;
 import com.github.sviperll.meta.Visitor;
-import javax.annotation.Nullable;
 
-@GenerateValueClassForVisitor(hashCodeBase = 49, hashCodeCaching = Caching.SYNCRONIZED)
+@GenerateValueClassForVisitor(isSerializable = false,
+                              isPublic = true,
+                              isComparable = true,
+                              hashCodeCaching = Caching.PRECOMPUTE)
 @Visitor(resultVariableName = "R")
-@ClassList(classes = Function.class)
-public interface RecordVisitor<R> {
-    R valueOf(@Getter(name = "getBool") @Updater(name = "withBool") boolean bool,
-              @Getter(name = "getB") @Updater(name = "withB") byte b,
-              @Getter(name = "getC") @Updater(name = "withC") char c,
-              @Getter(name = "getI") @Updater(name = "withI") int i,
-              @Getter(name = "getL") @Updater(name = "withL") long l,
-              @Getter(name = "getF") @Updater(name = "withF") float f,
-              @Getter(name = "getD") @Updater(name = "withD") double d,
-              @Getter(name = "getO") @Updater(name = "withO") Object result,
-              @Getter(name = "getBoola") @Updater(name = "withBoola") @Nullable boolean[] boola,
-              @Getter(name = "getBa") @Updater(name = "withBa") byte[][] ba,
-              @Getter(name = "getCa") @Updater(name = "withCa") char[] ca,
-              @Getter(name = "getIa") @Updater(name = "withIa") int[] ia,
-              @Getter(name = "getLa") @Updater(name = "withLa") long[] la,
-              @Getter(name = "getFa") @Updater(name = "withFa") float[] fa,
-              @Getter(name = "getDa") @Updater(name = "withDa") double[] da,
-              @Getter(name = "getOa") @Updater(name = "withOa") @Nullable Object[] newValue
-              );
+public interface GroupNameVisitor<R> {
+    R valueOf(@Getter String name);
 }

@@ -29,6 +29,7 @@
  */
 package com.github.sviperll.adt4j.examples;
 
+import com.github.sviperll.Caching;
 import com.github.sviperll.adt4j.GeneratePredicate;
 import com.github.sviperll.adt4j.GeneratePredicates;
 import com.github.sviperll.adt4j.GenerateValueClassForVisitor;
@@ -39,7 +40,7 @@ import com.github.sviperll.meta.Visitor;
  *
  * @author Victor Nazarov <asviraspossible@gmail.com>
  */
-@GenerateValueClassForVisitor(isPublic = true)
+@GenerateValueClassForVisitor(isPublic = true, hashCodeCaching = Caching.SIMPLE)
 @Visitor(resultVariableName = "R", selfReferenceVariableName = "S")
 public interface ExpressionVisitor<S, R> {
     @GeneratePredicates({

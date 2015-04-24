@@ -30,7 +30,7 @@
 package com.github.sviperll.adt4j.model.util;
 
 import com.github.sviperll.meta.MemberAccess;
-import com.github.sviperll.meta.MethodEvaluation;
+import com.github.sviperll.Caching;
 
 /**
  *
@@ -56,7 +56,7 @@ class Customization {
         return api.acceptMethodAccessLevel();
     }
 
-    MethodEvaluation hashCodeEvaluation() {
-        return implementation.hashCodeEvaluation();
+    Caching hashCodeCaching() {
+        return implementation.hashCodeCaching();
     }
 }

@@ -30,7 +30,7 @@
 package com.github.sviperll.adt4j;
 
 import com.github.sviperll.meta.MemberAccess;
-import com.github.sviperll.meta.MethodEvaluation;
+import com.github.sviperll.Caching;
 import java.lang.annotation.Documented;
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -101,19 +101,19 @@ public @interface GenerateValueClassForVisitor {
     int hashCodeBase() default 37;
 
     /**
-     * hashCode method evaluation strategy.
+     * hashCode method caching strategy.
      * <p>
-     * You should probably use {@code ORDINARY} evaluation strategy,
+     * You should probably always use {@code NONE} caching,
      * until you actually need some hashCode speedup.
      * <p>
-     * The only case when strategy can be anything but {@code ORDINARY} is
+     * The only case when strategy can be anything but {@code NONE} is
      * when all fields are actually immutable.
      * <p>
-     * {@code ON_CONSTRUCTION} strategy can speed up equals method
+     * {@code PRECOMPUTE} strategy can potentially speed up equals method
      *
-     * @see MethodEvaluation
+     * @see Caching
      */
-    MethodEvaluation hashCodeEvaluation() default MethodEvaluation.ORDINARY;
+    Caching hashCodeCaching() default Caching.NONE;
 
     /**
      * Specifies weather generated class should be serializable.

@@ -21,8 +21,13 @@
         </dependency>
         <dependency>
             <groupId>com.github.sviperll</groupId>
+            <artifactId>chicory-core</artifactId>
+            <version>0.26</version>
+        </dependency>
+        <dependency>
+            <groupId>com.github.sviperll</groupId>
             <artifactId>metachicory</artifactId>
-            <version>0.26-beta1</version>
+            <version>0.26</version>
         </dependency>
     </dependencies>
 </project>

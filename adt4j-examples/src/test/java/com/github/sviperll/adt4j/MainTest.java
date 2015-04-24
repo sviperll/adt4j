@@ -30,6 +30,7 @@
 package com.github.sviperll.adt4j;
 
 import com.github.sviperll.adt4j.examples.ComparableList;
+import com.github.sviperll.adt4j.examples.GroupName;
 import com.github.sviperll.adt4j.examples.User;
 import com.github.sviperll.adt4j.examples.UserKey;
 import com.github.sviperll.adt4j.examples.UserVisitor;
@@ -52,14 +53,15 @@ public class MainTest {
 
     @Test
     public void testVisitor() throws Exception {
-        User<String> user = User.<String>valueOf(UserKey.valueOf(1), ComparableList.<String>empty(), "Victor");
+        User<String> user = User.<String>valueOf(UserKey.valueOf(1), ComparableList.<String>empty(), "Victor", GroupName.valueOf("group1"));
         user.accept(new UserVisitor<String, Void> () {
 
             @Override
-            public Void valueOf(UserKey key, ComparableList<String> list, String name) {
+            public Void valueOf(UserKey key, ComparableList<String> list, String name, GroupName group) {
                 assertEquals(UserKey.valueOf(1), key);
                 assertEquals(ComparableList.<String>empty(), list);
                 assertEquals("Victor", name);
+                assertEquals("group1", group.name());
                 return null;
             }
         });
@@ -68,7 +70,7 @@ public class MainTest {
 
     @Test
     public void testGetters() throws Exception {
-        User<String> user = User.<String>valueOf(UserKey.valueOf(1), ComparableList.<String>empty(), "Victor");
+        User<String> user = User.<String>valueOf(UserKey.valueOf(1), ComparableList.<String>empty(), "Victor", GroupName.valueOf("group1"));
         assertEquals(UserKey.valueOf(1), user.key());
         assertEquals(ComparableList.<String>empty(), user.list());
         assertEquals("Victor", user.name());
@@ -76,7 +78,7 @@ public class MainTest {
 
     @Test
     public void testUpdater() throws Exception {
-        User<String> user = User.<String>valueOf(UserKey.valueOf(1), ComparableList.<String>empty(), "Victor");
+        User<String> user = User.<String>valueOf(UserKey.valueOf(1), ComparableList.<String>empty(), "Victor", GroupName.valueOf("group1"));
         User<String> user1 = user.withName("Peter");
 
         assertEquals(UserKey.valueOf(1), user.key());
@@ -90,8 +92,8 @@ public class MainTest {
 
     @Test
     public void testEquals() {
-        User<String> user = User.<String>valueOf(UserKey.valueOf(1), ComparableList.<String>empty(), "Victor");
-        User<String> user1 = User.<String>valueOf(UserKey.valueOf(1), ComparableList.<String>empty(), "Victor");
+        User<String> user = User.<String>valueOf(UserKey.valueOf(1), ComparableList.<String>empty(), "Victor", GroupName.valueOf("group1"));
+        User<String> user1 = User.<String>valueOf(UserKey.valueOf(1), ComparableList.<String>empty(), "Victor", GroupName.valueOf("group1"));
         assertTrue("user.equals(user1)", user.equals(user1));
     }
 

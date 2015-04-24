@@ -29,19 +29,19 @@
  */
 package com.github.sviperll.adt4j.model.util;
 
-import com.github.sviperll.meta.MethodEvaluation;
+import com.github.sviperll.Caching;
 
 /**
  *
  * @author Victor Nazarov <asviraspossible@gmail.com>
  */
 class ImplementationCustomization {
-    private final MethodEvaluation hashCodeEvaluation;
-    ImplementationCustomization(MethodEvaluation hashCodeEvaluation) {
-        this.hashCodeEvaluation = hashCodeEvaluation;
+    private final Caching hashCodeCaching;
+    ImplementationCustomization(Caching hashCodeCaching) {
+        this.hashCodeCaching = hashCodeCaching;
     }
 
-    MethodEvaluation hashCodeEvaluation() {
-        return hashCodeEvaluation;
+    Caching hashCodeCaching() {
+        return hashCodeCaching;
     }
 }

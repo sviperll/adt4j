@@ -35,11 +35,11 @@ package com.github.sviperll.adt4j.examples;
  */
 public class FancyList<T> extends BaseFancyList<FancyList<T>, T> {
     public static <T> FancyList<T> nil() {
-        return new FancyList<T>(BaseFancyList.<FancyList<T>, T>nil());
+        return new FancyList<T>(BaseFancyList.<FancyList<T>, T>baseNil());
     }
 
     public static <T> FancyList<T> list(T head, FancyList<T> tail) {
-        return new FancyList<T>(BaseFancyList.<FancyList<T>, T>list(head, tail));
+        return new FancyList<T>(BaseFancyList.<FancyList<T>, T>baseList(head, tail));
     }
 
     private FancyList(BaseFancyList<FancyList<T>, T> base) {

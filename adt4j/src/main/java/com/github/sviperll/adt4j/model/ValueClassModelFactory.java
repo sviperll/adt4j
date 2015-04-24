@@ -29,7 +29,6 @@
  */
 package com.github.sviperll.adt4j.model;
 
-import com.github.sviperll.meta.MemberAccess;
 import com.github.sviperll.adt4j.GenerateValueClassForVisitor;
 import com.github.sviperll.adt4j.GenerateValueClassForVisitorProcessor;
 import com.github.sviperll.meta.CodeModelBuildingException;
@@ -72,10 +71,14 @@ public class ValueClassModelFactory {
             return annotation.className();
         } else {
             String visitorName = jVisitorModel.name();
-            if (visitorName.endsWith(VISITOR_SUFFIX))
-                return visitorName.substring(0, visitorName.length() - VISITOR_SUFFIX.length());
-            else
-                return visitorName + VALUE_SUFFIX;
+            if (visitorName == null)
+                throw new IllegalStateException("Visitor interface without a name: " + jVisitorModel);
+            else {
+                if (visitorName.endsWith(VISITOR_SUFFIX))
+                    return visitorName.substring(0, visitorName.length() - VISITOR_SUFFIX.length());
+                else
+                    return visitorName + VALUE_SUFFIX;
+            }
         }
     }
 
@@ -192,6 +195,8 @@ public class ValueClassModelFactory {
             ValueClassModel.MethodBuilder methodBuilder = result.createMethodBuilder(serialization);
             Map<String, JMethod> constructorMethods = methodBuilder.buildConstructorMethods(serialization);
             methodBuilder.buildPrivateConstructor();
+            if (serialization.isSerializable())
+                methodBuilder.buildReadObjectMethod();
             methodBuilder.buildProtectedConstructor(serialization);
             methodBuilder.buildAcceptMethod();
             Map<String, FieldConfiguration> gettersConfigutation = result.getGettersConfigutation();

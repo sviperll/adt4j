@@ -29,10 +29,13 @@
  */
 package com.github.sviperll.adt4j;
 
+import com.github.sviperll.Throwables;
 import com.github.sviperll.meta.java.model.JCodeModelJavaxLangModelAdapter;
 import com.github.sviperll.meta.FilerCodeWriter;
 import com.github.sviperll.adt4j.model.ValueClassModelFactory;
 import com.github.sviperll.meta.CodeModelBuildingException;
+import com.github.sviperll.meta.ElementMessage;
+import com.github.sviperll.meta.ElementMessager;
 import com.github.sviperll.meta.SourceCodeValidationException;
 import com.github.sviperll.meta.Visitor;
 import com.helger.jcodemodel.JCodeModel;
@@ -55,18 +58,19 @@ import javax.tools.Diagnostic;
 @SupportedSourceVersion(SourceVersion.RELEASE_6)
 public class GenerateValueClassForVisitorProcessor extends AbstractProcessor {
     private final Set<String> remainingElements = new HashSet<String>();
-    private final List<String> errors = new ArrayList<String>();
+    private final List<ElementMessage> errors = new ArrayList<ElementMessage>();
 
     @Override
     public boolean process(Set<? extends TypeElement> annotations,
                            RoundEnvironment roundEnv) {
         try {
             if (roundEnv.processingOver()) {
-                for (String path: remainingElements) {
-                    errors.add("Unable to process " + path);
+                for (String qualifiedName: remainingElements) {
+                    errors.add(ElementMessage.of(processingEnv.getElementUtils().getTypeElement(qualifiedName), "Unable to process"));
                 }
-                for (String error: errors) {
-                    processingEnv.getMessager().printMessage(Diagnostic.Kind.ERROR, error);
+                for (ElementMessage error: errors) {
+                    TypeElement typeElement = processingEnv.getElementUtils().getTypeElement(error.qualifiedElementName());
+                    processingEnv.getMessager().printMessage(Diagnostic.Kind.ERROR, error.message(), typeElement);
                 }
             } else {
                 Set<TypeElement> elements = new HashSet<TypeElement>();
@@ -79,13 +83,12 @@ public class GenerateValueClassForVisitorProcessor extends AbstractProcessor {
                 remainingElements.clear();
                 processElements(elements);
             }
-        } catch (IOException ex) {
-            processingEnv.getMessager().printMessage(Diagnostic.Kind.ERROR, ex.getMessage());
+        } catch (Exception ex) {
+            processingEnv.getMessager().printMessage(Diagnostic.Kind.ERROR, Throwables.render(ex));
         }
         return true;
     }
-
-    private void processElements(Set<? extends TypeElement> elements) throws IOException {
+    private void processElements(Set<? extends TypeElement> elements) {
         for (TypeElement element: elements) {
             try {
                 JCodeModel jCodeModel = new JCodeModel();
@@ -99,21 +102,26 @@ public class GenerateValueClassForVisitorProcessor extends AbstractProcessor {
                 if (jCodeModel.buildsErrorTypeRefs()) {
                     remainingElements.add(element.getQualifiedName().toString());
                 } else {
-                    processingEnv.getMessager().printMessage(Diagnostic.Kind.NOTE, "Generated value class " + valueClass.fullName() + " for " + element + " visitor interface");
-                    FilerCodeWriter writer = new FilerCodeWriter(processingEnv.getFiler(), processingEnv.getMessager());
+                    processingEnv.getMessager().printMessage(Diagnostic.Kind.NOTE, "Generated value class " + valueClass.fullName() + " for " + element + " visitor interface", element);
+                    FilerCodeWriter writer = new FilerCodeWriter(processingEnv.getFiler(), new ElementMessager(processingEnv.getMessager(), element));
                     try {
                         jCodeModel.build(writer);
                     } finally {
-                        writer.close();
+                        try {
+                            writer.close();
+                        } catch (Exception ex) {
+                            processingEnv.getMessager().printMessage(Diagnostic.Kind.WARNING, Throwables.render(ex));
+                        }
                     }
                 }
             } catch (SourceCodeValidationException ex) {
-                errors.add(element + ": " + ex.getMessage());
+                errors.add(ElementMessage.of(element, ex.toString()));
             } catch (CodeModelBuildingException ex) {
-                errors.add(element + ": " + ex.getMessage());
+                errors.add(ElementMessage.of(element, ex.toString()));
+            } catch (IOException ex) {
+                errors.add(ElementMessage.of(element, Throwables.render(ex)));
             } catch (RuntimeException ex) {
-                errors.add(element + ": " + ex.getMessage());
-                ex.printStackTrace(System.err);
+                errors.add(ElementMessage.of(element, Throwables.render(ex)));
             }
         }
     }

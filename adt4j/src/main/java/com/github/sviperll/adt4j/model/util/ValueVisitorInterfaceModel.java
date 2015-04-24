@@ -29,9 +29,9 @@
  */
 package com.github.sviperll.adt4j.model.util;
 
+import com.github.sviperll.Caching;
 import com.github.sviperll.meta.MemberAccess;
 import com.github.sviperll.adt4j.GenerateValueClassForVisitor;
-import com.github.sviperll.meta.MethodEvaluation;
 import com.github.sviperll.meta.SourceCodeValidationException;
 import com.github.sviperll.meta.Visitor;
 import com.helger.jcodemodel.AbstractJClass;
@@ -52,7 +52,7 @@ public class ValueVisitorInterfaceModel {
         ValueVisitorTypeParameters typeParameters = createValueVisitorTypeParameters(jVisitorModel, visitorAnnotation);
         Map<String, JMethod> methods = createMethodMap(jVisitorModel, typeParameters);
         APICustomization apiCustomization = new APICustomization(annotation.acceptMethodName(), annotation.acceptMethodAccess(), annotation.isPublic());
-        ImplementationCustomization implementationCustomization = new ImplementationCustomization(annotation.hashCodeEvaluation());
+        ImplementationCustomization implementationCustomization = new ImplementationCustomization(annotation.hashCodeCaching());
         Customization customiztion = new Customization(apiCustomization, implementationCustomization);
         return new ValueVisitorInterfaceModel(jVisitorModel, typeParameters, methods, customiztion);
     }
@@ -221,7 +221,7 @@ public class ValueVisitorInterfaceModel {
         return customization.acceptMethodAccessLevel();
     }
 
-    public MethodEvaluation hashCodeEvaluation() {
-        return customization.hashCodeEvaluation();
+    public Caching hashCodeCaching() {
+        return customization.hashCodeCaching();
     }
 }

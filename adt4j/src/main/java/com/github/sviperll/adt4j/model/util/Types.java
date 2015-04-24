@@ -35,6 +35,8 @@ import com.helger.jcodemodel.IJGenerifiable;
 import com.helger.jcodemodel.JCodeModel;
 import com.helger.jcodemodel.JPrimitiveType;
 import com.helger.jcodemodel.JTypeVar;
+import java.io.IOException;
+import java.io.ObjectInputStream;
 import java.io.Serializable;
 import java.util.Iterator;
 
@@ -74,6 +76,9 @@ public class Types {
     public final AbstractJClass _StringBuilder;
     public final AbstractJClass _IllegalStateException;
     public final AbstractJClass _Math;
+    public final AbstractJType _ObjectInputStream;
+    public final AbstractJClass _IOException;
+    public final AbstractJClass _ClassNotFoundException;
 
     private Types(JCodeModel codeModel) {
         _void = codeModel.VOID;
@@ -97,6 +102,9 @@ public class Types {
         _StringBuilder = codeModel.ref(StringBuilder.class);
         _IllegalStateException = codeModel.ref(IllegalStateException.class);
         _Math = codeModel.ref(Math.class);
+        _ObjectInputStream = codeModel.ref(ObjectInputStream.class);
+        _IOException = codeModel.ref(IOException.class);
+        _ClassNotFoundException = codeModel.ref(ClassNotFoundException.class);
     }
 
     public boolean isSerializable(AbstractJType type) {
