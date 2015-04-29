@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014, Victor Nazarov <asviraspossible@gmail.com>
+ * Copyright (c) 2015, Victor Nazarov <asviraspossible@gmail.com>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -27,15 +27,41 @@
  *  (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
  *  EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package com.github.sviperll.adt4j.examples;
+package com.github.sviperll.adt4j.model.util;
 
-import com.github.sviperll.adt4j.GenerateValueClassForVisitor;
-import com.github.sviperll.adt4j.Getter;
-import com.github.sviperll.meta.Visitor;
+import com.helger.jcodemodel.AbstractJClass;
 
-@GenerateValueClassForVisitor(extendsClass = BaseOptionalSupport.class)
-@Visitor(resultVariableName = "R", exceptionVariableName = "E")
-public interface BaseOptionalVisitor<T, R, E extends Exception> {
-    R missing() throws E;
-    R present(@Getter(name = "getValue") T value) throws E;
+/**
+ *
+ * @author Victor Nazarov <asviraspossible@gmail.com>
+ */
+class InterfacesCustomization {
+    private final boolean isComparable;
+    private final Serialization serialization;
+    private final AbstractJClass[] interfaces;
+    InterfacesCustomization(boolean isComparable, Serialization serialization, AbstractJClass[] interfaces) {
+        this.isComparable = isComparable;
+        this.serialization = serialization;
+        this.interfaces = interfaces;
+    }
+
+    boolean isSerializable() {
+        return serialization.isSerializable();
+    }
+
+    boolean isComparable() {
+        return isComparable;
+    }
+
+    AbstractJClass[] interfaces() {
+        return interfaces;
+    }
+
+    Serialization serialization() {
+        return serialization;
+    }
+
+    long serialVersionUIDForGeneratedCode() {
+        return serialization.serialVersionUIDForGeneratedCode();
+    }
 }

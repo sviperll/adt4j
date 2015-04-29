@@ -34,27 +34,73 @@ import com.github.sviperll.meta.MemberAccess;
 import com.github.sviperll.adt4j.GenerateValueClassForVisitor;
 import com.github.sviperll.meta.SourceCodeValidationException;
 import com.github.sviperll.meta.Visitor;
+import com.helger.jcodemodel.AbstractJAnnotationValue;
 import com.helger.jcodemodel.AbstractJClass;
 import com.helger.jcodemodel.AbstractJType;
+import com.helger.jcodemodel.IJExpression;
+import com.helger.jcodemodel.JAnnotationArrayMember;
+import com.helger.jcodemodel.JAnnotationStringValue;
+import com.helger.jcodemodel.JAnnotationUse;
 import com.helger.jcodemodel.JDefinedClass;
 import com.helger.jcodemodel.JMethod;
 import com.helger.jcodemodel.JTypeVar;
 import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 import javax.annotation.Nullable;
 
 public class ValueVisitorInterfaceModel {
-    public static ValueVisitorInterfaceModel createInstance(JDefinedClass jVisitorModel, Visitor visitorAnnotation, GenerateValueClassForVisitor annotation) throws SourceCodeValidationException {
+    private static final String VISITOR_SUFFIX = "Visitor";
+    private static final String VALUE_SUFFIX = "Value";
+
+    public static ValueVisitorInterfaceModel createInstance(JDefinedClass jVisitorModel, Visitor visitorAnnotation, JAnnotationUse annotation) throws SourceCodeValidationException {
         ValueVisitorTypeParameters typeParameters = createValueVisitorTypeParameters(jVisitorModel, visitorAnnotation);
         Map<String, JMethod> methods = createMethodMap(jVisitorModel, typeParameters);
-        APICustomization apiCustomization = new APICustomization(annotation.acceptMethodName(), annotation.acceptMethodAccess(), annotation.isPublic());
-        ImplementationCustomization implementationCustomization = new ImplementationCustomization(annotation.hashCodeCaching());
-        Customization customiztion = new Customization(apiCustomization, implementationCustomization);
+        String acceptMethodName = Source.getAnnotationArgument(annotation, "acceptMethodName", String.class);
+        MemberAccess acceptMethodAccess = Source.getAnnotationArgument(annotation, "acceptMethodAccess", MemberAccess.class);
+        boolean isPublic = Source.getAnnotationArgument(annotation, "isPublic", Boolean.class);
+        Caching hashCodeCaching = Source.getAnnotationArgument(annotation, "hashCodeCaching", Caching.class);
+        int hashCodeBase = Source.getAnnotationArgument(annotation, "hashCodeBase", Integer.class);
+        boolean isComparable = Source.getAnnotationArgument(annotation, "isComparable", Boolean.class);
+        Serialization serialization = serialization(annotation);
+        String valueClassName = valueClassName(jVisitorModel, annotation);
+        AbstractJClass extendsClass = Source.getAnnotationArgument(annotation, "extendsClass", AbstractJClass.class);
+        AbstractJClass[] interfaces = Source.getAnnotationArgument(annotation, "implementsInterfaces", AbstractJClass[].class);
+
+        AcceptMethodCustomization acceptMethodCustomization = new AcceptMethodCustomization(acceptMethodName, acceptMethodAccess);
+        InterfacesCustomization interfaceCustomization = new InterfacesCustomization(isComparable, serialization, interfaces);
+        APICustomization apiCustomization = new APICustomization(isPublic, acceptMethodCustomization, interfaceCustomization);
+        ImplementationCustomization implementationCustomization = new ImplementationCustomization(hashCodeBase, hashCodeCaching);
+        Customization customiztion = new Customization(valueClassName, extendsClass, apiCustomization, implementationCustomization);
         return new ValueVisitorInterfaceModel(jVisitorModel, typeParameters, methods, customiztion);
+    }
+
+    private static Serialization serialization(JAnnotationUse annotation) {
+        if (!Source.getAnnotationArgument(annotation, "isSerializable", Boolean.class))
+            return Serialization.notSerializable();
+        else
+            return Serialization.serializable(Source.getAnnotationArgument(annotation, "serialVersionUID", Long.class));
+    }
+
+    private static String valueClassName(JDefinedClass jVisitorModel, JAnnotationUse annotation) {
+        String className = Source.getAnnotationArgument(annotation, "className", String.class);
+        if (!className.equals(":auto")) {
+            return className;
+        } else {
+            String visitorName = jVisitorModel.name();
+            if (visitorName == null)
+                throw new IllegalStateException("Visitor interface without a name: " + jVisitorModel);
+            else {
+                if (visitorName.endsWith(VISITOR_SUFFIX))
+                    return visitorName.substring(0, visitorName.length() - VISITOR_SUFFIX.length());
+                else
+                    return visitorName + VALUE_SUFFIX;
+            }
+        }
     }
 
     private static ValueVisitorTypeParameters createValueVisitorTypeParameters(JDefinedClass jVisitorModel,
@@ -213,6 +259,10 @@ public class ValueVisitorInterfaceModel {
         return customization.acceptMethodName();
     }
 
+    public boolean isValueClassPublic() {
+        return customization.isValueClassPublic();
+    }
+
     public MemberAccess factoryMethodAccessLevel() {
         return customization.isValueClassPublic() ? MemberAccess.PUBLIC : MemberAccess.PACKAGE;
     }
@@ -223,5 +273,37 @@ public class ValueVisitorInterfaceModel {
 
     public Caching hashCodeCaching() {
         return customization.hashCodeCaching();
+    }
+
+    public boolean isValueClassSerializable() {
+        return customization.isValueClassSerializable();
+    }
+
+    public boolean isValueClassComparable() {
+        return customization.isValueClassComparable();
+    }
+
+    public String valueClassName() {
+        return customization.className();
+    }
+
+    public AbstractJClass[] implementsInterfaces() {
+        return customization.implementsInterfaces();
+    }
+
+    public AbstractJClass valueClassExtends() {
+        return customization.valueClassExtends();
+    }
+
+    public int hashCodeBase() {
+        return customization.hashCodeBase();
+    }
+
+    public Serialization serialization() {
+        return customization.serialization();
+    }
+
+    public long serialVersionUIDForGeneratedCode() {
+        return customization.serialVersionUIDForGeneratedCode();
     }
 }

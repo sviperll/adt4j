@@ -32,7 +32,6 @@ package com.github.sviperll.adt4j.model;
 import com.github.sviperll.adt4j.GenerateValueClassForVisitor;
 import com.github.sviperll.adt4j.GenerateValueClassForVisitorProcessor;
 import com.github.sviperll.meta.CodeModelBuildingException;
-import com.github.sviperll.adt4j.model.util.Serialization;
 import com.github.sviperll.adt4j.model.util.Types;
 import com.github.sviperll.adt4j.model.util.ValueVisitorInterfaceModel;
 import com.github.sviperll.meta.SourceCodeValidationException;
@@ -42,7 +41,6 @@ import com.helger.jcodemodel.AbstractJType;
 import com.helger.jcodemodel.EClassType;
 import com.helger.jcodemodel.JAnnotationUse;
 import com.helger.jcodemodel.JClassAlreadyExistsException;
-import com.helger.jcodemodel.JCodeModel;
 import com.helger.jcodemodel.JDefinedClass;
 import com.helger.jcodemodel.JExpr;
 import com.helger.jcodemodel.JMethod;
@@ -56,51 +54,24 @@ import javax.annotation.ParametersAreNonnullByDefault;
 import java.util.Map;
 
 public class ValueClassModelFactory {
-    private static final String VISITOR_SUFFIX = "Visitor";
-    private static final String VALUE_SUFFIX = "Value";
-
-    public static JDefinedClass createValueClass(JCodeModel jCodeModel, JDefinedClass jVisitorModel, Visitor visitorAnnotation, GenerateValueClassForVisitor annotation) throws SourceCodeValidationException, CodeModelBuildingException {
+    public static JDefinedClass createValueClass(JDefinedClass jVisitorModel, Visitor visitorAnnotation) throws SourceCodeValidationException, CodeModelBuildingException {
+        JAnnotationUse annotation = null;
+        for (JAnnotationUse anyAnnotation: jVisitorModel.annotations()) {
+            if (anyAnnotation.getAnnotationClass().fullName().equals(GenerateValueClassForVisitor.class.getName()))
+                annotation = anyAnnotation;
+        }
+        if (annotation == null)
+            throw new IllegalStateException("ValueClassModelFactory can't be run for interface without " + GenerateValueClassForVisitor.class + " annotation");
         ValueVisitorInterfaceModel visitorModel = ValueVisitorInterfaceModel.createInstance(jVisitorModel, visitorAnnotation, annotation);
-        Serialization serialization = serialization(annotation);
-        String valueClassName = valueClassName(jVisitorModel, annotation);
-        ValueClassModelFactory factory = new ValueClassModelFactory(jVisitorModel._package(), valueClassName, serialization, annotation);
-        ValueClassModel valueClassModel = factory.createValueClass(jCodeModel, visitorModel);
+        ValueClassModelFactory factory = new ValueClassModelFactory(jVisitorModel._package());
+        ValueClassModel valueClassModel = factory.createValueClass(visitorModel);
         return valueClassModel.getJDefinedClass();
     }
 
-    private static String valueClassName(JDefinedClass jVisitorModel, GenerateValueClassForVisitor annotation) {
-        if (!annotation.className().equals(":auto")) {
-            return annotation.className();
-        } else {
-            String visitorName = jVisitorModel.name();
-            if (visitorName == null)
-                throw new IllegalStateException("Visitor interface without a name: " + jVisitorModel);
-            else {
-                if (visitorName.endsWith(VISITOR_SUFFIX))
-                    return visitorName.substring(0, visitorName.length() - VISITOR_SUFFIX.length());
-                else
-                    return visitorName + VALUE_SUFFIX;
-            }
-        }
-    }
-
-    private static Serialization serialization(GenerateValueClassForVisitor annotation) {
-        if (!annotation.isSerializable())
-            return Serialization.notSerializable();
-        else
-            return Serialization.serializable(annotation.serialVersionUID());
-    }
-
-    private final Serialization serialization;
-    private final GenerateValueClassForVisitor annotation;
     private final JPackage jpackage;
-    private final String className;
 
-    ValueClassModelFactory(JPackage jpackage, String className, Serialization serialization, GenerateValueClassForVisitor annotation) {
-        this.serialization = serialization;
-        this.annotation = annotation;
+    ValueClassModelFactory(JPackage jpackage) {
         this.jpackage = jpackage;
-        this.className = className;
     }
 
     private JDefinedClass createAcceptingInterface(JDefinedClass valueClass,
@@ -136,10 +107,10 @@ public class ValueClassModelFactory {
         return acceptingInterface;
     }
 
-    ValueClassModel createValueClass(JCodeModel jCodeModel, ValueVisitorInterfaceModel visitorInterface) throws SourceCodeValidationException, CodeModelBuildingException {
+    ValueClassModel createValueClass(ValueVisitorInterfaceModel visitorInterface) throws SourceCodeValidationException, CodeModelBuildingException {
         try {
             Types types = Types.createInstance(jpackage.owner());
-            if (annotation.isSerializable()) {
+            if (visitorInterface.isValueClassSerializable()) {
                 for (JMethod interfaceMethod: visitorInterface.methods()) {
                     for (JVar param: interfaceMethod.params()) {
                         AbstractJType type = param.type();
@@ -155,7 +126,7 @@ public class ValueClassModelFactory {
                 }
             }
 
-            if (annotation.isComparable()) {
+            if (visitorInterface.isValueClassComparable()) {
                 for (JMethod interfaceMethod: visitorInterface.methods()) {
                     for (JVar param: interfaceMethod.params()) {
                         AbstractJType type = param.type();
@@ -171,43 +142,40 @@ public class ValueClassModelFactory {
                 }
             }
 
-            int mods = annotation.isPublic() ? JMod.PUBLIC: JMod.NONE;
-            JDefinedClass valueClass = jpackage._class(mods, className, EClassType.CLASS);
-            if (!annotation.baseInterface().equals("")) {
-                AbstractJClass marker = jCodeModel.ref(annotation.baseInterface());
-                valueClass._implements(marker);
-            }
-            if (!annotation.baseClass().equals("")) {
-                AbstractJClass marker = jCodeModel.ref(annotation.baseClass());
-                valueClass._extends(marker);
-            }
+            int mods = visitorInterface.isValueClassPublic() ? JMod.PUBLIC: JMod.NONE;
+            JDefinedClass valueClass = jpackage._class(mods, visitorInterface.valueClassName(), EClassType.CLASS);
             JAnnotationUse generatedAnnotation = valueClass.annotate(Generated.class);
             generatedAnnotation.param("value", GenerateValueClassForVisitorProcessor.class.getName());
             valueClass.annotate(ParametersAreNonnullByDefault.class);
             for (JTypeVar visitorTypeParameter: visitorInterface.getValueTypeParameters()) {
                 Types.generifyWithBoundsFrom(valueClass, visitorTypeParameter.name(), visitorTypeParameter);
             }
-            if (annotation.isSerializable()) {
+            for (AbstractJClass iface: visitorInterface.implementsInterfaces()) {
+                valueClass._implements(iface.typeParams().length == 0 ? iface : iface.narrow(valueClass.typeParams()));
+            }
+            AbstractJClass extendsClass = visitorInterface.valueClassExtends();
+            valueClass._extends(extendsClass.typeParams().length == 0 ? extendsClass : extendsClass.narrow(valueClass.typeParams()));
+            if (visitorInterface.isValueClassSerializable()) {
                 valueClass._implements(types._Serializable);
-                valueClass.field(JMod.PRIVATE | JMod.FINAL | JMod.STATIC, types._long, "serialVersionUID", JExpr.lit(annotation.serialVersionUID()));
+                valueClass.field(JMod.PRIVATE | JMod.FINAL | JMod.STATIC, types._long, "serialVersionUID", JExpr.lit(visitorInterface.serialVersionUIDForGeneratedCode()));
             }
 
-            if (annotation.isComparable()) {
+            if (visitorInterface.isValueClassComparable()) {
                 valueClass._implements(types._Comparable.narrow(valueClass.narrow(valueClass.typeParams())));
             }
 
             JDefinedClass acceptingInterface = createAcceptingInterface(valueClass, visitorInterface, types);
-            if (annotation.isSerializable()) {
+            if (visitorInterface.isValueClassSerializable()) {
                 acceptingInterface._extends(types._Serializable);
             }
 
             ValueClassModel result = new ValueClassModel(valueClass, acceptingInterface, visitorInterface, types);
-            ValueClassModel.MethodBuilder methodBuilder = result.createMethodBuilder(serialization);
-            Map<String, JMethod> constructorMethods = methodBuilder.buildConstructorMethods(serialization);
+            ValueClassModel.MethodBuilder methodBuilder = result.createMethodBuilder(visitorInterface.serialization());
+            Map<String, JMethod> constructorMethods = methodBuilder.buildConstructorMethods(visitorInterface.serialization());
             methodBuilder.buildPrivateConstructor();
-            if (serialization.isSerializable())
+            if (visitorInterface.isValueClassSerializable())
                 methodBuilder.buildReadObjectMethod();
-            methodBuilder.buildProtectedConstructor(serialization);
+            methodBuilder.buildProtectedConstructor(visitorInterface.serialization());
             methodBuilder.buildAcceptMethod();
             Map<String, FieldConfiguration> gettersConfigutation = result.getGettersConfigutation();
             for (FieldConfiguration getter: gettersConfigutation.values()) {
@@ -221,11 +189,11 @@ public class ValueClassModelFactory {
             for (Map.Entry<String, PredicateConfigutation> predicate: predicates.entrySet()) {
                 methodBuilder.generatePredicate(predicate.getKey(), predicate.getValue());
             }
-            if (annotation.isComparable()) {
+            if (visitorInterface.isValueClassComparable()) {
                 methodBuilder.buildCompareTo();
             }
             methodBuilder.buildEqualsMethod();
-            methodBuilder.buildHashCodeMethod(annotation.hashCodeBase());
+            methodBuilder.buildHashCodeMethod(visitorInterface.hashCodeBase());
             methodBuilder.buildToStringMethod();
             result.buildFactory(constructorMethods);
 

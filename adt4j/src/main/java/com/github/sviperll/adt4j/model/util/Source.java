@@ -31,9 +31,12 @@ package com.github.sviperll.adt4j.model.util;
 
 import com.github.sviperll.meta.MemberAccess;
 import com.github.sviperll.meta.SourceCodeValidationException;
+import com.helger.jcodemodel.AbstractJAnnotationValue;
+import com.helger.jcodemodel.AbstractJClass;
 import com.helger.jcodemodel.AbstractJType;
 import com.helger.jcodemodel.IJExpression;
 import com.helger.jcodemodel.IJStatement;
+import com.helger.jcodemodel.JAnnotationArrayMember;
 import com.helger.jcodemodel.JAnnotationStringValue;
 import com.helger.jcodemodel.JAnnotationUse;
 import com.helger.jcodemodel.JBlock;
@@ -42,7 +45,10 @@ import com.helger.jcodemodel.JFormatter;
 import com.helger.jcodemodel.JMod;
 import com.helger.jcodemodel.JTypeWildcard;
 import com.helger.jcodemodel.JVar;
+import java.lang.reflect.Array;
 import java.text.MessageFormat;
+import java.util.Collection;
+import java.util.Iterator;
 import java.util.Locale;
 import java.util.NoSuchElementException;
 
@@ -51,14 +57,40 @@ import java.util.NoSuchElementException;
  * @author Victor Nazarov <asviraspossible@gmail.com>
  */
 public class Source {
-    @SuppressWarnings("unchecked")
     public static <T> T getAnnotationArgument(JAnnotationUse annotation, String name, Class<T> klass) {
-        JAnnotationStringValue stringValue = annotation.getConstantParam(name);
-        if (stringValue != null)
-            return (T)stringValue.nativeValue();
-        else {
-            throw new NoSuchElementException(MessageFormat.format("{0} annotation argument not found for {1} annotation",
-                                                                  name, annotation));
+        AbstractJAnnotationValue value = annotation.getParam(name);
+        return castAnnotationArgument(value, klass);
+    }
+
+    /*
+     * jcodemodel annotation API is totally fucked up!!! :(
+     */
+    @SuppressWarnings("unchecked")
+    private static <T> T castAnnotationArgument(AbstractJAnnotationValue value, Class<T> klass) throws ClassCastException {
+        if (!klass.isArray()) {
+            if (value == null)
+                throw new ClassCastException("Can't cast " + value + " annotation value to " + klass + " class");
+            if (JAnnotationUse.class.isAssignableFrom(klass))
+                return (T)value;
+            else if (!(value instanceof JAnnotationStringValue))
+                throw new ClassCastException("Can't cast " + value + " annotation value to " + klass + " class");
+            else {
+                JAnnotationStringValue stringValue = (JAnnotationStringValue)value;
+                return (T)stringValue.nativeValue();
+            }
+        } else {
+            if (value == null) {
+                return (T)Array.newInstance(klass.getComponentType(), 0);
+            } else {
+                JAnnotationArrayMember jarray = (JAnnotationArrayMember)value;
+                Collection<AbstractJAnnotationValue> interfaceJArray = jarray.getAllAnnotations();
+                Object[] result = (Object[])Array.newInstance(klass.getComponentType(), interfaceJArray.size());
+                Iterator<AbstractJAnnotationValue> iterator = interfaceJArray.iterator();
+                for (int i = 0; iterator.hasNext(); i++) {
+                    result[i] = castAnnotationArgument(iterator.next(), klass.getComponentType());
+                }
+                return (T)result;
+            }
         }
     }
 

@@ -31,17 +31,26 @@ package com.github.sviperll.adt4j.model.util;
 
 import com.github.sviperll.meta.MemberAccess;
 import com.github.sviperll.Caching;
+import com.helger.jcodemodel.AbstractJClass;
 
 /**
  *
  * @author Victor Nazarov <asviraspossible@gmail.com>
  */
 class Customization {
+    private final String className;
     private final APICustomization api;
     private final ImplementationCustomization implementation;
-    Customization(APICustomization api, ImplementationCustomization implementation) {
+    private final AbstractJClass valueClassExtends;
+    Customization(String className, AbstractJClass valueClassExtends, APICustomization api, ImplementationCustomization implementation) {
+        this.className = className;
+        this.valueClassExtends = valueClassExtends;
         this.api = api;
         this.implementation = implementation;
+    }
+
+    String className() {
+        return className;
     }
 
     String acceptMethodName() {
@@ -49,7 +58,7 @@ class Customization {
     }
 
     boolean isValueClassPublic() {
-        return api.isValueClassPublic();
+        return api.isPublic();
     }
 
     MemberAccess acceptMethodAccessLevel() {
@@ -58,5 +67,33 @@ class Customization {
 
     Caching hashCodeCaching() {
         return implementation.hashCodeCaching();
+    }
+
+    boolean isValueClassSerializable() {
+        return api.isSerializable();
+    }
+
+    boolean isValueClassComparable() {
+        return api.isComparable();
+    }
+
+    AbstractJClass[] implementsInterfaces() {
+        return api.interfaces();
+    }
+
+    int hashCodeBase() {
+        return implementation.hashCodeBase();
+    }
+
+    Serialization serialization() {
+        return api.serialization();
+    }
+
+    long serialVersionUIDForGeneratedCode() {
+        return api.serialVersionUIDForGeneratedCode();
+    }
+
+    AbstractJClass valueClassExtends() {
+        return valueClassExtends;
     }
 }

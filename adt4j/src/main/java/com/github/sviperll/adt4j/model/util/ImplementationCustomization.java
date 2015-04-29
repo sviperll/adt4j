@@ -36,12 +36,22 @@ import com.github.sviperll.Caching;
  * @author Victor Nazarov <asviraspossible@gmail.com>
  */
 class ImplementationCustomization {
+    private int hashCodeBase;
     private final Caching hashCodeCaching;
     ImplementationCustomization(Caching hashCodeCaching) {
         this.hashCodeCaching = hashCodeCaching;
     }
 
+    ImplementationCustomization(int hashCodeBase, Caching hashCodeCaching) {
+        this.hashCodeBase = hashCodeBase;
+        this.hashCodeCaching = hashCodeCaching;
+    }
+
     Caching hashCodeCaching() {
         return hashCodeCaching;
+    }
+
+    int hashCodeBase() {
+        return hashCodeBase;
     }
 }

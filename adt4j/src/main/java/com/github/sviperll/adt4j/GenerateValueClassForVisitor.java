@@ -81,24 +81,24 @@ public @interface GenerateValueClassForVisitor {
     String className() default ":auto";
 
     /**
-     * Name of an interface for value classes to implement.
+     * Interfaces for value classes to implement.
      * <p>
-     * You can leave the baseInterface parameter out.
-     * Generated classes will implement this interface, allowing the developer to work with abstractions,
+     * You can leave the implementsInterfaces parameter out.
+     * Generated classes will implement these interfaces, allowing the developer to work with abstractions,
      * and make use of Java 8 default methods.
      * @return Class name of marker interface.
      */
-    String baseInterface() default "";
+    Class<?>[] implementsInterfaces() default {};
 
     /**
-     * Name of an class for value classes to extend.
+     * Class for value classes to extend.
      * <p>
-     * You can leave the baseClass parameter out.
-     * Generated classes will extends this interface, allowing the developer to work with abstractions,
+     * You can leave the extendsClass parameter out.
+     * Generated classes will extends this class, allowing the developer to work with abstractions,
      * and make use of Java 8 default methods.
      * @return Class name of marker interface.
      */
-    String baseClass() default "";
+    Class<?> extendsClass() default Object.class;
 
     /**
      * Java's access for generated class.

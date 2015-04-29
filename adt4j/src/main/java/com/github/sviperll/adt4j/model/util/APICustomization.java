@@ -30,31 +30,52 @@
 package com.github.sviperll.adt4j.model.util;
 
 import com.github.sviperll.meta.MemberAccess;
+import com.helger.jcodemodel.AbstractJClass;
 
 /**
  *
  * @author Victor Nazarov <asviraspossible@gmail.com>
  */
 class APICustomization {
-    private final String acceptMethodName;
     private final boolean isValueClassPublic;
-    private final MemberAccess acceptMethodAccessLevel;
-    public APICustomization(String acceptMethodName, MemberAccess acceptMethodAccessLevel, boolean isValueClassPublic) {
-        this.acceptMethodName = acceptMethodName;
+    private final AcceptMethodCustomization acceptMethod;
+    private final InterfacesCustomization interfaces;
+    public APICustomization(boolean isValueClassPublic, AcceptMethodCustomization acceptMethod, InterfacesCustomization interfaces) {
         this.isValueClassPublic = isValueClassPublic;
-        this.acceptMethodAccessLevel = acceptMethodAccessLevel;
+        this.acceptMethod = acceptMethod;
+        this.interfaces = interfaces;
     }
 
     public String acceptMethodName() {
-        return acceptMethodName;
+        return acceptMethod.acceptMethodName();
     }
 
-    public boolean isValueClassPublic() {
+    public boolean isPublic() {
         return isValueClassPublic;
     }
 
     MemberAccess acceptMethodAccessLevel() {
-        return acceptMethodAccessLevel;
+        return acceptMethod.acceptMethodAccessLevel();
+    }
+
+    public boolean isSerializable() {
+        return interfaces.isSerializable();
+    }
+
+    boolean isComparable() {
+        return interfaces.isComparable();
+    }
+
+    AbstractJClass[] interfaces() {
+        return interfaces.interfaces();
+    }
+
+    Serialization serialization() {
+        return interfaces.serialization();
+    }
+
+    long serialVersionUIDForGeneratedCode() {
+        return interfaces.serialVersionUIDForGeneratedCode();
     }
 
 }

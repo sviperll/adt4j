@@ -77,12 +77,9 @@ class PredicatesReader {
                 MemberAccess accessLevel = Source.getAnnotationArgument(annotationUsage, "access", MemberAccess.class);
                 read(interfaceMethod, predicateName, accessLevel);
             } else if (annotationClassName.equals(GeneratePredicates.class.getName())) {
-                JAnnotationArrayMember values = (JAnnotationArrayMember)annotationUsage.getParam("value");
-                if (values != null && values.size() > 0) {
-                    Collection<JAnnotationUse> annotations = values.annotations();
-                    for (JAnnotationUse annotation: annotations) {
-                        read(interfaceMethod, annotation);
-                    }
+                JAnnotationUse[] annotations = Source.getAnnotationArgument(annotationUsage, "value", JAnnotationUse[].class);
+                for (JAnnotationUse annotation: annotations) {
+                    read(interfaceMethod, annotation);
                 }
             }
         }

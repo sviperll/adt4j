@@ -50,6 +50,7 @@ import javax.annotation.processing.RoundEnvironment;
 import javax.annotation.processing.SupportedAnnotationTypes;
 import javax.annotation.processing.SupportedSourceVersion;
 import javax.lang.model.SourceVersion;
+import javax.lang.model.element.AnnotationMirror;
 import javax.lang.model.element.Element;
 import javax.lang.model.element.TypeElement;
 import javax.tools.Diagnostic;
@@ -95,10 +96,9 @@ public class GenerateValueClassForVisitorProcessor extends AbstractProcessor {
                 Visitor visitorAnnotation = element.getAnnotation(Visitor.class);
                 if (visitorAnnotation == null)
                     throw new SourceCodeValidationException("No " + Visitor.class.getName() + " annotation for " + element.getQualifiedName() + " class annotated with " + GenerateValueClassForVisitor.class.getName() + " annotation");
-                GenerateValueClassForVisitor generateAnnotation = element.getAnnotation(GenerateValueClassForVisitor.class);
                 JCodeModelJavaxLangModelAdapter adapter = new JCodeModelJavaxLangModelAdapter(jCodeModel, processingEnv.getElementUtils());
                 JDefinedClass visitorModel = adapter.getClassWithErrorTypes(element);
-                JDefinedClass valueClass = ValueClassModelFactory.createValueClass(jCodeModel, visitorModel, visitorAnnotation, generateAnnotation);
+                JDefinedClass valueClass = ValueClassModelFactory.createValueClass(visitorModel, visitorAnnotation);
                 if (jCodeModel.buildsErrorTypeRefs()) {
                     remainingElements.add(element.getQualifiedName().toString());
                 } else {
