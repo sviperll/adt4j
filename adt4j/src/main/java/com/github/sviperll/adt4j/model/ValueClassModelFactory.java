@@ -42,6 +42,7 @@ import com.helger.jcodemodel.AbstractJType;
 import com.helger.jcodemodel.EClassType;
 import com.helger.jcodemodel.JAnnotationUse;
 import com.helger.jcodemodel.JClassAlreadyExistsException;
+import com.helger.jcodemodel.JCodeModel;
 import com.helger.jcodemodel.JDefinedClass;
 import com.helger.jcodemodel.JExpr;
 import com.helger.jcodemodel.JMethod;
@@ -49,20 +50,21 @@ import com.helger.jcodemodel.JMod;
 import com.helger.jcodemodel.JPackage;
 import com.helger.jcodemodel.JTypeVar;
 import com.helger.jcodemodel.JVar;
-import java.util.Map;
+
 import javax.annotation.Generated;
 import javax.annotation.ParametersAreNonnullByDefault;
+import java.util.Map;
 
 public class ValueClassModelFactory {
     private static final String VISITOR_SUFFIX = "Visitor";
     private static final String VALUE_SUFFIX = "Value";
 
-    public static JDefinedClass createValueClass(JDefinedClass jVisitorModel, Visitor visitorAnnotation, GenerateValueClassForVisitor annotation) throws SourceCodeValidationException, CodeModelBuildingException {
+    public static JDefinedClass createValueClass(JCodeModel jCodeModel, JDefinedClass jVisitorModel, Visitor visitorAnnotation, GenerateValueClassForVisitor annotation) throws SourceCodeValidationException, CodeModelBuildingException {
         ValueVisitorInterfaceModel visitorModel = ValueVisitorInterfaceModel.createInstance(jVisitorModel, visitorAnnotation, annotation);
         Serialization serialization = serialization(annotation);
         String valueClassName = valueClassName(jVisitorModel, annotation);
         ValueClassModelFactory factory = new ValueClassModelFactory(jVisitorModel._package(), valueClassName, serialization, annotation);
-        ValueClassModel valueClassModel = factory.createValueClass(visitorModel);
+        ValueClassModel valueClassModel = factory.createValueClass(jCodeModel, visitorModel);
         return valueClassModel.getJDefinedClass();
     }
 
@@ -134,7 +136,7 @@ public class ValueClassModelFactory {
         return acceptingInterface;
     }
 
-    ValueClassModel createValueClass(ValueVisitorInterfaceModel visitorInterface) throws SourceCodeValidationException, CodeModelBuildingException {
+    ValueClassModel createValueClass(JCodeModel jCodeModel, ValueVisitorInterfaceModel visitorInterface) throws SourceCodeValidationException, CodeModelBuildingException {
         try {
             Types types = Types.createInstance(jpackage.owner());
             if (annotation.isSerializable()) {
@@ -171,6 +173,14 @@ public class ValueClassModelFactory {
 
             int mods = annotation.isPublic() ? JMod.PUBLIC: JMod.NONE;
             JDefinedClass valueClass = jpackage._class(mods, className, EClassType.CLASS);
+            if (!annotation.baseInterface().equals("")) {
+                AbstractJClass marker = jCodeModel.ref(annotation.baseInterface());
+                valueClass._implements(marker);
+            }
+            if (!annotation.baseClass().equals("")) {
+                AbstractJClass marker = jCodeModel.ref(annotation.baseClass());
+                valueClass._extends(marker);
+            }
             JAnnotationUse generatedAnnotation = valueClass.annotate(Generated.class);
             generatedAnnotation.param("value", GenerateValueClassForVisitorProcessor.class.getName());
             valueClass.annotate(ParametersAreNonnullByDefault.class);

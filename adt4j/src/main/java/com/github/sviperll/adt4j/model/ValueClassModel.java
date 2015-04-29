@@ -29,12 +29,12 @@
  */
 package com.github.sviperll.adt4j.model;
 
+import com.github.sviperll.Caching;
 import com.github.sviperll.adt4j.model.util.Serialization;
 import com.github.sviperll.adt4j.model.util.Source;
 import com.github.sviperll.adt4j.model.util.Types;
 import com.github.sviperll.adt4j.model.util.ValueVisitorInterfaceModel;
 import com.github.sviperll.adt4j.model.util.VariableNameSource;
-import com.github.sviperll.Caching;
 import com.github.sviperll.meta.SourceCodeValidationException;
 import com.helger.jcodemodel.AbstractJClass;
 import com.helger.jcodemodel.AbstractJType;
@@ -55,14 +55,15 @@ import com.helger.jcodemodel.JMod;
 import com.helger.jcodemodel.JOp;
 import com.helger.jcodemodel.JTypeVar;
 import com.helger.jcodemodel.JVar;
+
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.TreeMap;
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 
 class ValueClassModel {
     private final JDefinedClass valueClass;
