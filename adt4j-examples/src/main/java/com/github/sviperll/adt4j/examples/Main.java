@@ -32,7 +32,7 @@ package com.github.sviperll.adt4j.examples;
 import java.io.IOException;
 
 public class Main {
-    public static void main(String[] args) throws IOException, ClassNotFoundException {
+    public static void main(final String[] args) throws IOException, ClassNotFoundException {
         Tree<String> tree = Tree.<String>node(List.<Tree<String>>cons(Tree.<String>leaf("aaa"), List.<Tree<String>>nil()));
         System.out.println(tree);
         final GADT<Integer> a = GADT.number(1);
@@ -59,6 +59,18 @@ public class Main {
         System.out.println("lookup2(\"b\") -> " + toString(lookup2("b")));
         System.out.println("lookup2(\"c\") -> " + toString(lookup2("c")));
         System.out.println("lookup2(\"d\") -> " + toString(lookup2("d")));
+        System.out.println("lookup3(\"a\") -> " + lookup3("a").toString());
+        System.out.println("lookup3(\"b\") -> " + lookup3("b").toString());
+        System.out.println("lookup3(\"c\") -> " + lookup3("c").toString());
+        System.out.println("lookup3(\"d\") -> " + lookup3("d").toString());
+
+        final Function<String, Integer> lengthOfStringFunction = new Function<String, Integer>() {
+            @Override
+            public Integer apply(String argument) {
+                return argument.length();
+            }
+        };
+        System.out.println("length map lookup3(\"a\") -> " + lookup3("a").map(lengthOfStringFunction).toString());
 
         String aa = "begin";
         Optional<String> oa = Optional.present(aa + "ning");
@@ -132,6 +144,29 @@ public class Main {
             @Override
             public Optional<String> apply(String name2) {
                 return lookup(name2);
+            }
+        });
+    }
+
+    public static BaseOptional<String> baseLookup(String name) {
+        if ("a".equals(name))
+            return BaseOptional.present("b");
+        if ("b".equals(name))
+            return BaseOptional.present("c");
+        if ("c".equals(name))
+            return BaseOptional.present("d");
+        return BaseOptional.missing();
+    }
+
+    public static BaseOptional<String> lookup3(String name1) {
+        // Using Java 8 syntax:
+        //
+        //     return lookup3(name1).flatMap(Main::lookup)
+        //
+        return baseLookup(name1).flatMap(new Function<String, BaseOptional<String>>() {
+            @Override
+            public BaseOptional<String> apply(String name2) {
+                return baseLookup(name2);
             }
         });
     }
