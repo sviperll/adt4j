@@ -32,7 +32,6 @@ package com.github.sviperll.adt4j.model.util;
 import com.github.sviperll.meta.MemberAccess;
 import com.github.sviperll.meta.SourceCodeValidationException;
 import com.helger.jcodemodel.AbstractJAnnotationValue;
-import com.helger.jcodemodel.AbstractJClass;
 import com.helger.jcodemodel.AbstractJType;
 import com.helger.jcodemodel.IJExpression;
 import com.helger.jcodemodel.IJStatement;
@@ -40,7 +39,6 @@ import com.helger.jcodemodel.JAnnotationArrayMember;
 import com.helger.jcodemodel.JAnnotationStringValue;
 import com.helger.jcodemodel.JAnnotationUse;
 import com.helger.jcodemodel.JBlock;
-import com.helger.jcodemodel.JFieldRef;
 import com.helger.jcodemodel.JFormatter;
 import com.helger.jcodemodel.JMod;
 import com.helger.jcodemodel.JTypeWildcard;
@@ -50,7 +48,6 @@ import java.text.MessageFormat;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.Locale;
-import java.util.NoSuchElementException;
 
 /**
  *
@@ -64,12 +61,13 @@ public class Source {
 
     /*
      * jcodemodel annotation API is totally fucked up!!! :(
+     * Wrap it up here...
      */
     @SuppressWarnings("unchecked")
     private static <T> T castAnnotationArgument(AbstractJAnnotationValue value, Class<T> klass) throws ClassCastException {
         if (!klass.isArray()) {
             if (value == null)
-                throw new ClassCastException("Can't cast " + value + " annotation value to " + klass + " class");
+                throw new ClassCastException("Can't cast null annotation value to " + klass + " class");
             if (JAnnotationUse.class.isAssignableFrom(klass))
                 return (T)value;
             else if (!(value instanceof JAnnotationStringValue))
@@ -141,11 +139,14 @@ public class Source {
         boolean hasNonnull = false;
         boolean hasNullable = false;
         for (JAnnotationUse annotationUse: param.annotations()) {
-            if (annotationUse.getAnnotationClass().fullName().equals("javax.annotation.Nonnull")) {
-                hasNonnull = true;
-            }
-            if (annotationUse.getAnnotationClass().fullName().equals("javax.annotation.Nullable")) {
-                hasNullable = true;
+            String annotationClassName = annotationUse.getAnnotationClass().fullName();
+            if (annotationClassName != null) {
+                if (annotationClassName.equals("javax.annotation.Nonnull")) {
+                    hasNonnull = true;
+                }
+                if (annotationClassName.equals("javax.annotation.Nullable")) {
+                    hasNullable = true;
+                }
             }
         }
         if (hasNonnull && hasNullable)

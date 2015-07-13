@@ -9,3 +9,4 @@
 /.gradle
 /adt4j/target/
 /example/target/
+/.mvn/extensions.xml

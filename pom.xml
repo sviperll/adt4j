@@ -2,16 +2,17 @@
     <modelVersion>4.0.0</modelVersion>
     <parent>
         <groupId>com.github.sviperll</groupId>
-        <artifactId>sviperll-maven-parent-6</artifactId>
-        <version>4</version>
+        <artifactId>maven-parent</artifactId>
+        <version>0.10</version>
     </parent>
     <groupId>com.github.sviperll</groupId>
     <artifactId>adt4j-maven-parent</artifactId>
-    <name>adt4j-maven-parent</name>
-    <packaging>pom</packaging>
     <version>1.3-successor-SNAPSHOT</version>
+    <packaging>pom</packaging>
     <url>http://maven.apache.org</url>
+    <name>adt4j-maven-parent</name>
     <properties>
+        <parent.profile.activate>java6,nexus-deploy</parent.profile.activate>
         <netbeans.hint.license>BSD3</netbeans.hint.license>
     </properties>
     <modules>
@@ -25,12 +26,21 @@
         <tag>HEAD</tag>
     </scm>
     <distributionManagement>
+        <repository>
+            <id>sonatype-nexus-staging</id>
+            <name>Nexus Release Repository</name>
+            <url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
+        </repository>
         <site>
             <id>github</id>
             <name>GitHub Pages</name>
             <url>github:http://sviperll.github.io/adt4j/</url>
         </site>
     </distributionManagement>
+    <issueManagement>
+        <system>GitHub</system>
+        <url>https://github.com/sviperll/adt4j/issues</url>
+    </issueManagement>
     <licenses>
         <license>
             <name>The BSD 3-Clause License</name>

@@ -548,7 +548,7 @@ class ValueClassModel {
                 JVar result = caseToStringMethod.body().decl(types._StringBuilder, nameSource.get("result"), JExpr._new(types._StringBuilder));
                 JInvocation invocation = caseToStringMethod.body().invoke(result, "append");
                 invocation.arg(valueClass.name() + "." + Source.capitalize(interfaceMethod1.name()) + "{");
-                ToStringMethodBody body = new ToStringMethodBody(caseToStringMethod.body(), result);
+                ToStringMethodBody body = new ToStringMethodBody(types, caseToStringMethod.body(), result);
                 if (!arguments.isEmpty()) {
                     JFieldVar argument = arguments.get(0);
                     body.appendParam(argument.type(), interfaceMethod1.params().get(0).name(), JExpr.refthis(argument));
@@ -787,6 +787,7 @@ class ValueClassModel {
                     EqualsMethod body = new EqualsMethod(types, equalsCaseMethod.body(), nameSource);
 
                     int i = 0;
+                    boolean generatedReturn = false;
                     JVar varParam = interfaceMethod1.listVarParam();
                     for (JVar param: interfaceMethod1.params()) {
                         AbstractJType argumentType = Source.toDeclarable(visitorInterface.narrowType(param.type(), usedValueClassType, types._Boolean, types._RuntimeException));
@@ -794,10 +795,18 @@ class ValueClassModel {
                         if (isSameCase) {
                             JFieldVar argument2 = caseClass.fields().get(param.name());
                             boolean isLast = varParam == null && i == interfaceMethod1.params().size() - 1;
-                            if (Source.isNullable(param))
-                                body.appendNullableValue(argumentType, argument1, JExpr.refthis(argument2), isLast);
-                            else
-                                body.appendNotNullValue(argumentType, argument1, JExpr.refthis(argument2), isLast);
+                            if (!isLast) {
+                                if (Source.isNullable(param))
+                                    body.appendNullableValue(argumentType, argument1, JExpr.refthis(argument2));
+                                else
+                                    body.appendNotNullValue(argumentType, argument1, JExpr.refthis(argument2));
+                            } else {
+                                if (Source.isNullable(param))
+                                    body.appendNullableValueAndReturn(argumentType, argument1, JExpr.refthis(argument2));
+                                else
+                                    body.appendNotNullValueAndReturn(argumentType, argument1, JExpr.refthis(argument2));
+                                generatedReturn = true;
+                            }
                         }
                         i++;
                     }
@@ -807,16 +816,14 @@ class ValueClassModel {
                         if (isSameCase) {
                             JFieldVar varArgument2 = caseClass.fields().get(varParam.name());
                             if (Source.isNullable(varParam))
-                                body.appendNullableValue(varArgument1.type(), varArgument1, JExpr.refthis(varArgument2), true);
+                                body.appendNullableValueAndReturn(varArgument1.type(), varArgument1, JExpr.refthis(varArgument2));
                             else
-                                body.appendNotNullValue(varArgument1.type(), varArgument1, JExpr.refthis(varArgument2), true);
+                                body.appendNotNullValueAndReturn(varArgument1.type(), varArgument1, JExpr.refthis(varArgument2));
+                            generatedReturn = true;
                         }
                     }
-                    boolean isEmpty = i == 0 && varParam == null;
-                    if (!isSameCase)
-                        equalsCaseMethod.body()._return(JExpr.FALSE);
-                    else if (isSameCase && isEmpty)
-                        equalsCaseMethod.body()._return(JExpr.TRUE);
+                    if (!generatedReturn)
+                        equalsCaseMethod.body()._return(isSameCase ? JExpr.TRUE : JExpr.FALSE);
                 }
             }
         }
@@ -824,7 +831,8 @@ class ValueClassModel {
         void buildCompareTo() throws SourceCodeValidationException, JClassAlreadyExistsException {
             AbstractJClass usedValueClassType = valueClass.narrow(valueClass.typeParams());
             AbstractJClass usedAcceptorType = acceptingInterface.narrow(valueClass.typeParams());
-            JMethod compareToMethodImplementation = acceptingInterface.method(JMod.PUBLIC, types._int, "compareTo");
+            String compareToMethodImplementationString = Source.decapitalize(valueClass.name()) + "ComapareTo";
+            JMethod compareToMethodImplementation = acceptingInterface.method(JMod.PUBLIC, types._int, compareToMethodImplementationString);
             VariableNameSource nameSource = new VariableNameSource();
             compareToMethodImplementation.param(usedAcceptorType, nameSource.get("thatAcceptor"));
 

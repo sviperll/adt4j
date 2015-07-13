@@ -33,11 +33,13 @@ import com.helger.jcodemodel.AbstractJClass;
 import com.helger.jcodemodel.AbstractJType;
 import com.helger.jcodemodel.IJGenerifiable;
 import com.helger.jcodemodel.JCodeModel;
+import com.helger.jcodemodel.JInvocation;
 import com.helger.jcodemodel.JPrimitiveType;
 import com.helger.jcodemodel.JTypeVar;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.Serializable;
+import java.util.Arrays;
 import java.util.Iterator;
 
 public class Types {
@@ -76,9 +78,10 @@ public class Types {
     public final AbstractJClass _StringBuilder;
     public final AbstractJClass _IllegalStateException;
     public final AbstractJClass _Math;
-    public final AbstractJType _ObjectInputStream;
+    public final AbstractJClass _ObjectInputStream;
     public final AbstractJClass _IOException;
     public final AbstractJClass _ClassNotFoundException;
+    public final AbstractJClass _Arrays;
 
     private Types(JCodeModel codeModel) {
         _void = codeModel.VOID;
@@ -105,6 +108,7 @@ public class Types {
         _ObjectInputStream = codeModel.ref(ObjectInputStream.class);
         _IOException = codeModel.ref(IOException.class);
         _ClassNotFoundException = codeModel.ref(ClassNotFoundException.class);
+        _Arrays = codeModel.ref(Arrays.class);
     }
 
     public boolean isSerializable(AbstractJType type) {

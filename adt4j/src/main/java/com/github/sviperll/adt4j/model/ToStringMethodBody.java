@@ -29,6 +29,7 @@
  */
 package com.github.sviperll.adt4j.model;
 
+import com.github.sviperll.adt4j.model.util.Types;
 import com.helger.jcodemodel.AbstractJType;
 import com.helger.jcodemodel.IJExpression;
 import com.helger.jcodemodel.JBlock;
@@ -40,10 +41,12 @@ import com.helger.jcodemodel.JVar;
  * @author Victor Nazarov <asviraspossible@gmail.com>
  */
 class ToStringMethodBody {
+    private final Types types;
     private final JBlock body;
     private final JVar result;
 
-    public ToStringMethodBody(JBlock body, JVar result) {
+    public ToStringMethodBody(Types types, JBlock body, JVar result) {
+        this.types = types;
         this.body = body;
         this.result = result;
     }
@@ -52,7 +55,13 @@ class ToStringMethodBody {
         JInvocation invocation = body.invoke(result, "append");
         invocation.arg(name + " = ");
         invocation = body.invoke(result, "append");
-        invocation.arg(value);
+        if (!type.isArray())
+            invocation.arg(value);
+        else {
+            JInvocation toStringInvocation = types._Arrays.staticInvoke("toString");
+            toStringInvocation.arg(value);
+            invocation.arg(toStringInvocation);
+        }
     }
 
 }
