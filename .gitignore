@@ -10,3 +10,4 @@
 /adt4j/target/
 /example/target/
 /.mvn/extensions.xml
+/adt4j-shaded/target/

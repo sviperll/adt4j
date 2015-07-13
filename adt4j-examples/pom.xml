@@ -13,35 +13,14 @@
             <groupId>com.google.code.findbugs</groupId>
             <artifactId>annotations</artifactId>
             <version>2.0.3</version>
+            <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>com.github.sviperll</groupId>
             <artifactId>adt4j</artifactId>
             <version>${project.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>com.github.sviperll</groupId>
-            <artifactId>chicory-core</artifactId>
-            <version>0.26</version>
+            <scope>provided</scope>
         </dependency>
     </dependencies>
-    <build>
-        <plugins>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-dependency-plugin</artifactId>
-                <configuration>
-                    <!--
-                         Dependency analyzer works at bytecode level, so it sees these packages as unused
-                         But they are used at compile-time only!
-                      -->
-                    <ignoredUnusedDeclaredDependencies>
-                        <ignoredUnusedDeclaredDependency>com.github.sviperll:adt4j:*:*</ignoredUnusedDeclaredDependency>
-                        <ignoredUnusedDeclaredDependency>com.github.sviperll:chicory-core:*:*</ignoredUnusedDeclaredDependency>
-                    </ignoredUnusedDeclaredDependencies>
-                </configuration>
-            </plugin>
-        </plugins>
-    </build>
 </project>
 
