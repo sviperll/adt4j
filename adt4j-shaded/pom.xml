@@ -8,6 +8,9 @@
     </parent>
     <artifactId>adt4j-shaded</artifactId>
     <packaging>jar</packaging>
+    <properties>
+        <parent.profile.activate>!pitest-cover</parent.profile.activate>
+    </properties>
     <dependencies>
         <dependency>
             <groupId>com.github.sviperll</groupId>
@@ -57,19 +60,6 @@
                     </execution>
                 </executions>
             </plugin>            
-            <plugin>
-                <groupId>org.pitest</groupId>
-                <artifactId>pitest-maven</artifactId>
-                <executions>
-                    <execution>
-                        <id>pitest-cover</id>
-                        <phase>none</phase>
-                        <goals>
-                            <goal>mutationCoverage</goal>
-                        </goals>
-                    </execution>
-                </executions>
-            </plugin>
         </plugins>
     </build>
 </project>
