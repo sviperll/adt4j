@@ -85,8 +85,26 @@ Use maven dependency to use ADT4J:
     </dependency>
 ```
 
+You can use `adt4j-shaded` artifact to simplify deployment and to avoid dependencies' conflicts.
+`adt4j-shaded` has no dependencies and does not pollute classpath.
+All java-packages provided by `adt4j-shaded` are rooted at `com.github.sviperll.adt4j` package.
+
+```xml
+    <dependency>
+        <groupId>com.github.sviperll</groupId>
+        <artifactId>adt4j-shaded</artifactId>
+        <version>1.3</version>
+    </dependency>
+```
+
+
 Changelog
 ---------
+
+Since 1.3-successor
+
+ * Better generated code: no FireBugs warnings
+ * Add adt4-shaded artifact without any dependencies.
 
 Since 1.3
 
