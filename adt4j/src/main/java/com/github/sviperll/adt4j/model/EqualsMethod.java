@@ -39,6 +39,7 @@ import com.helger.jcodemodel.JExpr;
 import com.helger.jcodemodel.JForLoop;
 import com.helger.jcodemodel.JInvocation;
 import com.helger.jcodemodel.JVar;
+import java.text.MessageFormat;
 
 /**
  *
@@ -87,7 +88,16 @@ class EqualsMethod {
     }
 
     private void appendNotNullValue(AbstractJType type, IJExpression value1, IJExpression value2, boolean isLast) {
-        if (type.isArray()) {
+        if (!type.isPrimitive() && !type.isArray()) {
+            JInvocation invocation = value1.invoke("equals");
+            invocation.arg(value2);
+            if (isLast) {
+                body._return(invocation);
+            } else {
+                JConditional _if = body._if(invocation.not());
+                _if._then()._return(JExpr.FALSE);
+            }
+        } else if (type.isArray()) {
             appendNotNullValue(types._int, value1.ref("length"), value2.ref("length"));
             VariableNameSource localNames = nameSource.forBlock();
             JForLoop _for = body._for();
@@ -101,36 +111,27 @@ class EqualsMethod {
                 forBody.appendNotNullValue(type.elementType(), value1.component(i), value2.component(i));
             if (isLast)
                 body._return(JExpr.TRUE);
-        } else {
-            if (!type.isPrimitive()) {
-                JInvocation invocation = value1.invoke("equals");
-                invocation.arg(value2);
-                if (isLast) {
-                    body._return(invocation);
-                } else {
-                    JConditional _if = body._if(invocation.not());
-                    _if._then()._return(JExpr.FALSE);
-                }
+        } else if (type.isPrimitive()) {
+            IJExpression equalsCondition;
+            IJExpression notEqualsCondition;
+            if (!type.name().equals("float") && !type.name().equals("doable")) {
+                equalsCondition = value1.eq(value2);
+                notEqualsCondition = value1.ne(value2);
             } else {
-                if (!type.name().equals("float") && !type.name().equals("doable")) {
-                    if (isLast) {
-                        body._return(value1.eq(value2));
-                    } else {
-                        JConditional _if = body._if(value1.ne(value2));
-                        _if._then()._return(JExpr.FALSE);
-                    }
-                } else {
-                    IJExpression epsilon = type.name().equals("float") ? JExpr.lit(0.000001f) : JExpr.lit(0.000000000001);
-                    JInvocation invocation = types._Math.staticInvoke("abs");
-                    invocation.arg(value1.minus(value2));
-                    if (isLast) {
-                        body._return(invocation.lte(epsilon));
-                    } else {
-                        JConditional _if = body._if(invocation.gt(epsilon));
-                        _if._then()._return(JExpr.FALSE);
-                    }
-                }
+                IJExpression epsilon = type.name().equals("float") ? ValueClassModel.FLOAT_EPSILON : ValueClassModel.DOUBLE_EPSILON;
+                JInvocation invocation = types._Math.staticInvoke("abs");
+                invocation.arg(value1.minus(value2));
+                equalsCondition = invocation.lte(epsilon);
+                notEqualsCondition = invocation.gt(epsilon);
             }
+            if (isLast) {
+                body._return(equalsCondition);
+            } else {
+                JConditional _if = body._if(notEqualsCondition);
+                _if._then()._return(JExpr.FALSE);
+            }
+        } else {
+            throw new IllegalStateException(MessageFormat.format("Unsupported type {0} when generating equals method!", type));
         }
     }
 

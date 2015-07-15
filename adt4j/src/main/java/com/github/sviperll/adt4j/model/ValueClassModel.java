@@ -66,6 +66,9 @@ import java.util.Map;
 import java.util.TreeMap;
 
 class ValueClassModel {
+    static final IJExpression FLOAT_EPSILON = JExpr.lit(0.000001f);
+    static final IJExpression DOUBLE_EPSILON = JExpr.lit(0.000000000001);
+
     private final JDefinedClass valueClass;
     private final JDefinedClass acceptingInterface;
     private final ValueVisitorInterfaceModel visitorInterface;

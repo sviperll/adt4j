@@ -40,6 +40,7 @@ import com.helger.jcodemodel.JForLoop;
 import com.helger.jcodemodel.JInvocation;
 import com.helger.jcodemodel.JOp;
 import com.helger.jcodemodel.JVar;
+import java.text.MessageFormat;
 
 /**
  *
@@ -84,7 +85,27 @@ class CompareToMethod {
         }
 
         void appendNotNullValue(AbstractJType type, IJExpression value1, IJExpression value2) {
-            if (type.isArray()) {
+            if (!type.isPrimitive() && !type.isArray()) {
+                JInvocation invocation = value1.invoke("compareTo");
+                invocation.arg(value2);
+                body.assign(resultVariable, invocation);
+                JConditional _if = body._if(resultVariable.ne(JExpr.lit(0)));
+                _if._then()._return(resultVariable);
+            } else if (type.isPrimitive()) {
+                IJExpression equalityCondition;
+                if (!type.name().equals("float") && !type.name().equals("doable")) {
+                    equalityCondition = value1.eq(value2);
+                } else {
+                    IJExpression epsilon = type.name().equals("float") ? ValueClassModel.FLOAT_EPSILON : ValueClassModel.DOUBLE_EPSILON;
+                    JInvocation invocation = types._Math.staticInvoke("abs");
+                    invocation.arg(value1.minus(value2));
+                    equalityCondition = invocation.lte(epsilon);
+                }
+                IJExpression condition = JOp.cond(equalityCondition, JExpr.lit(0), JOp.cond(value1.lt(value2), JExpr.lit(-1), JExpr.lit(1)));
+                body.assign(resultVariable, condition);
+                JConditional _if = body._if(resultVariable.ne(JExpr.lit(0)));
+                _if._then()._return(resultVariable);
+            } else if (type.isArray()) {
                 JInvocation invocation = types._Math.staticInvoke("min");
                 invocation.arg(value1.ref("length"));
                 invocation.arg(value2.ref("length"));
@@ -100,18 +121,8 @@ class CompareToMethod {
                 else
                     forBody.appendNotNullValue(type.elementType(), value1.component(i), value2.component(i));
                 appendNotNullValue(types._int, value1.ref("length"), value2.ref("length"));
-            } else if (type.isPrimitive()) {
-                IJExpression condition = JOp.cond(value1.lt(value2), JExpr.lit(-1),
-                                                  JOp.cond(value1.eq(value2), JExpr.lit(0), JExpr.lit(1)));
-                body.assign(resultVariable, condition);
-                JConditional _if = body._if(resultVariable.ne(JExpr.lit(0)));
-                _if._then()._return(resultVariable);
             } else {
-                JInvocation invocation = value1.invoke("compareTo");
-                invocation.arg(value2);
-                body.assign(resultVariable, invocation);
-                JConditional _if = body._if(resultVariable.ne(JExpr.lit(0)));
-                _if._then()._return(resultVariable);
+                throw new IllegalStateException(MessageFormat.format("Unsupported type {0} when generating compareTo method!", type));
             }
         }
     }
