@@ -80,6 +80,21 @@ class ValueVisitorTypeParameters {
                    || isException(type));
     }
 
+    /**
+     * Substitutes special type-variables with provided types.
+     * 
+     * Substitution is deep and is performed through out type's type-variables.
+     * <p>
+     * For example {@code Tree<R>} is replaced with {@code Tree<String>}
+     * when R is special result-type-variable and String is provided as
+     * result-type.
+     * 
+     * @param type type to substitute
+     * @param selfType special self-type to replace self-type-variables with
+     * @param resultType special result-type to replace result-type-variables with
+     * @param exceptionType special exception-type to replace exception-type-variables with
+     * @return resulting substitution
+     */
     AbstractJType substituteSpecialType(AbstractJType type,
                                         AbstractJClass selfType,
                                         AbstractJClass resultType,
@@ -90,6 +105,21 @@ class ValueVisitorTypeParameters {
             return type;
     }
 
+    /**
+     * Substitutes special type-variables with provided types.
+     * 
+     * Substitution is deep and is performed through out type's type-variables.
+     * <p>
+     * For example {@code Tree<R>} is replaced with {@code Tree<String>}
+     * when R is special result-type-variable and String is provided as
+     * result-type.
+     * 
+     * @param type type to substitute
+     * @param selfType special self-type to replace self-type-variables with
+     * @param resultType special result-type to replace result-type-variables with
+     * @param exceptionType special exception-type to replace exception-type-variables with
+     * @return resulting substitution
+     */
     AbstractJClass substituteSpecialType(AbstractJClass type,
                                          AbstractJClass selfType,
                                          AbstractJClass resultType,

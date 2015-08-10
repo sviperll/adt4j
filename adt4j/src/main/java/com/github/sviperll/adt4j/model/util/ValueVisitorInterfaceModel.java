@@ -209,22 +209,34 @@ public class ValueVisitorInterfaceModel {
         return methods.values();
     }
 
-    public AbstractJType narrowType(AbstractJType typeVariable, AbstractJClass usedDataType, AbstractJClass resultType, AbstractJClass exceptionType) {
-        return narrowType(typeVariable, usedDataType, resultType, exceptionType, usedDataType);
+    public AbstractJType narrowType(AbstractJType type, AbstractJClass usedDataType, AbstractJClass resultType, AbstractJClass exceptionType) {
+        return narrowType(type, usedDataType, resultType, exceptionType, usedDataType);
     }
 
-    public AbstractJType narrowType(AbstractJType typeVariable, AbstractJClass usedDataType, AbstractJClass resultType, AbstractJClass exceptionType, AbstractJClass selfType) {
-        typeVariable = typeParameters.substituteSpecialType(typeVariable, selfType, resultType, exceptionType);
+    public AbstractJType narrowType(AbstractJType type, AbstractJClass usedDataType, AbstractJClass resultType, AbstractJClass exceptionType, AbstractJClass selfType) {
+        type = typeParameters.substituteSpecialType(type, selfType, resultType, exceptionType);
         List<? extends AbstractJClass> dataTypeArguments = usedDataType.getTypeParameters();
+        int dataTypeIndex = 0;
         for (int i = 0; i < visitorInterfaceModel.typeParams().length; i++) {
             JTypeVar typeParameter = visitorInterfaceModel.typeParams()[i];
-            if (typeVariable == typeParameter)
-                return dataTypeArguments.get(i);
+            if (!typeParameters.isSpecial(typeParameter)) {
+                if (type == typeParameter)
+                    return dataTypeArguments.get(dataTypeIndex);
+                dataTypeIndex++;
+            }
         }
-        if (!(typeVariable instanceof AbstractJClass)) {
-            return typeVariable;
+
+        if (!(type instanceof AbstractJClass)) {
+            return type;
         } else {
-            AbstractJClass narrowedType = (AbstractJClass)typeVariable;
+            /*
+             * When we get type with type-parameters we should narrow
+             * type-parameters.
+             * For example, we must replace Tree<T> to Tree<String> if
+             * T type-variable is bound to String by usedDataType
+             */
+
+            AbstractJClass narrowedType = (AbstractJClass)type;
             if (narrowedType.getTypeParameters().isEmpty()) {
                 return narrowedType;
             } else {
