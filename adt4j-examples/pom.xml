@@ -8,6 +8,9 @@
     <artifactId>adt4j-examples</artifactId>
     <name>adt4j-examples</name>
     <packaging>jar</packaging>
+    <properties>
+        <parent.profile.activate>pitest-report</parent.profile.activate>
+    </properties>
     <dependencies>
         <dependency>
             <groupId>com.google.code.findbugs</groupId>
