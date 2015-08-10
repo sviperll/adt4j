@@ -81,7 +81,7 @@ Use maven dependency to use ADT4J:
     <dependency>
         <groupId>com.github.sviperll</groupId>
         <artifactId>adt4j</artifactId>
-        <version>1.3</version>
+        <version>2.0</version>
     </dependency>
 ```
 
@@ -93,7 +93,7 @@ All java-packages provided by `adt4j-shaded` are rooted at `com.github.sviperll.
     <dependency>
         <groupId>com.github.sviperll</groupId>
         <artifactId>adt4j-shaded</artifactId>
-        <version>1.3</version>
+        <version>2.0</version>
     </dependency>
 ```
 
