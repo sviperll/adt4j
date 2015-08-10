@@ -91,7 +91,7 @@ Or use latest unstable version instead:
     <dependency>
         <groupId>com.github.sviperll</groupId>
         <artifactId>adt4j</artifactId>
-        <version>2.0.1-rc1</version>
+        <version>2.0.1-rc2</version>
     </dependency>
 ```
 
