@@ -101,10 +101,11 @@ All java-packages provided by `adt4j-shaded` are rooted at `com.github.sviperll.
 Changelog
 ---------
 
-Since 1.3-successor
+Since 2.0
 
  * Better generated code: no FireBugs warnings
  * Add adt4-shaded artifact without any dependencies.
+ * Switch to Java 7 as minimal java version.
 
 Since 1.3
 

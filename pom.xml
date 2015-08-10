@@ -12,7 +12,7 @@
     <url>http://maven.apache.org</url>
     <name>adt4j-maven-parent</name>
     <properties>
-        <parent.profile.activate>java6,nexus-deploy</parent.profile.activate>
+        <parent.profile.activate>!java6,java7,nexus-deploy</parent.profile.activate>
         <netbeans.hint.license>BSD3</netbeans.hint.license>
     </properties>
     <modules>
