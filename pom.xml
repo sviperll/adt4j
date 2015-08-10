@@ -7,7 +7,7 @@
     </parent>
     <groupId>com.github.sviperll</groupId>
     <artifactId>adt4j-maven-parent</artifactId>
-    <version>2.0</version>
+    <version>2.0-successor-SNAPSHOT</version>
     <packaging>pom</packaging>
     <url>http://maven.apache.org</url>
     <name>adt4j-maven-parent</name>
@@ -24,7 +24,7 @@
         <connection>scm:git:git://github.com/sviperll/adt4j.git</connection>
         <developerConnection>scm:git:git@github.com:sviperll/adt4j.git</developerConnection>
         <url>https://github.com/sviperll/adt4j</url>
-        <tag>adt4j-2.0</tag>
+        <tag>HEAD</tag>
     </scm>
     <distributionManagement>
         <repository>
