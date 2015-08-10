@@ -3,7 +3,7 @@
     <parent>
         <groupId>com.github.sviperll</groupId>
         <artifactId>maven-parent</artifactId>
-        <version>0.14</version>
+        <version>0.15</version>
     </parent>
     <groupId>com.github.sviperll</groupId>
     <artifactId>adt4j-maven-parent</artifactId>
@@ -33,9 +33,9 @@
             <url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
         </repository>
         <site>
-            <id>github</id>
+            <id>gh-pages</id>
             <name>GitHub Pages</name>
-            <url>github:http://sviperll.github.io/adt4j/</url>
+            <url>git:gh-pages://git@github.com:sviperll/adt4j.git</url>
         </site>
     </distributionManagement>
     <issueManagement>
