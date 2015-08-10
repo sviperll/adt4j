@@ -3,7 +3,7 @@
     <parent>
         <groupId>com.github.sviperll</groupId>
         <artifactId>maven-parent</artifactId>
-        <version>0.11</version>
+        <version>0.13</version>
     </parent>
     <groupId>com.github.sviperll</groupId>
     <artifactId>adt4j-maven-parent</artifactId>
