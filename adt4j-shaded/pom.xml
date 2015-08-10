@@ -9,7 +9,7 @@
     <artifactId>adt4j-shaded</artifactId>
     <packaging>jar</packaging>
     <properties>
-        <parent.profile.activate>!pitest-cover</parent.profile.activate>
+        <parent.profile.activate>!pitest-report</parent.profile.activate>
     </properties>
     <dependencies>
         <dependency>
