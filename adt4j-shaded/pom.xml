@@ -45,15 +45,31 @@
                                 <excludes>
                                     <exclude>javax.mail:mail</exclude>
                                     <exclude>javax.activation:activation</exclude>
+                                    <exclude>com.google.code.findbugs:annotations</exclude>
                                 </excludes>
                             </artifactSet>
+                            <filters>
+                                <filter>
+                                    <artifact>com.github.sviperll:metachicory</artifact>
+                                    <excludes>
+                                        <exclude>META-INF/**</exclude>
+                                    </excludes>
+                                </filter>                            
+                            </filters>
                             <relocations>
                                 <relocation>
-                                    <pattern />
-                                    <shadedPattern>com.github.sviperll.adt4j.internal.</shadedPattern>
+                                    <pattern>com.github.sviperll</pattern>
+                                    <shadedPattern>com.github.sviperll.adt4j.internal.com.github.sviperll</shadedPattern>
                                     <excludes>
-                                        <exclude>com.github.sviperll.adt4j.**</exclude>
+                                        <exclude>com.github.sviperll.adt4j.*</exclude>
+                                        <exclude>com.github.sviperll.meta.MemberAccess</exclude>
+                                        <exclude>com.github.sviperll.meta.Visitor</exclude>
+                                        <exclude>com.github.sviperll.Caching</exclude>
                                     </excludes>
+                                </relocation>
+                                <relocation>
+                                    <pattern>com.helger.jcodemodel</pattern>
+                                    <shadedPattern>com.github.sviperll.adt4j.internal.com.helger.jcodemodel</shadedPattern>
                                 </relocation>
                             </relocations>                            
                         </configuration>
