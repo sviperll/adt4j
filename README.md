@@ -81,20 +81,9 @@ Use maven dependency to use ADT4J:
     <dependency>
         <groupId>com.github.sviperll</groupId>
         <artifactId>adt4j</artifactId>
-        <version>2.0</version>
+        <version>2.0.1</version>
     </dependency>
 ```
-
-Or use latest unstable version instead:
-
-```xml
-    <dependency>
-        <groupId>com.github.sviperll</groupId>
-        <artifactId>adt4j</artifactId>
-        <version>2.0.1-rc7</version>
-    </dependency>
-```
-
 
 You can use `adt4j-shaded` artifact to simplify deployment and to avoid dependencies' conflicts.
 `adt4j-shaded` has no dependencies and does not pollute classpath.
@@ -104,7 +93,7 @@ All java-packages provided by `adt4j-shaded` are rooted at `com.github.sviperll.
     <dependency>
         <groupId>com.github.sviperll</groupId>
         <artifactId>adt4j-shaded</artifactId>
-        <version>2.0</version>
+        <version>2.0.1</version>
     </dependency>
 ```
 
