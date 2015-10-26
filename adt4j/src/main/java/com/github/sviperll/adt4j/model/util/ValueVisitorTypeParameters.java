@@ -35,7 +35,6 @@ import com.helger.jcodemodel.JTypeVar;
 import com.helger.jcodemodel.JTypeWildcard;
 import java.util.ArrayList;
 import java.util.List;
-import javax.annotation.Nullable;
 
 /**
  *
@@ -43,13 +42,13 @@ import javax.annotation.Nullable;
  */
 class ValueVisitorTypeParameters {
     private final JTypeVar resultTypeParameter;
-    private final @Nullable JTypeVar exceptionTypeParameter;
-    private final @Nullable JTypeVar selfTypeParameter;
+    private final JTypeVar exceptionTypeParameter;
+    private final JTypeVar selfTypeParameter;
     private final List<JTypeVar> valueTypeParameters;
 
     ValueVisitorTypeParameters(JTypeVar resultTypeParameter,
-                                      @Nullable JTypeVar exceptionTypeParameter,
-                                      @Nullable JTypeVar selfTypeParameter,
+                                      JTypeVar exceptionTypeParameter,
+                                      JTypeVar selfTypeParameter,
                                       List<JTypeVar> valueTypeParameters) {
         this.resultTypeParameter = resultTypeParameter;
         this.exceptionTypeParameter = exceptionTypeParameter;

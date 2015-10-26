@@ -57,8 +57,6 @@ import com.helger.jcodemodel.JSynchronizedBlock;
 import com.helger.jcodemodel.JTypeVar;
 import com.helger.jcodemodel.JVar;
 
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.List;
@@ -118,7 +116,7 @@ class ValueClassModel {
 
         factoryField.init(JExpr._new(factory));
         JMethod factoryMethod = valueClass.method(Source.toJMod(visitorInterface.factoryMethodAccessLevel()) | JMod.STATIC, types._void, "factory");
-        factoryMethod.annotate(Nonnull.class);
+        Source.annotateNonnull(factoryMethod);
         JAnnotationUse methodAnnotationUse = factoryMethod.annotate(SuppressWarnings.class);
         methodAnnotationUse.param("value", "unchecked");
         for (JTypeVar visitorTypeParameter: visitorInterface.getValueTypeParameters()) {
@@ -139,7 +137,7 @@ class ValueClassModel {
         factoryClass._implements(visitorInterface.narrowed(usedValueClassType, usedValueClassType, types._RuntimeException));
         for (JMethod interfaceMethod: visitorInterface.methods()) {
             JMethod factoryMethod = factoryClass.method(interfaceMethod.mods().getValue() & ~JMod.ABSTRACT, usedValueClassType, interfaceMethod.name());
-            factoryMethod.annotate(Nonnull.class);
+            Source.annotateNonnull(factoryMethod);
             factoryMethod.annotate(Override.class);
 
             JMethod constructorMethod = constructorMethods.get(interfaceMethod.name());
@@ -325,7 +323,7 @@ class ValueClassModel {
             annotation.paramArray("value", "null");
             AbstractJClass usedValueClassType = valueClass.narrow(valueClass.typeParams());
             JVar param = constructor.param(usedValueClassType, "implementation");
-            param.annotate(Nonnull.class);
+            Source.annotateNonnull(param);
             JConditional nullCheck = constructor.body()._if(JExpr.ref("implementation").eq(JExpr._null()));
             JInvocation nullPointerExceptionConstruction = JExpr._new(types._NullPointerException);
             nullPointerExceptionConstruction.arg(JExpr.lit("Argument shouldn't be null: 'implementation' argument in class constructor invocation: " + valueClass.fullName()));
@@ -362,7 +360,7 @@ class ValueClassModel {
             Map<String, JMethod> constructorMethods = new TreeMap<String, JMethod>();
             for (JMethod interfaceMethod: visitorInterface.methods()) {
                 JMethod constructorMethod = valueClass.method(Source.toJMod(visitorInterface.factoryMethodAccessLevel()) | JMod.STATIC, types._void, interfaceMethod.name());
-                constructorMethod.annotate(Nonnull.class);
+                Source.annotateNonnull(constructorMethod);
                 for (JTypeVar visitorTypeParameter: visitorInterface.getValueTypeParameters()) {
                     Types.generifyWithBoundsFrom(constructorMethod, visitorTypeParameter.name(), visitorTypeParameter);
                 }
@@ -371,15 +369,22 @@ class ValueClassModel {
                 for (JVar param: interfaceMethod.params()) {
                     AbstractJType paramType = Source.toDeclarable(visitorInterface.narrowType(param.type(), usedValueClassType, usedValueClassType, types._RuntimeException));
                     JVar constructorMethodParam = constructorMethod.param(param.mods().getValue(), paramType, param.name());
-                    if (param.type().isReference())
-                        constructorMethodParam.annotate(Source.isNullable(param) ? Nullable.class : Nonnull.class);
+                    if (param.type().isReference()) {
+                        if (Source.isNullable(param))
+                            Source.annotateNullable(constructorMethodParam);
+                        else
+                            Source.annotateNonnull(constructorMethodParam);
+                    }
                 }
                 JVar param = interfaceMethod.varParam();
                 if (param != null) {
                     AbstractJType paramType = Source.toDeclarable(visitorInterface.narrowType(param.type().elementType(), usedValueClassType, usedValueClassType, types._RuntimeException));
                     JVar constructorMethodParam = constructorMethod.varParam(param.mods().getValue(), paramType, param.name());
                     if (param.type().isReference())
-                        constructorMethodParam.annotate(Source.isNullable(param) ? Nullable.class : Nonnull.class);
+                        if (Source.isNullable(param))
+                            Source.annotateNullable(constructorMethodParam);
+                        else
+                            Source.annotateNonnull(constructorMethodParam);
                 }
 
                 AbstractJClass usedCaseClassType = caseClasses.get(interfaceMethod.name()).narrow(constructorMethod.typeParams());
@@ -528,7 +533,7 @@ class ValueClassModel {
         void buildToStringMethod() throws SourceCodeValidationException {
             JMethod toStringMethod = valueClass.method(JMod.PUBLIC | JMod.FINAL, types._String, "toString");
             toStringMethod.annotate(Override.class);
-            toStringMethod.annotate(Nonnull.class);
+            Source.annotateNonnull(toStringMethod);
             JInvocation invocation1 = JExpr.refthis(acceptorField).invoke("toString");
             toStringMethod.body()._return(invocation1);
 
@@ -536,7 +541,7 @@ class ValueClassModel {
                 JDefinedClass caseClass = caseClasses.get(interfaceMethod1.name());
                 JMethod caseToStringMethod = caseClass.method(JMod.PUBLIC | JMod.FINAL, types._String, "toString");
                 caseToStringMethod.annotate(Override.class);
-                caseToStringMethod.annotate(Nonnull.class);
+                Source.annotateNonnull(caseToStringMethod);
 
                 VariableNameSource nameSource = new VariableNameSource();
                 List<JFieldVar> arguments = new ArrayList<JFieldVar>();
@@ -581,36 +586,36 @@ class ValueClassModel {
             JMethod getterMethod = acceptingInterface.method(JMod.PUBLIC, configuration.type(), getterName);
             if (configuration.type().isReference()) {
                 if (configuration.isNullable())
-                    getterMethod.annotate(Nullable.class);
+                    Source.annotateNullable(getterMethod);
                 else
-                    getterMethod.annotate(Nonnull.class);
+                    Source.annotateNonnull(getterMethod);
             }
 
             getterMethod = valueClass.method(Source.toJMod(configuration.accessLevel()) | JMod.FINAL, configuration.type(), getterName);
             if (configuration.type().isReference()) {
                 if (configuration.isNullable())
-                    getterMethod.annotate(Nullable.class);
+                    Source.annotateNullable(getterMethod);
                 else
-                    getterMethod.annotate(Nonnull.class);
+                    Source.annotateNonnull(getterMethod);
             }
             JInvocation invocation1 = JExpr.refthis(acceptorField).invoke(getterName);
             getterMethod.body()._return(invocation1);
 
             for (JMethod interfaceMethod1: visitorInterface.methods()) {
                 JDefinedClass caseClass = caseClasses.get(interfaceMethod1.name());
-                JMethod geterMethod = caseClass.method(JMod.PUBLIC | JMod.FINAL, configuration.type(), getterName);
-                geterMethod.annotate(Override.class);
+                getterMethod = caseClass.method(JMod.PUBLIC | JMod.FINAL, configuration.type(), getterName);
+                getterMethod.annotate(Override.class);
                 if (configuration.type().isReference()) {
                     if (configuration.isNullable())
-                        geterMethod.annotate(Nullable.class);
+                        Source.annotateNullable(getterMethod);
                     else
-                        geterMethod.annotate(Nonnull.class);
+                        Source.annotateNonnull(getterMethod);
                 }
                 boolean isGettable = false;
                 for (JVar param: interfaceMethod1.params()) {
                     JFieldVar field = caseClass.fields().get(param.name());
                     if (configuration.isFieldValue(interfaceMethod1, param.name())) {
-                        geterMethod.body()._return(field);
+                        getterMethod.body()._return(field);
                         isGettable = true;
                     }
                 }
@@ -618,14 +623,14 @@ class ValueClassModel {
                 if (param != null) {
                     JFieldVar field = caseClass.fields().get(param.name());
                     if (configuration.isFieldValue(interfaceMethod1, param.name())) {
-                        geterMethod.body()._return(field);
+                        getterMethod.body()._return(field);
                         isGettable = true;
                     }
                 }
                 if (!isGettable) {
                     JInvocation exceptionInvocation = JExpr._new(types._IllegalStateException);
                     exceptionInvocation.arg(configuration.name() + " is not accessible in this case: " + interfaceMethod1.name());
-                    geterMethod.body()._throw(exceptionInvocation);
+                    getterMethod.body()._throw(exceptionInvocation);
                 }
             }
         }
@@ -636,7 +641,7 @@ class ValueClassModel {
             AbstractJClass usedValueClassType = valueClass.narrow(valueClass.typeParams());
 
             JMethod updaterMethod = acceptingInterface.method(JMod.PUBLIC, usedValueClassType, updaterName);
-            updaterMethod.annotate(Nonnull.class);
+            Source.annotateNonnull(updaterMethod);
             JVar newValueParam;
             if (configuration.isVarArg())
                 newValueParam = updaterMethod.varParam(configuration.type().elementType(), nameSource.get("newValue"));
@@ -644,15 +649,15 @@ class ValueClassModel {
                 newValueParam = updaterMethod.param(configuration.type(), nameSource.get("newValue"));
             if (configuration.type().isReference()) {
                 if (configuration.isNullable()) {
-                    newValueParam.annotate(Nullable.class);
+                    Source.annotateNullable(newValueParam);
                 } else {
-                    newValueParam.annotate(Nonnull.class);
+                    Source.annotateNonnull(newValueParam);
                 }
             }
 
             nameSource = new VariableNameSource();
             updaterMethod = valueClass.method(Source.toJMod(configuration.accessLevel()) | JMod.FINAL, usedValueClassType, updaterName);
-            updaterMethod.annotate(Nonnull.class);
+            Source.annotateNonnull(updaterMethod);
             JVar newValue;
             if (configuration.isVarArg())
                 newValue = updaterMethod.varParam(configuration.type().elementType(), nameSource.get("newValue"));
@@ -660,9 +665,9 @@ class ValueClassModel {
                 newValue = updaterMethod.param(configuration.type(), nameSource.get("newValue"));
             if (configuration.type().isReference()) {
                 if (configuration.isNullable()) {
-                    newValue.annotate(Nullable.class);
+                    Source.annotateNullable(newValue);
                 } else {
-                    newValue.annotate(Nonnull.class);
+                    Source.annotateNonnull(newValue);
                 }
             }
             JInvocation invocation1 = JExpr.refthis(acceptorField).invoke(updaterName);
@@ -673,7 +678,7 @@ class ValueClassModel {
                 JDefinedClass caseClass = caseClasses.get(interfaceMethod1.name());
                 nameSource = new VariableNameSource();
                 updaterMethod = caseClass.method(JMod.PUBLIC | JMod.FINAL, usedValueClassType, updaterName);
-                updaterMethod.annotate(Nonnull.class);
+                Source.annotateNonnull(updaterMethod);
                 updaterMethod.annotate(Override.class);
                 if (configuration.isVarArg())
                     newValue = updaterMethod.varParam(configuration.type().elementType(), nameSource.get("newValue"));
@@ -681,9 +686,9 @@ class ValueClassModel {
                     newValue = updaterMethod.param(configuration.type(), nameSource.get("newValue"));
                 if (configuration.type().isReference()) {
                     if (configuration.isNullable()) {
-                        newValue.annotate(Nullable.class);
+                        Source.annotateNullable(newValue);
                     } else {
-                        newValue.annotate(Nonnull.class);
+                        Source.annotateNonnull(newValue);
                     }
                 }
                 JInvocation invocation = valueClass.staticInvoke(interfaceMethod1.name());

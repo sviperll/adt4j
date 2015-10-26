@@ -33,12 +33,16 @@ import com.github.sviperll.adt4j.MemberAccess;
 import com.github.sviperll.meta.SourceCodeValidationException;
 import com.helger.jcodemodel.AbstractJAnnotationValue;
 import com.helger.jcodemodel.AbstractJType;
+import com.helger.jcodemodel.IJAnnotatable;
 import com.helger.jcodemodel.JAnnotationArrayMember;
 import com.helger.jcodemodel.JAnnotationStringValue;
 import com.helger.jcodemodel.JAnnotationUse;
+import com.helger.jcodemodel.JDefinedClass;
+import com.helger.jcodemodel.JMethod;
 import com.helger.jcodemodel.JMod;
 import com.helger.jcodemodel.JTypeWildcard;
 import com.helger.jcodemodel.JVar;
+import java.lang.annotation.Annotation;
 import java.lang.reflect.Array;
 import java.text.MessageFormat;
 import java.util.Collection;
@@ -152,6 +156,33 @@ public class Source {
             throw new SourceCodeValidationException(MessageFormat.format("Parameter {0} is non-reference, but declared as @Nullable",
                                                            param.name()));
         return hasNullable;
+    }
+
+    @SuppressWarnings("unchecked")
+    public static void annotateNonnull(IJAnnotatable element) {
+        try {
+            element.annotate((Class<? extends Annotation>)Class.forName("javax.annotation.Nonnull"));
+        } catch (ClassNotFoundException ex) {
+            // Skip if no JSR-305 implementation present
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    public static void annotateNullable(IJAnnotatable element) {
+        try {
+            element.annotate((Class<? extends Annotation>)Class.forName("javax.annotation.Nullable"));
+        } catch (ClassNotFoundException ex) {
+            // Skip if no JSR-305 implementation present
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    public static void annotateParametersAreNonnullByDefault(IJAnnotatable element) {
+        try {
+            element.annotate((Class<? extends Annotation>)Class.forName("javax.annotation.ParametersAreNonnullByDefault"));
+        } catch (ClassNotFoundException ex) {
+            // Skip if no JSR-305 implementation present
+        }
     }
 
     private Source() {

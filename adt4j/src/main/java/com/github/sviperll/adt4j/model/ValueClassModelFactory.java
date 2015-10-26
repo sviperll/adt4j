@@ -34,6 +34,7 @@ import com.github.sviperll.adt4j.GenerateValueClassForVisitorProcessor;
 import com.github.sviperll.adt4j.model.util.Types;
 import com.github.sviperll.adt4j.model.util.ValueVisitorInterfaceModel;
 import com.github.sviperll.adt4j.Visitor;
+import com.github.sviperll.adt4j.model.util.Source;
 import com.github.sviperll.meta.SourceCodeValidationException;
 import com.helger.jcodemodel.AbstractJClass;
 import com.helger.jcodemodel.AbstractJType;
@@ -48,10 +49,12 @@ import com.helger.jcodemodel.JPackage;
 import com.helger.jcodemodel.JTypeVar;
 import com.helger.jcodemodel.JVar;
 import com.helger.jcodemodel.meta.CodeModelBuildingException;
+import java.lang.annotation.Annotation;
 
 import javax.annotation.Generated;
-import javax.annotation.ParametersAreNonnullByDefault;
 import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class ValueClassModelFactory {
     public static JDefinedClass createValueClass(JDefinedClass jVisitorModel, Visitor visitorAnnotation) throws SourceCodeValidationException, CodeModelBuildingException {
@@ -146,7 +149,7 @@ public class ValueClassModelFactory {
             JDefinedClass valueClass = jpackage._class(mods, visitorInterface.valueClassName(), EClassType.CLASS);
             JAnnotationUse generatedAnnotation = valueClass.annotate(Generated.class);
             generatedAnnotation.param("value", GenerateValueClassForVisitorProcessor.class.getName());
-            valueClass.annotate(ParametersAreNonnullByDefault.class);
+            Source.annotateParametersAreNonnullByDefault(valueClass);
             for (JTypeVar visitorTypeParameter: visitorInterface.getValueTypeParameters()) {
                 Types.generifyWithBoundsFrom(valueClass, visitorTypeParameter.name(), visitorTypeParameter);
             }

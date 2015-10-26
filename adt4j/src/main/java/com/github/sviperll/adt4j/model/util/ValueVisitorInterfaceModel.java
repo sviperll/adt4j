@@ -45,7 +45,6 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
-import javax.annotation.Nullable;
 
 public class ValueVisitorInterfaceModel {
     private static final String VISITOR_SUFFIX = "Visitor";
@@ -101,8 +100,8 @@ public class ValueVisitorInterfaceModel {
                                                                                Visitor annotation)
             throws SourceCodeValidationException {
         JTypeVar resultType = null;
-        @Nullable JTypeVar exceptionType = null;
-        @Nullable JTypeVar selfType = null;
+        JTypeVar exceptionType = null;
+        JTypeVar selfType = null;
         List<JTypeVar> valueClassTypeParameters = new ArrayList<JTypeVar>();
         for (JTypeVar typeVariable: jVisitorModel.typeParams()) {
             if (typeVariable.name().equals(annotation.resultVariableName()))
@@ -179,12 +178,10 @@ public class ValueVisitorInterfaceModel {
         return typeParameters.getResultTypeParameter();
     }
 
-    @Nullable
     public JTypeVar getExceptionTypeParameter() {
         return typeParameters.getExceptionTypeParameter();
     }
 
-    @Nullable
     public JTypeVar getSelfTypeParameter() {
         return typeParameters.getSelfTypeParameter();
     }

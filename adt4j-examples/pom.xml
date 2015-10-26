@@ -20,7 +20,7 @@
         </dependency>
         <dependency>
             <groupId>com.github.sviperll</groupId>
-            <artifactId>adt4j-shaded</artifactId>
+            <artifactId>adt4j</artifactId>
             <version>${project.version}</version>
             <scope>provided</scope>
         </dependency>
