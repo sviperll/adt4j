@@ -30,7 +30,7 @@
 package com.github.sviperll.adt4j.examples;
 
 import com.github.sviperll.adt4j.GenerateValueClassForVisitor;
-import com.github.sviperll.meta.Visitor;
+import com.github.sviperll.adt4j.Visitor;
 
 /**
  *

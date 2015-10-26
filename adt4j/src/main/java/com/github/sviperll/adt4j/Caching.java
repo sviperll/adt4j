@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014, Victor Nazarov <asviraspossible@gmail.com>
+ * Copyright (c) 2015, Victor Nazarov <asviraspossible@gmail.com>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -27,24 +27,36 @@
  *  (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
  *  EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package com.github.sviperll.adt4j.examples;
+package com.github.sviperll.adt4j;
 
-import com.github.sviperll.adt4j.GenerateValueClassForVisitor;
-import com.github.sviperll.adt4j.Caching;
-import com.github.sviperll.adt4j.Visitor;
+/**
+ * @author Victor Nazarov <asviraspossible@gmail.com>
+ */
+public enum Caching {
+    /** No caching. Method is evaluated on each call */
+    NONE,
 
-@GenerateValueClassForVisitor(isSerializable = true,
-                              isPublic = true,
-                              isComparable = true,
-                              hashCodeCaching = Caching.PRECOMPUTE)
-@Visitor(resultVariableName = "R")
-public interface UserKeyVisitor<R> {
-    R valueOf(int key);
+    /**
+     * Cache evaluation results.
+     * Actual value is stored after first execution.
+     * Single execution is not garanteed in the case of multi-threaded code
+     */
+    SIMPLE,
 
-    public abstract class UserKeyFunction<R> implements UserKeyVisitor<R>, Function<UserKey, R> {
-        @Override
-        public R apply(final UserKey input) {
-            return input.accept(this);
-        }
+    /**
+     * Lazy evaluation with thread synchronization.
+     * Value will be evaluated at most once.
+     */
+    SYNCRONIZED,
+
+    /** Method is evaluated on object construction */
+    PRECOMPUTE;
+
+    public boolean enabled() {
+        return this != NONE;
+    }
+
+    public boolean synchronizes() {
+        return this == SYNCRONIZED;
     }
 }

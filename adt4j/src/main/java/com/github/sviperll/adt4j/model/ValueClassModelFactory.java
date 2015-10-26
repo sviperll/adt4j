@@ -31,11 +31,10 @@ package com.github.sviperll.adt4j.model;
 
 import com.github.sviperll.adt4j.GenerateValueClassForVisitor;
 import com.github.sviperll.adt4j.GenerateValueClassForVisitorProcessor;
-import com.github.sviperll.meta.CodeModelBuildingException;
 import com.github.sviperll.adt4j.model.util.Types;
 import com.github.sviperll.adt4j.model.util.ValueVisitorInterfaceModel;
+import com.github.sviperll.adt4j.Visitor;
 import com.github.sviperll.meta.SourceCodeValidationException;
-import com.github.sviperll.meta.Visitor;
 import com.helger.jcodemodel.AbstractJClass;
 import com.helger.jcodemodel.AbstractJType;
 import com.helger.jcodemodel.EClassType;
@@ -48,6 +47,7 @@ import com.helger.jcodemodel.JMod;
 import com.helger.jcodemodel.JPackage;
 import com.helger.jcodemodel.JTypeVar;
 import com.helger.jcodemodel.JVar;
+import com.helger.jcodemodel.meta.CodeModelBuildingException;
 
 import javax.annotation.Generated;
 import javax.annotation.ParametersAreNonnullByDefault;
@@ -117,7 +117,7 @@ public class ValueClassModelFactory {
                         if (!type.isError() && !visitorInterface.isSelf(type) && !types.isSerializable(type))
                             throw new SourceCodeValidationException("Value class can't be serializable: " + param.name() + " parameter in " + interfaceMethod.name() + " method is not serializable");
                     }
-                    JVar param = interfaceMethod.listVarParam();
+                    JVar param = interfaceMethod.varParam();
                     if (param != null) {
                         AbstractJType type = param.type();
                         if (!type.isError() && !visitorInterface.isSelf(type) && !types.isSerializable(type))
@@ -133,7 +133,7 @@ public class ValueClassModelFactory {
                         if (!type.isError() && !visitorInterface.isSelf(type) && !types.isComparable(type))
                             throw new SourceCodeValidationException("Value class can't be comparable: " + param.name() + " parameter in " + interfaceMethod.name() + " method is not comparable");
                     }
-                    JVar param = interfaceMethod.listVarParam();
+                    JVar param = interfaceMethod.varParam();
                     if (param != null) {
                         AbstractJType type = param.type();
                         if (!type.isError() && !visitorInterface.isSelf(type) && !types.isComparable(type))

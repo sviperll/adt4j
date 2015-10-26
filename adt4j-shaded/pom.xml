@@ -62,9 +62,6 @@
                                     <shadedPattern>com.github.sviperll.adt4j.internal.com.github.sviperll</shadedPattern>
                                     <excludes>
                                         <exclude>com.github.sviperll.adt4j.*</exclude>
-                                        <exclude>com.github.sviperll.meta.MemberAccess</exclude>
-                                        <exclude>com.github.sviperll.meta.Visitor</exclude>
-                                        <exclude>com.github.sviperll.Caching</exclude>
                                     </excludes>
                                 </relocation>
                                 <relocation>

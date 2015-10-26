@@ -29,7 +29,6 @@
  */
 package com.github.sviperll.adt4j;
 
-import com.github.sviperll.meta.MemberAccess;
 import java.lang.annotation.Documented;
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;

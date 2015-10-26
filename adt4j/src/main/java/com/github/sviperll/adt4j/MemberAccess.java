@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014, Victor Nazarov <asviraspossible@gmail.com>
+ * Copyright (c) 2015, Victor Nazarov <asviraspossible@gmail.com>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -27,24 +27,13 @@
  *  (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
  *  EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package com.github.sviperll.adt4j.examples;
+package com.github.sviperll.adt4j;
 
-import com.github.sviperll.adt4j.GenerateValueClassForVisitor;
-import com.github.sviperll.adt4j.Caching;
-import com.github.sviperll.adt4j.Visitor;
-
-@GenerateValueClassForVisitor(isSerializable = true,
-                              isPublic = true,
-                              isComparable = true,
-                              hashCodeCaching = Caching.PRECOMPUTE)
-@Visitor(resultVariableName = "R")
-public interface UserKeyVisitor<R> {
-    R valueOf(int key);
-
-    public abstract class UserKeyFunction<R> implements UserKeyVisitor<R>, Function<UserKey, R> {
-        @Override
-        public R apply(final UserKey input) {
-            return input.accept(this);
-        }
-    }
+/**
+ * Denotes access level to class' members: methods, fields and inner-classes
+ * 
+ * @author Victor Nazarov <asviraspossible@gmail.com>
+ */
+public enum MemberAccess {
+    PRIVATE, PACKAGE, PROTECTED, PUBLIC;
 }

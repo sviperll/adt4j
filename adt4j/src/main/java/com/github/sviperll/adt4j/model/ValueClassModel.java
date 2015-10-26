@@ -29,7 +29,7 @@
  */
 package com.github.sviperll.adt4j.model;
 
-import com.github.sviperll.Caching;
+import com.github.sviperll.adt4j.Caching;
 import com.github.sviperll.adt4j.model.util.Serialization;
 import com.github.sviperll.adt4j.model.util.Source;
 import com.github.sviperll.adt4j.model.util.Types;
@@ -53,6 +53,7 @@ import com.helger.jcodemodel.JInvocation;
 import com.helger.jcodemodel.JMethod;
 import com.helger.jcodemodel.JMod;
 import com.helger.jcodemodel.JOp;
+import com.helger.jcodemodel.JSynchronizedBlock;
 import com.helger.jcodemodel.JTypeVar;
 import com.helger.jcodemodel.JVar;
 
@@ -150,7 +151,7 @@ class ValueClassModel {
                 JVar argument = factoryMethod.param(param.mods().getValue(), argumentType, param.name());
                 staticInvoke.arg(argument);
             }
-            JVar param = interfaceMethod.listVarParam();
+            JVar param = interfaceMethod.varParam();
             if (param != null) {
                 AbstractJType argumentType = Source.toDeclarable(visitorInterface.narrowType(param.type().elementType(), usedValueClassType, usedValueClassType, types._RuntimeException));
                 JVar argument = factoryMethod.varParam(param.mods().getValue(), argumentType, param.name());
@@ -192,7 +193,7 @@ class ValueClassModel {
             JVar argument = constructor.param(paramType, param.name());
             constructor.body().assign(JExpr._this().ref(field), argument);
         }
-        JVar param = interfaceMethod.listVarParam();
+        JVar param = interfaceMethod.varParam();
         if (param != null) {
             AbstractJType paramType = Source.toDeclarable(visitorInterface.narrowType(param.type().elementType(), usedValueClassType, usedValueClassType, types._RuntimeException));
             JFieldVar field = caseClass.field(JMod.PRIVATE | JMod.FINAL, paramType.array(), param.name());
@@ -220,7 +221,7 @@ class ValueClassModel {
         for (JVar param1: interfaceMethod.params()) {
             invocation.arg(JExpr._this().ref(param1.name()));
         }
-        JVar param1 = interfaceMethod.listVarParam();
+        JVar param1 = interfaceMethod.varParam();
         if (param1 != null) {
             invocation.arg(JExpr._this().ref(param1.name()));
         }
@@ -238,7 +239,7 @@ class ValueClassModel {
                 AbstractJType paramType = Source.toDeclarable(visitorInterface.narrowType(param.type(), usedValueClassType, visitorInterface.getResultTypeParameter(), types._RuntimeException));
                 reader.readGetter(interfaceMethod, param, paramType, false);
             }
-            JVar param = interfaceMethod.listVarParam();
+            JVar param = interfaceMethod.varParam();
             if (param != null) {
                 AbstractJType paramType = Source.toDeclarable(visitorInterface.narrowType(param.type(), usedValueClassType, visitorInterface.getResultTypeParameter(), types._RuntimeException));
                 reader.readGetter(interfaceMethod, param, paramType, true);
@@ -256,7 +257,7 @@ class ValueClassModel {
                 AbstractJType paramType = Source.toDeclarable(visitorInterface.narrowType(param.type(), usedValueClassType, visitorInterface.getResultTypeParameter(), types._RuntimeException));
                 reader.readUpdater(interfaceMethod, param, paramType, false);
             }
-            JVar param = interfaceMethod.listVarParam();
+            JVar param = interfaceMethod.varParam();
             if (param != null) {
                 AbstractJType paramType = Source.toDeclarable(visitorInterface.narrowType(param.type(), usedValueClassType, visitorInterface.getResultTypeParameter(), types._RuntimeException));
                 reader.readUpdater(interfaceMethod, param, paramType, true);
@@ -373,7 +374,7 @@ class ValueClassModel {
                     if (param.type().isReference())
                         constructorMethodParam.annotate(Source.isNullable(param) ? Nullable.class : Nonnull.class);
                 }
-                JVar param = interfaceMethod.listVarParam();
+                JVar param = interfaceMethod.varParam();
                 if (param != null) {
                     AbstractJType paramType = Source.toDeclarable(visitorInterface.narrowType(param.type().elementType(), usedValueClassType, usedValueClassType, types._RuntimeException));
                     JVar constructorMethodParam = constructorMethod.varParam(param.mods().getValue(), paramType, param.name());
@@ -396,7 +397,7 @@ class ValueClassModel {
                             hasNullChecks = true;
                         }
                     }
-                    JVar param1 = interfaceMethod.listVarParam();
+                    JVar param1 = interfaceMethod.varParam();
                     if (param1 != null) {
                         if (param1.type().isReference() && !Source.isNullable(param1)) {
                             JConditional nullCheck = constructorMethod.body()._if(JExpr.ref(param1.name()).eq(JExpr._null()));
@@ -418,7 +419,7 @@ class ValueClassModel {
                     for (JVar param2: interfaceMethod.params()) {
                         caseClassConstructorInvocation.arg(JExpr.ref(param2.name()));
                     }
-                    JVar param2 = interfaceMethod.listVarParam();
+                    JVar param2 = interfaceMethod.varParam();
                     if (param2 != null) {
                         caseClassConstructorInvocation.arg(JExpr.ref(param2.name()));
                     }
@@ -473,9 +474,9 @@ class ValueClassModel {
                 JFieldRef lockField = JExpr.refthis(acceptorField);
                 JVar code = hashCodeMethod.body().decl(types._int, nameSource.get("code"), hashCodeField);
                 JConditional _if1 = hashCodeMethod.body()._if(code.eq0());
-                JBlock synchronizedBlock = Source.addSynchronizedBlock(_if1._then(), lockField);
-                synchronizedBlock.assign(code, hashCodeField);
-                JConditional _if2 = synchronizedBlock._if(code.eq0());
+                JSynchronizedBlock synchronizedBlock = _if1._then().synchronizedBlock(lockField);
+                synchronizedBlock.body().assign(code, hashCodeField);
+                JConditional _if2 = synchronizedBlock.body()._if(code.eq0());
                 JInvocation invocation = JExpr.refthis(acceptorField).invoke(hashCodeMethodName);
                 _if2._then().assign(code, invocation);
                 _if2._then().assign(code, JOp.cond(code.ne0(), code, JExpr.lit(Integer.MIN_VALUE)));
@@ -498,7 +499,7 @@ class ValueClassModel {
                 for (JVar param: interfaceMethod1.params()) {
                     arguments.add(caseClass.fields().get(param.name()));
                 }
-                JVar param = interfaceMethod1.listVarParam();
+                JVar param = interfaceMethod1.varParam();
                 if (param != null) {
                     varArgument = caseClass.fields().get(param.name());
                 }
@@ -543,7 +544,7 @@ class ValueClassModel {
                 for (JVar param: interfaceMethod1.params()) {
                     arguments.add(caseClass.fields().get(param.name()));
                 }
-                JVar param = interfaceMethod1.listVarParam();
+                JVar param = interfaceMethod1.varParam();
                 if (param != null) {
                     varArgument = caseClass.fields().get(param.name());
                 }
@@ -567,7 +568,7 @@ class ValueClassModel {
                         invocation = caseToStringMethod.body().invoke(result, "append");
                         invocation.arg(", ");
                     }
-                    body.appendParam(varArgument.type(), interfaceMethod1.listVarParam().name(), JExpr.refthis(varArgument));
+                    body.appendParam(varArgument.type(), interfaceMethod1.varParam().name(), JExpr.refthis(varArgument));
                 }
                 invocation = caseToStringMethod.body().invoke(result, "append");
                 invocation.arg("}");
@@ -613,7 +614,7 @@ class ValueClassModel {
                         isGettable = true;
                     }
                 }
-                JVar param = interfaceMethod1.listVarParam();
+                JVar param = interfaceMethod1.varParam();
                 if (param != null) {
                     JFieldVar field = caseClass.fields().get(param.name());
                     if (configuration.isFieldValue(interfaceMethod1, param.name())) {
@@ -696,7 +697,7 @@ class ValueClassModel {
                         invocation.arg(JExpr.refthis(argument));
                     }
                 }
-                JVar param = interfaceMethod1.listVarParam();
+                JVar param = interfaceMethod1.varParam();
                 if (param != null) {
                     JFieldVar argument = caseClass.fields().get(param.name());
                     if (configuration.isFieldValue(interfaceMethod1, param.name())) {
@@ -772,7 +773,7 @@ class ValueClassModel {
                     equalsCaseMethod.param(param1.mods().getValue(), argumentType, nameSource.get(param1.name()));
                     equalsCaseInvocation.arg(JExpr.refthis(caseClass.fields().get(param1.name())));
                 }
-                JVar varParam1 = interfaceMethod1.listVarParam();
+                JVar varParam1 = interfaceMethod1.varParam();
                 if (varParam1 != null) {
                     AbstractJType argumentType = Source.toDeclarable(visitorInterface.narrowType(varParam1.type().elementType(), usedValueClassType, types._Boolean, types._RuntimeException));
                     equalsCaseMethod.varParam(varParam1.mods().getValue(), argumentType, nameSource.get(varParam1.name()));
@@ -791,7 +792,7 @@ class ValueClassModel {
 
                     int i = 0;
                     boolean generatedReturn = false;
-                    JVar varParam = interfaceMethod1.listVarParam();
+                    JVar varParam = interfaceMethod1.varParam();
                     for (JVar param: interfaceMethod1.params()) {
                         AbstractJType argumentType = Source.toDeclarable(visitorInterface.narrowType(param.type(), usedValueClassType, types._Boolean, types._RuntimeException));
                         JVar argument1 = equalsCaseMethod.param(param.mods().getValue(), argumentType, nameSource.get(param.name()));
@@ -867,7 +868,7 @@ class ValueClassModel {
                     compareToCaseMethod.param(param1.mods().getValue(), argumentType, nameSource.get(param1.name()));
                     compareToCaseInvocation.arg(JExpr.refthis(caseClass.fields().get(param1.name())));
                 }
-                JVar varParam1 = interfaceMethod1.listVarParam();
+                JVar varParam1 = interfaceMethod1.varParam();
                 if (varParam1 != null) {
                     AbstractJType argumentType = Source.toDeclarable(visitorInterface.narrowType(varParam1.type().elementType(), usedValueClassType, types._Integer, types._RuntimeException));
                     compareToCaseMethod.varParam(varParam1.mods().getValue(), argumentType, nameSource.get(varParam1.name()));
@@ -886,7 +887,7 @@ class ValueClassModel {
                     CompareToMethod compareToMethodModel = new CompareToMethod(types, compareToCaseMethod.body(), nameSource);
                     CompareToMethod.Body body = null;
 
-                    JVar varParam = interfaceMethod1.listVarParam();
+                    JVar varParam = interfaceMethod1.varParam();
                     for (JVar param: interfaceMethod1.params()) {
                         AbstractJType argumentType = Source.toDeclarable(visitorInterface.narrowType(param.type(), usedValueClassType, types._Integer, types._RuntimeException));
                         JVar argument1 = compareToCaseMethod.param(param.mods().getValue(), argumentType, nameSource.get(param.name()));

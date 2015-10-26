@@ -33,7 +33,6 @@ import com.helger.jcodemodel.AbstractJClass;
 import com.helger.jcodemodel.AbstractJType;
 import com.helger.jcodemodel.IJGenerifiable;
 import com.helger.jcodemodel.JCodeModel;
-import com.helger.jcodemodel.JInvocation;
 import com.helger.jcodemodel.JPrimitiveType;
 import com.helger.jcodemodel.JTypeVar;
 import java.io.IOException;

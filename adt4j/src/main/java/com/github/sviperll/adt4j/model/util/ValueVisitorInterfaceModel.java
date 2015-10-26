@@ -29,10 +29,10 @@
  */
 package com.github.sviperll.adt4j.model.util;
 
-import com.github.sviperll.Caching;
-import com.github.sviperll.meta.MemberAccess;
+import com.github.sviperll.adt4j.Caching;
+import com.github.sviperll.adt4j.MemberAccess;
+import com.github.sviperll.adt4j.Visitor;
 import com.github.sviperll.meta.SourceCodeValidationException;
-import com.github.sviperll.meta.Visitor;
 import com.helger.jcodemodel.AbstractJClass;
 import com.helger.jcodemodel.AbstractJType;
 import com.helger.jcodemodel.JAnnotationUse;

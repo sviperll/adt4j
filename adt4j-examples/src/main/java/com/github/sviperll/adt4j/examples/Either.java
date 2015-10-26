@@ -43,7 +43,7 @@ public class Either<T, U> extends EitherBase<T, U> {
     }
 
     @GenerateValueClassForVisitor(className = "EitherBase")
-    @com.github.sviperll.meta.Visitor(resultVariableName = "R")
+    @com.github.sviperll.adt4j.Visitor(resultVariableName = "R")
     public interface Visitor<T, U, R> {
         @GeneratePredicate
         R left(@Getter T left);

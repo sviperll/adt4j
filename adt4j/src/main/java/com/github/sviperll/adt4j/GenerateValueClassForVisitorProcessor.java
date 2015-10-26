@@ -30,16 +30,15 @@
 package com.github.sviperll.adt4j;
 
 import com.github.sviperll.Throwables;
-import com.github.sviperll.meta.java.model.JCodeModelJavaxLangModelAdapter;
-import com.github.sviperll.meta.FilerCodeWriter;
 import com.github.sviperll.adt4j.model.ValueClassModelFactory;
-import com.github.sviperll.meta.CodeModelBuildingException;
+import com.github.sviperll.meta.FilerCodeWriter;
 import com.github.sviperll.meta.ElementMessage;
 import com.github.sviperll.meta.ElementMessager;
 import com.github.sviperll.meta.SourceCodeValidationException;
-import com.github.sviperll.meta.Visitor;
 import com.helger.jcodemodel.JCodeModel;
 import com.helger.jcodemodel.JDefinedClass;
+import com.helger.jcodemodel.meta.JCodeModelJavaxLangModelAdapter;
+import com.helger.jcodemodel.meta.CodeModelBuildingException;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashSet;

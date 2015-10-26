@@ -29,17 +29,13 @@
  */
 package com.github.sviperll.adt4j.model.util;
 
-import com.github.sviperll.meta.MemberAccess;
+import com.github.sviperll.adt4j.MemberAccess;
 import com.github.sviperll.meta.SourceCodeValidationException;
 import com.helger.jcodemodel.AbstractJAnnotationValue;
 import com.helger.jcodemodel.AbstractJType;
-import com.helger.jcodemodel.IJExpression;
-import com.helger.jcodemodel.IJStatement;
 import com.helger.jcodemodel.JAnnotationArrayMember;
 import com.helger.jcodemodel.JAnnotationStringValue;
 import com.helger.jcodemodel.JAnnotationUse;
-import com.helger.jcodemodel.JBlock;
-import com.helger.jcodemodel.JFormatter;
 import com.helger.jcodemodel.JMod;
 import com.helger.jcodemodel.JTypeWildcard;
 import com.helger.jcodemodel.JVar;
@@ -156,23 +152,6 @@ public class Source {
             throw new SourceCodeValidationException(MessageFormat.format("Parameter {0} is non-reference, but declared as @Nullable",
                                                            param.name()));
         return hasNullable;
-    }
-
-    public static JBlock addSynchronizedBlock(JBlock body, final IJExpression lock) {
-        /*
-         * HACK:
-         *  jcodemodel currently provides no support for synchronized blocks.
-         *  Implement synchronized block right here:
-         */
-        final JBlock synchronizedBlock = new JBlock(true, true) {
-        };
-        body.add(new IJStatement() {
-            @Override
-            public void state(JFormatter f) {
-                f.print("synchronized (").generable(lock).print(") ").generable(synchronizedBlock).newline();
-            }
-        });
-        return synchronizedBlock;
     }
 
     private Source() {

@@ -29,7 +29,7 @@
  */
 package com.github.sviperll.adt4j.model.util;
 
-import com.github.sviperll.meta.MemberAccess;
+import com.github.sviperll.adt4j.MemberAccess;
 
 /**
  *

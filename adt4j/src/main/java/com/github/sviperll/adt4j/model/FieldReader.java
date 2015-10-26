@@ -32,7 +32,7 @@ package com.github.sviperll.adt4j.model;
 import com.github.sviperll.adt4j.Getter;
 import com.github.sviperll.adt4j.Updater;
 import com.github.sviperll.adt4j.model.util.Source;
-import com.github.sviperll.meta.MemberAccess;
+import com.github.sviperll.adt4j.MemberAccess;
 import com.github.sviperll.meta.SourceCodeValidationException;
 import com.helger.jcodemodel.AbstractJType;
 import com.helger.jcodemodel.JAnnotationUse;
