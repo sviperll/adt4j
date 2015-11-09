@@ -54,7 +54,7 @@ import javax.lang.model.element.TypeElement;
 import javax.tools.Diagnostic;
 
 @SupportedAnnotationTypes("com.github.sviperll.adt4j.GenerateValueClassForVisitor")
-@SupportedSourceVersion(SourceVersion.RELEASE_6)
+@SupportedSourceVersion(SourceVersion.RELEASE_7)
 public class GenerateValueClassForVisitorProcessor extends AbstractProcessor {
     private final Set<String> remainingElements = new HashSet<String>();
     private final List<ElementMessage> errors = new ArrayList<ElementMessage>();

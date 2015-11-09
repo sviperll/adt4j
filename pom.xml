@@ -2,8 +2,8 @@
     <modelVersion>4.0.0</modelVersion>
     <parent>
         <groupId>com.github.sviperll</groupId>
-        <artifactId>maven-parent</artifactId>
-        <version>0.15</version>
+        <artifactId>universal-maven-parent</artifactId>
+        <version>0.18</version>
     </parent>
     <groupId>com.github.sviperll</groupId>
     <artifactId>adt4j-maven-parent</artifactId>
@@ -14,6 +14,13 @@
     <properties>
         <parent.profile.activate>!java6,!pitest-report,java7,nexus-deploy</parent.profile.activate>
         <netbeans.hint.license>BSD3</netbeans.hint.license>
+
+        <!--
+            Versions since 3.2 doesn't work with annotation processors.
+            You'll need to always perform clean rebuilds to use these versions
+            otherwise you'll get duplicate class error
+         -->
+        <maven-compiler-plugin.version>3.1</maven-compiler-plugin.version>
     </properties>
     <modules>
         <module>adt4j</module>

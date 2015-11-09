@@ -62,6 +62,13 @@ Features
  * Support generated class extention through standard Java's inheritance.
  * Reasonably fast
 
+Known Issues
+------------
+
+maven-compiler-plugin version 3.2 and later doesn't work nicely with
+annotation processors, see [MCOMPILER-235](https://issues.apache.org/jira/browse/MCOMPILER-235).
+Only clean builds work. Repeated compilation causes duplicate class errors.
+
 License
 -------
 
@@ -115,6 +122,13 @@ All java-packages provided by `adt4j-shaded` are rooted at `com.github.sviperll.
 
 Changelog
 ---------
+
+Since 3.0-rc1
+
+ * No more classes from chicory* packages in public API
+ * adt4-shaded artifact should truly have no dependencies
+ * javax.annotation.Nullable, javax.annotation.Nonnull and javax.annotation.ParametersAreNonnullByDefault
+   are used only if these classes are present in classpath during compilation
 
 Since 2.0
 
