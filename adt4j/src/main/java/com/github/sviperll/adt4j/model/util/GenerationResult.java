@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014, Victor Nazarov <asviraspossible@gmail.com>
+ * Copyright (c) 2015, vir
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -29,33 +29,25 @@
  */
 package com.github.sviperll.adt4j.model.util;
 
+import java.util.List;
+
 /**
  *
- * @author Victor Nazarov <asviraspossible@gmail.com>
+ * @author vir
  */
-public class Serialization {
+public class GenerationResult<T> {
+    private final List<String> errors;
+    private final T result;
 
-    public static Serialization notSerializable() {
-        return new Serialization(false, -1L);
+    public GenerationResult(T result, List<String> errors) {
+        this.result = result;
+        this.errors = errors;
     }
 
-    public static Serialization serializable(long valueClassSerialVersionUID) {
-        return new Serialization(true, valueClassSerialVersionUID);
+    public List<String> errors() {
+        return errors;
     }
-    private final boolean isSerializable;
-    private final long serialVersionUIDForGeneratedCode;
-
-    private Serialization(boolean isSerializable, long serialVersionUID) {
-        this.isSerializable = isSerializable;
-        this.serialVersionUIDForGeneratedCode = serialVersionUID;
+    public T result() {
+        return result;
     }
-
-    public boolean isSerializable() {
-        return isSerializable;
-    }
-
-    public long serialVersionUIDForGeneratedCode() {
-        return serialVersionUIDForGeneratedCode;
-    }
-
 }

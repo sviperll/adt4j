@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014, Victor Nazarov <asviraspossible@gmail.com>
+ * Copyright (c) 2015, vir
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -30,17 +30,15 @@
 package com.github.sviperll.adt4j.examples;
 
 import com.github.sviperll.adt4j.GenerateValueClassForVisitor;
-import com.github.sviperll.adt4j.Getter;
 import com.github.sviperll.adt4j.Visitor;
 
 /**
  *
  * @author vir
  */
-
 @GenerateValueClassForVisitor
 @Visitor(resultVariableName = "R")
-public interface SimpleVisitor1<T, R> {
-    R data1(@Getter T value);
-    R data2(@Getter T value);
+interface AnotherListVisitor<T, R> {
+    R empty();
+    R prepend(T head, AnotherList<T> tail);
 }

@@ -27,7 +27,7 @@
  *  (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
  *  EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package com.github.sviperll.adt4j.model;
+package com.github.sviperll.adt4j.model.config;
 
 import com.github.sviperll.adt4j.MemberAccess;
 import com.helger.jcodemodel.AbstractJType;
@@ -40,7 +40,7 @@ import java.util.TreeMap;
  *
  * @author Victor Nazarov <asviraspossible@gmail.com>
  */
-class FieldConfiguration {
+public class FieldConfiguration {
     private final Map<String, String> map = new TreeMap<String, String>();
     private final AbstractJType type;
     private final String name;
@@ -68,28 +68,28 @@ class FieldConfiguration {
         }
     }
 
-    AbstractJType type() {
+    public AbstractJType type() {
         return type;
     }
 
-    String name() {
+    public String name() {
         return name;
     }
 
-    MemberAccess accessLevel() {
+    public MemberAccess accessLevel() {
         return flags.accessLevel();
     }
 
-    boolean isNullable() {
+    public boolean isNullable() {
         return flags.isNullable();
     }
 
-    boolean isFieldValue(JMethod method, String paramName) {
+    public boolean isFieldValue(JMethod method, String paramName) {
         String getterParamName = map.get(method.name());
         return getterParamName != null && getterParamName.equals(paramName);
     }
 
-    boolean isVarArg() {
+    public boolean isVarArg() {
         return flags.isVarArg();
     }
 

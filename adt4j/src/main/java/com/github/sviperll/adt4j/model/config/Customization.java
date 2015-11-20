@@ -27,55 +27,73 @@
  *  (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
  *  EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package com.github.sviperll.adt4j.model.util;
+package com.github.sviperll.adt4j.model.config;
 
 import com.github.sviperll.adt4j.MemberAccess;
+import com.github.sviperll.adt4j.Caching;
 import com.helger.jcodemodel.AbstractJClass;
 
 /**
  *
  * @author Victor Nazarov <asviraspossible@gmail.com>
  */
-class APICustomization {
-    private final boolean isValueClassPublic;
-    private final AcceptMethodCustomization acceptMethod;
-    private final InterfacesCustomization interfaces;
-    public APICustomization(boolean isValueClassPublic, AcceptMethodCustomization acceptMethod, InterfacesCustomization interfaces) {
-        this.isValueClassPublic = isValueClassPublic;
-        this.acceptMethod = acceptMethod;
-        this.interfaces = interfaces;
+class Customization {
+    private final String className;
+    private final APICustomization api;
+    private final ImplementationCustomization implementation;
+    private final AbstractJClass valueClassExtends;
+    Customization(String className, AbstractJClass valueClassExtends, APICustomization api, ImplementationCustomization implementation) {
+        this.className = className;
+        this.valueClassExtends = valueClassExtends;
+        this.api = api;
+        this.implementation = implementation;
     }
 
-    public String acceptMethodName() {
-        return acceptMethod.acceptMethodName();
+    String className() {
+        return className;
     }
 
-    public boolean isPublic() {
-        return isValueClassPublic;
+    String acceptMethodName() {
+        return api.acceptMethodName();
+    }
+
+    boolean isValueClassPublic() {
+        return api.isPublic();
     }
 
     MemberAccess acceptMethodAccessLevel() {
-        return acceptMethod.acceptMethodAccessLevel();
+        return api.acceptMethodAccessLevel();
     }
 
-    public boolean isSerializable() {
-        return interfaces.isSerializable();
+    Caching hashCodeCaching() {
+        return implementation.hashCodeCaching();
     }
 
-    boolean isComparable() {
-        return interfaces.isComparable();
+    boolean isValueClassSerializable() {
+        return api.isSerializable();
     }
 
-    AbstractJClass[] interfaces() {
-        return interfaces.interfaces();
+    boolean isValueClassComparable() {
+        return api.isComparable();
+    }
+
+    AbstractJClass[] implementsInterfaces() {
+        return api.interfaces();
+    }
+
+    int hashCodeBase() {
+        return implementation.hashCodeBase();
     }
 
     Serialization serialization() {
-        return interfaces.serialization();
+        return api.serialization();
     }
 
     long serialVersionUIDForGeneratedCode() {
-        return interfaces.serialVersionUIDForGeneratedCode();
+        return api.serialVersionUIDForGeneratedCode();
     }
 
+    AbstractJClass valueClassExtends() {
+        return valueClassExtends;
+    }
 }

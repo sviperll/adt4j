@@ -27,20 +27,45 @@
  *  (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
  *  EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package com.github.sviperll.adt4j.examples;
+package com.github.sviperll.adt4j.model.config;
 
-import com.github.sviperll.adt4j.GenerateValueClassForVisitor;
-import com.github.sviperll.adt4j.Getter;
-import com.github.sviperll.adt4j.Visitor;
+import com.github.sviperll.adt4j.MemberAccess;
 
 /**
  *
- * @author vir
+ * @author Victor Nazarov <asviraspossible@gmail.com>
  */
+class FieldFlags {
+    private final boolean isNullable;
+    private final boolean isVarArg;
+    private final MemberAccess accessLevel;
 
-@GenerateValueClassForVisitor
-@Visitor(resultVariableName = "R")
-public interface SimpleVisitor1<T, R> {
-    R data1(@Getter T value);
-    R data2(@Getter T value);
+    FieldFlags(MemberAccess accessLevel) {
+        this(true, true, accessLevel);
+    }
+
+    FieldFlags(boolean isNullable, boolean isVarArg, MemberAccess accessLevel) {
+        this.isNullable = isNullable;
+        this.isVarArg = isVarArg;
+        this.accessLevel = accessLevel;
+    }
+
+    FieldFlags join(FieldFlags that) throws FieldFlagsException {
+        if (this.accessLevel != that.accessLevel)
+            throw new FieldFlagsException("Inconsitent access levels");
+        return new FieldFlags(this.isNullable && that.isNullable, this.isVarArg && that.isVarArg, this.accessLevel);
+    }
+
+    boolean isNullable() {
+        return isNullable;
+    }
+
+    boolean isVarArg() {
+        return isVarArg;
+    }
+
+    MemberAccess accessLevel() {
+        return accessLevel;
+    }
+
 }

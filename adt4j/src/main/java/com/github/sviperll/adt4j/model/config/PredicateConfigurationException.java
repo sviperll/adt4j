@@ -27,73 +27,17 @@
  *  (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
  *  EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package com.github.sviperll.adt4j.model.util;
-
-import com.github.sviperll.adt4j.MemberAccess;
-import com.github.sviperll.adt4j.Caching;
-import com.helger.jcodemodel.AbstractJClass;
+package com.github.sviperll.adt4j.model.config;
 
 /**
  *
  * @author Victor Nazarov <asviraspossible@gmail.com>
  */
-class Customization {
-    private final String className;
-    private final APICustomization api;
-    private final ImplementationCustomization implementation;
-    private final AbstractJClass valueClassExtends;
-    Customization(String className, AbstractJClass valueClassExtends, APICustomization api, ImplementationCustomization implementation) {
-        this.className = className;
-        this.valueClassExtends = valueClassExtends;
-        this.api = api;
-        this.implementation = implementation;
+@SuppressWarnings("serial")
+class PredicateConfigurationException extends Exception {
+
+    PredicateConfigurationException(String message) {
+        super(message);
     }
 
-    String className() {
-        return className;
-    }
-
-    String acceptMethodName() {
-        return api.acceptMethodName();
-    }
-
-    boolean isValueClassPublic() {
-        return api.isPublic();
-    }
-
-    MemberAccess acceptMethodAccessLevel() {
-        return api.acceptMethodAccessLevel();
-    }
-
-    Caching hashCodeCaching() {
-        return implementation.hashCodeCaching();
-    }
-
-    boolean isValueClassSerializable() {
-        return api.isSerializable();
-    }
-
-    boolean isValueClassComparable() {
-        return api.isComparable();
-    }
-
-    AbstractJClass[] implementsInterfaces() {
-        return api.interfaces();
-    }
-
-    int hashCodeBase() {
-        return implementation.hashCodeBase();
-    }
-
-    Serialization serialization() {
-        return api.serialization();
-    }
-
-    long serialVersionUIDForGeneratedCode() {
-        return api.serialVersionUIDForGeneratedCode();
-    }
-
-    AbstractJClass valueClassExtends() {
-        return valueClassExtends;
-    }
 }

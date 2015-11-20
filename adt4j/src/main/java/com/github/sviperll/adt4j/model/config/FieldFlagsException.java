@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014, Victor Nazarov <asviraspossible@gmail.com>
+ * Copyright (c) 2015, Victor Nazarov <asviraspossible@gmail.com>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -27,20 +27,15 @@
  *  (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
  *  EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package com.github.sviperll.adt4j.examples;
-
-import com.github.sviperll.adt4j.GenerateValueClassForVisitor;
-import com.github.sviperll.adt4j.Getter;
-import com.github.sviperll.adt4j.Visitor;
+package com.github.sviperll.adt4j.model.config;
 
 /**
  *
- * @author vir
+ * @author Victor Nazarov <asviraspossible@gmail.com>
  */
-
-@GenerateValueClassForVisitor
-@Visitor(resultVariableName = "R")
-public interface SimpleVisitor1<T, R> {
-    R data1(@Getter T value);
-    R data2(@Getter T value);
+@SuppressWarnings("serial")
+class FieldFlagsException extends Exception {
+    FieldFlagsException(String message) {
+        super(message);
+    }
 }

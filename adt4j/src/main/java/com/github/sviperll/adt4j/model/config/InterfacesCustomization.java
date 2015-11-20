@@ -27,28 +27,41 @@
  *  (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
  *  EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package com.github.sviperll.adt4j.model.util;
+package com.github.sviperll.adt4j.model.config;
 
-import com.github.sviperll.adt4j.MemberAccess;
+import com.helger.jcodemodel.AbstractJClass;
 
 /**
  *
  * @author Victor Nazarov <asviraspossible@gmail.com>
  */
-class AcceptMethodCustomization {
-    private final String acceptMethodName;
-    private final MemberAccess acceptMethodAccessLevel;
-    public AcceptMethodCustomization(String acceptMethodName, MemberAccess acceptMethodAccessLevel) {
-        this.acceptMethodName = acceptMethodName;
-        this.acceptMethodAccessLevel = acceptMethodAccessLevel;
+class InterfacesCustomization {
+    private final boolean isComparable;
+    private final Serialization serialization;
+    private final AbstractJClass[] interfaces;
+    InterfacesCustomization(boolean isComparable, Serialization serialization, AbstractJClass[] interfaces) {
+        this.isComparable = isComparable;
+        this.serialization = serialization;
+        this.interfaces = interfaces;
     }
 
-    public String acceptMethodName() {
-        return acceptMethodName;
+    boolean isSerializable() {
+        return serialization.isSerializable();
     }
 
-    MemberAccess acceptMethodAccessLevel() {
-        return acceptMethodAccessLevel;
+    boolean isComparable() {
+        return isComparable;
     }
 
+    AbstractJClass[] interfaces() {
+        return interfaces;
+    }
+
+    Serialization serialization() {
+        return serialization;
+    }
+
+    long serialVersionUIDForGeneratedCode() {
+        return serialization.serialVersionUIDForGeneratedCode();
+    }
 }

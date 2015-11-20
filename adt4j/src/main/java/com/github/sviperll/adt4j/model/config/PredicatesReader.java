@@ -27,18 +27,16 @@
  *  (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
  *  EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package com.github.sviperll.adt4j.model;
+package com.github.sviperll.adt4j.model.config;
 
 import com.github.sviperll.adt4j.GeneratePredicate;
 import com.github.sviperll.adt4j.GeneratePredicates;
 import com.github.sviperll.adt4j.model.util.Source;
 import com.github.sviperll.adt4j.MemberAccess;
-import com.github.sviperll.meta.SourceCodeValidationException;
-import com.helger.jcodemodel.JAnnotationArrayMember;
 import com.helger.jcodemodel.JAnnotationUse;
 import com.helger.jcodemodel.JMethod;
 import java.text.MessageFormat;
-import java.util.Collection;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -47,12 +45,14 @@ import java.util.Map;
  */
 class PredicatesReader {
     private final Map<String, PredicateConfigutation> predicates;
+    private final List<String> errors;
 
-    public PredicatesReader(Map<String, PredicateConfigutation> predicates) {
+    public PredicatesReader(Map<String, PredicateConfigutation> predicates, List<String> errors) {
         this.predicates = predicates;
+        this.errors = errors;
     }
 
-    private void read(JMethod interfaceMethod, String predicateName, MemberAccess accessLevel) throws SourceCodeValidationException {
+    private void read(JMethod interfaceMethod, String predicateName, MemberAccess accessLevel) {
         if (predicateName.equals(":auto")) {
             predicateName = "is" + Source.capitalize(interfaceMethod.name());
         }
@@ -64,20 +64,20 @@ class PredicatesReader {
         try {
             existingConfiguration.put(interfaceMethod, accessLevel);
         } catch (PredicateConfigurationException ex) {
-            throw new SourceCodeValidationException(MessageFormat.format("Unable to generate {0} predicate: inconsistent access levels",
-                                                           predicateName), ex);
+            errors.add(MessageFormat.format("Unable to generate {0} predicate: inconsistent access levels: {1}",
+                                                           predicateName, ex.getMessage()));
         }
     }
 
-    void read(JMethod interfaceMethod, JAnnotationUse annotationUsage) throws SourceCodeValidationException {
+    void read(JMethod interfaceMethod, JAnnotationUse annotationUsage) {
         String annotationClassName = annotationUsage.getAnnotationClass().fullName();
         if (annotationClassName != null) {
             if (annotationClassName.equals(GeneratePredicate.class.getName())) {
-                String predicateName = Source.getAnnotationArgument(annotationUsage, "name", String.class);
-                MemberAccess accessLevel = Source.getAnnotationArgument(annotationUsage, "access", MemberAccess.class);
+                String predicateName = annotationUsage.getParam("name", String.class);
+                MemberAccess accessLevel = annotationUsage.getParam("access", MemberAccess.class);
                 read(interfaceMethod, predicateName, accessLevel);
             } else if (annotationClassName.equals(GeneratePredicates.class.getName())) {
-                JAnnotationUse[] annotations = Source.getAnnotationArgument(annotationUsage, "value", JAnnotationUse[].class);
+                JAnnotationUse[] annotations = annotationUsage.getParam("value", JAnnotationUse[].class);
                 for (JAnnotationUse annotation: annotations) {
                     read(interfaceMethod, annotation);
                 }

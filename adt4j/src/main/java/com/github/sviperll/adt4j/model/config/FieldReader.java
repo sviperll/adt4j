@@ -27,18 +27,18 @@
  *  (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
  *  EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package com.github.sviperll.adt4j.model;
+package com.github.sviperll.adt4j.model.config;
 
 import com.github.sviperll.adt4j.Getter;
 import com.github.sviperll.adt4j.Updater;
 import com.github.sviperll.adt4j.model.util.Source;
 import com.github.sviperll.adt4j.MemberAccess;
-import com.github.sviperll.meta.SourceCodeValidationException;
 import com.helger.jcodemodel.AbstractJType;
 import com.helger.jcodemodel.JAnnotationUse;
 import com.helger.jcodemodel.JMethod;
 import com.helger.jcodemodel.JVar;
 import java.text.MessageFormat;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -47,19 +47,21 @@ import java.util.Map;
  */
 class FieldReader {
     private final Map<String, FieldConfiguration> fieldMap;
+    private final List<String> errors;
 
-    FieldReader(Map<String, FieldConfiguration> gettersMap) {
+    FieldReader(Map<String, FieldConfiguration> gettersMap, List<String> errors) {
         this.fieldMap = gettersMap;
+        this.errors = errors;
     }
 
-    void readGetter(JMethod interfaceMethod, JVar param, AbstractJType paramType, boolean isVarArg) throws SourceCodeValidationException {
+    void readGetter(JMethod interfaceMethod, JVar param, AbstractJType paramType, boolean isVarArg) {
         for (JAnnotationUse annotationUsage: param.annotations()) {
             String annotationClassName = annotationUsage.getAnnotationClass().fullName();
             if (annotationClassName != null && annotationClassName.equals(Getter.class.getName())) {
-                String getterName = Source.getAnnotationArgument(annotationUsage, "name", String.class);
+                String getterName = annotationUsage.getParam("name", String.class);
                 if (getterName.equals(":auto"))
                     getterName = param.name();
-                MemberAccess accessLevel = Source.getAnnotationArgument(annotationUsage, "access", MemberAccess.class);
+                MemberAccess accessLevel = annotationUsage.getParam("access", MemberAccess.class);
                 boolean isNullable = Source.isNullable(param);
                 FieldFlags flags = new FieldFlags(isNullable, isVarArg, accessLevel);
                 FieldConfiguration configuration = new FieldConfiguration(getterName, paramType, flags);
@@ -68,14 +70,14 @@ class FieldReader {
         }
     }
 
-    void readUpdater(JMethod interfaceMethod, JVar param, AbstractJType paramType, boolean isVarArg) throws SourceCodeValidationException {
+    void readUpdater(JMethod interfaceMethod, JVar param, AbstractJType paramType, boolean isVarArg) {
         for (JAnnotationUse annotationUsage: param.annotations()) {
             String annotationClassName = annotationUsage.getAnnotationClass().fullName();
             if (annotationClassName != null && annotationClassName.equals(Updater.class.getName())) {
-                String updaterName = Source.getAnnotationArgument(annotationUsage, "name", String.class);
+                String updaterName = annotationUsage.getParam("name", String.class);
                 if (updaterName.equals(":auto"))
                     updaterName = "with" + Source.capitalize(param.name());
-                MemberAccess accessLevel = Source.getAnnotationArgument(annotationUsage, "access", MemberAccess.class);
+                MemberAccess accessLevel = annotationUsage.getParam("access", MemberAccess.class);
                 boolean isNullable = Source.isNullable(param);
                 FieldFlags flags = new FieldFlags(isNullable, isVarArg, accessLevel);
                 FieldConfiguration configuration = new FieldConfiguration(updaterName, paramType, flags);
@@ -84,7 +86,7 @@ class FieldReader {
         }
     }
 
-    private void read(JMethod interfaceMethod, JVar param, FieldConfiguration configuration) throws SourceCodeValidationException {
+    private void read(JMethod interfaceMethod, JVar param, FieldConfiguration configuration) {
         FieldConfiguration existingConfiguration = fieldMap.get(configuration.name());
         if (existingConfiguration == null) {
             existingConfiguration = configuration;
@@ -93,8 +95,7 @@ class FieldReader {
         try {
             existingConfiguration.merge(interfaceMethod, param.name(), configuration);
         } catch (FieldConfigurationException ex) {
-            throw new SourceCodeValidationException(MessageFormat.format("Unable to configure {0} getter: {1}",
-                                                                                 configuration.name(), ex.getMessage()), ex);
+            errors.add(MessageFormat.format("Unable to configure {0} getter: {1}", configuration.name(), ex.getMessage()));
         }
     }
 

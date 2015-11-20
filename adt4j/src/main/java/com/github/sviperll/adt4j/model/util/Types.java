@@ -31,30 +31,16 @@ package com.github.sviperll.adt4j.model.util;
 
 import com.helger.jcodemodel.AbstractJClass;
 import com.helger.jcodemodel.AbstractJType;
-import com.helger.jcodemodel.IJGenerifiable;
 import com.helger.jcodemodel.JCodeModel;
 import com.helger.jcodemodel.JPrimitiveType;
-import com.helger.jcodemodel.JTypeVar;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.Serializable;
 import java.util.Arrays;
-import java.util.Iterator;
 
 public class Types {
     public static Types createInstance(JCodeModel codeModel) {
         return new Types(codeModel);
-    }
-
-    public static JTypeVar generifyWithBoundsFrom(IJGenerifiable generifiable, String typeParameterName, AbstractJClass typeParameterBounds) {
-        JTypeVar result = generifiable.generify(typeParameterName);
-        AbstractJClass bound = typeParameterBounds._extends();
-        if (bound != null)
-            result.bound(bound);
-        Iterator<AbstractJClass> iterator = typeParameterBounds._implements();
-        while (iterator.hasNext())
-            result.bound(iterator.next());
-        return result;
     }
 
     public final JPrimitiveType _void;
@@ -80,6 +66,7 @@ public class Types {
     public final AbstractJClass _ObjectInputStream;
     public final AbstractJClass _IOException;
     public final AbstractJClass _ClassNotFoundException;
+    public final AbstractJClass _UnsupportedOperationException;
     public final AbstractJClass _Arrays;
 
     private Types(JCodeModel codeModel) {
@@ -107,6 +94,7 @@ public class Types {
         _ObjectInputStream = codeModel.ref(ObjectInputStream.class);
         _IOException = codeModel.ref(IOException.class);
         _ClassNotFoundException = codeModel.ref(ClassNotFoundException.class);
+        _UnsupportedOperationException = codeModel.ref(UnsupportedOperationException.class);
         _Arrays = codeModel.ref(Arrays.class);
     }
 

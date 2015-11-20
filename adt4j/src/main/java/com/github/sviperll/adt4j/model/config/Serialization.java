@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015, Victor Nazarov <asviraspossible@gmail.com>
+ * Copyright (c) 2014, Victor Nazarov <asviraspossible@gmail.com>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -27,31 +27,35 @@
  *  (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
  *  EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package com.github.sviperll.adt4j.model.util;
-
-import com.github.sviperll.adt4j.Caching;
+package com.github.sviperll.adt4j.model.config;
 
 /**
  *
  * @author Victor Nazarov <asviraspossible@gmail.com>
  */
-class ImplementationCustomization {
-    private int hashCodeBase;
-    private final Caching hashCodeCaching;
-    ImplementationCustomization(Caching hashCodeCaching) {
-        this.hashCodeCaching = hashCodeCaching;
+public class Serialization {
+
+    public static Serialization notSerializable() {
+        return new Serialization(false, -1L);
     }
 
-    ImplementationCustomization(int hashCodeBase, Caching hashCodeCaching) {
-        this.hashCodeBase = hashCodeBase;
-        this.hashCodeCaching = hashCodeCaching;
+    public static Serialization serializable(long valueClassSerialVersionUID) {
+        return new Serialization(true, valueClassSerialVersionUID);
+    }
+    private final boolean isSerializable;
+    private final long serialVersionUIDForGeneratedCode;
+
+    private Serialization(boolean isSerializable, long serialVersionUID) {
+        this.isSerializable = isSerializable;
+        this.serialVersionUIDForGeneratedCode = serialVersionUID;
     }
 
-    Caching hashCodeCaching() {
-        return hashCodeCaching;
+    public boolean isSerializable() {
+        return isSerializable;
     }
 
-    int hashCodeBase() {
-        return hashCodeBase;
+    public long serialVersionUIDForGeneratedCode() {
+        return serialVersionUIDForGeneratedCode;
     }
+
 }

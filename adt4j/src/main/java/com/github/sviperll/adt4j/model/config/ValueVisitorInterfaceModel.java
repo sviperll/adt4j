@@ -27,18 +27,21 @@
  *  (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
  *  EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package com.github.sviperll.adt4j.model.util;
+package com.github.sviperll.adt4j.model.config;
 
 import com.github.sviperll.adt4j.Caching;
 import com.github.sviperll.adt4j.MemberAccess;
 import com.github.sviperll.adt4j.Visitor;
-import com.github.sviperll.meta.SourceCodeValidationException;
+import com.github.sviperll.adt4j.model.util.GenerationResult;
+import com.github.sviperll.adt4j.model.util.Source;
+import com.github.sviperll.adt4j.model.util.Types;
 import com.helger.jcodemodel.AbstractJClass;
 import com.helger.jcodemodel.AbstractJType;
 import com.helger.jcodemodel.JAnnotationUse;
 import com.helger.jcodemodel.JDefinedClass;
 import com.helger.jcodemodel.JMethod;
 import com.helger.jcodemodel.JTypeVar;
+import com.helger.jcodemodel.JVar;
 import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -50,37 +53,40 @@ public class ValueVisitorInterfaceModel {
     private static final String VISITOR_SUFFIX = "Visitor";
     private static final String VALUE_SUFFIX = "Value";
 
-    public static ValueVisitorInterfaceModel createInstance(JDefinedClass jVisitorModel, Visitor visitorAnnotation, JAnnotationUse annotation) throws SourceCodeValidationException {
-        ValueVisitorTypeParameters typeParameters = createValueVisitorTypeParameters(jVisitorModel, visitorAnnotation);
-        Map<String, JMethod> methods = createMethodMap(jVisitorModel, typeParameters);
-        String acceptMethodName = Source.getAnnotationArgument(annotation, "acceptMethodName", String.class);
-        MemberAccess acceptMethodAccess = Source.getAnnotationArgument(annotation, "acceptMethodAccess", MemberAccess.class);
-        boolean isPublic = Source.getAnnotationArgument(annotation, "isPublic", Boolean.class);
-        Caching hashCodeCaching = Source.getAnnotationArgument(annotation, "hashCodeCaching", Caching.class);
-        int hashCodeBase = Source.getAnnotationArgument(annotation, "hashCodeBase", Integer.class);
-        boolean isComparable = Source.getAnnotationArgument(annotation, "isComparable", Boolean.class);
+    public static GenerationResult<ValueVisitorInterfaceModel> createInstance(JDefinedClass jVisitorModel, Visitor visitorAnnotation, JAnnotationUse annotation) {
+        List<String> errors = new ArrayList<String>();
+        GenerationResult<ValueVisitorTypeParameters> typeParametersResult = createValueVisitorTypeParameters(jVisitorModel, visitorAnnotation);
+        errors.addAll(typeParametersResult.errors());
+        GenerationResult<Map<String, JMethod>> methodsResult = createMethodMap(jVisitorModel, typeParametersResult.result());
+        errors.addAll(methodsResult.errors());
+        String acceptMethodName = annotation.getParam("acceptMethodName", String.class);
+        MemberAccess acceptMethodAccess = annotation.getParam("acceptMethodAccess", MemberAccess.class);
+        boolean isPublic = annotation.getParam("isPublic", Boolean.class);
+        Caching hashCodeCaching = annotation.getParam("hashCodeCaching", Caching.class);
+        int hashCodeBase = annotation.getParam("hashCodeBase", Integer.class);
+        boolean isComparable = annotation.getParam("isComparable", Boolean.class);
         Serialization serialization = serialization(annotation);
         String valueClassName = valueClassName(jVisitorModel, annotation);
-        AbstractJClass extendsClass = Source.getAnnotationArgument(annotation, "extendsClass", AbstractJClass.class);
-        AbstractJClass[] interfaces = Source.getAnnotationArgument(annotation, "implementsInterfaces", AbstractJClass[].class);
+        AbstractJClass extendsClass = annotation.getParam("extendsClass", AbstractJClass.class);
+        AbstractJClass[] interfaces = annotation.getParam("implementsInterfaces", AbstractJClass[].class);
 
         AcceptMethodCustomization acceptMethodCustomization = new AcceptMethodCustomization(acceptMethodName, acceptMethodAccess);
         InterfacesCustomization interfaceCustomization = new InterfacesCustomization(isComparable, serialization, interfaces);
         APICustomization apiCustomization = new APICustomization(isPublic, acceptMethodCustomization, interfaceCustomization);
         ImplementationCustomization implementationCustomization = new ImplementationCustomization(hashCodeBase, hashCodeCaching);
         Customization customiztion = new Customization(valueClassName, extendsClass, apiCustomization, implementationCustomization);
-        return new ValueVisitorInterfaceModel(jVisitorModel, typeParameters, methods, customiztion);
+        return new GenerationResult<>(new ValueVisitorInterfaceModel(jVisitorModel, typeParametersResult.result(), methodsResult.result(), customiztion), errors);
     }
 
     private static Serialization serialization(JAnnotationUse annotation) {
-        if (!Source.getAnnotationArgument(annotation, "isSerializable", Boolean.class))
+        if (!annotation.getParam("isSerializable", Boolean.class))
             return Serialization.notSerializable();
         else
-            return Serialization.serializable(Source.getAnnotationArgument(annotation, "serialVersionUID", Long.class));
+            return Serialization.serializable(annotation.getParam("serialVersionUID", Long.class));
     }
 
     private static String valueClassName(JDefinedClass jVisitorModel, JAnnotationUse annotation) {
-        String className = Source.getAnnotationArgument(annotation, "className", String.class);
+        String className = annotation.getParam("className", String.class);
         if (!className.equals(":auto")) {
             return className;
         } else {
@@ -96,13 +102,13 @@ public class ValueVisitorInterfaceModel {
         }
     }
 
-    private static ValueVisitorTypeParameters createValueVisitorTypeParameters(JDefinedClass jVisitorModel,
-                                                                               Visitor annotation)
-            throws SourceCodeValidationException {
+    private static GenerationResult<ValueVisitorTypeParameters> createValueVisitorTypeParameters(JDefinedClass jVisitorModel,
+                                                                               Visitor annotation) {
+        List<String> errors = new ArrayList<>();
         JTypeVar resultType = null;
         JTypeVar exceptionType = null;
         JTypeVar selfType = null;
-        List<JTypeVar> valueClassTypeParameters = new ArrayList<JTypeVar>();
+        List<JTypeVar> valueClassTypeParameters = new ArrayList<>();
         for (JTypeVar typeVariable: jVisitorModel.typeParams()) {
             if (typeVariable.name().equals(annotation.resultVariableName()))
                 resultType = typeVariable;
@@ -114,51 +120,57 @@ public class ValueVisitorInterfaceModel {
                 valueClassTypeParameters.add(typeVariable);
         }
         if (resultType == null) {
-            throw new SourceCodeValidationException(MessageFormat.format("Result type-variable is not found for {0} visitor, expecting: {1}",
-                                                                     jVisitorModel, annotation.resultVariableName()));
+            errors.add(MessageFormat.format("Result type-variable is not found for visitor, expecting: {0}",
+                    annotation.resultVariableName()));
+            resultType = jVisitorModel.typeParams().length == 0 ? null : jVisitorModel.typeParams()[0];
         }
         if (exceptionType == null && !annotation.exceptionVariableName().equals(":none")) {
-            throw new SourceCodeValidationException(MessageFormat.format("Exception type-variable is not found for {0} visitor, expecting: {1}",
-                                                                     jVisitorModel, annotation.exceptionVariableName()));
+            errors.add(MessageFormat.format("Exception type-variable is not found for visitor, expecting: {0}",
+                    annotation.exceptionVariableName()));
         }
         if (selfType == null && !annotation.selfReferenceVariableName().equals(":none")) {
-            throw new SourceCodeValidationException(MessageFormat.format("Self reference type-variable is not found for {0} visitor, expecting: {1}",
-                                                                     jVisitorModel,
-                                                                     annotation.selfReferenceVariableName()));
+            errors.add(MessageFormat.format("Self reference type-variable is not found for visitor, expecting: {0}",
+                    annotation.selfReferenceVariableName()));
         }
-        return new ValueVisitorTypeParameters(resultType, exceptionType, selfType, valueClassTypeParameters);
+        return new GenerationResult<>(new ValueVisitorTypeParameters(resultType, exceptionType, selfType, valueClassTypeParameters), errors);
     }
 
-    private static Map<String, JMethod> createMethodMap(JDefinedClass jVisitorModel,
-                                                        ValueVisitorTypeParameters typeParameters) throws
-                                                                                                          SourceCodeValidationException {
-        Map<String, JMethod> methods = new TreeMap<String, JMethod>();
+    private static GenerationResult<Map<String, JMethod>> createMethodMap(JDefinedClass jVisitorModel,
+                                                        ValueVisitorTypeParameters typeParameters) {
+        List<String> errors = new ArrayList<>();
+        Map<String, JMethod> methods = new TreeMap<>();
         for (JMethod method: jVisitorModel.methods()) {
-            if (!typeParameters.isResult(method.type())) {
-                throw new SourceCodeValidationException(MessageFormat.format("Visitor methods are only allowed to return type declared as a result type of visitor: {0}: expecting {1}, found: {2}",
-                                                                         method.name(),
-                                                                         typeParameters.getResultTypeParameter(),
-                                                                         method.type()));
+            if (method.type().isError()) {
+                errors.add(MessageFormat.format("Visitor method result type is erroneous: {0}", method.name()));
+            } else if (!typeParameters.isResult(method.type())) {
+                errors.add(MessageFormat.format("Visitor method is only allowed to return type declared as a result type of visitor: {0}: expecting {1}, found: {2}",
+                        method.name(), typeParameters.getResultTypeParameter().name(), method.type().fullName()));
             }
 
             Collection<AbstractJClass> exceptions = method.getThrows();
             if (exceptions.size() > 1)
-                throw new SourceCodeValidationException(MessageFormat.format("Visitor methods are allowed to throw no exceptions or throw single exception, declared as type-variable: {0}",
-                                                                         method.name()));
+                errors.add(MessageFormat.format("Visitor method is allowed to throw no exceptions or throw single exception, declared as type-variable: {0}",
+                        method.name()));
             else if (exceptions.size() == 1) {
                 AbstractJClass exception = exceptions.iterator().next();
-                if (!typeParameters.isException(exception))
-                    throw new SourceCodeValidationException(MessageFormat.format("Visitor methods throws exception, not declared as type-variable: {0}: {1}",
-                                                                             method.name(), exception));
+                if (exception.isError())
+                    errors.add(MessageFormat.format("Visitor method exception type is erroneous: {0}", method.name()));
+                else if (!typeParameters.isException(exception))
+                    errors.add(MessageFormat.format("Visitor method throws exception, not declared as type-variable: {0}: {1}",
+                        method.name(), exception.fullName()));
             }
 
             JMethod exitingValue = methods.put(method.name(), method);
             if (exitingValue != null) {
-                throw new SourceCodeValidationException(MessageFormat.format("Method overloading is not supported for visitor interfaces: two methods with the same name: {0}",
-                                                                         method.name()));
+                errors.add(MessageFormat.format("Method overloading is not supported for visitor interfaces: two methods with the same name: {0}",
+                                                    method.name()));
+            }
+            for (JVar param: method.params()) {
+                GenerationResult<Boolean> nullability = Source.getNullability(param);
+                errors.addAll(nullability.errors());
             }
         }
-        return methods;
+        return new GenerationResult<>(methods, errors);
     }
 
     private final AbstractJClass visitorInterfaceModel;
@@ -309,4 +321,56 @@ public class ValueVisitorInterfaceModel {
     public long serialVersionUIDForGeneratedCode() {
         return customization.serialVersionUIDForGeneratedCode();
     }
+
+    public GenerationResult<Map<String, FieldConfiguration>> getGettersConfigutation(JDefinedClass valueClass, Types types) {
+        List<String> errors = new ArrayList<String>();
+        AbstractJClass usedValueClassType = valueClass.narrow(valueClass.typeParams());
+        Map<String, FieldConfiguration> gettersMap = new TreeMap<String, FieldConfiguration>();
+        FieldReader reader = new FieldReader(gettersMap, errors);
+        for (JMethod interfaceMethod: methods()) {
+            for (JVar param: interfaceMethod.params()) {
+                AbstractJType paramType = Source.toDeclarable(narrowType(param.type(), usedValueClassType, getResultTypeParameter(), types._RuntimeException));
+                reader.readGetter(interfaceMethod, param, paramType, false);
+            }
+            JVar param = interfaceMethod.varParam();
+            if (param != null) {
+                AbstractJType paramType = Source.toDeclarable(narrowType(param.type(), usedValueClassType, getResultTypeParameter(), types._RuntimeException));
+                reader.readGetter(interfaceMethod, param, paramType, true);
+            }
+        }
+        return new GenerationResult<>(gettersMap, errors);
+    }
+
+    public GenerationResult<Map<String, FieldConfiguration>> getUpdatersConfiguration(JDefinedClass valueClass, Types types) {
+        List<String> errors = new ArrayList<>();
+        AbstractJClass usedValueClassType = valueClass.narrow(valueClass.typeParams());
+        Map<String, FieldConfiguration> updatersMap = new TreeMap<String, FieldConfiguration>();
+        FieldReader reader = new FieldReader(updatersMap, errors);
+        for (JMethod interfaceMethod: methods()) {
+            for (JVar param: interfaceMethod.params()) {
+                AbstractJType paramType = Source.toDeclarable(narrowType(param.type(), usedValueClassType, getResultTypeParameter(), types._RuntimeException));
+                reader.readUpdater(interfaceMethod, param, paramType, false);
+            }
+            JVar param = interfaceMethod.varParam();
+            if (param != null) {
+                AbstractJType paramType = Source.toDeclarable(narrowType(param.type(), usedValueClassType, getResultTypeParameter(), types._RuntimeException));
+                reader.readUpdater(interfaceMethod, param, paramType, true);
+            }
+        }
+        return new GenerationResult<Map<String, FieldConfiguration>>(updatersMap, errors);
+    }
+
+    public GenerationResult<Map<String, PredicateConfigutation>> getPredicates() {
+        List<String> errors = new ArrayList<>();
+        Map<String, PredicateConfigutation> predicates = new TreeMap<String, PredicateConfigutation>();
+        PredicatesReader predicatesReader = new PredicatesReader(predicates, errors);
+        for (JMethod interfaceMethod: methods()) {
+            for (JAnnotationUse annotationUsage: interfaceMethod.annotations()) {
+                predicatesReader.read(interfaceMethod, annotationUsage);
+            }
+        }
+        return new GenerationResult<Map<String, PredicateConfigutation>>(predicates, errors);
+    }
+
+
 }

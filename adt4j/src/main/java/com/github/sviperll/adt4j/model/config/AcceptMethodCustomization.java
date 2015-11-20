@@ -27,36 +27,28 @@
  *  (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
  *  EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package com.github.sviperll.adt4j.model;
+package com.github.sviperll.adt4j.model.config;
 
 import com.github.sviperll.adt4j.MemberAccess;
-import com.helger.jcodemodel.JMethod;
-import java.util.Set;
-import java.util.TreeSet;
 
 /**
  *
  * @author Victor Nazarov <asviraspossible@gmail.com>
  */
-class PredicateConfigutation {
-    private final Set<String> cases = new TreeSet<String> ();
-    private final MemberAccess accessLevel;
-    PredicateConfigutation(JMethod interfaceMethod, MemberAccess accessLevel) {
-        this.accessLevel = accessLevel;
-        cases.add(interfaceMethod.name());
+class AcceptMethodCustomization {
+    private final String acceptMethodName;
+    private final MemberAccess acceptMethodAccessLevel;
+    public AcceptMethodCustomization(String acceptMethodName, MemberAccess acceptMethodAccessLevel) {
+        this.acceptMethodName = acceptMethodName;
+        this.acceptMethodAccessLevel = acceptMethodAccessLevel;
     }
 
-    void put(JMethod interfaceMethod, MemberAccess accessLevel) throws PredicateConfigurationException {
-        if (this.accessLevel != accessLevel)
-            throw new PredicateConfigurationException("Conflicting access level for predicate");
-        cases.add(interfaceMethod.name());
+    public String acceptMethodName() {
+        return acceptMethodName;
     }
 
-    MemberAccess accessLevel() {
-        return accessLevel;
+    MemberAccess acceptMethodAccessLevel() {
+        return acceptMethodAccessLevel;
     }
 
-    boolean isTrueFor(JMethod interfaceMethod) {
-        return cases.contains(interfaceMethod.name());
-    }
 }

@@ -30,15 +30,12 @@
 package com.github.sviperll.adt4j.model.util;
 
 import com.github.sviperll.adt4j.MemberAccess;
-import com.github.sviperll.meta.SourceCodeValidationException;
 import com.helger.jcodemodel.AbstractJAnnotationValue;
 import com.helger.jcodemodel.AbstractJType;
 import com.helger.jcodemodel.IJAnnotatable;
 import com.helger.jcodemodel.JAnnotationArrayMember;
 import com.helger.jcodemodel.JAnnotationStringValue;
 import com.helger.jcodemodel.JAnnotationUse;
-import com.helger.jcodemodel.JDefinedClass;
-import com.helger.jcodemodel.JMethod;
 import com.helger.jcodemodel.JMod;
 import com.helger.jcodemodel.JTypeWildcard;
 import com.helger.jcodemodel.JVar;
@@ -46,6 +43,7 @@ import java.lang.annotation.Annotation;
 import java.lang.reflect.Array;
 import java.text.MessageFormat;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.Locale;
 
@@ -54,44 +52,6 @@ import java.util.Locale;
  * @author Victor Nazarov <asviraspossible@gmail.com>
  */
 public class Source {
-    public static <T> T getAnnotationArgument(JAnnotationUse annotation, String name, Class<T> klass) {
-        AbstractJAnnotationValue value = annotation.getParam(name);
-        return castAnnotationArgument(value, klass);
-    }
-
-    /*
-     * jcodemodel annotation API is totally fucked up!!! :(
-     * Wrap it up here...
-     */
-    @SuppressWarnings("unchecked")
-    private static <T> T castAnnotationArgument(AbstractJAnnotationValue value, Class<T> klass) throws ClassCastException {
-        if (!klass.isArray()) {
-            if (value == null)
-                throw new ClassCastException("Can't cast null annotation value to " + klass + " class");
-            if (JAnnotationUse.class.isAssignableFrom(klass))
-                return (T)value;
-            else if (!(value instanceof JAnnotationStringValue))
-                throw new ClassCastException("Can't cast " + value + " annotation value to " + klass + " class");
-            else {
-                JAnnotationStringValue stringValue = (JAnnotationStringValue)value;
-                return (T)stringValue.nativeValue();
-            }
-        } else {
-            if (value == null) {
-                return (T)Array.newInstance(klass.getComponentType(), 0);
-            } else {
-                JAnnotationArrayMember jarray = (JAnnotationArrayMember)value;
-                Collection<AbstractJAnnotationValue> interfaceJArray = jarray.getAllAnnotations();
-                Object[] result = (Object[])Array.newInstance(klass.getComponentType(), interfaceJArray.size());
-                Iterator<AbstractJAnnotationValue> iterator = interfaceJArray.iterator();
-                for (int i = 0; iterator.hasNext(); i++) {
-                    result[i] = castAnnotationArgument(iterator.next(), klass.getComponentType());
-                }
-                return (T)result;
-            }
-        }
-    }
-
     public static int toJMod(MemberAccess accessLevel) {
         switch (accessLevel) {
             case PRIVATE:
@@ -135,7 +95,11 @@ public class Source {
         }
     }
 
-    public static boolean isNullable(JVar param) throws SourceCodeValidationException {
+    public static boolean isNullable(JVar param) {
+        return getNullability(param).result();
+    }
+
+    public static GenerationResult<Boolean> getNullability(JVar param) {
         boolean hasNonnull = false;
         boolean hasNullable = false;
         for (JAnnotationUse annotationUse: param.annotations()) {
@@ -150,12 +114,12 @@ public class Source {
             }
         }
         if (hasNonnull && hasNullable)
-            throw new SourceCodeValidationException(MessageFormat.format("Parameter {0} is declared as both @Nullable and @Nonnull",
-                                                           param.name()));
+            return new GenerationResult<>(false, Collections.singletonList(MessageFormat.format("Parameter {0} is declared as both @Nullable and @Nonnull",
+                                                           param.name())));
         if (!param.type().isReference() && hasNullable)
-            throw new SourceCodeValidationException(MessageFormat.format("Parameter {0} is non-reference, but declared as @Nullable",
-                                                           param.name()));
-        return hasNullable;
+            return new GenerationResult<>(false, Collections.singletonList(MessageFormat.format("Parameter {0} is non-reference, but declared as @Nullable",
+                                                           param.name())));
+        return new GenerationResult<>(hasNullable, Collections.<String>emptyList());
     }
 
     @SuppressWarnings("unchecked")

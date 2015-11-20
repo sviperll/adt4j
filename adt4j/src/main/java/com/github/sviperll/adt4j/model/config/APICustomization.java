@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014, Victor Nazarov <asviraspossible@gmail.com>
+ * Copyright (c) 2015, Victor Nazarov <asviraspossible@gmail.com>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -27,45 +27,55 @@
  *  (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
  *  EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package com.github.sviperll.adt4j.model;
+package com.github.sviperll.adt4j.model.config;
 
 import com.github.sviperll.adt4j.MemberAccess;
+import com.helger.jcodemodel.AbstractJClass;
 
 /**
  *
  * @author Victor Nazarov <asviraspossible@gmail.com>
  */
-class FieldFlags {
-    private final boolean isNullable;
-    private final boolean isVarArg;
-    private final MemberAccess accessLevel;
-
-    FieldFlags(MemberAccess accessLevel) {
-        this(true, true, accessLevel);
+class APICustomization {
+    private final boolean isValueClassPublic;
+    private final AcceptMethodCustomization acceptMethod;
+    private final InterfacesCustomization interfaces;
+    public APICustomization(boolean isValueClassPublic, AcceptMethodCustomization acceptMethod, InterfacesCustomization interfaces) {
+        this.isValueClassPublic = isValueClassPublic;
+        this.acceptMethod = acceptMethod;
+        this.interfaces = interfaces;
     }
 
-    FieldFlags(boolean isNullable, boolean isVarArg, MemberAccess accessLevel) {
-        this.isNullable = isNullable;
-        this.isVarArg = isVarArg;
-        this.accessLevel = accessLevel;
+    public String acceptMethodName() {
+        return acceptMethod.acceptMethodName();
     }
 
-    FieldFlags join(FieldFlags that) throws FieldFlagsException {
-        if (this.accessLevel != that.accessLevel)
-            throw new FieldFlagsException("Inconsitent access levels");
-        return new FieldFlags(this.isNullable && that.isNullable, this.isVarArg && that.isVarArg, this.accessLevel);
+    public boolean isPublic() {
+        return isValueClassPublic;
     }
 
-    boolean isNullable() {
-        return isNullable;
+    MemberAccess acceptMethodAccessLevel() {
+        return acceptMethod.acceptMethodAccessLevel();
     }
 
-    boolean isVarArg() {
-        return isVarArg;
+    public boolean isSerializable() {
+        return interfaces.isSerializable();
     }
 
-    MemberAccess accessLevel() {
-        return accessLevel;
+    boolean isComparable() {
+        return interfaces.isComparable();
+    }
+
+    AbstractJClass[] interfaces() {
+        return interfaces.interfaces();
+    }
+
+    Serialization serialization() {
+        return interfaces.serialization();
+    }
+
+    long serialVersionUIDForGeneratedCode() {
+        return interfaces.serialVersionUIDForGeneratedCode();
     }
 
 }

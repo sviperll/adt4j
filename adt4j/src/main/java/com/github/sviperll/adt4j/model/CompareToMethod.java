@@ -96,7 +96,7 @@ class CompareToMethod {
                 if (!type.name().equals("float") && !type.name().equals("doable")) {
                     equalityCondition = value1.eq(value2);
                 } else {
-                    IJExpression epsilon = type.name().equals("float") ? ValueClassModel.FLOAT_EPSILON : ValueClassModel.DOUBLE_EPSILON;
+                    IJExpression epsilon = type.name().equals("float") ? FinalValueClassModel.FLOAT_EPSILON : FinalValueClassModel.DOUBLE_EPSILON;
                     JInvocation invocation = types._Math.staticInvoke("abs");
                     invocation.arg(value1.minus(value2));
                     equalityCondition = invocation.lte(epsilon);

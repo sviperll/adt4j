@@ -27,41 +27,31 @@
  *  (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
  *  EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package com.github.sviperll.adt4j.model.util;
+package com.github.sviperll.adt4j.model.config;
 
-import com.helger.jcodemodel.AbstractJClass;
+import com.github.sviperll.adt4j.Caching;
 
 /**
  *
  * @author Victor Nazarov <asviraspossible@gmail.com>
  */
-class InterfacesCustomization {
-    private final boolean isComparable;
-    private final Serialization serialization;
-    private final AbstractJClass[] interfaces;
-    InterfacesCustomization(boolean isComparable, Serialization serialization, AbstractJClass[] interfaces) {
-        this.isComparable = isComparable;
-        this.serialization = serialization;
-        this.interfaces = interfaces;
+class ImplementationCustomization {
+    private int hashCodeBase;
+    private final Caching hashCodeCaching;
+    ImplementationCustomization(Caching hashCodeCaching) {
+        this.hashCodeCaching = hashCodeCaching;
     }
 
-    boolean isSerializable() {
-        return serialization.isSerializable();
+    ImplementationCustomization(int hashCodeBase, Caching hashCodeCaching) {
+        this.hashCodeBase = hashCodeBase;
+        this.hashCodeCaching = hashCodeCaching;
     }
 
-    boolean isComparable() {
-        return isComparable;
+    Caching hashCodeCaching() {
+        return hashCodeCaching;
     }
 
-    AbstractJClass[] interfaces() {
-        return interfaces;
-    }
-
-    Serialization serialization() {
-        return serialization;
-    }
-
-    long serialVersionUIDForGeneratedCode() {
-        return serialization.serialVersionUIDForGeneratedCode();
+    int hashCodeBase() {
+        return hashCodeBase;
     }
 }
