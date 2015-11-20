@@ -35,7 +35,7 @@ import com.github.sviperll.adt4j.Getter;
 
 /**
  *
- * @author Victor Nazarov <asviraspossible@gmail.com>
+ * @author Victor Nazarov &lt;asviraspossible@gmail.com&gt;
  */
 public class Either<T, U> extends EitherBase<T, U> {
     private Either(EitherBase<T, U> value) {

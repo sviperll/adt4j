@@ -40,7 +40,7 @@ import java.lang.annotation.Target;
  *
  * @see <a href="https://github.com/sviperll/adt4j">ADT4J project page</a>
  *
- * @author Victor Nazarov <asviraspossible@gmail.com>
+ * @author Victor Nazarov &lt;asviraspossible@gmail.com&gt;
  */
 @Retention(RetentionPolicy.SOURCE)
 @Target(ElementType.TYPE)

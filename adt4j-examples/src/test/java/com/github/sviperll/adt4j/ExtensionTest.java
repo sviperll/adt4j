@@ -36,7 +36,7 @@ import static org.junit.Assert.*;
 
 /**
  *
- * @author Victor Nazarov <asviraspossible@gmail.com>
+ * @author Victor Nazarov &lt;asviraspossible@gmail.com&gt;
  */
 public class ExtensionTest {
 

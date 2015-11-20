@@ -117,7 +117,7 @@ import java.lang.annotation.Target;
  * When exception type-variable is used all methods should declare this type variable in the list of thrown exceptions.
  *
  * @see <a href="http://en.wikipedia.org/wiki/Visitor_pattern">Wikipedia article</a>
- * @author Victor Nazarov <asviraspossible@gmail.com>
+ * @author Victor Nazarov &lt;asviraspossible@gmail.com&gt;
  */
 @Retention(RetentionPolicy.SOURCE)
 @Target(ElementType.TYPE)

@@ -34,7 +34,7 @@ import com.helger.jcodemodel.AbstractJClass;
 
 /**
  *
- * @author Victor Nazarov <asviraspossible@gmail.com>
+ * @author Victor Nazarov &lt;asviraspossible@gmail.com&gt;
  */
 class APICustomization {
     private final boolean isValueClassPublic;

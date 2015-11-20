@@ -40,7 +40,7 @@ import java.lang.annotation.Target;
  * <p>
  * For example, <tt>getHead</tt> and <tt>getTail</tt> getters can be used to access sigle-linked list head and tail.
  *
- * @author Victor Nazarov <asviraspossible@gmail.com>
+ * @author Victor Nazarov &lt;asviraspossible@gmail.com&gt;
  */
 @Retention(RetentionPolicy.SOURCE)
 @Target(ElementType.PARAMETER)

@@ -38,7 +38,7 @@ import java.util.List;
 
 /**
  *
- * @author Victor Nazarov <asviraspossible@gmail.com>
+ * @author Victor Nazarov &lt;asviraspossible@gmail.com&gt;
  */
 class ValueVisitorTypeParameters {
     private final JTypeVar resultTypeParameter;

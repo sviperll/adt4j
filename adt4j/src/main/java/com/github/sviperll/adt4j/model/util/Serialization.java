@@ -31,7 +31,7 @@ package com.github.sviperll.adt4j.model.util;
 
 /**
  *
- * @author Victor Nazarov <asviraspossible@gmail.com>
+ * @author Victor Nazarov &lt;asviraspossible@gmail.com&gt;
  */
 public class Serialization {
 

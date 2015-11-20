@@ -35,7 +35,7 @@ import javax.xml.bind.annotation.XmlType;
 
 /**
  *
- * @author Victor Nazarov <asviraspossible@gmail.com>
+ * @author Victor Nazarov &lt;asviraspossible@gmail.com&gt;
  */
 @GenerateValueClassForVisitor
 @Visitor(resultVariableName = "R", selfReferenceVariableName = "S")

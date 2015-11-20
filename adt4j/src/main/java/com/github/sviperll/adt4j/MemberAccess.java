@@ -32,7 +32,7 @@ package com.github.sviperll.adt4j;
 /**
  * Denotes access level to class' members: methods, fields and inner-classes
  * 
- * @author Victor Nazarov <asviraspossible@gmail.com>
+ * @author Victor Nazarov &lt;asviraspossible@gmail.com&gt;
  */
 public enum MemberAccess {
     PRIVATE, PACKAGE, PROTECTED, PUBLIC;

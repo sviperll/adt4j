@@ -31,7 +31,7 @@ package com.github.sviperll.adt4j.examples;
 
 /**
  *
- * @author Victor Nazarov <asviraspossible@gmail.com>
+ * @author Victor Nazarov &lt;asviraspossible@gmail.com&gt;
  */
 public class FancyList<T> extends BaseFancyList<FancyList<T>, T> {
     public static <T> FancyList<T> nil() {

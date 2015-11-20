@@ -36,7 +36,7 @@ import java.util.TreeSet;
 
 /**
  *
- * @author Victor Nazarov <asviraspossible@gmail.com>
+ * @author Victor Nazarov &lt;asviraspossible@gmail.com&gt;
  */
 class PredicateConfigutation {
     private final Set<String> cases = new TreeSet<String> ();

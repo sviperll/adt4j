@@ -51,7 +51,7 @@ import java.util.Locale;
 
 /**
  *
- * @author Victor Nazarov <asviraspossible@gmail.com>
+ * @author Victor Nazarov &lt;asviraspossible@gmail.com&gt;
  */
 public class Source {
     public static <T> T getAnnotationArgument(JAnnotationUse annotation, String name, Class<T> klass) {
