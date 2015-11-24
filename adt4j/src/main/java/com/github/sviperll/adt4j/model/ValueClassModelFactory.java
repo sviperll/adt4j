@@ -35,7 +35,7 @@ import com.github.sviperll.adt4j.model.util.Types;
 import com.github.sviperll.adt4j.model.util.ValueVisitorInterfaceModel;
 import com.github.sviperll.adt4j.Visitor;
 import com.github.sviperll.adt4j.model.util.Source;
-import com.github.sviperll.meta.SourceCodeValidationException;
+import com.github.sviperll.adt4j.model.util.SourceCodeValidationException;
 import com.helger.jcodemodel.AbstractJClass;
 import com.helger.jcodemodel.AbstractJType;
 import com.helger.jcodemodel.EClassType;

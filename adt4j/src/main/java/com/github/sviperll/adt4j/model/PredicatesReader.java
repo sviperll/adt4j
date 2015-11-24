@@ -33,7 +33,7 @@ import com.github.sviperll.adt4j.GeneratePredicate;
 import com.github.sviperll.adt4j.GeneratePredicates;
 import com.github.sviperll.adt4j.model.util.Source;
 import com.github.sviperll.adt4j.MemberAccess;
-import com.github.sviperll.meta.SourceCodeValidationException;
+import com.github.sviperll.adt4j.model.util.SourceCodeValidationException;
 import com.helger.jcodemodel.JAnnotationArrayMember;
 import com.helger.jcodemodel.JAnnotationUse;
 import com.helger.jcodemodel.JMethod;

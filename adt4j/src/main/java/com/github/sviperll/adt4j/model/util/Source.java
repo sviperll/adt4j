@@ -30,15 +30,12 @@
 package com.github.sviperll.adt4j.model.util;
 
 import com.github.sviperll.adt4j.MemberAccess;
-import com.github.sviperll.meta.SourceCodeValidationException;
 import com.helger.jcodemodel.AbstractJAnnotationValue;
 import com.helger.jcodemodel.AbstractJType;
 import com.helger.jcodemodel.IJAnnotatable;
 import com.helger.jcodemodel.JAnnotationArrayMember;
 import com.helger.jcodemodel.JAnnotationStringValue;
 import com.helger.jcodemodel.JAnnotationUse;
-import com.helger.jcodemodel.JDefinedClass;
-import com.helger.jcodemodel.JMethod;
 import com.helger.jcodemodel.JMod;
 import com.helger.jcodemodel.JTypeWildcard;
 import com.helger.jcodemodel.JVar;

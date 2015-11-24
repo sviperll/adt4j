@@ -33,7 +33,7 @@ import com.github.sviperll.adt4j.Getter;
 import com.github.sviperll.adt4j.Updater;
 import com.github.sviperll.adt4j.model.util.Source;
 import com.github.sviperll.adt4j.MemberAccess;
-import com.github.sviperll.meta.SourceCodeValidationException;
+import com.github.sviperll.adt4j.model.util.SourceCodeValidationException;
 import com.helger.jcodemodel.AbstractJType;
 import com.helger.jcodemodel.JAnnotationUse;
 import com.helger.jcodemodel.JMethod;
