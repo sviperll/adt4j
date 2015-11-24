@@ -126,7 +126,7 @@ public @interface Visitor {
     /**
      * Name of type-variable that denotes "visit" result type.
      *
-     * @see com.github.sviperll.meta.Visitor
+     * @see com.github.sviperll.adt4j.Visitor
      */
     String resultVariableName();
 
@@ -135,7 +135,7 @@ public @interface Visitor {
      * <p>
      * No exception type is used if this annotation argument is omitted.
      *
-     * @see com.github.sviperll.meta.Visitor
+     * @see com.github.sviperll.adt4j.Visitor
      */
     String exceptionVariableName() default ":none";
 
@@ -144,7 +144,7 @@ public @interface Visitor {
      * <p>
      * No self-reference type is used if this annotation argument is omitted.
      *
-     * @see com.github.sviperll.meta.Visitor
+     * @see com.github.sviperll.adt4j.Visitor
      */
     String selfReferenceVariableName() default ":none";
 }
