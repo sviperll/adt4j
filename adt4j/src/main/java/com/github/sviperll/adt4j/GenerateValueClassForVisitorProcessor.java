@@ -31,15 +31,15 @@ package com.github.sviperll.adt4j;
 
 import com.github.sviperll.Throwables;
 import com.github.sviperll.adt4j.model.Stage0ValueClassModel;
-import com.github.sviperll.adt4j.model.Stage1ValueClassModel;
 import com.github.sviperll.adt4j.model.Stage0ValueClassModelFactory;
+import com.github.sviperll.adt4j.model.Stage1ValueClassModel;
 import com.github.sviperll.adt4j.model.util.GenerationResult;
 import com.github.sviperll.meta.FilerCodeWriter;
 import com.helger.jcodemodel.JCodeModel;
 import com.helger.jcodemodel.JDefinedClass;
 import com.helger.jcodemodel.JPackage;
-import com.helger.jcodemodel.meta.JCodeModelJavaxLangModelAdapter;
 import com.helger.jcodemodel.meta.CodeModelBuildingException;
+import com.helger.jcodemodel.meta.JCodeModelJavaxLangModelAdapter;
 import java.io.IOException;
 import java.lang.annotation.Annotation;
 import java.util.ArrayList;
@@ -109,7 +109,7 @@ public class GenerateValueClassForVisitorProcessor extends AbstractProcessor {
                 elementProcessor.generateClassesWithoutErrors();
                 elementProcessor.writeGeneratedCode();
             }
-        } catch (Exception ex) {
+        } catch (RuntimeException ex) {
             processingEnv.getMessager().printMessage(Diagnostic.Kind.ERROR, Throwables.render(ex));
         }
         return true;
