@@ -38,7 +38,7 @@ import java.util.TreeMap;
 
 /**
  *
- * @author Victor Nazarov <asviraspossible@gmail.com>
+ * @author Victor Nazarov &lt;asviraspossible@gmail.com&gt;
  */
 public class FieldConfiguration {
     private final Map<String, String> map = new TreeMap<String, String>();

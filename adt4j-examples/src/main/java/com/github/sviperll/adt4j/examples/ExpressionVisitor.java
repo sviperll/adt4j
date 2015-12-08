@@ -38,7 +38,7 @@ import com.github.sviperll.adt4j.Visitor;
 
 /**
  *
- * @author Victor Nazarov <asviraspossible@gmail.com>
+ * @author Victor Nazarov &lt;asviraspossible@gmail.com&gt;
  */
 @GenerateValueClassForVisitor(isPublic = true, hashCodeCaching = Caching.SIMPLE)
 @Visitor(resultVariableName = "R", selfReferenceVariableName = "S")

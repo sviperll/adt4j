@@ -44,7 +44,7 @@ import java.text.MessageFormat;
 
 /**
  *
- * @author Victor Nazarov <asviraspossible@gmail.com>
+ * @author Victor Nazarov &lt;asviraspossible@gmail.com&gt;
  */
 class CompareToMethod {
     private final Types types;

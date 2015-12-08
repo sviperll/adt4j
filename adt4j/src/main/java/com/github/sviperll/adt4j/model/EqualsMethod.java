@@ -43,7 +43,7 @@ import java.text.MessageFormat;
 
 /**
  *
- * @author Victor Nazarov <asviraspossible@gmail.com>
+ * @author Victor Nazarov &lt;asviraspossible@gmail.com&gt;
  */
 class EqualsMethod {
     private final Types types;

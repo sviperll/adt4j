@@ -42,7 +42,7 @@ import java.lang.annotation.Target;
  * <p>
  * For example, <tt>isEmpty</tt> predicate can be used to test if given single-linked list is empty.
  *
- * @author Victor Nazarov <asviraspossible@gmail.com>
+ * @author Victor Nazarov &lt;asviraspossible@gmail.com&gt;
  */
 @Retention(RetentionPolicy.SOURCE)
 @Target(ElementType.METHOD)

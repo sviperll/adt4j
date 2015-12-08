@@ -41,7 +41,7 @@ import java.util.Map;
 
 /**
  *
- * @author Victor Nazarov <asviraspossible@gmail.com>
+ * @author Victor Nazarov &lt;asviraspossible@gmail.com&gt;
  */
 class PredicatesReader {
     private final Map<String, PredicateConfigutation> predicates;

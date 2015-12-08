@@ -34,7 +34,7 @@ import java.util.TreeMap;
 
 /**
  *
- * @author Victor Nazarov <asviraspossible@gmail.com>
+ * @author Victor Nazarov &lt;asviraspossible@gmail.com&gt;
  */
 public class VariableNameSource {
     private final Map<String, Integer> nameMap = new TreeMap<String, Integer>();

@@ -30,7 +30,7 @@
 package com.github.sviperll.adt4j;
 
 /**
- * @author Victor Nazarov <asviraspossible@gmail.com>
+ * @author Victor Nazarov &lt;asviraspossible@gmail.com&gt;
  */
 public enum Caching {
     /** No caching. Method is evaluated on each call */

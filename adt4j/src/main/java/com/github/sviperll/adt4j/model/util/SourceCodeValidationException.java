@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015, vir
+ * Copyright (c) 2015, Victor Nazarov &lt;asviraspossible@gmail.com&gt;
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -27,18 +27,20 @@
  *  (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
  *  EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package com.github.sviperll.adt4j.examples;
-
-import com.github.sviperll.adt4j.GenerateValueClassForVisitor;
-import com.github.sviperll.adt4j.Visitor;
+package com.github.sviperll.adt4j.model.util;
 
 /**
  *
- * @author vir
+ * @author Victor Nazarov &lt;asviraspossible@gmail.com&gt;
  */
-@GenerateValueClassForVisitor
-@Visitor(resultVariableName = "R")
-interface AnotherListVisitor<T, R> {
-    R empty();
-    R prepend(T head, AnotherList<T> tail);
+@SuppressWarnings("serial")
+public class SourceCodeValidationException extends Exception {
+
+    public SourceCodeValidationException(String message, Exception cause) {
+        super(message, cause);
+    }
+
+    public SourceCodeValidationException(String message) {
+        super(message);
+    }
 }

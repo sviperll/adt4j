@@ -38,7 +38,7 @@ import com.helger.jcodemodel.JVar;
 
 /**
  *
- * @author Victor Nazarov <asviraspossible@gmail.com>
+ * @author Victor Nazarov &lt;asviraspossible@gmail.com&gt;
  */
 class ToStringMethodBody {
     private final Types types;

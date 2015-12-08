@@ -35,7 +35,7 @@ import com.helger.jcodemodel.AbstractJClass;
 
 /**
  *
- * @author Victor Nazarov <asviraspossible@gmail.com>
+ * @author Victor Nazarov &lt;asviraspossible@gmail.com&gt;
  */
 class Customization {
     private final String className;

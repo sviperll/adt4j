@@ -40,7 +40,7 @@ import java.lang.annotation.Target;
  * <p>
  * For example, <tt>withHead</tt> can be used to create new single-linked list with new head, but same tail as original.
  *
- * @author Victor Nazarov <asviraspossible@gmail.com>
+ * @author Victor Nazarov &lt;asviraspossible@gmail.com&gt;
  */
 @Retention(RetentionPolicy.SOURCE)
 @Target(ElementType.PARAMETER)

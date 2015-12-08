@@ -31,7 +31,7 @@ package com.github.sviperll.adt4j.model.config;
 
 /**
  *
- * @author Victor Nazarov <asviraspossible@gmail.com>
+ * @author Victor Nazarov &lt;asviraspossible@gmail.com&gt;
  */
 @SuppressWarnings("serial")
 class FieldFlagsException extends Exception {

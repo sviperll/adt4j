@@ -33,7 +33,7 @@ import com.github.sviperll.adt4j.Caching;
 
 /**
  *
- * @author Victor Nazarov <asviraspossible@gmail.com>
+ * @author Victor Nazarov &lt;asviraspossible@gmail.com&gt;
  */
 class ImplementationCustomization {
     private int hashCodeBase;
