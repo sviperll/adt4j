@@ -37,8 +37,11 @@ import com.github.sviperll.adt4j.model.util.Source;
 import com.github.sviperll.adt4j.model.util.Types;
 import com.helger.jcodemodel.AbstractJClass;
 import com.helger.jcodemodel.AbstractJType;
+import com.helger.jcodemodel.IJExpression;
 import com.helger.jcodemodel.JAnnotationUse;
 import com.helger.jcodemodel.JDefinedClass;
+import com.helger.jcodemodel.JExpr;
+import com.helger.jcodemodel.JInvocation;
 import com.helger.jcodemodel.JMethod;
 import com.helger.jcodemodel.JTypeVar;
 import com.helger.jcodemodel.JVar;
@@ -68,13 +71,17 @@ public class ValueVisitorInterfaceModel {
         Serialization serialization = serialization(annotation);
         String valueClassName = valueClassName(jVisitorModel, annotation);
         AbstractJClass extendsClass = annotation.getParam("extendsClass", AbstractJClass.class);
+        AbstractJClass wrapperClass = annotation.getParam("wrapperClass", AbstractJClass.class);
+        if (wrapperClass.fullName().equals("java.lang.Object"))
+            wrapperClass = null;
         AbstractJClass[] interfaces = annotation.getParam("implementsInterfaces", AbstractJClass[].class);
 
         AcceptMethodCustomization acceptMethodCustomization = new AcceptMethodCustomization(acceptMethodName, acceptMethodAccess);
         InterfacesCustomization interfaceCustomization = new InterfacesCustomization(isComparable, serialization, interfaces);
         APICustomization apiCustomization = new APICustomization(isPublic, acceptMethodCustomization, interfaceCustomization);
         ImplementationCustomization implementationCustomization = new ImplementationCustomization(hashCodeBase, hashCodeCaching);
-        Customization customiztion = new Customization(valueClassName, extendsClass, apiCustomization, implementationCustomization);
+        ClassCustomization classCustomization = new ClassCustomization(valueClassName, wrapperClass, extendsClass);
+        Customization customiztion = new Customization(classCustomization, apiCustomization, implementationCustomization);
         return new GenerationResult<>(new ValueVisitorInterfaceModel(jVisitorModel, typeParametersResult.result(), methodsResult.result(), customiztion), errors);
     }
 
@@ -203,13 +210,9 @@ public class ValueVisitorInterfaceModel {
     }
 
     public AbstractJClass narrowed(AbstractJClass usedDataType, AbstractJClass resultType, AbstractJClass exceptionType) {
-        return narrowed(usedDataType, resultType, exceptionType, usedDataType);
-    }
-
-    private AbstractJClass narrowed(AbstractJClass usedDataType, AbstractJClass resultType, AbstractJClass exceptionType, AbstractJClass selfType) {
         AbstractJClass result = visitorInterfaceModel;
         for (JTypeVar typeVariable: visitorInterfaceModel.typeParams()) {
-            result = result.narrow(typeParameters.substituteSpecialType(typeVariable, selfType, resultType, exceptionType));
+            result = result.narrow(typeParameters.substituteSpecialType(typeVariable, usedDataType, resultType, exceptionType));
         }
         return result;
     }
@@ -323,9 +326,9 @@ public class ValueVisitorInterfaceModel {
     }
 
     public GenerationResult<Map<String, FieldConfiguration>> getGettersConfigutation(JDefinedClass valueClass, Types types) {
-        List<String> errors = new ArrayList<String>();
+        List<String> errors = new ArrayList<>();
         AbstractJClass usedValueClassType = valueClass.narrow(valueClass.typeParams());
-        Map<String, FieldConfiguration> gettersMap = new TreeMap<String, FieldConfiguration>();
+        Map<String, FieldConfiguration> gettersMap = new TreeMap<>();
         FieldReader reader = new FieldReader(gettersMap, errors);
         for (JMethod interfaceMethod: methods()) {
             for (JVar param: interfaceMethod.params()) {
@@ -344,7 +347,7 @@ public class ValueVisitorInterfaceModel {
     public GenerationResult<Map<String, FieldConfiguration>> getUpdatersConfiguration(JDefinedClass valueClass, Types types) {
         List<String> errors = new ArrayList<>();
         AbstractJClass usedValueClassType = valueClass.narrow(valueClass.typeParams());
-        Map<String, FieldConfiguration> updatersMap = new TreeMap<String, FieldConfiguration>();
+        Map<String, FieldConfiguration> updatersMap = new TreeMap<>();
         FieldReader reader = new FieldReader(updatersMap, errors);
         for (JMethod interfaceMethod: methods()) {
             for (JVar param: interfaceMethod.params()) {
@@ -357,19 +360,35 @@ public class ValueVisitorInterfaceModel {
                 reader.readUpdater(interfaceMethod, param, paramType, true);
             }
         }
-        return new GenerationResult<Map<String, FieldConfiguration>>(updatersMap, errors);
+        return new GenerationResult<>(updatersMap, errors);
     }
 
     public GenerationResult<Map<String, PredicateConfigutation>> getPredicates() {
         List<String> errors = new ArrayList<>();
-        Map<String, PredicateConfigutation> predicates = new TreeMap<String, PredicateConfigutation>();
+        Map<String, PredicateConfigutation> predicates = new TreeMap<>();
         PredicatesReader predicatesReader = new PredicatesReader(predicates, errors);
         for (JMethod interfaceMethod: methods()) {
             for (JAnnotationUse annotationUsage: interfaceMethod.annotations()) {
                 predicatesReader.read(interfaceMethod, annotationUsage);
             }
         }
-        return new GenerationResult<Map<String, PredicateConfigutation>>(predicates, errors);
+        return new GenerationResult<>(predicates, errors);
+    }
+
+    public AbstractJClass wrapValueClass(AbstractJClass valueClass) {
+        AbstractJClass wrapperClass = customization.wrapperClass();
+        return wrapperClass != null ? wrapperClass : valueClass;
+    }
+
+    public IJExpression wrapValue(AbstractJType usedWrappedClassType, IJExpression valueExpression) {
+        AbstractJClass wrapperClass = customization.wrapperClass();
+        if (wrapperClass == null)
+            return valueExpression;
+        else {
+            JInvocation invocation1 = JExpr._new(usedWrappedClassType);
+            invocation1.arg(valueExpression);
+            return invocation1;
+        }
     }
 
 

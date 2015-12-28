@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015, Victor Nazarov <asviraspossible@gmail.com>
+ * Copyright (c) 2015, Victor Nazarov &lt;asviraspossible@gmail.com&gt;
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -27,10 +27,9 @@
  *  (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
  *  EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+
 package com.github.sviperll.adt4j.model.config;
 
-import com.github.sviperll.adt4j.Caching;
-import com.github.sviperll.adt4j.MemberAccess;
 import com.helger.jcodemodel.AbstractJClass;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -41,74 +40,29 @@ import javax.annotation.ParametersAreNonnullByDefault;
  * @author Victor Nazarov &lt;asviraspossible@gmail.com&gt;
  */
 @ParametersAreNonnullByDefault
-class Customization {
-    private final APICustomization api;
-    private final ImplementationCustomization implementation;
-    private final ClassCustomization classCustomization;
+class ClassCustomization {
+    private final String valueClassName;
+    private final AbstractJClass wrapperClass;
+    private final AbstractJClass extendsClass;
 
-    Customization(ClassCustomization classCustomization, APICustomization api, ImplementationCustomization implementation) {
-        this.classCustomization = classCustomization;
-        this.api = api;
-        this.implementation = implementation;
-    }
-
-    @Nonnull
-    String className() {
-        return classCustomization.className();
-    }
-
-    @Nonnull
-    String acceptMethodName() {
-        return api.acceptMethodName();
-    }
-
-    boolean isValueClassPublic() {
-        return api.isPublic();
-    }
-
-    @Nonnull
-    MemberAccess acceptMethodAccessLevel() {
-        return api.acceptMethodAccessLevel();
-    }
-
-    @Nonnull
-    Caching hashCodeCaching() {
-        return implementation.hashCodeCaching();
-    }
-
-    boolean isValueClassSerializable() {
-        return api.isSerializable();
-    }
-
-    boolean isValueClassComparable() {
-        return api.isComparable();
-    }
-
-    @Nonnull
-    AbstractJClass[] implementsInterfaces() {
-        return api.interfaces();
-    }
-
-    int hashCodeBase() {
-        return implementation.hashCodeBase();
-    }
-
-    @Nonnull
-    Serialization serialization() {
-        return api.serialization();
-    }
-
-    long serialVersionUIDForGeneratedCode() {
-        return api.serialVersionUIDForGeneratedCode();
+    public ClassCustomization(String valueClassName, @Nullable AbstractJClass wrapperClass, AbstractJClass extendsClass) {
+        this.valueClassName = valueClassName;
+        this.wrapperClass = wrapperClass;
+        this.extendsClass = extendsClass;
     }
 
     @Nonnull
     AbstractJClass valueClassExtends() {
-        return classCustomization.valueClassExtends();
+        return extendsClass;
+    }
+
+    @Nonnull
+    String className() {
+        return valueClassName;
     }
 
     @Nullable
     AbstractJClass wrapperClass() {
-        return classCustomization.wrapperClass();
+        return wrapperClass;
     }
 }
