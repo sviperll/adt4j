@@ -680,14 +680,13 @@ public class FinalValueClassModel {
                 updaterMethod.body()._throw(JExpr._new(types._UnsupportedOperationException));
             } else {
                 nameSource = new VariableNameSource();
-
-                JMethod implementation = acceptingInterface.method(JMod.PUBLIC, usedValueClassType, updaterName);
-                Source.annotateNonnull(implementation);
+                JMethod acceptingInterfaceUpdaterMethod = acceptingInterface.method(JMod.PUBLIC, usedValueClassType, updaterName);
+                Source.annotateNonnull(acceptingInterfaceUpdaterMethod);
                 JVar newValueParam;
                 if (configuration.isVarArg())
-                    newValueParam = implementation.varParam(configuration.type().elementType(), nameSource.get("newValue"));
+                    newValueParam = acceptingInterfaceUpdaterMethod.varParam(configuration.type().elementType(), nameSource.get("newValue"));
                 else
-                    newValueParam = implementation.param(configuration.type(), nameSource.get("newValue"));
+                    newValueParam = acceptingInterfaceUpdaterMethod.param(configuration.type(), nameSource.get("newValue"));
                 if (configuration.type().isReference()) {
                     if (configuration.isNullable()) {
                         Source.annotateNullable(newValueParam);
@@ -696,20 +695,20 @@ public class FinalValueClassModel {
                     }
                 }
 
-                JInvocation invocation1 = JExpr.refthis(acceptorField).invoke(implementation);
+                JInvocation invocation1 = JExpr.refthis(acceptorField).invoke(acceptingInterfaceUpdaterMethod);
                 invocation1.arg(newValue);
                 updaterMethod.body()._return(invocation1);
 
                 for (JMethod interfaceMethod1: visitorInterface.methods()) {
                     JDefinedClass caseClass = caseClasses.get(interfaceMethod1.name());
                     nameSource = new VariableNameSource();
-                    updaterMethod = caseClass.method(JMod.PUBLIC | JMod.FINAL, usedValueClassType, updaterName);
-                    Source.annotateNonnull(updaterMethod);
-                    updaterMethod.annotate(Override.class);
+                    JMethod caseClassUpdaterMethod = caseClass.method(JMod.PUBLIC | JMod.FINAL, usedValueClassType, updaterName);
+                    Source.annotateNonnull(caseClassUpdaterMethod);
+                    caseClassUpdaterMethod.annotate(Override.class);
                     if (configuration.isVarArg())
-                        newValue = updaterMethod.varParam(configuration.type().elementType(), nameSource.get("newValue"));
+                        newValue = caseClassUpdaterMethod.varParam(configuration.type().elementType(), nameSource.get("newValue"));
                     else
-                        newValue = updaterMethod.param(configuration.type(), nameSource.get("newValue"));
+                        newValue = caseClassUpdaterMethod.param(configuration.type(), nameSource.get("newValue"));
                     if (configuration.type().isReference()) {
                         if (configuration.isNullable()) {
                             Source.annotateNullable(newValue);
@@ -737,7 +736,7 @@ public class FinalValueClassModel {
                             invocation.arg(JExpr.refthis(argument));
                         }
                     }
-                    updaterMethod.body()._return(invocation);
+                    caseClassUpdaterMethod.body()._return(invocation);
                 }
             }
         }
