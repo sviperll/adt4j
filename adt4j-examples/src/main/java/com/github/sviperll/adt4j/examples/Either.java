@@ -32,6 +32,7 @@ package com.github.sviperll.adt4j.examples;
 import com.github.sviperll.adt4j.GeneratePredicate;
 import com.github.sviperll.adt4j.GenerateValueClassForVisitor;
 import com.github.sviperll.adt4j.Getter;
+import com.github.sviperll.adt4j.Updater;
 
 /**
  *
@@ -46,9 +47,9 @@ public class Either<T, U> extends EitherBase<T, U> {
     @com.github.sviperll.adt4j.Visitor(resultVariableName = "R")
     public interface Visitor<T, U, R> {
         @GeneratePredicate
-        R left(@Getter T left);
+        R left(@Getter @Updater T left);
 
         @GeneratePredicate
-        R right(@Getter U right);
+        R right(@Getter @Updater U right);
     }
 }
