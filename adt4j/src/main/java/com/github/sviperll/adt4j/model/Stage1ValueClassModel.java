@@ -177,7 +177,7 @@ public class Stage1ValueClassModel {
             valueClass._implements(types._Serializable);
         }
         if (visitorInterface.isValueClassComparable()) {
-            valueClass._implements(types._Comparable.narrow(valueClass.narrow(valueClass.typeParams())));
+            valueClass._implements(types._Comparable.narrow(visitorInterface.wrapValueClass(valueClass).narrow(valueClass.typeParams())));
         }
     }
 

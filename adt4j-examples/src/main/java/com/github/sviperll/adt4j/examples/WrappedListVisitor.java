@@ -41,7 +41,7 @@ import javax.annotation.ParametersAreNonnullByDefault;
  * @author Victor Nazarov &lt;asviraspossible@gmail.com&gt;
  */
 @ParametersAreNonnullByDefault
-@GenerateValueClassForVisitor(wrapperClass = WrappedList.class, className = "WrappedListBase", isComparable = false)
+@GenerateValueClassForVisitor(wrapperClass = WrappedList.class, className = "WrappedListBase", isComparable = true)
 @Visitor(resultVariableName = "R")
 public interface WrappedListVisitor<T extends Comparable<? super T>, R> {
     R empty();

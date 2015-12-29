@@ -391,5 +391,10 @@ public class ValueVisitorInterfaceModel {
         }
     }
 
+    public boolean wraps() {
+        AbstractJClass wrapperClass = customization.wrapperClass();
+        return wrapperClass != null;
+    }
+
 
 }

@@ -873,9 +873,10 @@ public class FinalValueClassModel {
         void buildCompareTo() {
             JMethod compareToMethod = valueClass.method(JMod.PUBLIC | JMod.FINAL, types._int, "compareTo");
             compareToMethod.annotate(Override.class);
-            VariableNameSource nameSource = new VariableNameSource();
+            VariableNameSource compareToMethodNameSource = new VariableNameSource();
             AbstractJClass usedValueClassType = visitorInterface.wrapValueClass(valueClass).narrow(valueClass.typeParams());
-            JVar that = compareToMethod.param(usedValueClassType, nameSource.get("that"));
+            AbstractJClass unwrappedUsedValueClassType = valueClass.narrow(valueClass.typeParams());
+            JVar that = compareToMethod.param(usedValueClassType, compareToMethodNameSource.get("that"));
 
             if (isError) {
                 compareToMethod.body()._throw(JExpr._new(types._UnsupportedOperationException));
@@ -883,11 +884,12 @@ public class FinalValueClassModel {
                 AbstractJClass usedAcceptorType = acceptingInterface.narrow(valueClass.typeParams());
                 String compareToMethodImplementationString = Source.decapitalize(valueClass.name()) + "ComapareTo";
                 JMethod compareToMethodImplementation = acceptingInterface.method(JMod.PUBLIC, types._int, compareToMethodImplementationString);
-                nameSource = new VariableNameSource();
+                VariableNameSource nameSource = new VariableNameSource();
                 compareToMethodImplementation.param(usedAcceptorType, nameSource.get("thatAcceptor"));
 
+                JVar unwrappedVariable = !visitorInterface.wraps() ? that : compareToMethod.body().decl(unwrappedUsedValueClassType, compareToMethodNameSource.get("unwrapped"), that);
                 JInvocation invocation1 = JExpr.refthis(acceptorField).invoke(compareToMethodImplementation);
-                invocation1.arg(that.ref(acceptorField));
+                invocation1.arg(unwrappedVariable.ref(acceptorField));
                 compareToMethod.body()._return(invocation1);
 
                 JMethod[] methods = new JMethod[visitorInterface.methods().size()];
