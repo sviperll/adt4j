@@ -34,6 +34,7 @@ import com.github.sviperll.adt4j.GenerateValueClassForVisitor;
 import com.github.sviperll.adt4j.Getter;
 import com.github.sviperll.adt4j.Updater;
 import com.github.sviperll.adt4j.Visitor;
+import java.io.Serializable;
 import javax.annotation.ParametersAreNonnullByDefault;
 
 /**
@@ -41,9 +42,9 @@ import javax.annotation.ParametersAreNonnullByDefault;
  * @author Victor Nazarov &lt;asviraspossible@gmail.com&gt;
  */
 @ParametersAreNonnullByDefault
-@GenerateValueClassForVisitor(wrapperClass = WrappedList.class, className = "WrappedListBase", isComparable = true)
+@GenerateValueClassForVisitor(wrapperClass = WrappedList.class, isComparable = true, isSerializable = true)
 @Visitor(resultVariableName = "R")
-public interface WrappedListVisitor<T extends Comparable<? super T>, R> {
+public interface WrappedListVisitor<T extends Comparable<? super T>&Serializable, R> {
     R empty();
     R prepend(@Getter @Updater T head, @Getter @Updater WrappedList<T> tail);
 }

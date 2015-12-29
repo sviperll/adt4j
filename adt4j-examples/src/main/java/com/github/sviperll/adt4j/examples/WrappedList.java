@@ -30,11 +30,13 @@
 
 package com.github.sviperll.adt4j.examples;
 
+import java.io.Serializable;
+
 /**
  *
  * @author Victor Nazarov &lt;asviraspossible@gmail.com&gt;
  */
-public class WrappedList<T extends Comparable<? super T>> extends WrappedListBase<T> {
+public class WrappedList<T extends Comparable<? super T> &Serializable> extends WrappedListBase<T> {
     WrappedList(WrappedListBase<T> value) {
          super(value);
     }

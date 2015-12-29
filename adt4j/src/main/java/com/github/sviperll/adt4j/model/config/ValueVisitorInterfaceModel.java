@@ -57,7 +57,11 @@ public class ValueVisitorInterfaceModel {
     private static final String VALUE_SUFFIX = "Value";
 
     public static GenerationResult<ValueVisitorInterfaceModel> createInstance(JDefinedClass jVisitorModel, Visitor visitorAnnotation, JAnnotationUse annotation) {
-        List<String> errors = new ArrayList<String>();
+        return createInstance(jVisitorModel, visitorAnnotation, annotation, null);
+    }
+
+    public static GenerationResult<ValueVisitorInterfaceModel> createInstance(JDefinedClass jVisitorModel, Visitor visitorAnnotation, JAnnotationUse annotation, JDefinedClass valueClass) {
+        List<String> errors = new ArrayList<>();
         GenerationResult<ValueVisitorTypeParameters> typeParametersResult = createValueVisitorTypeParameters(jVisitorModel, visitorAnnotation);
         errors.addAll(typeParametersResult.errors());
         GenerationResult<Map<String, JMethod>> methodsResult = createMethodMap(jVisitorModel, typeParametersResult.result());
@@ -69,20 +73,81 @@ public class ValueVisitorInterfaceModel {
         int hashCodeBase = annotation.getParam("hashCodeBase", Integer.class);
         boolean isComparable = annotation.getParam("isComparable", Boolean.class);
         Serialization serialization = serialization(annotation);
-        String valueClassName = valueClassName(jVisitorModel, annotation);
-        AbstractJClass extendsClass = annotation.getParam("extendsClass", AbstractJClass.class);
-        AbstractJClass wrapperClass = annotation.getParam("wrapperClass", AbstractJClass.class);
-        if (wrapperClass.fullName().equals("java.lang.Object"))
-            wrapperClass = null;
+        GenerationResult<ClassCustomization> classCustomization = classCustomization(annotation, jVisitorModel, valueClass);
+        errors.addAll(classCustomization.errors());
+
         AbstractJClass[] interfaces = annotation.getParam("implementsInterfaces", AbstractJClass[].class);
 
         AcceptMethodCustomization acceptMethodCustomization = new AcceptMethodCustomization(acceptMethodName, acceptMethodAccess);
         InterfacesCustomization interfaceCustomization = new InterfacesCustomization(isComparable, serialization, interfaces);
         APICustomization apiCustomization = new APICustomization(isPublic, acceptMethodCustomization, interfaceCustomization);
         ImplementationCustomization implementationCustomization = new ImplementationCustomization(hashCodeBase, hashCodeCaching);
-        ClassCustomization classCustomization = new ClassCustomization(valueClassName, wrapperClass, extendsClass);
-        Customization customiztion = new Customization(classCustomization, apiCustomization, implementationCustomization);
+        Customization customiztion = new Customization(classCustomization.result(), apiCustomization, implementationCustomization);
         return new GenerationResult<>(new ValueVisitorInterfaceModel(jVisitorModel, typeParametersResult.result(), methodsResult.result(), customiztion), errors);
+    }
+
+    private static GenerationResult<ClassCustomization> classCustomization(JAnnotationUse annotation, JDefinedClass jVisitorModel, JDefinedClass valueClass) throws ClassCastException, NullPointerException {
+        List<String> errors = new ArrayList<>();
+        AbstractJClass extendsClass = annotation.getParam("extendsClass", AbstractJClass.class);
+        AbstractJClass wrapperClass = annotation.getParam("wrapperClass", AbstractJClass.class);
+        if (wrapperClass == null)
+            throw new NullPointerException("wrapperClass annotation argument should never be null");
+        String wrapperClassFullName = wrapperClass.fullName();
+        if (wrapperClassFullName == null)
+            throw new NullPointerException("wrapperClass.fullName() is null");
+        if (wrapperClassFullName.equals("java.lang.Object"))
+            wrapperClass = null;
+        String className = annotation.getParam("className", String.class);
+        if (className == null)
+            throw new NullPointerException("className annotation argument should never be null");
+        if (wrapperClass == null) {
+            if (className.equals(":auto")) {
+                className = autoClassName(jVisitorModel);
+            }
+        } else {
+            if (!className.equals(":auto")) {
+                errors.add("You shouldn't define className when wrapperClass is used. Generated class name is derived from wrapper class' extends clause.");
+            } else {
+                AbstractJClass extendedClass = wrapperClass._extends();
+                boolean extendedClassError = false;
+                if (extendedClass == null) {
+                    extendedClassError = true;
+                } else {
+                    if (extendedClass.isError()) {
+                        className = extendedClass.name();
+                    } else {
+                        if (valueClass == null || !valueClass.fullName().equals(extendedClass.erasure().fullName())) {
+                            extendedClassError = true;
+                        } else {
+                            className = valueClass.name();
+                        }
+                    }
+                }
+                if (extendedClassError) {
+                    errors.add("Wrapper class should explicitly extend non-existing class, that class is to be generated");
+                    className = autoClassName(jVisitorModel);
+                } else {
+                    boolean typeParamsError = false;
+                    List<? extends AbstractJClass> typeArguments = extendedClass.getTypeParameters();
+                    JTypeVar[] typeParameters = wrapperClass.typeParams();
+                    if (typeParameters.length != typeArguments.size())
+                        typeParamsError = true;
+                    else {
+                        for (int i = 0; i < typeParameters.length; i++) {
+                            if (typeParameters[i] != typeArguments.get(i)) {
+                                typeParamsError = true;
+                                break;
+                            }
+                        }
+                    }
+                    if (typeParamsError) {
+                        errors.add("Wrapper class should declare same type-parameters as generated class and should extend generated class with all type-arguments applied");
+                    }
+                }
+            }
+        }
+        ClassCustomization classCustomization = new ClassCustomization(className, wrapperClass, extendsClass);
+        return new GenerationResult<>(classCustomization, errors);
     }
 
     private static Serialization serialization(JAnnotationUse annotation) {
@@ -92,20 +157,15 @@ public class ValueVisitorInterfaceModel {
             return Serialization.serializable(annotation.getParam("serialVersionUID", Long.class));
     }
 
-    private static String valueClassName(JDefinedClass jVisitorModel, JAnnotationUse annotation) {
-        String className = annotation.getParam("className", String.class);
-        if (!className.equals(":auto")) {
-            return className;
-        } else {
-            String visitorName = jVisitorModel.name();
-            if (visitorName == null)
-                throw new IllegalStateException("Visitor interface without a name: " + jVisitorModel);
-            else {
-                if (visitorName.endsWith(VISITOR_SUFFIX))
-                    return visitorName.substring(0, visitorName.length() - VISITOR_SUFFIX.length());
-                else
-                    return visitorName + VALUE_SUFFIX;
-            }
+    private static String autoClassName(JDefinedClass jVisitorModel) {
+        String visitorName = jVisitorModel.name();
+        if (visitorName == null)
+            throw new IllegalStateException("Visitor interface without a name: " + jVisitorModel);
+        else {
+            if (visitorName.endsWith(VISITOR_SUFFIX))
+                return visitorName.substring(0, visitorName.length() - VISITOR_SUFFIX.length());
+            else
+                return visitorName + VALUE_SUFFIX;
         }
     }
 

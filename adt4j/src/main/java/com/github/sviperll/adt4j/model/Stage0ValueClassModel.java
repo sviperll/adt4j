@@ -70,7 +70,7 @@ public class Stage0ValueClassModel {
             }
             if (annotation == null)
                 throw new IllegalStateException("ValueClassModelFactory can't be run for interface without " + GenerateValueClassForVisitor.class + " annotation");
-            GenerationResult<ValueVisitorInterfaceModel> visitorModelResult = ValueVisitorInterfaceModel.createInstance(visitorModel, visitorAnnotation, annotation);
+            GenerationResult<ValueVisitorInterfaceModel> visitorModelResult = ValueVisitorInterfaceModel.createInstance(visitorModel, visitorAnnotation, annotation, valueClass);
             errors.addAll(visitorModelResult.errors());
             ValueVisitorInterfaceModel visitorInterface = visitorModelResult.result();
 
