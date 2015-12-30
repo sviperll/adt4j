@@ -28,18 +28,21 @@
  *  EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.github.sviperll.adt4j.examples;
+package com.github.sviperll.adt4j;
 
-import com.github.sviperll.adt4j.WrapsValueClass;
-import java.io.Serializable;
+import java.lang.annotation.Documented;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
 /**
  *
  * @author Victor Nazarov &lt;asviraspossible@gmail.com&gt;
  */
-@WrapsValueClass(visitor = WrappedListVisitor.class)
-public class WrappedList<T extends Comparable<? super T> &Serializable> extends WrappedListBase<T> {
-    WrappedList(WrappedListBase<T> value) {
-         super(value);
-    }
+@Retention(RetentionPolicy.SOURCE)
+@Target(ElementType.TYPE)
+@Documented
+public @interface WrapsValueClass {
+    Class<?> visitor();
 }
