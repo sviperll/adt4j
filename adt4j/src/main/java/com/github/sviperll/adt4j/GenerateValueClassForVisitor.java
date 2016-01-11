@@ -103,7 +103,7 @@ public @interface GenerateValueClassForVisitor {
      * <h3>Visitor</h3>
      * <pre>
      * {@code
-     *     {@literal @}GenerateValueClassForVisitor(className="ListBase", wrapperClass="List")
+     *     {@literal @}GenerateValueClassForVisitor(wrapperClass=List.class)
      *     {@literal @}Visitor(resultVariableName="R")
      *     interface ListVisitor<T, R> {
      *         R empty();
@@ -115,6 +115,9 @@ public @interface GenerateValueClassForVisitor {
      * <h3>Wrapper class with all required boilerplate and nothing else</h3>
      * <pre>
      * {@code
+     *     @WrapsValueClass(visitor=ListVisitor.class)
+     *     // Wrapper class should extend non-existent class.
+     *     // This class will be automatically generated
      *     class List<T> extends ListBase<T> {
      *         List(ListBase<T> base) {
      *             super(base);
@@ -134,9 +137,10 @@ public @interface GenerateValueClassForVisitor {
      * Interfaces for value classes to implement.
      * <p>
      * You can leave the implementsInterfaces parameter out.
-     * Generated classes will implement these interfaces, allowing the developer to work with abstractions,
+     * Generated classes will implement these interfaces,
+     * allowing the developer to use marker interfaces,
      * and make use of Java 8 default methods.
-     * @return Class name of marker interface.
+     * @return Class names of interfaces.
      */
     Class<?>[] implementsInterfaces() default {};
 
@@ -144,9 +148,8 @@ public @interface GenerateValueClassForVisitor {
      * Class for value classes to extend.
      * <p>
      * You can leave the extendsClass parameter out.
-     * Generated classes will extends this class, allowing the developer to work with abstractions,
-     * and make use of Java 8 default methods.
-     * @return Class name of marker interface.
+     * Generated classes will extends this class.
+     * @return Class name of class to extend.
      */
     Class<?> extendsClass() default Object.class;
 

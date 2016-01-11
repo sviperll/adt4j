@@ -110,7 +110,11 @@ public class GenerateValueClassForVisitorProcessor extends AbstractProcessor {
                 elementProcessor.writeGeneratedCode();
             }
         } catch (RuntimeException ex) {
-            processingEnv.getMessager().printMessage(Diagnostic.Kind.ERROR, Throwables.render(ex));
+            String message = "Unexpected exception."
+                    + " This seems like a bug in ADT4J,"
+                    + " please report it at https://github.com/sviperll/adt4j/issues"
+                    + " with the following details:\n" + Throwables.render(ex);
+            processingEnv.getMessager().printMessage(Diagnostic.Kind.ERROR, message);
         }
         return true;
     }
