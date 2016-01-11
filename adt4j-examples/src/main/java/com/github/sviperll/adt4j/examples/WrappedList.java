@@ -38,7 +38,9 @@ import java.io.Serializable;
  * @author Victor Nazarov &lt;asviraspossible@gmail.com&gt;
  */
 @WrapsValueClass(visitor = WrappedListVisitor.class)
-public class WrappedList<T extends Comparable<? super T> &Serializable> extends WrappedListBase<T> {
+public class WrappedList<T extends Comparable<? super T> & Serializable> extends WrappedListBase<T> {
+
+    private static final long serialVersionUID = 1L;
     WrappedList(WrappedListBase<T> value) {
          super(value);
     }

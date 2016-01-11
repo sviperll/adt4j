@@ -35,6 +35,7 @@ import com.github.sviperll.adt4j.Visitor;
 import com.github.sviperll.adt4j.model.config.ValueVisitorInterfaceModel;
 import com.github.sviperll.adt4j.model.util.GenerationResult;
 import com.github.sviperll.adt4j.model.util.Source;
+import com.helger.jcodemodel.AbstractJClass;
 import com.helger.jcodemodel.EClassType;
 import com.helger.jcodemodel.JAnnotationUse;
 import com.helger.jcodemodel.JClassAlreadyExistsException;
@@ -42,7 +43,6 @@ import com.helger.jcodemodel.JCodeModel;
 import com.helger.jcodemodel.JDefinedClass;
 import com.helger.jcodemodel.JMod;
 import com.helger.jcodemodel.JPackage;
-import java.util.logging.Logger;
 import javax.annotation.Generated;
 
 /**
@@ -62,7 +62,8 @@ public class Stage0ValueClassModelFactory {
     public Stage0ValueClassModel createStage0Model(JDefinedClass bootModel, Visitor visitorAnnotation) {
         JAnnotationUse annotation = null;
         for (JAnnotationUse anyAnnotation: bootModel.annotations()) {
-            if (anyAnnotation.getAnnotationClass().fullName().equals(GenerateValueClassForVisitor.class.getName()))
+            AbstractJClass annotationClass = anyAnnotation.getAnnotationClass();
+            if (!annotationClass.isError() && annotationClass.fullName().equals(GenerateValueClassForVisitor.class.getName()))
                 annotation = anyAnnotation;
         }
         if (annotation == null)

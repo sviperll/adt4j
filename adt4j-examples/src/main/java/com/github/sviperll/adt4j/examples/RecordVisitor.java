@@ -29,10 +29,10 @@
  */
 package com.github.sviperll.adt4j.examples;
 
+import com.github.sviperll.adt4j.Caching;
 import com.github.sviperll.adt4j.GenerateValueClassForVisitor;
 import com.github.sviperll.adt4j.Getter;
 import com.github.sviperll.adt4j.Updater;
-import com.github.sviperll.adt4j.Caching;
 import com.github.sviperll.adt4j.Visitor;
 import javax.annotation.Nullable;
 

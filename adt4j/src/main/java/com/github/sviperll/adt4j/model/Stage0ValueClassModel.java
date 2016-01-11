@@ -34,6 +34,7 @@ import com.github.sviperll.adt4j.Visitor;
 import com.github.sviperll.adt4j.model.config.ValueVisitorInterfaceModel;
 import com.github.sviperll.adt4j.model.util.GenerationResult;
 import com.github.sviperll.adt4j.model.util.Types;
+import com.helger.jcodemodel.AbstractJClass;
 import com.helger.jcodemodel.JAnnotationUse;
 import com.helger.jcodemodel.JDefinedClass;
 import java.util.ArrayList;
@@ -65,7 +66,8 @@ public class Stage0ValueClassModel {
         } else {
             JAnnotationUse annotation = null;
             for (JAnnotationUse anyAnnotation: visitorModel.annotations()) {
-                if (anyAnnotation.getAnnotationClass().fullName().equals(GenerateValueClassForVisitor.class.getName()))
+                AbstractJClass annotationClass = anyAnnotation.getAnnotationClass();
+                if (!annotationClass.isError() && annotationClass.fullName().equals(GenerateValueClassForVisitor.class.getName()))
                     annotation = anyAnnotation;
             }
             if (annotation == null)

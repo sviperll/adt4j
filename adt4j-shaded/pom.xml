@@ -54,7 +54,7 @@
                                     <excludes>
                                         <exclude>META-INF/**</exclude>
                                     </excludes>
-                                </filter>                            
+                                </filter>
                             </filters>
                             <relocations>
                                 <relocation>
@@ -68,6 +68,19 @@
                                     <pattern>com.helger.jcodemodel</pattern>
                                     <shadedPattern>com.github.sviperll.adt4j.internal.com.helger.jcodemodel</shadedPattern>
                                 </relocation>
+                                <!--
+                                <relocation>
+                                    <pattern>javax.annotation</pattern>
+                                    <shadedPattern>com.github.sviperll.adt4j.internal.javax.annotation</shadedPattern>
+                                </relocation>
+                                <relocation>
+                                    <pattern>edu.umd.cs.findbugs</pattern>
+                                    <shadedPattern>com.github.sviperll.adt4j.internal.edu.umd.cs.findbugs</shadedPattern>
+                                </relocation>
+                                <relocation>
+                                    <pattern>net.jcip.annotations</pattern>
+                                    <shadedPattern>com.github.sviperll.adt4j.internal.net.jcip.annotations</shadedPattern>
+                                </relocation>-->
                             </relocations>                            
                         </configuration>
                     </execution>

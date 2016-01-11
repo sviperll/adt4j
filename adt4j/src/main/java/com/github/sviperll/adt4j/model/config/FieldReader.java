@@ -30,9 +30,10 @@
 package com.github.sviperll.adt4j.model.config;
 
 import com.github.sviperll.adt4j.Getter;
+import com.github.sviperll.adt4j.MemberAccess;
 import com.github.sviperll.adt4j.Updater;
 import com.github.sviperll.adt4j.model.util.Source;
-import com.github.sviperll.adt4j.MemberAccess;
+import com.helger.jcodemodel.AbstractJClass;
 import com.helger.jcodemodel.AbstractJType;
 import com.helger.jcodemodel.JAnnotationUse;
 import com.helger.jcodemodel.JMethod;
@@ -56,32 +57,38 @@ class FieldReader {
 
     void readGetter(JMethod interfaceMethod, JVar param, AbstractJType paramType, boolean isVarArg) {
         for (JAnnotationUse annotationUsage: param.annotations()) {
-            String annotationClassName = annotationUsage.getAnnotationClass().fullName();
-            if (annotationClassName != null && annotationClassName.equals(Getter.class.getName())) {
-                String getterName = annotationUsage.getParam("name", String.class);
-                if (getterName.equals(":auto"))
-                    getterName = param.name();
-                MemberAccess accessLevel = annotationUsage.getParam("access", MemberAccess.class);
-                boolean isNullable = Source.isNullable(param);
-                FieldFlags flags = new FieldFlags(isNullable, isVarArg, accessLevel);
-                FieldConfiguration configuration = new FieldConfiguration(getterName, paramType, flags);
-                read(interfaceMethod, param, configuration);
+            AbstractJClass annotationClass = annotationUsage.getAnnotationClass();
+            if (!annotationClass.isError()) {
+                String annotationClassName = annotationClass.fullName();
+                if (annotationClassName != null && annotationClassName.equals(Getter.class.getName())) {
+                    String getterName = annotationUsage.getParam("name", String.class);
+                    if (getterName.equals(":auto"))
+                        getterName = param.name();
+                    MemberAccess accessLevel = annotationUsage.getParam("access", MemberAccess.class);
+                    boolean isNullable = Source.isNullable(param);
+                    FieldFlags flags = new FieldFlags(isNullable, isVarArg, accessLevel);
+                    FieldConfiguration configuration = new FieldConfiguration(getterName, paramType, flags);
+                    read(interfaceMethod, param, configuration);
+                }
             }
         }
     }
 
     void readUpdater(JMethod interfaceMethod, JVar param, AbstractJType paramType, boolean isVarArg) {
         for (JAnnotationUse annotationUsage: param.annotations()) {
-            String annotationClassName = annotationUsage.getAnnotationClass().fullName();
-            if (annotationClassName != null && annotationClassName.equals(Updater.class.getName())) {
-                String updaterName = annotationUsage.getParam("name", String.class);
-                if (updaterName.equals(":auto"))
-                    updaterName = "with" + Source.capitalize(param.name());
-                MemberAccess accessLevel = annotationUsage.getParam("access", MemberAccess.class);
-                boolean isNullable = Source.isNullable(param);
-                FieldFlags flags = new FieldFlags(isNullable, isVarArg, accessLevel);
-                FieldConfiguration configuration = new FieldConfiguration(updaterName, paramType, flags);
-                read(interfaceMethod, param, configuration);
+            AbstractJClass annotationClass = annotationUsage.getAnnotationClass();
+            if (!annotationClass.isError()) {
+                String annotationClassName = annotationClass.fullName();
+                if (annotationClassName != null && annotationClassName.equals(Updater.class.getName())) {
+                    String updaterName = annotationUsage.getParam("name", String.class);
+                    if (updaterName.equals(":auto"))
+                        updaterName = "with" + Source.capitalize(param.name());
+                    MemberAccess accessLevel = annotationUsage.getParam("access", MemberAccess.class);
+                    boolean isNullable = Source.isNullable(param);
+                    FieldFlags flags = new FieldFlags(isNullable, isVarArg, accessLevel);
+                    FieldConfiguration configuration = new FieldConfiguration(updaterName, paramType, flags);
+                    read(interfaceMethod, param, configuration);
+                }
             }
         }
     }

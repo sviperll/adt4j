@@ -30,21 +30,16 @@
 package com.github.sviperll.adt4j.model.util;
 
 import com.github.sviperll.adt4j.MemberAccess;
-import com.helger.jcodemodel.AbstractJAnnotationValue;
+import com.helger.jcodemodel.AbstractJClass;
 import com.helger.jcodemodel.AbstractJType;
 import com.helger.jcodemodel.IJAnnotatable;
-import com.helger.jcodemodel.JAnnotationArrayMember;
-import com.helger.jcodemodel.JAnnotationStringValue;
 import com.helger.jcodemodel.JAnnotationUse;
 import com.helger.jcodemodel.JMod;
 import com.helger.jcodemodel.JTypeWildcard;
 import com.helger.jcodemodel.JVar;
 import java.lang.annotation.Annotation;
-import java.lang.reflect.Array;
 import java.text.MessageFormat;
-import java.util.Collection;
 import java.util.Collections;
-import java.util.Iterator;
 import java.util.Locale;
 
 /**
@@ -103,13 +98,16 @@ public class Source {
         boolean hasNonnull = false;
         boolean hasNullable = false;
         for (JAnnotationUse annotationUse: param.annotations()) {
-            String annotationClassName = annotationUse.getAnnotationClass().fullName();
-            if (annotationClassName != null) {
-                if (annotationClassName.equals("javax.annotation.Nonnull")) {
-                    hasNonnull = true;
-                }
-                if (annotationClassName.equals("javax.annotation.Nullable")) {
-                    hasNullable = true;
+            AbstractJClass annotationClass = annotationUse.getAnnotationClass();
+            if (!annotationClass.isError()) {
+                String annotationClassName = annotationClass.fullName();
+                if (annotationClassName != null) {
+                    if (annotationClassName.equals("javax.annotation.Nonnull")) {
+                        hasNonnull = true;
+                    }
+                    if (annotationClassName.equals("javax.annotation.Nullable")) {
+                        hasNullable = true;
+                    }
                 }
             }
         }
