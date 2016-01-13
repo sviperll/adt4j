@@ -40,6 +40,8 @@ import javax.annotation.ParametersAreNonnullByDefault;
 /**
  *
  * @author Victor Nazarov &lt;asviraspossible@gmail.com&gt;
+ * @param <T>
+ * @param <R>
  */
 @ParametersAreNonnullByDefault
 @GenerateValueClassForVisitor(wrapperClass = WrappedList.class, isComparable = true, isSerializable = true)

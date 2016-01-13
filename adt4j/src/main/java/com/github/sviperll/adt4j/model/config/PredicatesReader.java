@@ -47,7 +47,7 @@ class PredicatesReader {
     private final Map<String, PredicateConfigutation> predicates;
     private final List<String> errors;
 
-    public PredicatesReader(Map<String, PredicateConfigutation> predicates, List<String> errors) {
+    PredicatesReader(Map<String, PredicateConfigutation> predicates, List<String> errors) {
         this.predicates = predicates;
         this.errors = errors;
     }
@@ -78,8 +78,10 @@ class PredicatesReader {
                 read(interfaceMethod, predicateName, accessLevel);
             } else if (annotationClassName.equals(GeneratePredicates.class.getName())) {
                 JAnnotationUse[] annotations = annotationUsage.getParam("value", JAnnotationUse[].class);
-                for (JAnnotationUse annotation: annotations) {
-                    read(interfaceMethod, annotation);
+                if (annotations != null) {
+                    for (JAnnotationUse annotation: annotations) {
+                        read(interfaceMethod, annotation);
+                    }
                 }
             }
         }

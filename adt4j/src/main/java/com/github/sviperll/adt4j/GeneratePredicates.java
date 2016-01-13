@@ -49,7 +49,7 @@ import java.lang.annotation.Target;
 @Documented
 public @interface GeneratePredicates {
     /**
-     * List of predicates to generate.
+     * @return List of predicates to generate
      */
     GeneratePredicate[] value();
 }

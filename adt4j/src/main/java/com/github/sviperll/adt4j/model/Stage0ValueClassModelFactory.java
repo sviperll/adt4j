@@ -63,8 +63,11 @@ public class Stage0ValueClassModelFactory {
         JAnnotationUse annotation = null;
         for (JAnnotationUse anyAnnotation: bootModel.annotations()) {
             AbstractJClass annotationClass = anyAnnotation.getAnnotationClass();
-            if (!annotationClass.isError() && annotationClass.fullName().equals(GenerateValueClassForVisitor.class.getName()))
-                annotation = anyAnnotation;
+            if (!annotationClass.isError()) {
+                String fullName = annotationClass.fullName();
+                if (fullName != null && fullName.equals(GenerateValueClassForVisitor.class.getName()))
+                    annotation = anyAnnotation;
+            }
         }
         if (annotation == null)
             throw new IllegalStateException("ValueClassModelFactory can't be run for interface without " + GenerateValueClassForVisitor.class + " annotation");

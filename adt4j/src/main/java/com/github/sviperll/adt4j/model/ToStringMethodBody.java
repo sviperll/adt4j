@@ -45,7 +45,7 @@ class ToStringMethodBody {
     private final JBlock body;
     private final JVar result;
 
-    public ToStringMethodBody(Types types, JBlock body, JVar result) {
+    ToStringMethodBody(Types types, JBlock body, JVar result) {
         this.types = types;
         this.body = body;
         this.result = result;

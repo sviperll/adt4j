@@ -154,11 +154,7 @@ public class FinalValueClassModel {
     }
 
     private JDefinedClass buildFactoryClass(Map<String, JMethod> constructorMethods) throws JClassAlreadyExistsException {
-        JDefinedClass factoryClass = valueClass._class(JMod.PRIVATE | JMod.STATIC, valueClass.name() + "Factory", EClassType.CLASS);
-        for (JTypeVar visitorTypeParameter: visitorInterface.getValueTypeParameters()) {
-            JTypeVar typeParameter = factoryClass.generify(visitorTypeParameter.name());
-            typeParameter.boundLike(visitorTypeParameter);
-        }
+        JDefinedClass factoryClass = nestedClassWithValueTypeParameters(JMod.PRIVATE | JMod.STATIC, valueClass.name() + "Factory");
         AbstractJClass usedValueClassType = visitorInterface.wrapValueClass(valueClass).narrow(factoryClass.typeParams());
         factoryClass._implements(visitorInterface.narrowed(usedValueClassType, usedValueClassType, types._RuntimeException));
         for (JMethod interfaceMethod: visitorInterface.methods()) {
@@ -167,9 +163,7 @@ public class FinalValueClassModel {
             factoryMethod.annotate(Override.class);
 
             JMethod constructorMethod = constructorMethods.get(interfaceMethod.name());
-            JInvocation staticInvoke = valueClass.staticInvoke(constructorMethod);
-            for (JTypeVar typeArgument: factoryClass.typeParams())
-                staticInvoke.narrow(typeArgument);
+            JInvocation staticInvoke = Source.staticInvoke(valueClass, constructorMethod, factoryClass.typeParams());
             for (JVar param: interfaceMethod.params()) {
                 AbstractJType argumentType = Source.toDeclarable(visitorInterface.narrowType(param.type(), usedValueClassType, usedValueClassType, types._RuntimeException));
                 JVar argument = factoryMethod.param(param.mods().getValue(), argumentType, param.name());
@@ -196,11 +190,7 @@ public class FinalValueClassModel {
     }
 
     private JDefinedClass buildCaseClass(JMethod interfaceMethod, Serialization serialization) throws JClassAlreadyExistsException {
-        JDefinedClass caseClass = valueClass._class(JMod.PRIVATE | JMod.STATIC, Source.capitalize(interfaceMethod.name()) + "Case" + acceptingInterface.name());
-        for (JTypeVar visitorTypeParameter: acceptingInterface.typeParams()) {
-            JTypeVar typeParameter = caseClass.generify(visitorTypeParameter.name());
-            typeParameter.boundLike(visitorTypeParameter);
-        }
+        JDefinedClass caseClass = nestedClassWithValueTypeParameters(JMod.PRIVATE | JMod.STATIC, Source.capitalize(interfaceMethod.name()) + "Case" + acceptingInterface.name());
 
         AbstractJClass usedAcceptingInterfaceType = acceptingInterface.narrow(caseClass.typeParams());
         AbstractJClass usedValueClassType = visitorInterface.wrapValueClass(valueClass).narrow(caseClass.typeParams());
@@ -226,32 +216,8 @@ public class FinalValueClassModel {
             constructor.body().assign(JExpr._this().ref(field), argument);
         }
 
-        JMethod acceptMethod = caseClass.method(JMod.PUBLIC, types._void, visitorInterface.acceptMethodName());
-        acceptMethod.annotate(Override.class);
-
-        JTypeVar visitorResultType = visitorInterface.getResultTypeParameter();
-        AbstractJClass resultType;
-        if (visitorResultType == null)
-            resultType = types._Object;
-        else {
-            JTypeVar resultTypeVar = acceptMethod.generify(visitorResultType.name());
-            resultTypeVar.boundLike(visitorResultType);
-            resultType = resultTypeVar;
-        }
-        acceptMethod.type(resultType);
-
-        JTypeVar visitorExceptionType = visitorInterface.getExceptionTypeParameter();
-        JTypeVar exceptionType = null;
-        if (visitorExceptionType != null) {
-            JTypeVar exceptionTypeParameter = acceptMethod.generify(visitorExceptionType.name());
-            exceptionTypeParameter.boundLike(visitorExceptionType);
-            exceptionType = exceptionTypeParameter;
-            acceptMethod._throws(exceptionType);
-        }
-
-        AbstractJClass usedVisitorType = visitorInterface.narrowed(usedValueClassType, resultType, exceptionType);
-        acceptMethod.param(usedVisitorType, "visitor");
-        JInvocation invocation = JExpr.invoke(JExpr.ref("visitor"), interfaceMethod.name());
+        JMethod acceptMethod = declareAcceptMethod(caseClass, usedValueClassType);
+        JInvocation invocation = JExpr.invoke(acceptMethod.params().get(0), interfaceMethod.name());
         for (JVar param1: interfaceMethod.params()) {
             invocation.arg(JExpr._this().ref(param1.name()));
         }
@@ -262,6 +228,32 @@ public class FinalValueClassModel {
         acceptMethod.body()._return(invocation);
 
         return caseClass;
+    }
+
+    private JMethod declareAcceptMethod(JDefinedClass caseClass, AbstractJClass usedValueClassType) {
+        JMethod acceptMethod = caseClass.method(JMod.PUBLIC, types._void, visitorInterface.acceptMethodName());
+        acceptMethod.annotate(Override.class);
+        JTypeVar visitorResultType = visitorInterface.getResultTypeParameter();
+        AbstractJClass resultType;
+        if (visitorResultType == null)
+            resultType = types._Object;
+        else {
+            JTypeVar resultTypeVar = acceptMethod.generify(visitorResultType.name());
+            resultTypeVar.boundLike(visitorResultType);
+            resultType = resultTypeVar;
+        }
+        acceptMethod.type(resultType);
+        JTypeVar visitorExceptionType = visitorInterface.getExceptionTypeParameter();
+        JTypeVar exceptionType = null;
+        if (visitorExceptionType != null) {
+            JTypeVar exceptionTypeParameter = acceptMethod.generify(visitorExceptionType.name());
+            exceptionTypeParameter.boundLike(visitorExceptionType);
+            exceptionType = exceptionTypeParameter;
+            acceptMethod._throws(exceptionType);
+        }
+        AbstractJClass usedVisitorType = visitorInterface.narrowed(usedValueClassType, resultType, exceptionType);
+        acceptMethod.param(usedVisitorType, "visitor");
+        return acceptMethod;
     }
 
     private JFieldVar buildHashCodeCachedValueField(Serialization serialization) {
@@ -279,6 +271,15 @@ public class FinalValueClassModel {
                 return valueClass.field(mods, types._int, "hashCodeCachedValue");
             }
         }
+    }
+
+    private JDefinedClass nestedClassWithValueTypeParameters(int mods, String name) throws JClassAlreadyExistsException {
+        JDefinedClass result = valueClass._class(mods, name, EClassType.CLASS);
+        for (JTypeVar visitorTypeParameter: visitorInterface.getValueTypeParameters()) {
+            JTypeVar typeParameter = result.generify(visitorTypeParameter.name());
+            typeParameter.boundLike(visitorTypeParameter);
+        }
+        return result;
     }
 
     class MethodBuilder {

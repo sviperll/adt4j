@@ -137,7 +137,7 @@ class ValueVisitorTypeParameters {
                 AbstractJClass bound = substituteSpecialType(wildcard.bound(), selfType, resultType, exceptionType);
                 return bound.wildcard(wildcard.boundMode());
             } else {
-                List<AbstractJClass> typeArguments = new ArrayList<AbstractJClass>();
+                List<AbstractJClass> typeArguments = new ArrayList<>();
                 for (AbstractJClass originalArgument: type.getTypeParameters()) {
                     typeArguments.add(substituteSpecialType(originalArgument, selfType, resultType, exceptionType));
                 }

@@ -41,7 +41,7 @@ import java.util.TreeMap;
  * @author Victor Nazarov &lt;asviraspossible@gmail.com&gt;
  */
 public class FieldConfiguration {
-    private final Map<String, String> map = new TreeMap<String, String>();
+    private final Map<String, String> map = new TreeMap<>();
     private final AbstractJType type;
     private final String name;
     private FieldFlags flags;

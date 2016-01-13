@@ -64,7 +64,8 @@ public class ValueVisitorInterfaceModel {
         List<String> errors = new ArrayList<>();
         GenerationResult<ValueVisitorTypeParameters> typeParametersResult = createValueVisitorTypeParameters(jVisitorModel, visitorAnnotation);
         errors.addAll(typeParametersResult.errors());
-        GenerationResult<Map<String, JMethod>> methodsResult = createMethodMap(jVisitorModel, typeParametersResult.result());
+        ValueVisitorTypeParameters typeParameters = typeParametersResult.result();
+        GenerationResult<Map<String, JMethod>> methodsResult = createMethodMap(jVisitorModel, typeParameters);
         errors.addAll(methodsResult.errors());
         String acceptMethodName = annotation.getParam("acceptMethodName", String.class);
         MemberAccess acceptMethodAccess = annotation.getParam("acceptMethodAccess", MemberAccess.class);
@@ -73,7 +74,7 @@ public class ValueVisitorInterfaceModel {
         int hashCodeBase = annotation.getParam("hashCodeBase", Integer.class);
         boolean isComparable = annotation.getParam("isComparable", Boolean.class);
         Serialization serialization = serialization(annotation);
-        GenerationResult<ClassCustomization> classCustomization = classCustomization(annotation, jVisitorModel, valueClass);
+        GenerationResult<ClassCustomization> classCustomization = classCustomization(annotation, jVisitorModel, typeParameters, valueClass);
         errors.addAll(classCustomization.errors());
 
         AbstractJClass[] interfaces = annotation.getParam("implementsInterfaces", AbstractJClass[].class);
@@ -86,7 +87,7 @@ public class ValueVisitorInterfaceModel {
         return new GenerationResult<>(new ValueVisitorInterfaceModel(jVisitorModel, typeParametersResult.result(), methodsResult.result(), customiztion), errors);
     }
 
-    private static GenerationResult<ClassCustomization> classCustomization(JAnnotationUse annotation, JDefinedClass jVisitorModel, JDefinedClass valueClass) throws ClassCastException, NullPointerException {
+    private static GenerationResult<ClassCustomization> classCustomization(JAnnotationUse annotation, JDefinedClass jVisitorModel, ValueVisitorTypeParameters typeParameters, JDefinedClass valueClass) throws ClassCastException, NullPointerException {
         List<String> errors = new ArrayList<>();
         AbstractJClass extendsClass = annotation.getParam("extendsClass", AbstractJClass.class);
         AbstractJClass wrapperClass = annotation.getParam("wrapperClass", AbstractJClass.class);
@@ -110,31 +111,35 @@ public class ValueVisitorInterfaceModel {
             } else {
                 AbstractJClass extendedClass = wrapperClass._extends();
                 boolean extendedClassError = false;
-                if (extendedClass == null) {
-                    extendedClassError = true;
-                } else {
+                if (extendedClass != null) {
                     if (extendedClass.isError()) {
                         className = extendedClass.name();
                     } else {
-                        if (valueClass == null || !valueClass.fullName().equals(extendedClass.erasure().fullName())) {
+                        if (valueClass == null) {
                             extendedClassError = true;
                         } else {
-                            className = valueClass.name();
+                            String valueClassFullName = valueClass.fullName();
+                            if (valueClassFullName == null || !valueClassFullName.equals(extendedClass.erasure().fullName()))
+                                extendedClassError = true;
+                            else
+                                className = valueClass.name();
                         }
                     }
                 }
-                if (extendedClassError) {
+                if (extendedClass == null || extendedClassError) {
                     errors.add("Wrapper class should explicitly extend non-existing class, that class is to be generated");
                     className = autoClassName(jVisitorModel);
                 } else {
                     boolean typeParamsError = false;
                     List<? extends AbstractJClass> typeArguments = extendedClass.getTypeParameters();
-                    JTypeVar[] typeParameters = wrapperClass.typeParams();
-                    if (typeParameters.length != typeArguments.size())
+                    List<JTypeVar> generatedTypeParameters = typeParameters.getValueTypeParameters();
+                    JTypeVar[] wrapperTypeParameters = wrapperClass.typeParams();
+                    if (wrapperTypeParameters.length != typeArguments.size() || wrapperTypeParameters.length != generatedTypeParameters.size())
                         typeParamsError = true;
                     else {
-                        for (int i = 0; i < typeParameters.length; i++) {
-                            if (typeParameters[i] != typeArguments.get(i)) {
+                        for (int i = 0; i < wrapperTypeParameters.length; i++) {
+                            JTypeVar wrapperTypeParameter = wrapperTypeParameters[i];
+                            if (typeArguments.get(i) != wrapperTypeParameter) {
                                 typeParamsError = true;
                                 break;
                             }
@@ -207,11 +212,14 @@ public class ValueVisitorInterfaceModel {
         List<String> errors = new ArrayList<>();
         Map<String, JMethod> methods = new TreeMap<>();
         for (JMethod method: jVisitorModel.methods()) {
-            if (method.type().isError()) {
+            AbstractJType methodType = method.type();
+            if (methodType == null)
+                errors.add(MessageFormat.format("Visitor method result type is missing: {0}", method.name()));
+            else if (methodType.isError()) {
                 errors.add(MessageFormat.format("Visitor method result type is erroneous: {0}", method.name()));
             } else if (!typeParameters.isResult(method.type())) {
                 errors.add(MessageFormat.format("Visitor method is only allowed to return type declared as a result type of visitor: {0}: expecting {1}, found: {2}",
-                        method.name(), typeParameters.getResultTypeParameter().name(), method.type().fullName()));
+                        method.name(), typeParameters.getResultTypeParameter().name(), methodType.fullName()));
             }
 
             Collection<AbstractJClass> exceptions = method.getThrows();
@@ -289,8 +297,7 @@ public class ValueVisitorInterfaceModel {
         type = typeParameters.substituteSpecialType(type, selfType, resultType, exceptionType);
         List<? extends AbstractJClass> dataTypeArguments = usedDataType.getTypeParameters();
         int dataTypeIndex = 0;
-        for (int i = 0; i < visitorInterfaceModel.typeParams().length; i++) {
-            JTypeVar typeParameter = visitorInterfaceModel.typeParams()[i];
+        for (JTypeVar typeParameter : visitorInterfaceModel.typeParams()) {
             if (!typeParameters.isSpecial(typeParameter)) {
                 if (type == typeParameter)
                     return dataTypeArguments.get(dataTypeIndex);

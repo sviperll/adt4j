@@ -39,7 +39,7 @@ import java.util.TreeSet;
  * @author Victor Nazarov &lt;asviraspossible@gmail.com&gt;
  */
 public class PredicateConfigutation {
-    private final Set<String> cases = new TreeSet<String> ();
+    private final Set<String> cases = new TreeSet<> ();
     private final MemberAccess accessLevel;
     PredicateConfigutation(JMethod interfaceMethod, MemberAccess accessLevel) {
         this.accessLevel = accessLevel;

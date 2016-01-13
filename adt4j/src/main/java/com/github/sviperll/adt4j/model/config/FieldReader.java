@@ -62,7 +62,7 @@ class FieldReader {
                 String annotationClassName = annotationClass.fullName();
                 if (annotationClassName != null && annotationClassName.equals(Getter.class.getName())) {
                     String getterName = annotationUsage.getParam("name", String.class);
-                    if (getterName.equals(":auto"))
+                    if (getterName == null || getterName.equals(":auto"))
                         getterName = param.name();
                     MemberAccess accessLevel = annotationUsage.getParam("access", MemberAccess.class);
                     boolean isNullable = Source.isNullable(param);
@@ -81,7 +81,7 @@ class FieldReader {
                 String annotationClassName = annotationClass.fullName();
                 if (annotationClassName != null && annotationClassName.equals(Updater.class.getName())) {
                     String updaterName = annotationUsage.getParam("name", String.class);
-                    if (updaterName.equals(":auto"))
+                    if (updaterName == null || updaterName.equals(":auto"))
                         updaterName = "with" + Source.capitalize(param.name());
                     MemberAccess accessLevel = annotationUsage.getParam("access", MemberAccess.class);
                     boolean isNullable = Source.isNullable(param);

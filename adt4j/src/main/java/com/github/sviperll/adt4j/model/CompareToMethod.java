@@ -86,44 +86,56 @@ class CompareToMethod {
 
         void appendNotNullValue(AbstractJType type, IJExpression value1, IJExpression value2) {
             if (!type.isPrimitive() && !type.isArray()) {
-                JInvocation invocation = value1.invoke("compareTo");
-                invocation.arg(value2);
-                body.assign(resultVariable, invocation);
-                JConditional _if = body._if(resultVariable.ne(JExpr.lit(0)));
-                _if._then()._return(resultVariable);
+                appendNonnullComparable(value1, value2);
             } else if (type.isPrimitive()) {
-                IJExpression equalityCondition;
-                if (!type.name().equals("float") && !type.name().equals("doable")) {
-                    equalityCondition = value1.eq(value2);
-                } else {
-                    IJExpression epsilon = type.name().equals("float") ? FinalValueClassModel.FLOAT_EPSILON : FinalValueClassModel.DOUBLE_EPSILON;
-                    JInvocation invocation = types._Math.staticInvoke("abs");
-                    invocation.arg(value1.minus(value2));
-                    equalityCondition = invocation.lte(epsilon);
-                }
-                IJExpression condition = JOp.cond(equalityCondition, JExpr.lit(0), JOp.cond(value1.lt(value2), JExpr.lit(-1), JExpr.lit(1)));
-                body.assign(resultVariable, condition);
-                JConditional _if = body._if(resultVariable.ne(JExpr.lit(0)));
-                _if._then()._return(resultVariable);
+                appendPrimitive(type, value1, value2);
             } else if (type.isArray()) {
-                JInvocation invocation = types._Math.staticInvoke("min");
-                invocation.arg(value1.ref("length"));
-                invocation.arg(value2.ref("length"));
-                JVar length = body.decl(types._int, nameSource.get("length"), invocation);
-                VariableNameSource localNames = nameSource.forBlock();
-                JForLoop _for = body._for();
-                JVar i = _for.init(types._int, localNames.get("i"), JExpr.lit(0));
-                _for.test(i.lt(length));
-                _for.update(i.incr());
-                Body forBody = new Body(resultVariable, _for.body(), localNames);
-                if (type.elementType().isReference())
-                    forBody.appendNullableValue(type.elementType(), value1.component(i), value2.component(i));
-                else
-                    forBody.appendNotNullValue(type.elementType(), value1.component(i), value2.component(i));
-                appendNotNullValue(types._int, value1.ref("length"), value2.ref("length"));
+                appendNonnullArray(value1, value2, type);
             } else {
                 throw new IllegalStateException(MessageFormat.format("Unsupported type {0} when generating compareTo method!", type));
             }
+        }
+
+        private void appendNonnullArray(IJExpression value1, IJExpression value2, AbstractJType type) {
+            JInvocation invocation = types._Math.staticInvoke("min");
+            invocation.arg(value1.ref("length"));
+            invocation.arg(value2.ref("length"));
+            JVar length = body.decl(types._int, nameSource.get("length"), invocation);
+            VariableNameSource localNames = nameSource.forBlock();
+            JForLoop _for = body._for();
+            JVar i = _for.init(types._int, localNames.get("i"), JExpr.lit(0));
+            _for.test(i.lt(length));
+            _for.update(i.incr());
+            Body forBody = new Body(resultVariable, _for.body(), localNames);
+            if (type.elementType().isReference())
+                forBody.appendNullableValue(type.elementType(), value1.component(i), value2.component(i));
+            else
+                forBody.appendNotNullValue(type.elementType(), value1.component(i), value2.component(i));
+            appendNotNullValue(types._int, value1.ref("length"), value2.ref("length"));
+        }
+
+        private void appendPrimitive(AbstractJType type, IJExpression value1, IJExpression value2) {
+            IJExpression equalityCondition;
+            if (!type.name().equals("float") && !type.name().equals("doable")) {
+                equalityCondition = value1.eq(value2);
+            } else {
+                IJExpression epsilon = type.name().equals("float") ? FinalValueClassModel.FLOAT_EPSILON : FinalValueClassModel.DOUBLE_EPSILON;
+                JInvocation invocation = types._Math.staticInvoke("abs");
+                invocation.arg(value1.minus(value2));
+                equalityCondition = invocation.lte(epsilon);
+            }
+            IJExpression condition = JOp.cond(equalityCondition, JExpr.lit(0), JOp.cond(value1.lt(value2), JExpr.lit(-1), JExpr.lit(1)));
+            body.assign(resultVariable, condition);
+            JConditional _if = body._if(resultVariable.ne(JExpr.lit(0)));
+            _if._then()._return(resultVariable);
+        }
+
+        private void appendNonnullComparable(IJExpression value1, IJExpression value2) {
+            JInvocation invocation = value1.invoke("compareTo");
+            invocation.arg(value2);
+            body.assign(resultVariable, invocation);
+            JConditional _if = body._if(resultVariable.ne(JExpr.lit(0)));
+            _if._then()._return(resultVariable);
         }
     }
 

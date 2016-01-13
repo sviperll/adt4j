@@ -115,7 +115,7 @@ public @interface GenerateValueClassForVisitor {
      * <h3>Wrapper class with all required boilerplate and nothing else</h3>
      * <pre>
      * {@code
-     *     @WrapsValueClass(visitor=ListVisitor.class)
+     *     {@lit @}WrapsValueClass(visitor=ListVisitor.class)
      *     // Wrapper class should extend non-existent class.
      *     // This class will be automatically generated
      *     class List<T> extends ListBase<T> {
@@ -184,6 +184,7 @@ public @interface GenerateValueClassForVisitor {
      * <p>
      * {@code PRECOMPUTE} strategy can potentially speed up equals method
      *
+     * @return hashCode method caching strategy
      * @see Caching
      */
     Caching hashCodeCaching() default Caching.NONE;

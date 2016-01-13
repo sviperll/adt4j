@@ -38,7 +38,7 @@ import com.github.sviperll.adt4j.MemberAccess;
 class AcceptMethodCustomization {
     private final String acceptMethodName;
     private final MemberAccess acceptMethodAccessLevel;
-    public AcceptMethodCustomization(String acceptMethodName, MemberAccess acceptMethodAccessLevel) {
+    AcceptMethodCustomization(String acceptMethodName, MemberAccess acceptMethodAccessLevel) {
         this.acceptMethodName = acceptMethodName;
         this.acceptMethodAccessLevel = acceptMethodAccessLevel;
     }

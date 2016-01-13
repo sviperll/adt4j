@@ -45,7 +45,7 @@ class ClassCustomization {
     private final AbstractJClass wrapperClass;
     private final AbstractJClass extendsClass;
 
-    public ClassCustomization(String valueClassName, @Nullable AbstractJClass wrapperClass, AbstractJClass extendsClass) {
+    ClassCustomization(String valueClassName, @Nullable AbstractJClass wrapperClass, AbstractJClass extendsClass) {
         this.valueClassName = valueClassName;
         this.wrapperClass = wrapperClass;
         this.extendsClass = extendsClass;

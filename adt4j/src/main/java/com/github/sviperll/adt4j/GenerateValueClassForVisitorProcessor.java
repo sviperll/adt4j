@@ -50,7 +50,6 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 import java.util.TreeMap;
-import java.util.logging.Logger;
 import javax.annotation.processing.AbstractProcessor;
 import javax.annotation.processing.RoundEnvironment;
 import javax.annotation.processing.SupportedAnnotationTypes;
@@ -63,8 +62,30 @@ import javax.tools.Diagnostic;
 @SupportedAnnotationTypes("com.github.sviperll.adt4j.GenerateValueClassForVisitor")
 @SupportedSourceVersion(SourceVersion.RELEASE_7)
 public class GenerateValueClassForVisitorProcessor extends AbstractProcessor {
-    private static final Logger logger = Logger.getLogger(GenerateValueClassForVisitorProcessor.class.getName());
-    private static final DefaultVisitorImplementation DEFAULT_VISITOR_IMPLEMENTATION = new DefaultVisitorImplementation();
+    private static final Visitor DEFAULT_VISITOR_IMPLEMENTATION;
+    static {
+        DEFAULT_VISITOR_IMPLEMENTATION = new Visitor() {
+            @Override
+            public String resultVariableName() {
+                return "R";
+            }
+
+            @Override
+            public String exceptionVariableName() {
+                return ":none";
+            }
+
+            @Override
+            public String selfReferenceVariableName() {
+                return ":none";
+            }
+
+            @Override
+            public Class<? extends Annotation> annotationType() {
+                return Visitor.class;
+            }
+        };
+    }
 
     private final Set<String> remainingElements = new HashSet<>();
     private final Map<String, List<String>> errorMap = new TreeMap<>();
@@ -74,40 +95,9 @@ public class GenerateValueClassForVisitorProcessor extends AbstractProcessor {
                            RoundEnvironment roundEnv) {
         try {
             if (roundEnv.processingOver()) {
-                Set<TypeElement> elements = new HashSet<TypeElement>();
-                for (String path: remainingElements) {
-                    TypeElement typeElement = processingEnv.getElementUtils().getTypeElement(path);
-                    if (typeElement == null)
-                        processingEnv.getMessager().printMessage(Diagnostic.Kind.ERROR, "Unable to find type " + path);
-                    else
-                        elements.add(typeElement);
-                }
-                ElementProcessor elementProcessor = new ElementProcessor(elements, new JCodeModel());
-                elementProcessor.generateClasses();
-                elementProcessor.writeGeneratedCode();
-                for (Entry<String, List<String>> errors: errorMap.entrySet()) {
-                    TypeElement typeElement = processingEnv.getElementUtils().getTypeElement(errors.getKey());
-                    for (String error: errors.getValue()) {
-                        processingEnv.getMessager().printMessage(Diagnostic.Kind.ERROR, error, typeElement);
-                    }
-                }
+                finishProcessing();
             } else {
-                Set<TypeElement> elements = new HashSet<>();
-                for (Element element: roundEnv.getElementsAnnotatedWith(GenerateValueClassForVisitor.class)) {
-                    elements.add((TypeElement)element);
-                }
-                Set<String> elementsFromPreviousRound = new HashSet<>(remainingElements);
-                remainingElements.clear();
-                for (String path: elementsFromPreviousRound) {
-                    TypeElement typeElement = processingEnv.getElementUtils().getTypeElement(path);
-                    if (typeElement == null)
-                        remainingElements.add(path);
-                    else
-                        elements.add(typeElement);
-                }
-                ElementProcessor elementProcessor = new ElementProcessor(elements, new JCodeModel());
-                elementProcessor.generateClassesWithoutErrors();
-                elementProcessor.writeGeneratedCode();
+                processRound(roundEnv);
             }
         } catch (RuntimeException ex) {
             String message = "Unexpected exception."
@@ -117,6 +107,45 @@ public class GenerateValueClassForVisitorProcessor extends AbstractProcessor {
             processingEnv.getMessager().printMessage(Diagnostic.Kind.ERROR, message);
         }
         return true;
+    }
+
+    private void processRound(RoundEnvironment roundEnv) {
+        Set<TypeElement> elements = new HashSet<>();
+        for (Element element: roundEnv.getElementsAnnotatedWith(GenerateValueClassForVisitor.class)) {
+            elements.add((TypeElement)element);
+        }
+        Set<String> elementsFromPreviousRound = new HashSet<>(remainingElements);
+        remainingElements.clear();
+        for (String path: elementsFromPreviousRound) {
+            TypeElement typeElement = processingEnv.getElementUtils().getTypeElement(path);
+            if (typeElement == null)
+                remainingElements.add(path);
+            else
+                elements.add(typeElement);
+        }
+        ElementProcessor elementProcessor = new ElementProcessor(elements, new JCodeModel());
+        elementProcessor.generateClassesWithoutErrors();
+        elementProcessor.writeGeneratedCode();
+    }
+
+    private void finishProcessing() {
+        Set<TypeElement> elements = new HashSet<>();
+        for (String path: remainingElements) {
+            TypeElement typeElement = processingEnv.getElementUtils().getTypeElement(path);
+            if (typeElement == null)
+                processingEnv.getMessager().printMessage(Diagnostic.Kind.ERROR, "Unable to find type " + path);
+            else
+                elements.add(typeElement);
+        }
+        ElementProcessor elementProcessor = new ElementProcessor(elements, new JCodeModel());
+        elementProcessor.generateClasses();
+        elementProcessor.writeGeneratedCode();
+        for (Entry<String, List<String>> errors: errorMap.entrySet()) {
+            TypeElement typeElement = processingEnv.getElementUtils().getTypeElement(errors.getKey());
+            for (String error: errors.getValue()) {
+                processingEnv.getMessager().printMessage(Diagnostic.Kind.ERROR, error, typeElement);
+            }
+        }
     }
 
     private class ElementProcessor {
@@ -182,7 +211,7 @@ public class GenerateValueClassForVisitorProcessor extends AbstractProcessor {
                 } finally {
                     try {
                         writer.close();
-                    } catch (Exception ex) {
+                    } catch (IOException | RuntimeException ex) {
                         processingEnv.getMessager().printMessage(Diagnostic.Kind.WARNING, Throwables.render(ex));
                     }
                 }
@@ -255,27 +284,5 @@ public class GenerateValueClassForVisitorProcessor extends AbstractProcessor {
             return result;
         }
 
-    }
-
-    private static class DefaultVisitorImplementation implements Visitor {
-        @Override
-        public String resultVariableName() {
-            return "R";
-        }
-
-        @Override
-        public String exceptionVariableName() {
-            return ":none";
-        }
-
-        @Override
-        public String selfReferenceVariableName() {
-            return ":none";
-        }
-
-        @Override
-        public Class<? extends Annotation> annotationType() {
-            return Visitor.class;
-        }
     }
 }

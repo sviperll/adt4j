@@ -40,7 +40,7 @@ class APICustomization {
     private final boolean isValueClassPublic;
     private final AcceptMethodCustomization acceptMethod;
     private final InterfacesCustomization interfaces;
-    public APICustomization(boolean isValueClassPublic, AcceptMethodCustomization acceptMethod, InterfacesCustomization interfaces) {
+    APICustomization(boolean isValueClassPublic, AcceptMethodCustomization acceptMethod, InterfacesCustomization interfaces) {
         this.isValueClassPublic = isValueClassPublic;
         this.acceptMethod = acceptMethod;
         this.interfaces = interfaces;

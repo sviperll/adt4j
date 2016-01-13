@@ -89,49 +89,61 @@ class EqualsMethod {
 
     private void appendNotNullValue(AbstractJType type, IJExpression value1, IJExpression value2, boolean isLast) {
         if (!type.isPrimitive() && !type.isArray()) {
-            JInvocation invocation = value1.invoke("equals");
-            invocation.arg(value2);
-            if (isLast) {
-                body._return(invocation);
-            } else {
-                JConditional _if = body._if(invocation.not());
-                _if._then()._return(JExpr.FALSE);
-            }
+            appendNonnullObject(value1, value2, isLast);
         } else if (type.isArray()) {
-            appendNotNullValue(types._int, value1.ref("length"), value2.ref("length"));
-            VariableNameSource localNames = nameSource.forBlock();
-            JForLoop _for = body._for();
-            JVar i = _for.init(types._int, localNames.get("i"), JExpr.lit(0));
-            _for.test(i.lt(value1.ref("length")));
-            _for.update(i.incr());
-            EqualsMethod forBody = new EqualsMethod(types, _for.body(), localNames);
-            if (type.elementType().isReference())
-                forBody.appendNullableValue(type.elementType(), value1.component(i), value2.component(i));
-            else
-                forBody.appendNotNullValue(type.elementType(), value1.component(i), value2.component(i));
-            if (isLast)
-                body._return(JExpr.TRUE);
+            appendNonnullArray(value1, value2, type, isLast);
         } else if (type.isPrimitive()) {
-            IJExpression equalsCondition;
-            IJExpression notEqualsCondition;
-            if (!type.name().equals("float") && !type.name().equals("doable")) {
-                equalsCondition = value1.eq(value2);
-                notEqualsCondition = value1.ne(value2);
-            } else {
-                IJExpression epsilon = type.name().equals("float") ? FinalValueClassModel.FLOAT_EPSILON : FinalValueClassModel.DOUBLE_EPSILON;
-                JInvocation invocation = types._Math.staticInvoke("abs");
-                invocation.arg(value1.minus(value2));
-                equalsCondition = invocation.lte(epsilon);
-                notEqualsCondition = invocation.gt(epsilon);
-            }
-            if (isLast) {
-                body._return(equalsCondition);
-            } else {
-                JConditional _if = body._if(notEqualsCondition);
-                _if._then()._return(JExpr.FALSE);
-            }
+            appendNonnullPrimitive(type, value1, value2, isLast);
         } else {
             throw new IllegalStateException(MessageFormat.format("Unsupported type {0} when generating equals method!", type));
+        }
+    }
+
+    private void appendNonnullPrimitive(AbstractJType type, IJExpression value1, IJExpression value2, boolean isLast) {
+        IJExpression equalsCondition;
+        IJExpression notEqualsCondition;
+        if (!type.name().equals("float") && !type.name().equals("doable")) {
+            equalsCondition = value1.eq(value2);
+            notEqualsCondition = value1.ne(value2);
+        } else {
+            IJExpression epsilon = type.name().equals("float") ? FinalValueClassModel.FLOAT_EPSILON : FinalValueClassModel.DOUBLE_EPSILON;
+            JInvocation invocation = types._Math.staticInvoke("abs");
+            invocation.arg(value1.minus(value2));
+            equalsCondition = invocation.lte(epsilon);
+            notEqualsCondition = invocation.gt(epsilon);
+        }
+        if (isLast) {
+            body._return(equalsCondition);
+        } else {
+            JConditional _if = body._if(notEqualsCondition);
+            _if._then()._return(JExpr.FALSE);
+        }
+    }
+
+    private void appendNonnullArray(IJExpression value1, IJExpression value2, AbstractJType type, boolean isLast) {
+        appendNotNullValue(types._int, value1.ref("length"), value2.ref("length"));
+        VariableNameSource localNames = nameSource.forBlock();
+        JForLoop _for = body._for();
+        JVar i = _for.init(types._int, localNames.get("i"), JExpr.lit(0));
+        _for.test(i.lt(value1.ref("length")));
+        _for.update(i.incr());
+        EqualsMethod forBody = new EqualsMethod(types, _for.body(), localNames);
+        if (type.elementType().isReference())
+            forBody.appendNullableValue(type.elementType(), value1.component(i), value2.component(i));
+        else
+            forBody.appendNotNullValue(type.elementType(), value1.component(i), value2.component(i));
+        if (isLast)
+            body._return(JExpr.TRUE);
+    }
+
+    private void appendNonnullObject(IJExpression value1, IJExpression value2, boolean isLast) {
+        JInvocation invocation = value1.invoke("equals");
+        invocation.arg(value2);
+        if (isLast) {
+            body._return(invocation);
+        } else {
+            JConditional _if = body._if(invocation.not());
+            _if._then()._return(JExpr.FALSE);
         }
     }
 

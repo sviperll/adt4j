@@ -34,6 +34,7 @@ import java.util.List;
 /**
  *
  * @author vir
+ * @param <T>
  */
 public class GenerationResult<T> {
     private final List<String> errors;
