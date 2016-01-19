@@ -32,6 +32,7 @@ package com.github.sviperll.adt4j.model.config;
 import com.github.sviperll.adt4j.Caching;
 import com.github.sviperll.adt4j.MemberAccess;
 import com.github.sviperll.adt4j.Visitor;
+import com.github.sviperll.adt4j.WrapsGeneratedValueClass;
 import com.github.sviperll.adt4j.model.util.GenerationProcess;
 import com.github.sviperll.adt4j.model.util.GenerationResult;
 import com.github.sviperll.adt4j.model.util.Source;
@@ -103,6 +104,23 @@ public class ValueVisitorInterfaceModel {
                 className = autoClassName(jVisitorModel);
             }
         } else {
+            AbstractJClass wrapperClassErasure = wrapperClass.erasure();
+            if (wrapperClassErasure instanceof JDefinedClass) {
+                JDefinedClass definition = (JDefinedClass)wrapperClassErasure;
+                JAnnotationUse wrapsGeneratedAnnotation = null;
+                for (JAnnotationUse wrapperAnnotaion: definition.annotations()) {
+                    if (wrapperAnnotaion.getAnnotationClass().erasure().fullName().equals(WrapsGeneratedValueClass.class.getName())) {
+                        wrapsGeneratedAnnotation = wrapperAnnotaion;
+                    }
+                }
+                if (wrapsGeneratedAnnotation == null)
+                    generation.reportError(MessageFormat.format("Wrapper class should be annotated with @{0} annotation.", com.github.sviperll.adt4j.WrapsGeneratedValueClass.class.getName()));
+                else {
+                    AbstractJClass visitor = wrapsGeneratedAnnotation.getParam("visitor", AbstractJClass.class);
+                    if (visitor == null || !visitor.fullName().equals(jVisitorModel.fullName()))
+                        generation.reportError("@" + WrapsGeneratedValueClass.class.getName() + " annotation should have " + jVisitorModel.fullName() + " as visitor argument");
+                }
+            }
             if (!className.equals(":auto")) {
                 generation.reportError("You shouldn't define className when wrapperClass is used. Generated class name is derived from wrapper class' extends clause.");
             } else {

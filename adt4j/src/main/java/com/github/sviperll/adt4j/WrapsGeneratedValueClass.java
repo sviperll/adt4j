@@ -43,6 +43,6 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.SOURCE)
 @Target(ElementType.TYPE)
 @Documented
-public @interface WrapsValueClass {
+public @interface WrapsGeneratedValueClass {
     Class<?> visitor();
 }

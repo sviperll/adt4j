@@ -30,14 +30,14 @@
 
 package com.github.sviperll.adt4j.examples;
 
-import com.github.sviperll.adt4j.WrapsValueClass;
+import com.github.sviperll.adt4j.WrapsGeneratedValueClass;
 import java.io.Serializable;
 
 /**
  *
  * @author Victor Nazarov &lt;asviraspossible@gmail.com&gt;
  */
-@WrapsValueClass(visitor = WrappedListVisitor.class)
+@WrapsGeneratedValueClass(visitor = WrappedListVisitor.class)
 public class WrappedList<T extends Comparable<? super T> & Serializable> extends WrappedListBase<T> {
 
     private static final long serialVersionUID = 1L;
