@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015, Victor Nazarov <asviraspossible@gmail.com>
+ * Copyright (c) 2016, Victor Nazarov &lt;asviraspossible@gmail.com&gt;
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -27,34 +27,30 @@
  *  (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
  *  EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+
 package com.github.sviperll.adt4j.model.config;
 
-import com.github.sviperll.adt4j.Caching;
+import javax.annotation.ParametersAreNonnullByDefault;
 
 /**
  *
  * @author Victor Nazarov &lt;asviraspossible@gmail.com&gt;
  */
-class ImplementationCustomization {
-    private final int hashCodeBase;
-    private final Caching hashCodeCaching;
-    private final FloatCustomization floatCustomization;
+@ParametersAreNonnullByDefault
+public class FloatCustomization {
 
-    ImplementationCustomization(Caching hashCodeCaching, int hashCodeBase, FloatCustomization floatCustomization) {
-        this.hashCodeBase = hashCodeBase;
-        this.hashCodeCaching = hashCodeCaching;
-        this.floatCustomization = floatCustomization;
+    private final float floatEpsilon;
+    private final double doubleEpsilon;
+    FloatCustomization(float floatEpsilon, double doubleEpsilon) {
+        this.floatEpsilon = floatEpsilon;
+        this.doubleEpsilon = doubleEpsilon;
     }
 
-    Caching hashCodeCaching() {
-        return hashCodeCaching;
+    public float floatEpsilon() {
+        return floatEpsilon;
     }
 
-    int hashCodeBase() {
-        return hashCodeBase;
-    }
-
-    FloatCustomization floatCustomization() {
-        return floatCustomization;
+    public double doubleEpsilon() {
+        return doubleEpsilon;
     }
 }

@@ -65,9 +65,6 @@ import java.util.Map;
 import java.util.TreeMap;
 
 public class FinalValueClassModel {
-    static final IJExpression FLOAT_EPSILON = JExpr.lit(0.000001f);
-    static final IJExpression DOUBLE_EPSILON = JExpr.lit(0.000000000001);
-
     static FinalValueClassModel createErrorModel(JDefinedClass valueClass, ValueVisitorInterfaceModel visitorInterface, Types types) {
         return new FinalValueClassModel(valueClass, null, visitorInterface, types, true);
     }
@@ -843,7 +840,7 @@ public class FinalValueClassModel {
                         nameSource = new VariableNameSource();
 
                         boolean isSameCase = interfaceMethod1.name().equals(interfaceMethod2.name());
-                        EqualsMethod body = new EqualsMethod(types, equalsCaseMethod.body(), nameSource);
+                        EqualsMethod body = new EqualsMethod(types, equalsCaseMethod.body(), nameSource, visitorInterface.floatCustomization());
 
                         int i = 0;
                         boolean generatedReturn = false;
@@ -946,7 +943,7 @@ public class FinalValueClassModel {
                         nameSource = new VariableNameSource();
 
                         boolean isSameCase = interfaceMethod1Index == interfaceMethod2Index;
-                        CompareToMethod compareToMethodModel = new CompareToMethod(types, compareToCaseMethod.body(), nameSource);
+                        CompareToMethod compareToMethodModel = new CompareToMethod(types, compareToCaseMethod.body(), nameSource, visitorInterface.floatCustomization());
                         CompareToMethod.Body body = null;
 
                         JVar varParam = interfaceMethod1.varParam();

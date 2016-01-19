@@ -72,6 +72,9 @@ public class ValueVisitorInterfaceModel {
         Caching hashCodeCaching = annotation.getParam("hashCodeCaching", Caching.class);
         int hashCodeBase = annotation.getParam("hashCodeBase", Integer.class);
         boolean isComparable = annotation.getParam("isComparable", Boolean.class);
+        float floatEpsilon = annotation.getParam("floatEpsilon", Float.class);
+        double doubleEpsilon = annotation.getParam("doubleEpsilon", Double.class);
+        FloatCustomization floatCustomization = new FloatCustomization(floatEpsilon, doubleEpsilon);
         Serialization serialization = serialization(annotation);
         ClassCustomization classCustomization = generation.processGenerationResult(classCustomization(annotation, jVisitorModel, typeParameters, valueClass));
 
@@ -80,7 +83,7 @@ public class ValueVisitorInterfaceModel {
         AcceptMethodCustomization acceptMethodCustomization = new AcceptMethodCustomization(acceptMethodName, acceptMethodAccess);
         InterfacesCustomization interfaceCustomization = new InterfacesCustomization(isComparable, serialization, interfaces);
         APICustomization apiCustomization = new APICustomization(isPublic, acceptMethodCustomization, interfaceCustomization);
-        ImplementationCustomization implementationCustomization = new ImplementationCustomization(hashCodeCaching, hashCodeBase);
+        ImplementationCustomization implementationCustomization = new ImplementationCustomization(hashCodeCaching, hashCodeBase, floatCustomization);
         Customization customiztion = new Customization(classCustomization, apiCustomization, implementationCustomization);
         return generation.createGenerationResult(new ValueVisitorInterfaceModel(jVisitorModel, typeParameters, methods, customiztion));
     }
@@ -475,6 +478,10 @@ public class ValueVisitorInterfaceModel {
     public boolean wraps() {
         AbstractJClass wrapperClass = customization.wrapperClass();
         return wrapperClass != null;
+    }
+
+    public FloatCustomization floatCustomization() {
+        return customization.floatCustomization();
     }
 
 

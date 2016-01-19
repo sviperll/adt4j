@@ -29,6 +29,7 @@
  */
 package com.github.sviperll.adt4j.model;
 
+import com.github.sviperll.adt4j.model.config.FloatCustomization;
 import com.github.sviperll.adt4j.model.util.Types;
 import com.github.sviperll.adt4j.model.util.VariableNameSource;
 import com.helger.jcodemodel.AbstractJType;
@@ -49,11 +50,13 @@ class EqualsMethod {
     private final Types types;
     private final JBlock body;
     private final VariableNameSource nameSource;
+    private final FloatCustomization floatCustomization;
 
-    EqualsMethod(Types types, JBlock body, VariableNameSource nameSource) {
+    EqualsMethod(Types types, JBlock body, VariableNameSource nameSource, FloatCustomization floatCustomization) {
         this.types = types;
         this.body = body;
         this.nameSource = nameSource;
+        this.floatCustomization = floatCustomization;
     }
 
     void appendNullableValueAndReturn(AbstractJType type, IJExpression value1, IJExpression value2) {
@@ -62,7 +65,7 @@ class EqualsMethod {
         } else {
             JConditional _if = body._if(value1.eq(JExpr._null()));
             _if._then()._return(value2.eq(JExpr._null()));
-            EqualsMethod innerBody = new EqualsMethod(types, _if._else(), nameSource);
+            EqualsMethod innerBody = new EqualsMethod(types, _if._else(), nameSource, floatCustomization);
             innerBody.appendNotNullValueAndReturn(type, value1, value2);
         }
     }
@@ -74,7 +77,7 @@ class EqualsMethod {
             JConditional _if = body._if(value1.eq(JExpr._null()));
             JConditional _if1 = _if._then()._if(value2.ne(JExpr._null()));
             _if1._then()._return(JExpr.FALSE);
-            EqualsMethod innerBody = new EqualsMethod(types, _if._else(), nameSource);
+            EqualsMethod innerBody = new EqualsMethod(types, _if._else(), nameSource, floatCustomization);
             innerBody.appendNotNullValue(type, value1, value2);
         }
     }
@@ -106,7 +109,7 @@ class EqualsMethod {
             equalsCondition = value1.eq(value2);
             notEqualsCondition = value1.ne(value2);
         } else {
-            IJExpression epsilon = type.name().equals("float") ? FinalValueClassModel.FLOAT_EPSILON : FinalValueClassModel.DOUBLE_EPSILON;
+            IJExpression epsilon = type.name().equals("float") ? JExpr.lit(floatCustomization.floatEpsilon()) : JExpr.lit(floatCustomization.doubleEpsilon());
             JInvocation invocation = types._Math.staticInvoke("abs");
             invocation.arg(value1.minus(value2));
             equalsCondition = invocation.lte(epsilon);
@@ -127,7 +130,7 @@ class EqualsMethod {
         JVar i = _for.init(types._int, localNames.get("i"), JExpr.lit(0));
         _for.test(i.lt(value1.ref("length")));
         _for.update(i.incr());
-        EqualsMethod forBody = new EqualsMethod(types, _for.body(), localNames);
+        EqualsMethod forBody = new EqualsMethod(types, _for.body(), localNames, floatCustomization);
         if (type.elementType().isReference())
             forBody.appendNullableValue(type.elementType(), value1.component(i), value2.component(i));
         else

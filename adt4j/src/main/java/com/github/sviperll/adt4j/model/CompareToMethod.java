@@ -29,6 +29,7 @@
  */
 package com.github.sviperll.adt4j.model;
 
+import com.github.sviperll.adt4j.model.config.FloatCustomization;
 import com.github.sviperll.adt4j.model.util.Types;
 import com.github.sviperll.adt4j.model.util.VariableNameSource;
 import com.helger.jcodemodel.AbstractJType;
@@ -50,11 +51,13 @@ class CompareToMethod {
     private final Types types;
     private final JBlock methodBody;
     private final VariableNameSource methodNameSource;
+    private final FloatCustomization floatCustomization;
 
-    CompareToMethod(Types types, JBlock methodBody, VariableNameSource methodNameSource) {
+    CompareToMethod(Types types, JBlock methodBody, VariableNameSource methodNameSource, FloatCustomization floatCustomization) {
         this.types = types;
         this.methodBody = methodBody;
         this.methodNameSource = methodNameSource;
+        this.floatCustomization = floatCustomization;
     }
 
     CompareToMethod.Body createBody() {
@@ -119,7 +122,7 @@ class CompareToMethod {
             if (!type.name().equals("float") && !type.name().equals("doable")) {
                 equalityCondition = value1.eq(value2);
             } else {
-                IJExpression epsilon = type.name().equals("float") ? FinalValueClassModel.FLOAT_EPSILON : FinalValueClassModel.DOUBLE_EPSILON;
+                IJExpression epsilon = type.name().equals("float") ? JExpr.lit(floatCustomization.floatEpsilon()) : JExpr.lit(floatCustomization.doubleEpsilon());
                 JInvocation invocation = types._Math.staticInvoke("abs");
                 invocation.arg(value1.minus(value2));
                 equalityCondition = invocation.lte(epsilon);

@@ -111,4 +111,8 @@ class Customization {
     AbstractJClass wrapperClass() {
         return classCustomization.wrapperClass();
     }
+
+    FloatCustomization floatCustomization() {
+        return implementation.floatCustomization();
+    }
 }

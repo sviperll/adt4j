@@ -213,4 +213,9 @@ public @interface GenerateValueClassForVisitor {
      * @return serialVersionUID value for generated serializable class.
      */
     long serialVersionUID() default 1L;
+
+    float floatEpsilon() default 0.000001f;
+    double doubleEpsilon() default 0.000000000001;
+
+
 }
