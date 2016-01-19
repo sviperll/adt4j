@@ -32,6 +32,8 @@ package com.github.sviperll.adt4j.model.config;
 import com.github.sviperll.adt4j.Getter;
 import com.github.sviperll.adt4j.MemberAccess;
 import com.github.sviperll.adt4j.Updater;
+import com.github.sviperll.adt4j.model.util.GenerationProcess;
+import com.github.sviperll.adt4j.model.util.GenerationResult;
 import com.github.sviperll.adt4j.model.util.Source;
 import com.helger.jcodemodel.AbstractJClass;
 import com.helger.jcodemodel.AbstractJType;
@@ -48,14 +50,13 @@ import java.util.Map;
  */
 class FieldReader {
     private final Map<String, FieldConfiguration> fieldMap;
-    private final List<String> errors;
 
-    FieldReader(Map<String, FieldConfiguration> gettersMap, List<String> errors) {
+    FieldReader(Map<String, FieldConfiguration> gettersMap) {
         this.fieldMap = gettersMap;
-        this.errors = errors;
     }
 
-    void readGetter(JMethod interfaceMethod, JVar param, AbstractJType paramType, boolean isVarArg) {
+    GenerationResult<Void> readGetter(JMethod interfaceMethod, JVar param, AbstractJType paramType, boolean isVarArg) {
+        GenerationProcess generation = new GenerationProcess();
         for (JAnnotationUse annotationUsage: param.annotations()) {
             AbstractJClass annotationClass = annotationUsage.getAnnotationClass();
             if (!annotationClass.isError()) {
@@ -68,13 +69,15 @@ class FieldReader {
                     boolean isNullable = Source.isNullable(param);
                     FieldFlags flags = new FieldFlags(isNullable, isVarArg, accessLevel);
                     FieldConfiguration configuration = new FieldConfiguration(getterName, paramType, flags);
-                    read(interfaceMethod, param, configuration);
+                    generation.processGenerationResult(read(interfaceMethod, param, configuration));
                 }
             }
         }
+        return generation.<Void>createGenerationResult(null);
     }
 
-    void readUpdater(JMethod interfaceMethod, JVar param, AbstractJType paramType, boolean isVarArg) {
+    GenerationResult<Void> readUpdater(JMethod interfaceMethod, JVar param, AbstractJType paramType, boolean isVarArg) {
+        GenerationProcess generation = new GenerationProcess();
         for (JAnnotationUse annotationUsage: param.annotations()) {
             AbstractJClass annotationClass = annotationUsage.getAnnotationClass();
             if (!annotationClass.isError()) {
@@ -87,13 +90,15 @@ class FieldReader {
                     boolean isNullable = Source.isNullable(param);
                     FieldFlags flags = new FieldFlags(isNullable, isVarArg, accessLevel);
                     FieldConfiguration configuration = new FieldConfiguration(updaterName, paramType, flags);
-                    read(interfaceMethod, param, configuration);
+                    generation.processGenerationResult(read(interfaceMethod, param, configuration));
                 }
             }
         }
+        return generation.<Void>createGenerationResult(null);
     }
 
-    private void read(JMethod interfaceMethod, JVar param, FieldConfiguration configuration) {
+    GenerationResult<Void> read(JMethod interfaceMethod, JVar param, FieldConfiguration configuration) {
+        GenerationProcess generation = new GenerationProcess();
         FieldConfiguration existingConfiguration = fieldMap.get(configuration.name());
         if (existingConfiguration == null) {
             existingConfiguration = configuration;
@@ -102,8 +107,9 @@ class FieldReader {
         try {
             existingConfiguration.merge(interfaceMethod, param.name(), configuration);
         } catch (FieldConfigurationException ex) {
-            errors.add(MessageFormat.format("Unable to configure {0} getter: {1}", configuration.name(), ex.getMessage()));
+            generation.reportError(MessageFormat.format("Unable to configure {0} getter: {1}", configuration.name(), ex.getMessage()));
         }
+        return generation.<Void>createGenerationResult(null);
     }
 
 }

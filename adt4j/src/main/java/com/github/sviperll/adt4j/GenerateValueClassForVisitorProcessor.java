@@ -33,7 +33,7 @@ import com.github.sviperll.Throwables;
 import com.github.sviperll.adt4j.model.Stage0ValueClassModel;
 import com.github.sviperll.adt4j.model.Stage0ValueClassModelFactory;
 import com.github.sviperll.adt4j.model.Stage1ValueClassModel;
-import com.github.sviperll.adt4j.model.util.GenerationResult;
+import com.github.sviperll.adt4j.model.util.GenerationProcess;
 import com.github.sviperll.meta.FilerCodeWriter;
 import com.helger.jcodemodel.JCodeModel;
 import com.helger.jcodemodel.JDefinedClass;
@@ -245,7 +245,7 @@ public class GenerateValueClassForVisitorProcessor extends AbstractProcessor {
         private Map<String, Stage1ValueClassModel> processStage1(Map<String, Stage0ValueClassModel> stage0Results) throws RuntimeException {
             Map<String, Stage1ValueClassModel> result = new TreeMap<>();
             for (TypeElement element: elements) {
-                List<String> errors = new ArrayList<>();
+                GenerationProcess generation = new GenerationProcess();
                 Visitor visitorAnnotation = element.getAnnotation(Visitor.class);
                 if (visitorAnnotation == null) {
                     visitorAnnotation = DEFAULT_VISITOR_IMPLEMENTATION;
@@ -259,11 +259,10 @@ public class GenerateValueClassForVisitorProcessor extends AbstractProcessor {
                 }
 
                 Stage0ValueClassModel stage0Model = stage0Results.get(element.getQualifiedName().toString());
-                GenerationResult<Stage1ValueClassModel> model = stage0Model.createStage1Model(visitorModel, visitorAnnotation);
-                errors.addAll(model.errors());
-                errorMap.put(element.getQualifiedName().toString(), errors);
-                if (model.result() != null)
-                    result.put(element.getQualifiedName().toString(), model.result());
+                Stage1ValueClassModel model = generation.processGenerationResult(stage0Model.createStage1Model(visitorModel, visitorAnnotation));
+                errorMap.put(element.getQualifiedName().toString(), generation.reportedErrors());
+                if (model != null)
+                    result.put(element.getQualifiedName().toString(), model);
             }
             return result;
         }
@@ -271,14 +270,13 @@ public class GenerateValueClassForVisitorProcessor extends AbstractProcessor {
         private Map<String, TypeElement> processStage2(Map<String, Stage1ValueClassModel> stage1Results) {
             Map<String, TypeElement> result = new TreeMap<>();
             for (TypeElement element: elements) {
-                List<String> errors = new ArrayList<>();
-                errors.addAll(errorMap.get(element.getQualifiedName().toString()));
+                GenerationProcess generation = new GenerationProcess();
+                generation.reportAllErrors(errorMap.get(element.getQualifiedName().toString()));
                 Stage1ValueClassModel stage1Model = stage1Results.get(element.getQualifiedName().toString());
                 if (stage1Model != null) {
-                    GenerationResult<JDefinedClass> model = stage1Model.createResult();
-                    errors.addAll(model.errors());
-                    errorMap.put(element.getQualifiedName().toString(), errors);
-                    result.put(model.result().fullName(), element);
+                    JDefinedClass model = generation.processGenerationResult(stage1Model.createResult());
+                    errorMap.put(element.getQualifiedName().toString(), generation.reportedErrors());
+                    result.put(model.fullName(), element);
                 }
             }
             return result;

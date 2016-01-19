@@ -33,6 +33,8 @@ import com.github.sviperll.adt4j.GeneratePredicate;
 import com.github.sviperll.adt4j.GeneratePredicates;
 import com.github.sviperll.adt4j.model.util.Source;
 import com.github.sviperll.adt4j.MemberAccess;
+import com.github.sviperll.adt4j.model.util.GenerationProcess;
+import com.github.sviperll.adt4j.model.util.GenerationResult;
 import com.helger.jcodemodel.JAnnotationUse;
 import com.helger.jcodemodel.JMethod;
 import java.text.MessageFormat;
@@ -45,14 +47,13 @@ import java.util.Map;
  */
 class PredicatesReader {
     private final Map<String, PredicateConfigutation> predicates;
-    private final List<String> errors;
 
-    PredicatesReader(Map<String, PredicateConfigutation> predicates, List<String> errors) {
+    PredicatesReader(Map<String, PredicateConfigutation> predicates) {
         this.predicates = predicates;
-        this.errors = errors;
     }
 
-    private void read(JMethod interfaceMethod, String predicateName, MemberAccess accessLevel) {
+    private GenerationResult<Void> read(JMethod interfaceMethod, String predicateName, MemberAccess accessLevel) {
+        GenerationProcess generation = new GenerationProcess();
         if (predicateName.equals(":auto")) {
             predicateName = "is" + Source.capitalize(interfaceMethod.name());
         }
@@ -64,27 +65,30 @@ class PredicatesReader {
         try {
             existingConfiguration.put(interfaceMethod, accessLevel);
         } catch (PredicateConfigurationException ex) {
-            errors.add(MessageFormat.format("Unable to generate {0} predicate: inconsistent access levels: {1}",
+            generation.reportError(MessageFormat.format("Unable to generate {0} predicate: inconsistent access levels: {1}",
                                                            predicateName, ex.getMessage()));
         }
+        return generation.createGenerationResult(null);
     }
 
-    void read(JMethod interfaceMethod, JAnnotationUse annotationUsage) {
+    GenerationResult<Void> read(JMethod interfaceMethod, JAnnotationUse annotationUsage) {
+        GenerationProcess generation = new GenerationProcess();
         String annotationClassName = annotationUsage.getAnnotationClass().fullName();
         if (annotationClassName != null) {
             if (annotationClassName.equals(GeneratePredicate.class.getName())) {
                 String predicateName = annotationUsage.getParam("name", String.class);
                 MemberAccess accessLevel = annotationUsage.getParam("access", MemberAccess.class);
-                read(interfaceMethod, predicateName, accessLevel);
+                generation.processGenerationResult(read(interfaceMethod, predicateName, accessLevel));
             } else if (annotationClassName.equals(GeneratePredicates.class.getName())) {
                 JAnnotationUse[] annotations = annotationUsage.getParam("value", JAnnotationUse[].class);
                 if (annotations != null) {
                     for (JAnnotationUse annotation: annotations) {
-                        read(interfaceMethod, annotation);
+                        generation.processGenerationResult(read(interfaceMethod, annotation));
                     }
                 }
             }
         }
+        return generation.createGenerationResult(null);
     }
 
 }

@@ -32,6 +32,7 @@ package com.github.sviperll.adt4j.model;
 import com.github.sviperll.adt4j.model.config.FieldConfiguration;
 import com.github.sviperll.adt4j.model.config.PredicateConfigutation;
 import com.github.sviperll.adt4j.model.config.ValueVisitorInterfaceModel;
+import com.github.sviperll.adt4j.model.util.GenerationProcess;
 import com.github.sviperll.adt4j.model.util.GenerationResult;
 import com.github.sviperll.adt4j.model.util.Types;
 import com.helger.jcodemodel.AbstractJClass;
@@ -64,23 +65,15 @@ public class Stage1ValueClassModel {
     }
     
     public GenerationResult<JDefinedClass> createResult() {
-        List<String> errors = new ArrayList<>();
-        errors.addAll(validateInterfaces());
+        GenerationProcess generation = new GenerationProcess();
+        generation.reportAllErrors(validateInterfaces());
         
-        GenerationResult<Map<String, FieldConfiguration>> gettersConfigutationResult = visitorInterface.getGettersConfigutation(valueClass, types);
-        errors.addAll(gettersConfigutationResult.errors());
-        Map<String, FieldConfiguration> gettersConfigutation = gettersConfigutationResult.result();
-
-        GenerationResult<Map<String, FieldConfiguration>> updatersConfigurationResult = visitorInterface.getUpdatersConfiguration(valueClass, types);
-        errors.addAll(updatersConfigurationResult.errors());
-        Map<String, FieldConfiguration> updatersConfiguration = updatersConfigurationResult.result();
-
-        GenerationResult<Map<String, PredicateConfigutation>> predicatesResult = visitorInterface.getPredicates();
-        errors.addAll(predicatesResult.errors());
-        Map<String, PredicateConfigutation> predicates = predicatesResult.result();
+        Map<String, FieldConfiguration> gettersConfigutation = generation.processGenerationResult(visitorInterface.getGettersConfigutation(valueClass, types));
+        Map<String, FieldConfiguration> updatersConfiguration = generation.processGenerationResult(visitorInterface.getUpdatersConfiguration(valueClass, types));
+        Map<String, PredicateConfigutation> predicates = generation.processGenerationResult(visitorInterface.getPredicates());
 
         FinalValueClassModel result;
-        if (!errors.isEmpty()) {
+        if (generation.hasErrors()) {
             result = FinalValueClassModel.createErrorModel(valueClass, visitorInterface, types);
         } else {
             JDefinedClass acceptingInterface;
@@ -124,23 +117,23 @@ public class Stage1ValueClassModel {
             throw new RuntimeException("Unexpected exception :)", ex);
         }
 
-        return new GenerationResult<>(valueClass, errors);
+        return generation.createGenerationResult(valueClass);
     }
 
     private Collection<? extends String> validateInterfaces() {
-        List<String> errors = new ArrayList<>();
+        GenerationProcess generation = new GenerationProcess();
         if (visitorInterface.isValueClassSerializable()) {
             for (JMethod interfaceMethod: visitorInterface.methods()) {
                 for (JVar param: interfaceMethod.params()) {
                     AbstractJType type = param.type();
                     if (!type.isError() && !visitorInterface.isSelf(type) && !types.isSerializable(type))
-                        errors.add("Value class can't be serializable: " + param.name() + " parameter in " + interfaceMethod.name() + " method is not serializable");
+                        generation.reportError("Value class can't be serializable: " + param.name() + " parameter in " + interfaceMethod.name() + " method is not serializable");
                 }
                 JVar param = interfaceMethod.varParam();
                 if (param != null) {
                     AbstractJType type = param.type();
                     if (!type.isError() && !visitorInterface.isSelf(type) && !types.isSerializable(type))
-                        errors.add("Value class can't be serializable: " + param.name() + " parameter in " + interfaceMethod.name() + " method is not serializable");
+                        generation.reportError("Value class can't be serializable: " + param.name() + " parameter in " + interfaceMethod.name() + " method is not serializable");
                 }
             }
         }
@@ -150,17 +143,17 @@ public class Stage1ValueClassModel {
                 for (JVar param: interfaceMethod.params()) {
                     AbstractJType type = param.type();
                     if (!type.isError() && !visitorInterface.isSelf(type) && !types.isComparable(type))
-                        errors.add("Value class can't be comparable: " + param.name() + " parameter in " + interfaceMethod.name() + " method is not comparable");
+                        generation.reportError("Value class can't be comparable: " + param.name() + " parameter in " + interfaceMethod.name() + " method is not comparable");
                 }
                 JVar param = interfaceMethod.varParam();
                 if (param != null) {
                     AbstractJType type = param.type();
                     if (!type.isError() && !visitorInterface.isSelf(type) && !types.isComparable(type))
-                        errors.add("Value class can't be comparable: " + param.name() + " parameter in " + interfaceMethod.name() + " method is not comparable");
+                        generation.reportError("Value class can't be comparable: " + param.name() + " parameter in " + interfaceMethod.name() + " method is not comparable");
                 }
             }
         }
-        return errors;
+        return generation.reportedErrors();
     }
 
     void fullySpecifyClassHeader() {

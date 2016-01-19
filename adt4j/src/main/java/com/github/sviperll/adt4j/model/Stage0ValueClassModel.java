@@ -32,13 +32,12 @@ package com.github.sviperll.adt4j.model;
 import com.github.sviperll.adt4j.GenerateValueClassForVisitor;
 import com.github.sviperll.adt4j.Visitor;
 import com.github.sviperll.adt4j.model.config.ValueVisitorInterfaceModel;
+import com.github.sviperll.adt4j.model.util.GenerationProcess;
 import com.github.sviperll.adt4j.model.util.GenerationResult;
 import com.github.sviperll.adt4j.model.util.Types;
 import com.helger.jcodemodel.AbstractJClass;
 import com.helger.jcodemodel.JAnnotationUse;
 import com.helger.jcodemodel.JDefinedClass;
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  *
@@ -58,14 +57,14 @@ public class Stage0ValueClassModel {
         this.valueClass = valueClass;
     }
 
-    public GenerationResult<Stage1ValueClassModel> createStage1Model(JDefinedClass visitorModel, Visitor visitorAnnotation) {
-        List<String> errors = new ArrayList<>();
+    public GenerationResult<Stage1ValueClassModel> createStage1Model(JDefinedClass jVisitorModel, Visitor visitorAnnotation) {
+        GenerationProcess generation = new GenerationProcess();
         if (error != null) {
-            errors.add(error);
-            return new GenerationResult<>(null, errors);
+            generation.reportError(error);
+            return generation.createGenerationResult(null);
         } else {
             JAnnotationUse annotation = null;
-            for (JAnnotationUse anyAnnotation: visitorModel.annotations()) {
+            for (JAnnotationUse anyAnnotation: jVisitorModel.annotations()) {
                 AbstractJClass annotationClass = anyAnnotation.getAnnotationClass();
                 if (!annotationClass.isError()) {
                     String fullName = annotationClass.fullName();
@@ -75,12 +74,9 @@ public class Stage0ValueClassModel {
             }
             if (annotation == null)
                 throw new IllegalStateException("ValueClassModelFactory can't be run for interface without " + GenerateValueClassForVisitor.class + " annotation");
-            GenerationResult<ValueVisitorInterfaceModel> visitorModelResult = ValueVisitorInterfaceModel.createInstance(visitorModel, visitorAnnotation, annotation, valueClass);
-            errors.addAll(visitorModelResult.errors());
-            ValueVisitorInterfaceModel visitorInterface = visitorModelResult.result();
-
+            ValueVisitorInterfaceModel visitorInterface = generation.processGenerationResult(ValueVisitorInterfaceModel.createInstance(jVisitorModel, visitorAnnotation, annotation, valueClass));
             Stage1ValueClassModel result = createStage1Model(visitorInterface);
-            return new GenerationResult<>(result, errors);
+            return generation.createGenerationResult(result);
         }
     }
 

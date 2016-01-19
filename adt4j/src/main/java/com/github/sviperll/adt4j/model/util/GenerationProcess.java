@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015, Victor Nazarov <asviraspossible@gmail.com>
+ * Copyright (c) 2016, Victor Nazarov &lt;asviraspossible@gmail.com&gt;
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -27,31 +27,54 @@
  *  (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
  *  EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package com.github.sviperll.adt4j.model.config;
 
-import com.github.sviperll.adt4j.Caching;
+package com.github.sviperll.adt4j.model.util;
+
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import javax.annotation.Nonnull;
+import javax.annotation.ParametersAreNonnullByDefault;
 
 /**
  *
  * @author Victor Nazarov &lt;asviraspossible@gmail.com&gt;
  */
-class ImplementationCustomization {
-    private int hashCodeBase;
-    private final Caching hashCodeCaching;
-    ImplementationCustomization(Caching hashCodeCaching) {
-        this.hashCodeCaching = hashCodeCaching;
+@ParametersAreNonnullByDefault
+public class GenerationProcess {
+    private List<String> errors = new ArrayList<>();
+    private boolean copyErrorsOnWrite = false;
+
+    public void reportError(String error) {
+        if (copyErrorsOnWrite)
+            errors = new ArrayList<>(errors);
+        errors.add(error);
     }
 
-    ImplementationCustomization(Caching hashCodeCaching, int hashCodeBase) {
-        this.hashCodeBase = hashCodeBase;
-        this.hashCodeCaching = hashCodeCaching;
+    public <T> T processGenerationResult(GenerationResult<T> result) {
+        reportAllErrors(result.errors());
+        return result.result();
     }
 
-    Caching hashCodeCaching() {
-        return hashCodeCaching;
+    public <T> GenerationResult<T> createGenerationResult(T result) {
+        return new GenerationResult<>(result, reportedErrors());
     }
 
-    int hashCodeBase() {
-        return hashCodeBase;
+    @Nonnull
+    public List<String> reportedErrors() {
+        List<String> result = java.util.Collections.unmodifiableList(errors);
+        copyErrorsOnWrite = true;
+        errors = result;
+        return result;
+    }
+
+    public void reportAllErrors(Collection<? extends String> moreErrors) {
+        if (copyErrorsOnWrite)
+            errors = new ArrayList<>(errors);
+        errors.addAll(moreErrors);
+    }
+
+    public boolean hasErrors() {
+        return !errors.isEmpty();
     }
 }

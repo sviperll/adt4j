@@ -40,15 +40,15 @@ public class GenerationResult<T> {
     private final List<String> errors;
     private final T result;
 
-    public GenerationResult(T result, List<String> errors) {
+    GenerationResult(T result, List<String> errors) {
         this.result = result;
         this.errors = errors;
     }
 
-    public List<String> errors() {
+    List<String> errors() {
         return errors;
     }
-    public T result() {
+    T result() {
         return result;
     }
 }
