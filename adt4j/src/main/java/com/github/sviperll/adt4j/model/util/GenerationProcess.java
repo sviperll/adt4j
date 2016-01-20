@@ -34,6 +34,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;
 
 /**
@@ -51,12 +52,13 @@ public class GenerationProcess {
         errors.add(error);
     }
 
+    @Nullable
     public <T> T processGenerationResult(GenerationResult<T> result) {
         reportAllErrors(result.errors());
         return result.result();
     }
 
-    public <T> GenerationResult<T> createGenerationResult(T result) {
+    public <T> GenerationResult<T> createGenerationResult(@Nullable T result) {
         return new GenerationResult<>(result, reportedErrors());
     }
 
