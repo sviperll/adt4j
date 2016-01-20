@@ -34,7 +34,10 @@ import com.github.sviperll.adt4j.model.Stage0ValueClassModel;
 import com.github.sviperll.adt4j.model.Stage0ValueClassModelFactory;
 import com.github.sviperll.adt4j.model.Stage1ValueClassModel;
 import com.github.sviperll.adt4j.model.util.GenerationProcess;
+import com.github.sviperll.adt4j.model.util.Source;
 import com.github.sviperll.meta.FilerCodeWriter;
+import com.helger.jcodemodel.AbstractJClass;
+import com.helger.jcodemodel.JAnnotationUse;
 import com.helger.jcodemodel.JCodeModel;
 import com.helger.jcodemodel.JDefinedClass;
 import com.helger.jcodemodel.JPackage;
@@ -59,7 +62,13 @@ import javax.lang.model.element.Element;
 import javax.lang.model.element.TypeElement;
 import javax.tools.Diagnostic;
 
-@SupportedAnnotationTypes("com.github.sviperll.adt4j.GenerateValueClassForVisitor")
+@SupportedAnnotationTypes({"com.github.sviperll.adt4j.GenerateValueClassForVisitor",
+                           "com.github.sviperll.adt4j.GeneratePredicate",
+                           "com.github.sviperll.adt4j.GeneratePredicates",
+                           "com.github.sviperll.adt4j.Getter",
+                           "com.github.sviperll.adt4j.Updater",
+                           "com.github.sviperll.adt4j.Visitor",
+                           "com.github.sviperll.adt4j.WrapsGeneratedValueClass"})
 @SupportedSourceVersion(SourceVersion.RELEASE_7)
 public class GenerateValueClassForVisitorProcessor extends AbstractProcessor {
     private static final Visitor DEFAULT_VISITOR_IMPLEMENTATION;
@@ -112,6 +121,9 @@ public class GenerateValueClassForVisitorProcessor extends AbstractProcessor {
     private void processRound(RoundEnvironment roundEnv) {
         Set<TypeElement> elements = new HashSet<>();
         for (Element element: roundEnv.getElementsAnnotatedWith(GenerateValueClassForVisitor.class)) {
+            elements.add((TypeElement)element);
+        }
+        for (Element element: roundEnv.getElementsAnnotatedWith(WrapsGeneratedValueClass.class)) {
             elements.add((TypeElement)element);
         }
         Set<String> elementsFromPreviousRound = new HashSet<>(remainingElements);
@@ -225,10 +237,6 @@ public class GenerateValueClassForVisitorProcessor extends AbstractProcessor {
             JCodeModel bootJCodeModel = new JCodeModel();
             Stage0ValueClassModelFactory stage0Processor = Stage0ValueClassModelFactory.createFactory(jCodeModel);
             for (TypeElement element: elements) {
-                Visitor visitorAnnotation = element.getAnnotation(Visitor.class);
-                if (visitorAnnotation == null) {
-                    visitorAnnotation = DEFAULT_VISITOR_IMPLEMENTATION;
-                }
                 JCodeModelJavaxLangModelAdapter adapter = new JCodeModelJavaxLangModelAdapter(bootJCodeModel, processingEnv.getElementUtils());
                 JDefinedClass bootVisitorModel;
                 try {
@@ -236,8 +244,15 @@ public class GenerateValueClassForVisitorProcessor extends AbstractProcessor {
                 } catch (CodeModelBuildingException ex) {
                     throw new RuntimeException("Unexpected exception", ex);
                 }
-                Stage0ValueClassModel model = stage0Processor.createStage0Model(bootVisitorModel, visitorAnnotation);
-                result.put(element.getQualifiedName().toString(), model);
+                JAnnotationUse generateAnnotation = Source.getAnnotation(bootVisitorModel, GenerateValueClassForVisitor.class);
+                if (generateAnnotation != null) {
+                    Visitor visitorAnnotation = element.getAnnotation(Visitor.class);
+                    if (visitorAnnotation == null) {
+                        visitorAnnotation = DEFAULT_VISITOR_IMPLEMENTATION;
+                    }
+                    Stage0ValueClassModel model = stage0Processor.createStage0Model(bootVisitorModel, visitorAnnotation);
+                    result.put(element.getQualifiedName().toString(), model);
+                }
             }
             return result;
         }
@@ -251,18 +266,58 @@ public class GenerateValueClassForVisitorProcessor extends AbstractProcessor {
                     visitorAnnotation = DEFAULT_VISITOR_IMPLEMENTATION;
                 }
                 JCodeModelJavaxLangModelAdapter adapter = new JCodeModelJavaxLangModelAdapter(jCodeModel, processingEnv.getElementUtils());
-                JDefinedClass visitorModel;
+                JDefinedClass jelement;
                 try {
-                    visitorModel = adapter.getClassWithErrorTypes(element);
+                    jelement = adapter.getClassWithErrorTypes(element);
                 } catch (CodeModelBuildingException ex) {
                     throw new RuntimeException("Unexpected exception", ex);
                 }
-
-                Stage0ValueClassModel stage0Model = stage0Results.get(element.getQualifiedName().toString());
-                Stage1ValueClassModel model = generation.processGenerationResult(stage0Model.createStage1Model(visitorModel, visitorAnnotation));
+                JAnnotationUse wrapperAnnotation = Source.getAnnotation(jelement, WrapsGeneratedValueClass.class);
+                JAnnotationUse generateAnnotation = Source.getAnnotation(jelement, GenerateValueClassForVisitor.class);
+                if (wrapperAnnotation != null && generateAnnotation != null) {
+                    generation.reportError("class shouldn't be annotated with both " + WrapsGeneratedValueClass.class.getName() + " and " + GenerateValueClassForVisitor.class.getName() + " annotation");
+                } else if (wrapperAnnotation != null) {
+                    boolean visitorIsMissing = false;
+                    AbstractJClass jvisitorAbstract;
+                    try {
+                        jvisitorAbstract = wrapperAnnotation.getParam("visitor", AbstractJClass.class);
+                    } catch (ClassCastException ex) {
+                        jvisitorAbstract = null;
+                    }
+                    if (jvisitorAbstract == null || jvisitorAbstract.isError()) {
+                        visitorIsMissing = true;
+                    } else {
+                        TypeElement visitorElement = processingEnv.getElementUtils().getTypeElement(jvisitorAbstract.fullName());
+                        if (visitorElement == null)
+                            visitorIsMissing = true;
+                        else {
+                            JDefinedClass jvisitor;
+                            try {
+                                jvisitor = adapter.getClassWithErrorTypes(visitorElement);
+                            } catch (CodeModelBuildingException ex) {
+                                throw new RuntimeException("Unexpected exception", ex);
+                            }
+                            JAnnotationUse visitorGenerateAnnotation = Source.getAnnotation(jvisitor, GenerateValueClassForVisitor.class);
+                            if (visitorGenerateAnnotation == null) {
+                                generation.reportError(WrapsGeneratedValueClass.class.getName() + " annotation should have visitor argument set to class annotated with " + GenerateValueClassForVisitor.class.getName() + " annotation");
+                            } else {
+                                AbstractJClass visitorWrapper = visitorGenerateAnnotation.getParam("wrapperClass", AbstractJClass.class);
+                                if (visitorWrapper == null || visitorWrapper.isError() || !visitorWrapper.fullName().equals(jelement.fullName()))
+                                    generation.reportError(WrapsGeneratedValueClass.class.getName() + " annotation should annotate class and should have visitor argument set to another class annotated with " + GenerateValueClassForVisitor.class.getName() + " annotation with wrapperClass argument set to first class");
+                            }
+                        }
+                    }
+                    if (visitorIsMissing) {
+                        generation.reportError(WrapsGeneratedValueClass.class.getName() + " annotation should have visitor argument set to existing class");
+                        remainingElements.add(jelement.fullName());
+                    }
+                } else if (generateAnnotation != null) {
+                    Stage0ValueClassModel stage0Model = stage0Results.get(element.getQualifiedName().toString());
+                    Stage1ValueClassModel model = generation.processGenerationResult(stage0Model.createStage1Model(jelement, visitorAnnotation));
+                    if (model != null)
+                        result.put(element.getQualifiedName().toString(), model);
+                }
                 errorMap.put(element.getQualifiedName().toString(), generation.reportedErrors());
-                if (model != null)
-                    result.put(element.getQualifiedName().toString(), model);
             }
             return result;
         }

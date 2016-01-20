@@ -34,6 +34,7 @@ import com.helger.jcodemodel.AbstractJClass;
 import com.helger.jcodemodel.AbstractJType;
 import com.helger.jcodemodel.IJAnnotatable;
 import com.helger.jcodemodel.JAnnotationUse;
+import com.helger.jcodemodel.JDefinedClass;
 import com.helger.jcodemodel.JInvocation;
 import com.helger.jcodemodel.JMethod;
 import com.helger.jcodemodel.JMod;
@@ -43,6 +44,7 @@ import java.lang.annotation.Annotation;
 import java.text.MessageFormat;
 import java.util.Collections;
 import java.util.Locale;
+import javax.annotation.Nullable;
 
 /**
  *
@@ -162,6 +164,17 @@ public class Source {
             invocation.narrow(typeArgument);
         }
         return invocation;
+    }
+
+    @Nullable
+    public static JAnnotationUse getAnnotation(JDefinedClass jclass, Class<?> annotationClass) {
+        for (JAnnotationUse jannotation: jclass.annotations()) {
+            AbstractJClass jannotationClass = jannotation.getAnnotationClass();
+            if (!jannotationClass.isError() && jannotationClass.fullName().equals(annotationClass.getName())) {
+                return jannotation;
+            }
+        }
+        return null;
     }
 
     private Source() {
