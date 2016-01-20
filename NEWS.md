@@ -4,6 +4,12 @@ adt4j - Algebraic Data Types for Java
 Changelog
 ---------
 
+Since 3.2
+
+ * Optimized updaters/withers: avoid unnesesary allocation
+ * New @WrapsGeneratedValueClass annotation to support automatic wrapping, see Expression class README
+ * Configurable floatEpsilon and doubleEpsilon for generated floating-point comparisons
+
 Since 3.1
 
  * Always generate code, even in presence of compilation errors
