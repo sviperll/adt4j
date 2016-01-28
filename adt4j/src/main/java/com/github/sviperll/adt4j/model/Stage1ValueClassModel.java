@@ -31,7 +31,8 @@ package com.github.sviperll.adt4j.model;
 
 import com.github.sviperll.adt4j.model.config.FieldConfiguration;
 import com.github.sviperll.adt4j.model.config.PredicateConfigutation;
-import com.github.sviperll.adt4j.model.config.ValueVisitorInterfaceModel;
+import com.github.sviperll.adt4j.model.config.ValueClassConfiguration;
+import com.github.sviperll.adt4j.model.config.VisitorModel;
 import com.github.sviperll.adt4j.model.util.GenerationProcess;
 import com.github.sviperll.adt4j.model.util.GenerationResult;
 import com.github.sviperll.adt4j.model.util.Types;
@@ -44,9 +45,7 @@ import com.helger.jcodemodel.JMethod;
 import com.helger.jcodemodel.JMod;
 import com.helger.jcodemodel.JTypeVar;
 import com.helger.jcodemodel.JVar;
-import java.util.ArrayList;
 import java.util.Collection;
-import java.util.List;
 import java.util.Map;
 
 /**
@@ -55,12 +54,12 @@ import java.util.Map;
  */
 public class Stage1ValueClassModel {
     private final JDefinedClass valueClass;
-    private final ValueVisitorInterfaceModel visitorInterface;
+    private final ValueClassConfiguration configuration;
     private final Types types;
 
-    Stage1ValueClassModel(JDefinedClass valueClass, ValueVisitorInterfaceModel visitorInterface, Types types) {
+    Stage1ValueClassModel(JDefinedClass valueClass, ValueClassConfiguration configuration, Types types) {
         this.valueClass = valueClass;
-        this.visitorInterface = visitorInterface;
+        this.configuration = configuration;
         this.types = types;
     }
     
@@ -68,13 +67,14 @@ public class Stage1ValueClassModel {
         GenerationProcess generation = new GenerationProcess();
         generation.reportAllErrors(validateInterfaces());
         
-        Map<String, FieldConfiguration> gettersConfigutation = generation.processGenerationResult(visitorInterface.getGettersConfigutation(valueClass, types));
-        Map<String, FieldConfiguration> updatersConfiguration = generation.processGenerationResult(visitorInterface.getUpdatersConfiguration(valueClass, types));
-        Map<String, PredicateConfigutation> predicates = generation.processGenerationResult(visitorInterface.getPredicates());
+        Map<String, FieldConfiguration> gettersConfigutation = generation.processGenerationResult(configuration.getGettersConfigutation(valueClass, types));
+        Map<String, FieldConfiguration> updatersConfiguration = generation.processGenerationResult(configuration.getUpdatersConfiguration(valueClass, types));
+        Map<String, PredicateConfigutation> predicates = generation.processGenerationResult(configuration.getPredicates());
 
         FinalValueClassModel result;
         if (generation.hasErrors()) {
-            result = FinalValueClassModel.createErrorModel(valueClass, visitorInterface, types);
+            FinalValueClassModelEnvironment environment = new FinalValueClassModelEnvironment(valueClass, null, configuration);
+            result = FinalValueClassModel.createErrorModel(environment, types);
         } else {
             JDefinedClass acceptingInterface;
             try {
@@ -82,19 +82,19 @@ public class Stage1ValueClassModel {
             } catch (JClassAlreadyExistsException ex) {
                 throw new RuntimeException("Unexpected exception", ex);
             }
-            if (visitorInterface.isValueClassSerializable()) {
+            if (configuration.isValueClassSerializable()) {
                 acceptingInterface._extends(types._Serializable);
             }
-
-            result = FinalValueClassModel.createModel(valueClass, acceptingInterface, visitorInterface, types);
+            FinalValueClassModelEnvironment environment = new FinalValueClassModelEnvironment(valueClass, acceptingInterface, configuration);
+            result = FinalValueClassModel.createModel(environment, types);
         }
         result.buildSerialVersionUID();
-        FinalValueClassModel.MethodBuilder methodBuilder = result.createMethodBuilder(visitorInterface.serialization());
-        Map<String, JMethod> constructorMethods = methodBuilder.buildConstructorMethods(visitorInterface.serialization());
+        FinalValueClassModel.MethodBuilder methodBuilder = result.createMethodBuilder(configuration.serialization());
+        Map<String, JMethod> constructorMethods = methodBuilder.buildConstructorMethods(configuration.serialization());
         methodBuilder.buildPrivateConstructor();
-        if (visitorInterface.isValueClassSerializable())
+        if (configuration.isValueClassSerializable())
             methodBuilder.buildReadObjectMethod();
-        methodBuilder.buildProtectedConstructor(visitorInterface.serialization());
+        methodBuilder.buildProtectedConstructor(configuration.serialization());
         methodBuilder.buildAcceptMethod();
         for (FieldConfiguration getter: gettersConfigutation.values()) {
             methodBuilder.generateGetter(getter);
@@ -105,11 +105,11 @@ public class Stage1ValueClassModel {
         for (Map.Entry<String, PredicateConfigutation> predicate: predicates.entrySet()) {
             methodBuilder.generatePredicate(predicate.getKey(), predicate.getValue());
         }
-        if (visitorInterface.isValueClassComparable()) {
+        if (configuration.isValueClassComparable()) {
             methodBuilder.buildCompareTo();
         }
         methodBuilder.buildEqualsMethod();
-        methodBuilder.buildHashCodeMethod(visitorInterface.hashCodeBase());
+        methodBuilder.buildHashCodeMethod(configuration.hashCodeBase());
         methodBuilder.buildToStringMethod();
         try {
             result.buildFactory(constructorMethods);
@@ -122,33 +122,33 @@ public class Stage1ValueClassModel {
 
     private Collection<? extends String> validateInterfaces() {
         GenerationProcess generation = new GenerationProcess();
-        if (visitorInterface.isValueClassSerializable()) {
-            for (JMethod interfaceMethod: visitorInterface.methods()) {
+        if (configuration.isValueClassSerializable()) {
+            for (JMethod interfaceMethod: configuration.visitor().methods()) {
                 for (JVar param: interfaceMethod.params()) {
                     AbstractJType type = param.type();
-                    if (!type.isError() && !visitorInterface.isSelf(type) && !types.isSerializable(type))
+                    if (!type.isError() && !configuration.visitor().isSelfTypeParameter(type) && !types.isSerializable(type))
                         generation.reportError("Value class can't be serializable: " + param.name() + " parameter in " + interfaceMethod.name() + " method is not serializable");
                 }
                 JVar param = interfaceMethod.varParam();
                 if (param != null) {
                     AbstractJType type = param.type();
-                    if (!type.isError() && !visitorInterface.isSelf(type) && !types.isSerializable(type))
+                    if (!type.isError() && !configuration.visitor().isSelfTypeParameter(type) && !types.isSerializable(type))
                         generation.reportError("Value class can't be serializable: " + param.name() + " parameter in " + interfaceMethod.name() + " method is not serializable");
                 }
             }
         }
         
-        if (visitorInterface.isValueClassComparable()) {
-            for (JMethod interfaceMethod: visitorInterface.methods()) {
+        if (configuration.isValueClassComparable()) {
+            for (JMethod interfaceMethod: configuration.visitor().methods()) {
                 for (JVar param: interfaceMethod.params()) {
                     AbstractJType type = param.type();
-                    if (!type.isError() && !visitorInterface.isSelf(type) && !types.isComparable(type))
+                    if (!type.isError() && !configuration.visitor().isSelfTypeParameter(type) && !types.isComparable(type))
                         generation.reportError("Value class can't be comparable: " + param.name() + " parameter in " + interfaceMethod.name() + " method is not comparable");
                 }
                 JVar param = interfaceMethod.varParam();
                 if (param != null) {
                     AbstractJType type = param.type();
-                    if (!type.isError() && !visitorInterface.isSelf(type) && !types.isComparable(type))
+                    if (!type.isError() && !configuration.visitor().isSelfTypeParameter(type) && !types.isComparable(type))
                         generation.reportError("Value class can't be comparable: " + param.name() + " parameter in " + interfaceMethod.name() + " method is not comparable");
                 }
             }
@@ -157,20 +157,20 @@ public class Stage1ValueClassModel {
     }
 
     void fullySpecifyClassHeader() {
-        for (JTypeVar visitorTypeParameter: visitorInterface.getValueTypeParameters()) {
+        for (JTypeVar visitorTypeParameter: configuration.getValueTypeParameters()) {
             JTypeVar typeParameter = valueClass.generify(visitorTypeParameter.name());
             typeParameter.boundLike(visitorTypeParameter);
         }
-        for (AbstractJClass iface: visitorInterface.implementsInterfaces()) {
+        for (AbstractJClass iface: configuration.implementsInterfaces()) {
             valueClass._implements(iface.typeParams().length == 0 ? iface : iface.narrow(valueClass.typeParams()));
         }
-        AbstractJClass extendsClass = visitorInterface.valueClassExtends();
+        AbstractJClass extendsClass = configuration.valueClassExtends();
         valueClass._extends(extendsClass.typeParams().length == 0 ? extendsClass : extendsClass.narrow(valueClass.typeParams()));
-        if (visitorInterface.isValueClassSerializable()) {
+        if (configuration.isValueClassSerializable()) {
             valueClass._implements(types._Serializable);
         }
-        if (visitorInterface.isValueClassComparable()) {
-            valueClass._implements(types._Comparable.narrow(visitorInterface.wrapValueClass(valueClass).narrow(valueClass.typeParams())));
+        if (configuration.isValueClassComparable()) {
+            valueClass._implements(types._Comparable.narrow(configuration.wrapValueClass(valueClass).narrow(valueClass.typeParams())));
         }
     }
 
@@ -180,14 +180,14 @@ public class Stage1ValueClassModel {
         // Hack to overcome bug in codeModel. We want private interface!!! Not public.
         acceptingInterface.mods().setPrivate();
 
-        for (JTypeVar visitorTypeParameter: visitorInterface.getValueTypeParameters()) {
+        for (JTypeVar visitorTypeParameter: configuration.getValueTypeParameters()) {
             JTypeVar typeParameter = acceptingInterface.generify(visitorTypeParameter.name());
             typeParameter.boundLike(visitorTypeParameter);
         }
 
-        JMethod acceptMethod = acceptingInterface.method(JMod.PUBLIC, types._void, visitorInterface.acceptMethodName());
+        JMethod acceptMethod = acceptingInterface.method(JMod.PUBLIC, types._void, configuration.acceptMethodName());
 
-        JTypeVar visitorResultType = visitorInterface.getResultTypeParameter();
+        JTypeVar visitorResultType = configuration.visitor().getResultTypeParameter();
         AbstractJClass resultType;
         if (visitorResultType == null)
             resultType = types._Object;
@@ -198,7 +198,7 @@ public class Stage1ValueClassModel {
         }
         acceptMethod.type(resultType);
 
-        JTypeVar visitorExceptionType = visitorInterface.getExceptionTypeParameter();
+        JTypeVar visitorExceptionType = configuration.visitor().getExceptionTypeParameter();
         JTypeVar exceptionType = null;
         if (visitorExceptionType != null) {
             JTypeVar exceptionTypeParameter = acceptMethod.generify(visitorExceptionType.name());
@@ -208,8 +208,8 @@ public class Stage1ValueClassModel {
         }
 
         AbstractJClass usedValueClassType = valueClass.narrow(valueClass.typeParams());
-        AbstractJClass usedVisitorType = visitorInterface.narrowed(usedValueClassType, resultType, exceptionType);
-        acceptMethod.param(usedVisitorType, "visitor");
+        VisitorModel.NarrowedVisitor usedVisitorType = configuration.visitor().narrowed(usedValueClassType, resultType, exceptionType);
+        acceptMethod.param(usedVisitorType.getVisitorType(), "visitor");
 
         return acceptingInterface;
     }

@@ -32,7 +32,8 @@ package com.github.sviperll.adt4j.model;
 import com.github.sviperll.adt4j.GenerateValueClassForVisitor;
 import com.github.sviperll.adt4j.GenerateValueClassForVisitorProcessor;
 import com.github.sviperll.adt4j.Visitor;
-import com.github.sviperll.adt4j.model.config.ValueVisitorInterfaceModel;
+import com.github.sviperll.adt4j.model.config.ValueClassConfiguration;
+import com.github.sviperll.adt4j.model.config.VisitorModel;
 import com.github.sviperll.adt4j.model.util.GenerationProcess;
 import com.github.sviperll.adt4j.model.util.Source;
 import com.helger.jcodemodel.AbstractJClass;
@@ -72,14 +73,15 @@ public class Stage0ValueClassModelFactory {
         }
         if (annotation == null)
             throw new IllegalStateException("ValueClassModelFactory can't be run for interface without " + GenerateValueClassForVisitor.class + " annotation");
-        ValueVisitorInterfaceModel visitorModel = generation.processGenerationResult(ValueVisitorInterfaceModel.createInstance(bootModel, visitorAnnotation, annotation));
+        VisitorModel visitorModel = generation.processGenerationResult(VisitorModel.createInstance(bootModel, visitorAnnotation));
+        ValueClassConfiguration configuration = generation.processGenerationResult(ValueClassConfiguration.createInstance(visitorModel, annotation));
         JPackage jpackage = jCodeModel._package(bootModel._package().name());
-        int mods = visitorModel.isValueClassPublic() ? JMod.PUBLIC: JMod.NONE;
+        int mods = configuration.isValueClassPublic() ? JMod.PUBLIC: JMod.NONE;
         JDefinedClass valueClass;
         try {
-            valueClass = jpackage._class(mods, visitorModel.valueClassName(), EClassType.CLASS);
+            valueClass = jpackage._class(mods, configuration.valueClassName(), EClassType.CLASS);
         } catch (JClassAlreadyExistsException ex) {
-            return new Stage0ValueClassModel("Class " + visitorModel.valueClassName() + " already exists");
+            return new Stage0ValueClassModel("Class " + configuration.valueClassName() + " already exists");
         }
         JAnnotationUse generatedAnnotation = valueClass.annotate(Generated.class);
         generatedAnnotation.param("value", GenerateValueClassForVisitorProcessor.class.getName());

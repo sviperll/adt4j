@@ -43,6 +43,7 @@ public class Types {
         return new Types(codeModel);
     }
 
+    private final JCodeModel codeModel;
     public final JPrimitiveType _void;
     public final JPrimitiveType _long;
     public final JPrimitiveType _boolean;
@@ -70,6 +71,7 @@ public class Types {
     public final AbstractJClass _Arrays;
 
     private Types(JCodeModel codeModel) {
+        this.codeModel = codeModel;
         _void = codeModel.VOID;
         _long = codeModel.LONG;
         _boolean = codeModel.BOOLEAN;
@@ -115,5 +117,9 @@ public class Types {
             return result;
         } else
             throw new IllegalStateException("Unexpected jcodemodel type: " + type);
+    }
+
+    public AbstractJClass createWildcard() {
+        return codeModel.wildcard();
     }
 }
