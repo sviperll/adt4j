@@ -32,7 +32,7 @@ package com.github.sviperll.adt4j.model;
 import com.github.sviperll.adt4j.model.config.FieldConfiguration;
 import com.github.sviperll.adt4j.model.config.PredicateConfigutation;
 import com.github.sviperll.adt4j.model.config.ValueClassConfiguration;
-import com.github.sviperll.adt4j.model.config.VisitorModel;
+import com.github.sviperll.adt4j.model.config.VisitorDefinition;
 import com.github.sviperll.adt4j.model.util.GenerationProcess;
 import com.github.sviperll.adt4j.model.util.GenerationResult;
 import com.github.sviperll.adt4j.model.util.Types;
@@ -123,32 +123,32 @@ public class Stage1ValueClassModel {
     private Collection<? extends String> validateInterfaces() {
         GenerationProcess generation = new GenerationProcess();
         if (configuration.isValueClassSerializable()) {
-            for (JMethod interfaceMethod: configuration.visitor().methods()) {
+            for (JMethod interfaceMethod: configuration.visitorDefinition().methodDefinitions()) {
                 for (JVar param: interfaceMethod.params()) {
                     AbstractJType type = param.type();
-                    if (!type.isError() && !configuration.visitor().isSelfTypeParameter(type) && !types.isSerializable(type))
+                    if (!type.isError() && !configuration.visitorDefinition().isSelfTypeParameter(type) && !types.isSerializable(type))
                         generation.reportError("Value class can't be serializable: " + param.name() + " parameter in " + interfaceMethod.name() + " method is not serializable");
                 }
                 JVar param = interfaceMethod.varParam();
                 if (param != null) {
                     AbstractJType type = param.type();
-                    if (!type.isError() && !configuration.visitor().isSelfTypeParameter(type) && !types.isSerializable(type))
+                    if (!type.isError() && !configuration.visitorDefinition().isSelfTypeParameter(type) && !types.isSerializable(type))
                         generation.reportError("Value class can't be serializable: " + param.name() + " parameter in " + interfaceMethod.name() + " method is not serializable");
                 }
             }
         }
         
         if (configuration.isValueClassComparable()) {
-            for (JMethod interfaceMethod: configuration.visitor().methods()) {
+            for (JMethod interfaceMethod: configuration.visitorDefinition().methodDefinitions()) {
                 for (JVar param: interfaceMethod.params()) {
                     AbstractJType type = param.type();
-                    if (!type.isError() && !configuration.visitor().isSelfTypeParameter(type) && !types.isComparable(type))
+                    if (!type.isError() && !configuration.visitorDefinition().isSelfTypeParameter(type) && !types.isComparable(type))
                         generation.reportError("Value class can't be comparable: " + param.name() + " parameter in " + interfaceMethod.name() + " method is not comparable");
                 }
                 JVar param = interfaceMethod.varParam();
                 if (param != null) {
                     AbstractJType type = param.type();
-                    if (!type.isError() && !configuration.visitor().isSelfTypeParameter(type) && !types.isComparable(type))
+                    if (!type.isError() && !configuration.visitorDefinition().isSelfTypeParameter(type) && !types.isComparable(type))
                         generation.reportError("Value class can't be comparable: " + param.name() + " parameter in " + interfaceMethod.name() + " method is not comparable");
                 }
             }
@@ -187,7 +187,7 @@ public class Stage1ValueClassModel {
 
         JMethod acceptMethod = acceptingInterface.method(JMod.PUBLIC, types._void, configuration.acceptMethodName());
 
-        JTypeVar visitorResultType = configuration.visitor().getResultTypeParameter();
+        JTypeVar visitorResultType = configuration.visitorDefinition().getResultTypeParameter();
         AbstractJClass resultType;
         if (visitorResultType == null)
             resultType = types._Object;
@@ -198,7 +198,7 @@ public class Stage1ValueClassModel {
         }
         acceptMethod.type(resultType);
 
-        JTypeVar visitorExceptionType = configuration.visitor().getExceptionTypeParameter();
+        JTypeVar visitorExceptionType = configuration.visitorDefinition().getExceptionTypeParameter();
         JTypeVar exceptionType = null;
         if (visitorExceptionType != null) {
             JTypeVar exceptionTypeParameter = acceptMethod.generify(visitorExceptionType.name());
@@ -208,7 +208,7 @@ public class Stage1ValueClassModel {
         }
 
         AbstractJClass usedValueClassType = valueClass.narrow(valueClass.typeParams());
-        VisitorModel.NarrowedVisitor usedVisitorType = configuration.visitor().narrowed(usedValueClassType, resultType, exceptionType);
+        VisitorDefinition.VisitorUsage usedVisitorType = configuration.visitorDefinition().narrowed(usedValueClassType, resultType, exceptionType);
         acceptMethod.param(usedVisitorType.getVisitorType(), "visitor");
 
         return acceptingInterface;

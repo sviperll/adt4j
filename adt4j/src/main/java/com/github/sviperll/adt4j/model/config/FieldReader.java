@@ -32,16 +32,14 @@ package com.github.sviperll.adt4j.model.config;
 import com.github.sviperll.adt4j.Getter;
 import com.github.sviperll.adt4j.MemberAccess;
 import com.github.sviperll.adt4j.Updater;
+import com.github.sviperll.adt4j.model.config.VisitorDefinition.MethodUsage;
 import com.github.sviperll.adt4j.model.util.GenerationProcess;
 import com.github.sviperll.adt4j.model.util.GenerationResult;
 import com.github.sviperll.adt4j.model.util.Source;
 import com.helger.jcodemodel.AbstractJClass;
 import com.helger.jcodemodel.AbstractJType;
 import com.helger.jcodemodel.JAnnotationUse;
-import com.helger.jcodemodel.JMethod;
-import com.helger.jcodemodel.JVar;
 import java.text.MessageFormat;
-import java.util.List;
 import java.util.Map;
 
 /**
@@ -55,7 +53,7 @@ class FieldReader {
         this.fieldMap = gettersMap;
     }
 
-    GenerationResult<Void> readGetter(JMethod interfaceMethod, JVar param, AbstractJType paramType, boolean isVarArg) {
+    GenerationResult<Void> readGetter(MethodUsage interfaceMethod, VariableDeclaration param, AbstractJType paramType, boolean isVarArg) {
         GenerationProcess generation = new GenerationProcess();
         for (JAnnotationUse annotationUsage: param.annotations()) {
             AbstractJClass annotationClass = annotationUsage.getAnnotationClass();
@@ -76,7 +74,7 @@ class FieldReader {
         return generation.<Void>createGenerationResult(null);
     }
 
-    GenerationResult<Void> readUpdater(JMethod interfaceMethod, JVar param, AbstractJType paramType, boolean isVarArg) {
+    GenerationResult<Void> readUpdater(MethodUsage interfaceMethod, VariableDeclaration param, AbstractJType paramType, boolean isVarArg) {
         GenerationProcess generation = new GenerationProcess();
         for (JAnnotationUse annotationUsage: param.annotations()) {
             AbstractJClass annotationClass = annotationUsage.getAnnotationClass();
@@ -97,7 +95,7 @@ class FieldReader {
         return generation.<Void>createGenerationResult(null);
     }
 
-    GenerationResult<Void> read(JMethod interfaceMethod, JVar param, FieldConfiguration configuration) {
+    GenerationResult<Void> read(MethodUsage interfaceMethod, VariableDeclaration param, FieldConfiguration configuration) {
         GenerationProcess generation = new GenerationProcess();
         FieldConfiguration existingConfiguration = fieldMap.get(configuration.name());
         if (existingConfiguration == null) {

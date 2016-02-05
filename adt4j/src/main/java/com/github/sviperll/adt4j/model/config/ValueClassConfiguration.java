@@ -32,9 +32,10 @@ package com.github.sviperll.adt4j.model.config;
 import com.github.sviperll.adt4j.Caching;
 import com.github.sviperll.adt4j.MemberAccess;
 import com.github.sviperll.adt4j.WrapsGeneratedValueClass;
+import com.github.sviperll.adt4j.model.config.VariableDeclaration;
+import com.github.sviperll.adt4j.model.config.VisitorDefinition.MethodUsage;
 import com.github.sviperll.adt4j.model.util.GenerationProcess;
 import com.github.sviperll.adt4j.model.util.GenerationResult;
-import com.github.sviperll.adt4j.model.util.Source;
 import com.github.sviperll.adt4j.model.util.Types;
 import com.helger.jcodemodel.AbstractJClass;
 import com.helger.jcodemodel.AbstractJType;
@@ -55,11 +56,11 @@ public class ValueClassConfiguration {
     private static final String VISITOR_SUFFIX = "Visitor";
     private static final String VALUE_SUFFIX = "Value";
 
-    public static GenerationResult<ValueClassConfiguration> createInstance(VisitorModel visitorModel, JAnnotationUse annotation) {
-        return createInstance(visitorModel, annotation, null);
+    public static GenerationResult<ValueClassConfiguration> createInstance(VisitorDefinition visitorDefinition, JAnnotationUse annotation) {
+        return createInstance(visitorDefinition, annotation, null);
     }
 
-    public static GenerationResult<ValueClassConfiguration> createInstance(VisitorModel visitorModel, JAnnotationUse annotation, JDefinedClass valueClass) {
+    public static GenerationResult<ValueClassConfiguration> createInstance(VisitorDefinition visitorDefinition, JAnnotationUse annotation, JDefinedClass valueClass) {
         GenerationProcess generation = new GenerationProcess();
         String acceptMethodName = annotation.getParam("acceptMethodName", String.class);
         MemberAccess acceptMethodAccess = annotation.getParam("acceptMethodAccess", MemberAccess.class);
@@ -71,7 +72,7 @@ public class ValueClassConfiguration {
         double doubleEpsilon = annotation.getParam("doubleEpsilon", Double.class);
         FloatCustomization floatCustomization = new FloatCustomization(floatEpsilon, doubleEpsilon);
         Serialization serialization = serialization(annotation);
-        ClassCustomization classCustomization = generation.processGenerationResult(classCustomization(annotation, visitorModel, valueClass));
+        ClassCustomization classCustomization = generation.processGenerationResult(classCustomization(annotation, visitorDefinition, valueClass));
 
         AbstractJClass[] interfaces = annotation.getParam("implementsInterfaces", AbstractJClass[].class);
 
@@ -80,10 +81,10 @@ public class ValueClassConfiguration {
         APICustomization apiCustomization = new APICustomization(isPublic, acceptMethodCustomization, interfaceCustomization);
         ImplementationCustomization implementationCustomization = new ImplementationCustomization(hashCodeCaching, hashCodeBase, floatCustomization);
         Customization customiztion = new Customization(classCustomization, apiCustomization, implementationCustomization);
-        return generation.createGenerationResult(new ValueClassConfiguration(visitorModel, customiztion));
+        return generation.createGenerationResult(new ValueClassConfiguration(visitorDefinition, customiztion));
     }
 
-    private static GenerationResult<ClassCustomization> classCustomization(JAnnotationUse annotation, VisitorModel visitorModel, JDefinedClass valueClass) throws ClassCastException, NullPointerException {
+    private static GenerationResult<ClassCustomization> classCustomization(JAnnotationUse annotation, VisitorDefinition visitorDefinition, JDefinedClass valueClass) throws ClassCastException, NullPointerException {
         GenerationProcess generation = new GenerationProcess();
         AbstractJClass extendsClass = annotation.getParam("extendsClass", AbstractJClass.class);
         AbstractJClass wrapperClass = annotation.getParam("wrapperClass", AbstractJClass.class);
@@ -99,7 +100,7 @@ public class ValueClassConfiguration {
             throw new NullPointerException("className annotation argument should never be null");
         if (wrapperClass == null) {
             if (className.equals(":auto")) {
-                className = autoClassName(visitorModel.visitorName());
+                className = autoClassName(visitorDefinition.visitorName());
             }
         } else {
             AbstractJClass wrapperClassErasure = wrapperClass.erasure();
@@ -116,8 +117,8 @@ public class ValueClassConfiguration {
                     generation.reportError(MessageFormat.format("Wrapper class should be annotated with @{0} annotation.", com.github.sviperll.adt4j.WrapsGeneratedValueClass.class.getName()));
                 else {
                     AbstractJClass visitor = wrapsGeneratedAnnotation.getParam("visitor", AbstractJClass.class);
-                    if (visitor == null || visitor.fullName() == null || !visitor.fullName().equals(visitorModel.qualifiedName()))
-                        generation.reportError("@" + WrapsGeneratedValueClass.class.getName() + " annotation should have " + visitorModel.qualifiedName() + " as visitor argument");
+                    if (visitor == null || visitor.fullName() == null || !visitor.fullName().equals(visitorDefinition.qualifiedName()))
+                        generation.reportError("@" + WrapsGeneratedValueClass.class.getName() + " annotation should have " + visitorDefinition.qualifiedName() + " as visitor argument");
                 }
             }
             if (!className.equals(":auto")) {
@@ -142,11 +143,11 @@ public class ValueClassConfiguration {
                 }
                 if (extendedClass == null || extendedClassError) {
                     generation.reportError("Wrapper class should explicitly extend non-existing class, that class is to be generated");
-                    className = autoClassName(visitorModel.visitorName());
+                    className = autoClassName(visitorDefinition.visitorName());
                 } else {
                     boolean typeParamsError = false;
                     List<? extends AbstractJClass> typeArguments = extendedClass.getTypeParameters();
-                    List<JTypeVar> generatedTypeParameters = visitorModel.nonspecialTypeParameters();
+                    List<JTypeVar> generatedTypeParameters = visitorDefinition.nonspecialTypeParameters();
                     JTypeVar[] wrapperTypeParameters = wrapperClass.typeParams();
                     if (wrapperTypeParameters.length != typeArguments.size() || wrapperTypeParameters.length != generatedTypeParameters.size())
                         typeParamsError = true;
@@ -183,20 +184,20 @@ public class ValueClassConfiguration {
             return visitorName + VALUE_SUFFIX;
     }
 
-    private final VisitorModel visitorModel;
+    private final VisitorDefinition visitorDefinition;
     private final Customization customization;
 
-    private ValueClassConfiguration(VisitorModel visitorModel, Customization customiztion) {
-        this.visitorModel = visitorModel;
+    private ValueClassConfiguration(VisitorDefinition visitorDefinition, Customization customiztion) {
+        this.visitorDefinition = visitorDefinition;
         this.customization = customiztion;
     }
 
-    public VisitorModel visitor() {
-        return visitorModel;
+    public VisitorDefinition visitorDefinition() {
+        return visitorDefinition;
     }
 
     public List<? extends JTypeVar> getValueTypeParameters() {
-        return visitorModel.nonspecialTypeParameters();
+        return visitorDefinition.nonspecialTypeParameters();
     }
 
     public String acceptMethodName() {
@@ -256,16 +257,14 @@ public class ValueClassConfiguration {
         AbstractJClass usedValueClassType = valueClass.narrow(valueClass.typeParams());
         Map<String, FieldConfiguration> gettersMap = new TreeMap<>();
         FieldReader reader = new FieldReader(gettersMap);
-        VisitorModel.NarrowedVisitor narrowed = visitorModel.narrowed(usedValueClassType, visitorModel.getResultTypeParameter(), types._RuntimeException);
-        for (JMethod interfaceMethod: visitorModel.methods()) {
-            for (JVar param: interfaceMethod.params()) {
-                AbstractJType paramType = narrowed.getNarrowedType(param.type()).declarable();
-                generation.processGenerationResult(reader.readGetter(interfaceMethod, param, paramType, false));
+        VisitorDefinition.VisitorUsage narrowed = visitorDefinition.narrowed(usedValueClassType, visitorDefinition.getResultTypeParameter(), types._RuntimeException);
+        for (MethodUsage interfaceMethod: narrowed.methods()) {
+            for (VariableDeclaration param: interfaceMethod.params()) {
+                generation.processGenerationResult(reader.readGetter(interfaceMethod, param, param.type().declarable(), false));
             }
-            JVar param = interfaceMethod.varParam();
+            VariableDeclaration param = interfaceMethod.varParam();
             if (param != null) {
-                AbstractJType paramType = narrowed.getNarrowedType(param.type()).declarable();
-                generation.processGenerationResult(reader.readGetter(interfaceMethod, param, paramType, true));
+                generation.processGenerationResult(reader.readGetter(interfaceMethod, param, param.type().declarable(), true));
             }
         }
         return generation.createGenerationResult(gettersMap);
@@ -276,16 +275,14 @@ public class ValueClassConfiguration {
         AbstractJClass usedValueClassType = valueClass.narrow(valueClass.typeParams());
         Map<String, FieldConfiguration> updatersMap = new TreeMap<>();
         FieldReader reader = new FieldReader(updatersMap);
-        VisitorModel.NarrowedVisitor narrowed = visitorModel.narrowed(usedValueClassType, visitorModel.getResultTypeParameter(), types._RuntimeException);
-        for (JMethod interfaceMethod: visitorModel.methods()) {
-            for (JVar param: interfaceMethod.params()) {
-                AbstractJType paramType = narrowed.getNarrowedType(param.type()).declarable();
-                generation.processGenerationResult(reader.readUpdater(interfaceMethod, param, paramType, false));
+        VisitorDefinition.VisitorUsage narrowed = visitorDefinition.narrowed(usedValueClassType, visitorDefinition.getResultTypeParameter(), types._RuntimeException);
+        for (MethodUsage interfaceMethod: narrowed.methods()) {
+            for (VariableDeclaration param: interfaceMethod.params()) {
+                generation.processGenerationResult(reader.readUpdater(interfaceMethod, param, param.type().declarable(), false));
             }
-            JVar param = interfaceMethod.varParam();
+            VariableDeclaration param = interfaceMethod.varParam();
             if (param != null) {
-                AbstractJType paramType = narrowed.getNarrowedType(param.type()).declarable();
-                generation.processGenerationResult(reader.readUpdater(interfaceMethod, param, paramType, true));
+                generation.processGenerationResult(reader.readUpdater(interfaceMethod, param, param.type().declarable(), true));
             }
         }
         return generation.createGenerationResult(updatersMap);
@@ -295,7 +292,7 @@ public class ValueClassConfiguration {
         GenerationProcess generation = new GenerationProcess();
         Map<String, PredicateConfigutation> predicates = new TreeMap<>();
         PredicatesReader predicatesReader = new PredicatesReader(predicates);
-        for (JMethod interfaceMethod: visitorModel.methods()) {
+        for (JMethod interfaceMethod: visitorDefinition.methodDefinitions()) {
             for (JAnnotationUse annotationUsage: interfaceMethod.annotations()) {
                 generation.processGenerationResult(predicatesReader.read(interfaceMethod, annotationUsage));
             }

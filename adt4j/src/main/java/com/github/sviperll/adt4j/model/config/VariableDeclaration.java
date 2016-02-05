@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015, Victor Nazarov &lt;asviraspossible@gmail.com&gt;
+ * Copyright (c) 2016, Victor Nazarov &lt;asviraspossible@gmail.com&gt;
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -28,25 +28,51 @@
  *  EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.github.sviperll.adt4j.examples;
+package com.github.sviperll.adt4j.model.config;
 
-import com.github.sviperll.adt4j.GenerateValueClassForVisitor;
-import com.github.sviperll.adt4j.Getter;
-import com.github.sviperll.adt4j.Updater;
-import com.github.sviperll.adt4j.Visitor;
-import java.io.Serializable;
+import com.helger.jcodemodel.AbstractJType;
+import com.helger.jcodemodel.JAnnotationUse;
+import com.helger.jcodemodel.JMods;
+import com.helger.jcodemodel.JVar;
+import java.util.Collection;
 import javax.annotation.ParametersAreNonnullByDefault;
+import javax.annotation.Nonnull;
 
 /**
  *
  * @author Victor Nazarov &lt;asviraspossible@gmail.com&gt;
- * @param <T>
- * @param <R>
  */
-@ParametersAreNonnullByDefault
-@GenerateValueClassForVisitor(wrapperClass = WrappedList.class)
-@Visitor(resultVariableName = "R")
-public interface WrappedListVisitor<T, R> {
-    R empty();
-    R prepend(@Getter @Updater T head, @Getter @Updater WrappedList<T> tail);
+public class VariableDeclaration {
+
+    public static VariableDeclaration valueOf(JVar var) {
+        return new VariableDeclaration(var.type(), var.name(), var.mods(), var.annotations());
+    }
+    private final AbstractJType type;
+    private final String name;
+    private final JMods mods;
+    private final Collection<? extends JAnnotationUse> annotations;
+
+    public VariableDeclaration(AbstractJType type, String name, JMods mods, Collection<? extends JAnnotationUse> annotations) {
+        this.type = type;
+        this.name = name;
+        this.mods = mods;
+        this.annotations = annotations;
+    }
+
+    public AbstractJType type() {
+        return type;
+    }
+
+    public String name() {
+        return name;
+    }
+
+    public JMods mods() {
+        return mods;
+    }
+
+    public Collection<? extends JAnnotationUse> annotations() {
+        return annotations;
+    }
+
 }

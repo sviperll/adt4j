@@ -33,7 +33,7 @@ import com.github.sviperll.adt4j.GenerateValueClassForVisitor;
 import com.github.sviperll.adt4j.GenerateValueClassForVisitorProcessor;
 import com.github.sviperll.adt4j.Visitor;
 import com.github.sviperll.adt4j.model.config.ValueClassConfiguration;
-import com.github.sviperll.adt4j.model.config.VisitorModel;
+import com.github.sviperll.adt4j.model.config.VisitorDefinition;
 import com.github.sviperll.adt4j.model.util.GenerationProcess;
 import com.github.sviperll.adt4j.model.util.Source;
 import com.helger.jcodemodel.AbstractJClass;
@@ -73,7 +73,7 @@ public class Stage0ValueClassModelFactory {
         }
         if (annotation == null)
             throw new IllegalStateException("ValueClassModelFactory can't be run for interface without " + GenerateValueClassForVisitor.class + " annotation");
-        VisitorModel visitorModel = generation.processGenerationResult(VisitorModel.createInstance(bootModel, visitorAnnotation));
+        VisitorDefinition visitorModel = generation.processGenerationResult(VisitorDefinition.createInstance(bootModel, visitorAnnotation));
         ValueClassConfiguration configuration = generation.processGenerationResult(ValueClassConfiguration.createInstance(visitorModel, annotation));
         int mods = configuration.isValueClassPublic() ? JMod.PUBLIC: JMod.NONE;
         JDefinedClass valueClass;

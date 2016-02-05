@@ -31,17 +31,59 @@
 package com.github.sviperll.adt4j.examples;
 
 import com.github.sviperll.adt4j.WrapsGeneratedValueClass;
-import java.io.Serializable;
 
 /**
  *
  * @author Victor Nazarov &lt;asviraspossible@gmail.com&gt;
  */
 @WrapsGeneratedValueClass(visitor = WrappedListVisitor.class)
-public class WrappedList<T extends Comparable<? super T> & Serializable> extends WrappedListBase<T> {
-
+public class WrappedList<T> extends WrappedListBase<T> {
+    @SuppressWarnings("rawtypes")
     private static final long serialVersionUID = 1L;
+
+    public static <T> WrappedList<T> join(WrappedList<WrappedList<T>> lists) {
+        return lists.accept(new WrappedListVisitor<WrappedList<T>, WrappedList<T>>() {
+            @Override
+            public WrappedList<T> empty() {
+                return WrappedList.<T>empty();
+            }
+
+            @Override
+            public WrappedList<T> prepend(WrappedList<T> head, WrappedList<WrappedList<T>> tail) {
+                return head.append(join(tail));
+            }
+        });
+    }
+
     WrappedList(WrappedListBase<T> value) {
          super(value);
+    }
+
+    public WrappedList<T> append(final WrappedList<T> last) {
+        return accept(new WrappedListVisitor<T, WrappedList<T>>() {
+            @Override
+            public WrappedList<T> empty() {
+                return last;
+            }
+
+            @Override
+            public WrappedList<T> prepend(T head, WrappedList<T> tail) {
+                return WrappedList.prepend(head, tail.append(last));
+            }
+        });
+    }
+
+    public <U> WrappedList<U> map(final Function<T, U> function) {
+        return accept(new WrappedListVisitor<T, WrappedList<U>>() {
+            @Override
+            public WrappedList<U> empty() {
+                return WrappedList.empty();
+            }
+
+            @Override
+            public WrappedList<U> prepend(T head, WrappedList<T> tail) {
+                return WrappedList.prepend(function.apply(head), tail.map(function));
+            }
+        });
     }
 }

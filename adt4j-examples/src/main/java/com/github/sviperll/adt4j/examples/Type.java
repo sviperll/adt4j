@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015, Victor Nazarov &lt;asviraspossible@gmail.com&gt;
+ * Copyright (c) 2016, Victor Nazarov &lt;asviraspossible@gmail.com&gt;
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -30,23 +30,47 @@
 
 package com.github.sviperll.adt4j.examples;
 
-import com.github.sviperll.adt4j.GenerateValueClassForVisitor;
-import com.github.sviperll.adt4j.Getter;
-import com.github.sviperll.adt4j.Updater;
-import com.github.sviperll.adt4j.Visitor;
-import java.io.Serializable;
 import javax.annotation.ParametersAreNonnullByDefault;
 
 /**
  *
  * @author Victor Nazarov &lt;asviraspossible@gmail.com&gt;
- * @param <T>
- * @param <R>
  */
 @ParametersAreNonnullByDefault
-@GenerateValueClassForVisitor(wrapperClass = WrappedList.class)
-@Visitor(resultVariableName = "R")
-public interface WrappedListVisitor<T, R> {
-    R empty();
-    R prepend(@Getter @Updater T head, @Getter @Updater WrappedList<T> tail);
+public class Type {
+    private Type() {
+    }
+
+    public static class Equality<T, U> {
+        @SuppressWarnings("rawtypes")
+        private static final Equality INSTANCE = new Equality();
+
+        @SuppressWarnings("unchecked")
+        public static <T> Equality<T, T> prove() {
+            return INSTANCE;
+        }
+
+        @SuppressWarnings("unchecked")
+        public static <T, U> Equality<T, U> fromGADT2(Equality<GADT2<T>, GADT2<U>> proof) {
+            return INSTANCE;
+        }
+
+        private Equality() {
+        }
+
+        @SuppressWarnings("unchecked")
+        public T cast(U u) {
+            return (T)u;
+        }
+
+        @SuppressWarnings("unchecked")
+        public Equality<U, T> reverse() {
+            return (Equality<U, T>)this;
+        }
+
+        @SuppressWarnings("unchecked")
+        public Equality<GADT2<T>, GADT2<U>> toGADT2() {
+            return INSTANCE;
+        }
+    }
 }

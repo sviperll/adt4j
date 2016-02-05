@@ -30,6 +30,7 @@
 package com.github.sviperll.adt4j.model.config;
 
 import com.github.sviperll.adt4j.MemberAccess;
+import com.github.sviperll.adt4j.model.config.VisitorDefinition.MethodUsage;
 import com.helger.jcodemodel.AbstractJType;
 import com.helger.jcodemodel.JMethod;
 import java.text.MessageFormat;
@@ -52,7 +53,7 @@ public class FieldConfiguration {
         this.flags = flags;
     }
 
-    void merge(JMethod method, String paramName, FieldConfiguration that) throws FieldConfigurationException {
+    void merge(MethodUsage method, String paramName, FieldConfiguration that) throws FieldConfigurationException {
         if (!this.type.equals(that.type))
             throw new FieldConfigurationException(MessageFormat.format("Unable to config {0} field: inconsitent field types",
                                                                        name));

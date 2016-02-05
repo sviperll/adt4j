@@ -35,13 +35,16 @@ import com.github.sviperll.adt4j.model.util.GenerationResult;
 import com.github.sviperll.adt4j.model.util.Source;
 import com.helger.jcodemodel.AbstractJClass;
 import com.helger.jcodemodel.AbstractJType;
+import com.helger.jcodemodel.JAnnotationUse;
 import com.helger.jcodemodel.JDefinedClass;
 import com.helger.jcodemodel.JMethod;
+import com.helger.jcodemodel.JMods;
 import com.helger.jcodemodel.JTypeVar;
 import com.helger.jcodemodel.JTypeWildcard;
 import com.helger.jcodemodel.JVar;
 import java.text.MessageFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -54,8 +57,8 @@ import javax.annotation.ParametersAreNonnullByDefault;
  * @author Victor Nazarov &lt;asviraspossible@gmail.com&gt;
  */
 @ParametersAreNonnullByDefault
-public class VisitorModel {
-    public static GenerationResult<VisitorModel> createInstance(JDefinedClass jVisitorModel, Visitor annotation) {
+public class VisitorDefinition {
+    public static GenerationResult<VisitorDefinition> createInstance(JDefinedClass jVisitorModel, Visitor annotation) {
         GenerationProcess generation = new GenerationProcess();
         JTypeVar resultType = null;
         JTypeVar exceptionType = null;
@@ -86,7 +89,7 @@ public class VisitorModel {
         }
         SpecialTypeVariables specialTypeVariables = new SpecialTypeVariables(resultType, exceptionType, selfType);
         Map<String, JMethod> methods = generation.processGenerationResult(createMethodMap(jVisitorModel, specialTypeVariables));
-        return generation.createGenerationResult(new VisitorModel(jVisitorModel, methods, specialTypeVariables, valueClassTypeParameters));
+        return generation.createGenerationResult(new VisitorDefinition(jVisitorModel, methods, specialTypeVariables, valueClassTypeParameters));
     }
 
     private static GenerationResult<Map<String, JMethod>> createMethodMap(JDefinedClass jVisitorModel,
@@ -148,19 +151,15 @@ public class VisitorModel {
     private final SpecialTypeVariables specialTypeVariables;
     private final List<JTypeVar> nonspecialTypeParameters;
 
-    private VisitorModel(JDefinedClass jVisitor, Map<String, JMethod> methods, SpecialTypeVariables specialTypeVariables, List<JTypeVar> nonspecialTypeParameters) {
+    private VisitorDefinition(JDefinedClass jVisitor, Map<String, JMethod> methods, SpecialTypeVariables specialTypeVariables, List<JTypeVar> nonspecialTypeParameters) {
         this.jVisitor = jVisitor;
         this.methods = methods;
         this.specialTypeVariables = specialTypeVariables;
         this.nonspecialTypeParameters = nonspecialTypeParameters;
     }
 
-    public Collection<JMethod> methods() {
-        return methods.values();
-    }
-
-    public NarrowedVisitor narrowed(AbstractJClass selfType, AbstractJClass resultType, @Nullable AbstractJClass exceptionType) {
-        return new NarrowedVisitor(selfType, resultType, exceptionType);
+    public VisitorUsage narrowed(AbstractJClass selfType, AbstractJClass resultType, @Nullable AbstractJClass exceptionType) {
+        return new VisitorUsage(selfType, resultType, exceptionType);
     }
 
     List<JTypeVar> nonspecialTypeParameters() {
@@ -197,11 +196,15 @@ public class VisitorModel {
         return specialTypeVariables.isSelf(type);
     }
 
-    public class NarrowedVisitor {
+    public Collection<JMethod> methodDefinitions() {
+        return methods.values();
+    }
+
+    public class VisitorUsage {
         private final AbstractJClass selfType;
         private final AbstractJClass resultType;
         private final @Nullable AbstractJClass exceptionType;
-        private NarrowedVisitor(AbstractJClass selfType, AbstractJClass resultType, @Nullable AbstractJClass exceptionType) {
+        private VisitorUsage(AbstractJClass selfType, AbstractJClass resultType, @Nullable AbstractJClass exceptionType) {
             this.selfType = selfType;
             this.resultType = resultType;
             this.exceptionType = exceptionType;
@@ -214,39 +217,91 @@ public class VisitorModel {
             return result;
         }
 
+        public Collection<MethodUsage> methods() {
+            List<MethodUsage> result = new ArrayList<>();
+            for (JMethod method: methods.values()) {
+                result.add(new MethodUsage(this, method, new JTypeVar[] {}));
+            }
+            return result;
+        }
+
+        @Nullable
+        public MethodUsage findMethod(String name) {
+            for (JMethod method: methods.values()) {
+                if (method.name().equals(name))
+                    return new MethodUsage(this, method, new JTypeVar[] {});
+            }
+            return null;
+        }
+
         public AbstractJType getNarrowedType(AbstractJType type) {
-            type = specialTypeVariables.substituteSpecialType(type, selfType, resultType, exceptionType);
+            AbstractJType result = specialTypeVariables.substituteSpecialType(type, selfType, resultType, exceptionType);
             List<? extends AbstractJClass> dataTypeArguments = selfType.getTypeParameters();
             int dataTypeIndex = 0;
             for (JTypeVar typeParameter : jVisitor.typeParams()) {
                 if (!specialTypeVariables.isSpecial(typeParameter)) {
-                    if (type == typeParameter)
-                        return dataTypeArguments.get(dataTypeIndex);
+                    result = Source.substitute(result, typeParameter, dataTypeArguments.get(dataTypeIndex));
                     dataTypeIndex++;
                 }
             }
+            return result;
+        }
+    }
 
-            if (!(type instanceof AbstractJClass)) {
-                return type;
-            } else {
-                /*
-                 * When we get type with type-parameters we should narrow
-                 * type-parameters.
-                 * For example, we must replace Tree<T> to Tree<String> if
-                 * T type-variable is bound to String by usedDataType
-                 */
+    public static class MethodUsage {
 
-                AbstractJClass narrowedType = (AbstractJClass)type;
-                if (narrowedType.getTypeParameters().isEmpty()) {
-                    return narrowedType;
-                } else {
-                    AbstractJClass result = narrowedType.erasure();
-                    for (AbstractJClass typeArgument: narrowedType.getTypeParameters()) {
-                        result = result.narrow(getNarrowedType(typeArgument));
-                    }
-                    return result;
-                }
+        private final JMethod interfaceMethod;
+        private final AbstractJType[] methodTypeArguments;
+        private final VisitorUsage visitor;
+
+        private MethodUsage(VisitorUsage visitor, JMethod interfaceMethod, AbstractJType[] methodTypeArguments) {
+            this.visitor = visitor;
+            this.interfaceMethod = interfaceMethod;
+            this.methodTypeArguments = methodTypeArguments;
+        }
+
+        public MethodUsage narrow(AbstractJType... typeArguments) {
+            AbstractJType[] newArguments = Arrays.copyOf(methodTypeArguments, methodTypeArguments.length + typeArguments.length);
+            System.arraycopy(typeArguments, 0, newArguments, methodTypeArguments.length, typeArguments.length);
+            return new MethodUsage(visitor, interfaceMethod, newArguments);
+        }
+
+        public Collection<? extends VariableDeclaration> params() {
+            List<VariableDeclaration> result = new ArrayList<>(interfaceMethod.params().size());
+            for (JVar param: interfaceMethod.params()) {
+                result.add(new VariableDeclaration(substitute(param.type()), param.name(), param.mods(), param.annotations()));
             }
+            return result;
+        }
+
+        @Nullable
+        public VariableDeclaration varParam() {
+            JVar varParam = interfaceMethod.varParam();
+            return varParam == null ? null : new VariableDeclaration(substitute(varParam.type()), varParam.name(), varParam.mods(), varParam.annotations());
+        }
+
+        private AbstractJType substitute(AbstractJType type) {
+            type = visitor.getNarrowedType(type);
+            for (int i = 0; i < methodTypeArguments.length; i++) {
+                type = Source.substitute(type, interfaceMethod.typeParams()[i], methodTypeArguments[i]);
+            }
+            return type;
+        }
+
+        public String name() {
+            return interfaceMethod.name();
+        }
+
+        public JMods mods() {
+            return interfaceMethod.mods();
+        }
+
+        public JTypeVar[] typeParams() {
+            return interfaceMethod.typeParams();
+        }
+
+        public boolean hasVarArgs() {
+            return interfaceMethod.hasVarArgs();
         }
     }
 
@@ -300,31 +355,15 @@ public class VisitorModel {
          * @param exceptionType special exception-type to replace exception-type-variables with
          * @return resulting substitution
          */
-        private AbstractJClass substituteSpecialType(AbstractJClass type,
+        private AbstractJType substituteSpecialType(AbstractJClass type,
                                              AbstractJClass selfType,
                                              AbstractJClass resultType,
                                              AbstractJClass exceptionType) {
-            if (isException(type))
-                return exceptionType;
-            else if (isResult(type))
-                return resultType;
-            else if (isSelf(type))
-                return selfType;
-            else {
-                if (type.isArray()) {
-                    return substituteSpecialType(type.elementType(), selfType, resultType, exceptionType).array();
-                } else if (type instanceof JTypeWildcard) {
-                    JTypeWildcard wildcard = (JTypeWildcard)type;
-                    AbstractJClass bound = substituteSpecialType(wildcard.bound(), selfType, resultType, exceptionType);
-                    return bound.wildcard(wildcard.boundMode());
-                } else {
-                    List<AbstractJClass> typeArguments = new ArrayList<>();
-                    for (AbstractJClass originalArgument: type.getTypeParameters()) {
-                        typeArguments.add(substituteSpecialType(originalArgument, selfType, resultType, exceptionType));
-                    }
-                    return typeArguments.isEmpty() ? type : type.erasure().narrow(typeArguments);
-                }
-            }
+            AbstractJType result = type;
+            result = Source.substitute(result, selfTypeParameter, selfType);
+            result = Source.substitute(result, resultTypeParameter, resultType);
+            result = Source.substitute(result, exceptionTypeParameter, exceptionType);
+            return result;
         }
 
         private boolean isSpecial(AbstractJType type) {

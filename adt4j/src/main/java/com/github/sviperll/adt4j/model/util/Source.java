@@ -30,16 +30,21 @@
 package com.github.sviperll.adt4j.model.util;
 
 import com.github.sviperll.adt4j.MemberAccess;
+import com.github.sviperll.adt4j.model.config.VariableDeclaration;
 import com.helger.jcodemodel.AbstractJClass;
 import com.helger.jcodemodel.AbstractJType;
 import com.helger.jcodemodel.IJAnnotatable;
 import com.helger.jcodemodel.JAnnotationUse;
 import com.helger.jcodemodel.JMod;
+import com.helger.jcodemodel.JNarrowedClass;
+import com.helger.jcodemodel.JTypeVar;
 import com.helger.jcodemodel.JTypeWildcard;
 import com.helger.jcodemodel.JVar;
 import java.lang.annotation.Annotation;
 import java.text.MessageFormat;
+import java.util.Collection;
 import java.util.Collections;
+import java.util.List;
 import java.util.Locale;
 
 /**
@@ -82,14 +87,88 @@ public class Source {
         }
     }
 
+    public static AbstractJType substitute(AbstractJType type, JTypeVar typeVariable, AbstractJType variableValue) {
+        if (type == typeVariable)
+            return variableValue;
+        else if (!(type instanceof AbstractJClass)) {
+            return type;
+        } else {
+            if (type.isArray())
+                return substitute(type.elementType(), typeVariable, variableValue).array();
+            else if (type instanceof JTypeWildcard) {
+                JTypeWildcard wildcard = (JTypeWildcard)type;
+                AbstractJClass bound = (AbstractJClass)substitute(wildcard.bound(), typeVariable, variableValue);
+                return bound.wildcard(wildcard.boundMode());
+            } else {
+                /*
+                 * When we get type with type-parameters we should substitute
+                 * type-parameters.
+                 */
+
+                AbstractJClass genericType = (AbstractJClass)type;
+                if (genericType.getTypeParameters().isEmpty()) {
+                    return genericType;
+                } else {
+                    AbstractJClass result = genericType.erasure();
+                    for (AbstractJClass typeArgument: genericType.getTypeParameters()) {
+                        result = result.narrow(substitute(typeArgument, typeVariable, variableValue));
+                    }
+                    return result;
+                }
+            }
+        }
+    }
+
+    public static AbstractJType covariantOn(AbstractJType type, JTypeVar typeVariable) {
+        if (type == typeVariable)
+            return typeVariable;
+        else if (!(type instanceof AbstractJClass)) {
+            return type;
+        } else {
+            if (type instanceof JTypeWildcard) {
+                JTypeWildcard wildcard = (JTypeWildcard)type;
+                AbstractJClass bound = (AbstractJClass)covariantOn(wildcard.bound(), typeVariable);
+                return bound.wildcard(wildcard.boundMode());
+            } else {
+                AbstractJClass narrowedType = (AbstractJClass)type;
+                if (narrowedType.getTypeParameters().isEmpty()) {
+                    return narrowedType;
+                } else {
+                    AbstractJClass result = narrowedType.erasure();
+                    for (AbstractJClass originalTypeArgument: narrowedType.getTypeParameters()) {
+                        AbstractJType covariantTypeArgument = covariantOn(originalTypeArgument, typeVariable);
+                        if (covariantTypeArgument instanceof JNarrowedClass) {
+                            AbstractJClass typeArgument = (JNarrowedClass)covariantTypeArgument;
+                            covariantTypeArgument = typeArgument.wildcard();
+                        }
+                        result = result.narrow(covariantTypeArgument);
+                    }
+                    return result;
+                }
+            }
+        }
+    }
+
     public static boolean isNullable(JVar param) {
         return getNullability(param).result();
     }
 
+    public static boolean isNullable(VariableDeclaration param) {
+        return getNullability(param).result();
+    }
+
     public static GenerationResult<Boolean> getNullability(JVar param) {
+        return getNullability(param.type(), param.name(), param.annotations());
+    }
+
+    public static GenerationResult<Boolean> getNullability(VariableDeclaration param) {
+        return getNullability(param.type(), param.name(), param.annotations());
+    }
+
+    public static GenerationResult<Boolean> getNullability(AbstractJType type, String name, Collection<? extends JAnnotationUse> annotations) {
         boolean hasNonnull = false;
         boolean hasNullable = false;
-        for (JAnnotationUse annotationUse: param.annotations()) {
+        for (JAnnotationUse annotationUse: annotations) {
             AbstractJClass annotationClass = annotationUse.getAnnotationClass();
             if (!annotationClass.isError()) {
                 String annotationClassName = annotationClass.fullName();
@@ -105,10 +184,10 @@ public class Source {
         }
         if (hasNonnull && hasNullable)
             return new GenerationResult<>(false, Collections.singletonList(MessageFormat.format("Parameter {0} is declared as both @Nullable and @Nonnull",
-                                                           param.name())));
-        if (!param.type().isReference() && hasNullable)
+                                                           name)));
+        if (!type.isReference() && hasNullable)
             return new GenerationResult<>(false, Collections.singletonList(MessageFormat.format("Parameter {0} is non-reference, but declared as @Nullable",
-                                                           param.name())));
+                                                           name)));
         return new GenerationResult<>(hasNullable, Collections.<String>emptyList());
     }
 

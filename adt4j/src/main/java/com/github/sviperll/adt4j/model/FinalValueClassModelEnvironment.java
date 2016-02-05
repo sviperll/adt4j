@@ -34,8 +34,8 @@ import com.github.sviperll.adt4j.Caching;
 import com.github.sviperll.adt4j.MemberAccess;
 import com.github.sviperll.adt4j.model.config.FloatCustomization;
 import com.github.sviperll.adt4j.model.config.ValueClassConfiguration;
-import com.github.sviperll.adt4j.model.config.VisitorModel.NarrowedVisitor;
-import com.github.sviperll.adt4j.model.util.Source;
+import com.github.sviperll.adt4j.model.config.VisitorDefinition;
+import com.github.sviperll.adt4j.model.config.VisitorDefinition.VisitorUsage;
 import com.helger.jcodemodel.AbstractJClass;
 import com.helger.jcodemodel.AbstractJType;
 import com.helger.jcodemodel.EClassType;
@@ -109,16 +109,12 @@ public class FinalValueClassModelEnvironment {
         return configuration.wrapValueClass(valueClass).narrow(typeParams);
     }
 
-    NarrowedVisitor visitor(AbstractJClass selfType, AbstractJClass resultType, @Nullable AbstractJClass exceptionType) {
-        return configuration.visitor().narrowed(selfType, resultType, exceptionType);
+    VisitorUsage visitor(AbstractJClass selfType, AbstractJClass resultType, @Nullable AbstractJClass exceptionType) {
+        return configuration.visitorDefinition().narrowed(selfType, resultType, exceptionType);
     }
 
     JDefinedClass buildValueClassInnerClass(int mods, String name, EClassType eClassType) throws JClassAlreadyExistsException {
         return valueClass._class(mods, name, eClassType);
-    }
-
-    Collection<JMethod> visitorMethodDeclarations() {
-        return configuration.visitor().methods();
     }
 
     JInvocation invokeValueClassStaticMethod(JMethod constructorMethod, AbstractJClass[] typeArguments) {
@@ -141,13 +137,13 @@ public class FinalValueClassModelEnvironment {
         return configuration.acceptMethodName();
     }
 
-    JTypeVar getVisitorResultTypeParameter() {
-        return configuration.visitor().getResultTypeParameter();
-    }
+    // JTypeVar getVisitorResultTypeParameter() {
+    //     return configuration.visitorDefinition().getResultTypeParameter();
+    // }
 
-    JTypeVar getVisitorExceptionTypeParameter() {
-        return configuration.visitor().getExceptionTypeParameter();
-    }
+    // JTypeVar getVisitorExceptionTypeParameter() {
+    //    return configuration.visitorDefinition().getExceptionTypeParameter();
+    // }
 
     JMethod buildValueClassConstructor(int mods) {
         return valueClass.constructor(mods);
@@ -187,5 +183,9 @@ public class FinalValueClassModelEnvironment {
 
     FloatCustomization floatCustomization() {
         return configuration.floatCustomization();
+    }
+
+    VisitorDefinition visitorDefinition() {
+        return configuration.visitorDefinition();
     }
 }
