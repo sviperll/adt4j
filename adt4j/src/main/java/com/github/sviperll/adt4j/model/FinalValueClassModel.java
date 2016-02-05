@@ -159,13 +159,13 @@ public class FinalValueClassModel {
             JMethod constructorMethod = constructorMethods.get(interfaceMethod.name());
             JInvocation staticInvoke = environment.invokeValueClassStaticMethod(constructorMethod, factoryClass.typeParams());
             for (JVar param: interfaceMethod.params()) {
-                AbstractJType argumentType = Source.toDeclarable(usedVisitor.getNarrowedType(param.type()));
+                AbstractJType argumentType = usedVisitor.getNarrowedType(param.type()).declarable();
                 JVar argument = factoryMethod.param(param.mods().getValue(), argumentType, param.name());
                 staticInvoke.arg(argument);
             }
             JVar param = interfaceMethod.varParam();
             if (param != null) {
-                AbstractJType argumentType = Source.toDeclarable(usedVisitor.getNarrowedType(param.type().elementType()));
+                AbstractJType argumentType = usedVisitor.getNarrowedType(param.type().elementType()).declarable();
                 JVar argument = factoryMethod.varParam(param.mods().getValue(), argumentType, param.name());
                 staticInvoke.arg(argument);
             }
@@ -202,14 +202,14 @@ public class FinalValueClassModel {
         JMethod constructor = caseClass.constructor(JMod.NONE);
         VisitorModel.NarrowedVisitor usedVisitor = environment.visitor(usedValueClassType, usedValueClassType, types._RuntimeException);
         for (JVar param: interfaceMethod.params()) {
-            AbstractJType paramType = Source.toDeclarable(usedVisitor.getNarrowedType(param.type()));
+            AbstractJType paramType = usedVisitor.getNarrowedType(param.type()).declarable();
             JFieldVar field = caseClass.field(JMod.PRIVATE | JMod.FINAL, paramType, param.name());
             JVar argument = constructor.param(paramType, param.name());
             constructor.body().assign(JExpr._this().ref(field), argument);
         }
         JVar param = interfaceMethod.varParam();
         if (param != null) {
-            AbstractJType paramType = Source.toDeclarable(usedVisitor.getNarrowedType(param.type().elementType()));
+            AbstractJType paramType = usedVisitor.getNarrowedType(param.type().elementType()).declarable();
             JFieldVar field = caseClass.field(JMod.PRIVATE | JMod.FINAL, paramType.array(), param.name());
             JVar argument = constructor.varParam(paramType, param.name());
             constructor.body().assign(JExpr._this().ref(field), argument);
@@ -370,7 +370,7 @@ public class FinalValueClassModel {
                 constructorMethod.type(usedValueClassType);
                 VisitorModel.NarrowedVisitor usedVisitor = environment.visitor(usedValueClassType, usedValueClassType, types._RuntimeException);
                 for (JVar param: interfaceMethod.params()) {
-                    AbstractJType paramType = Source.toDeclarable(usedVisitor.getNarrowedType(param.type()));
+                    AbstractJType paramType = usedVisitor.getNarrowedType(param.type()).declarable();
                     JVar constructorMethodParam = constructorMethod.param(param.mods().getValue(), paramType, param.name());
                     if (param.type().isReference()) {
                         if (Source.isNullable(param))
@@ -381,7 +381,7 @@ public class FinalValueClassModel {
                 }
                 JVar param = interfaceMethod.varParam();
                 if (param != null) {
-                    AbstractJType paramType = Source.toDeclarable(usedVisitor.getNarrowedType(param.type().elementType()));
+                    AbstractJType paramType = usedVisitor.getNarrowedType(param.type().elementType()).declarable();
                     JVar constructorMethodParam = constructorMethod.varParam(param.mods().getValue(), paramType, param.name());
                     if (param.type().isReference())
                         if (Source.isNullable(param))
@@ -829,13 +829,13 @@ public class FinalValueClassModel {
 
                     JInvocation equalsCaseInvocation = thatAcceptor.invoke(equalsCaseMethod);
                     for (JVar param1: interfaceMethod1.params()) {
-                        AbstractJType argumentType = Source.toDeclarable(usedVisitor.getNarrowedType(param1.type()));
+                        AbstractJType argumentType = usedVisitor.getNarrowedType(param1.type()).declarable();
                         equalsCaseMethod.param(param1.mods().getValue(), argumentType, nameSource.get(param1.name()));
                         equalsCaseInvocation.arg(JExpr.refthis(caseClass.fields().get(param1.name())));
                     }
                     JVar varParam1 = interfaceMethod1.varParam();
                     if (varParam1 != null) {
-                        AbstractJType argumentType = Source.toDeclarable(usedVisitor.getNarrowedType(varParam1.type().elementType()));
+                        AbstractJType argumentType = usedVisitor.getNarrowedType(varParam1.type().elementType()).declarable();
                         equalsCaseMethod.varParam(varParam1.mods().getValue(), argumentType, nameSource.get(varParam1.name()));
                         equalsCaseInvocation.arg(JExpr.refthis(caseClass.fields().get(varParam1.name())));
                     }
@@ -854,7 +854,7 @@ public class FinalValueClassModel {
                         boolean generatedReturn = false;
                         JVar varParam = interfaceMethod1.varParam();
                         for (JVar param: interfaceMethod1.params()) {
-                            AbstractJType argumentType = Source.toDeclarable(usedVisitor.getNarrowedType(param.type()));
+                            AbstractJType argumentType = usedVisitor.getNarrowedType(param.type()).declarable();
                             JVar argument1 = equalsCaseMethod.param(param.mods().getValue(), argumentType, nameSource.get(param.name()));
                             if (isSameCase) {
                                 JFieldVar argument2 = caseClass.fields().get(param.name());
@@ -875,7 +875,7 @@ public class FinalValueClassModel {
                             i++;
                         }
                         if (varParam != null) {
-                            AbstractJType argumentType = Source.toDeclarable(usedVisitor.getNarrowedType(varParam.type().elementType()));
+                            AbstractJType argumentType = usedVisitor.getNarrowedType(varParam.type().elementType()).declarable();
                             JVar varArgument1 = equalsCaseMethod.varParam(varParam.mods().getValue(), argumentType, nameSource.get(varParam.name()));
                             if (isSameCase) {
                                 JFieldVar varArgument2 = caseClass.fields().get(varParam.name());
@@ -935,13 +935,13 @@ public class FinalValueClassModel {
 
                     JInvocation compareToCaseInvocation = thatAcceptor.invoke(compareToCaseMethod);
                     for (JVar param1: interfaceMethod1.params()) {
-                        AbstractJType argumentType = Source.toDeclarable(usedVisitor.getNarrowedType(param1.type()));
+                        AbstractJType argumentType = usedVisitor.getNarrowedType(param1.type()).declarable();
                         compareToCaseMethod.param(param1.mods().getValue(), argumentType, nameSource.get(param1.name()));
                         compareToCaseInvocation.arg(JExpr.refthis(caseClass.fields().get(param1.name())));
                     }
                     JVar varParam1 = interfaceMethod1.varParam();
                     if (varParam1 != null) {
-                        AbstractJType argumentType = Source.toDeclarable(usedVisitor.getNarrowedType(varParam1.type().elementType()));
+                        AbstractJType argumentType = usedVisitor.getNarrowedType(varParam1.type().elementType()).declarable();
                         compareToCaseMethod.varParam(varParam1.mods().getValue(), argumentType, nameSource.get(varParam1.name()));
                         compareToCaseInvocation.arg(JExpr.refthis(caseClass.fields().get(varParam1.name())));
                     }
@@ -960,7 +960,7 @@ public class FinalValueClassModel {
 
                         JVar varParam = interfaceMethod1.varParam();
                         for (JVar param: interfaceMethod1.params()) {
-                            AbstractJType argumentType = Source.toDeclarable(usedVisitor.getNarrowedType(param.type()));
+                            AbstractJType argumentType = usedVisitor.getNarrowedType(param.type()).declarable();
                             JVar argument1 = compareToCaseMethod.param(param.mods().getValue(), argumentType, nameSource.get(param.name()));
                             if (isSameCase) {
                                 if (body == null)
@@ -973,7 +973,7 @@ public class FinalValueClassModel {
                             }
                         }
                         if (varParam != null) {
-                            AbstractJType argumentType = Source.toDeclarable(usedVisitor.getNarrowedType(varParam.type().elementType()));
+                            AbstractJType argumentType = usedVisitor.getNarrowedType(varParam.type().elementType()).declarable();
                             JVar varArgument1 = compareToCaseMethod.varParam(varParam.mods().getValue(), argumentType, nameSource.get(varParam.name()));
                             if (isSameCase) {
                                 if (body == null)

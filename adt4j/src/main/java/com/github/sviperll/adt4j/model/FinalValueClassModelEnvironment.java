@@ -109,7 +109,7 @@ public class FinalValueClassModelEnvironment {
         return configuration.wrapValueClass(valueClass).narrow(typeParams);
     }
 
-    NarrowedVisitor visitor(AbstractJClass selfType, AbstractJClass resultType, AbstractJClass exceptionType) {
+    NarrowedVisitor visitor(AbstractJClass selfType, AbstractJClass resultType, @Nullable AbstractJClass exceptionType) {
         return configuration.visitor().narrowed(selfType, resultType, exceptionType);
     }
 
@@ -121,8 +121,12 @@ public class FinalValueClassModelEnvironment {
         return configuration.visitor().methods();
     }
 
-    JInvocation invokeValueClassStaticMethod(JMethod constructorMethod, AbstractJClass[] typeParams) {
-        return Source.staticInvoke(valueClass, constructorMethod, typeParams);
+    JInvocation invokeValueClassStaticMethod(JMethod constructorMethod, AbstractJClass[] typeArguments) {
+        JInvocation result = valueClass.staticInvoke(constructorMethod);
+        for (AbstractJClass typeArgument: typeArguments) {
+            result.narrow(typeArgument);
+        }
+        return result;
     }
 
     String acceptingInterfaceName() {

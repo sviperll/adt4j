@@ -29,15 +29,15 @@
  */
 package com.github.sviperll.adt4j;
 
-import com.github.sviperll.Throwables;
 import com.github.sviperll.adt4j.model.Stage0ValueClassModel;
 import com.github.sviperll.adt4j.model.Stage0ValueClassModelFactory;
 import com.github.sviperll.adt4j.model.Stage1ValueClassModel;
+import com.github.sviperll.adt4j.model.util.FilerCodeWriter;
 import com.github.sviperll.adt4j.model.util.GenerationProcess;
-import com.github.sviperll.adt4j.model.util.Source;
-import com.github.sviperll.meta.FilerCodeWriter;
+import com.github.sviperll.adt4j.model.util.Throwables;
 import com.helger.jcodemodel.AbstractJClass;
 import com.helger.jcodemodel.JAnnotationUse;
+import com.helger.jcodemodel.JClassAlreadyExistsException;
 import com.helger.jcodemodel.JCodeModel;
 import com.helger.jcodemodel.JDefinedClass;
 import com.helger.jcodemodel.JPackage;
@@ -53,6 +53,8 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 import java.util.TreeMap;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.annotation.processing.AbstractProcessor;
 import javax.annotation.processing.RoundEnvironment;
 import javax.annotation.processing.SupportedAnnotationTypes;
@@ -60,6 +62,7 @@ import javax.annotation.processing.SupportedSourceVersion;
 import javax.lang.model.SourceVersion;
 import javax.lang.model.element.Element;
 import javax.lang.model.element.TypeElement;
+import javax.lang.model.util.Elements;
 import javax.tools.Diagnostic;
 
 @SupportedAnnotationTypes({"com.github.sviperll.adt4j.GenerateValueClassForVisitor",
@@ -71,6 +74,7 @@ import javax.tools.Diagnostic;
                            "com.github.sviperll.adt4j.WrapsGeneratedValueClass"})
 @SupportedSourceVersion(SourceVersion.RELEASE_7)
 public class GenerateValueClassForVisitorProcessor extends AbstractProcessor {
+    private static final Logger logger = Logger.getLogger(GenerateValueClassForVisitorProcessor.class.getName());
     private static final Visitor DEFAULT_VISITOR_IMPLEMENTATION;
     static {
         DEFAULT_VISITOR_IMPLEMENTATION = new Visitor() {
@@ -235,16 +239,17 @@ public class GenerateValueClassForVisitorProcessor extends AbstractProcessor {
         private Map<String, Stage0ValueClassModel> processStage0() throws RuntimeException {
             Map<String, Stage0ValueClassModel> result = new TreeMap<>();
             JCodeModel bootJCodeModel = new JCodeModel();
-            Stage0ValueClassModelFactory stage0Processor = Stage0ValueClassModelFactory.createFactory(jCodeModel);
+            final Elements elementUtils = processingEnv.getElementUtils();
+            final JCodeModelJavaxLangModelAdapter adapter = new JCodeModelJavaxLangModelAdapter(bootJCodeModel, elementUtils);
+            Stage0ValueClassModelFactory stage0Processor = Stage0ValueClassModelFactory.createFactory(new CheckExistingJDefinedClassFactory(adapter, elementUtils));
             for (TypeElement element: elements) {
-                JCodeModelJavaxLangModelAdapter adapter = new JCodeModelJavaxLangModelAdapter(bootJCodeModel, processingEnv.getElementUtils());
                 JDefinedClass bootVisitorModel;
                 try {
                     bootVisitorModel = adapter.getClassWithErrorTypes(element);
                 } catch (CodeModelBuildingException ex) {
                     throw new RuntimeException("Unexpected exception", ex);
                 }
-                JAnnotationUse generateAnnotation = Source.getAnnotation(bootVisitorModel, GenerateValueClassForVisitor.class);
+                JAnnotationUse generateAnnotation = bootVisitorModel.getAnnotation(GenerateValueClassForVisitor.class);
                 if (generateAnnotation != null) {
                     Visitor visitorAnnotation = element.getAnnotation(Visitor.class);
                     if (visitorAnnotation == null) {
@@ -272,8 +277,8 @@ public class GenerateValueClassForVisitorProcessor extends AbstractProcessor {
                 } catch (CodeModelBuildingException ex) {
                     throw new RuntimeException("Unexpected exception", ex);
                 }
-                JAnnotationUse wrapperAnnotation = Source.getAnnotation(jelement, WrapsGeneratedValueClass.class);
-                JAnnotationUse generateAnnotation = Source.getAnnotation(jelement, GenerateValueClassForVisitor.class);
+                JAnnotationUse wrapperAnnotation = jelement.getAnnotation(WrapsGeneratedValueClass.class);
+                JAnnotationUse generateAnnotation = jelement.getAnnotation(GenerateValueClassForVisitor.class);
                 if (wrapperAnnotation != null && generateAnnotation != null) {
                     generation.reportError("class shouldn't be annotated with both " + WrapsGeneratedValueClass.class.getName() + " and " + GenerateValueClassForVisitor.class.getName() + " annotation");
                 } else if (wrapperAnnotation != null) {
@@ -297,13 +302,18 @@ public class GenerateValueClassForVisitorProcessor extends AbstractProcessor {
                             } catch (CodeModelBuildingException ex) {
                                 throw new RuntimeException("Unexpected exception", ex);
                             }
-                            JAnnotationUse visitorGenerateAnnotation = Source.getAnnotation(jvisitor, GenerateValueClassForVisitor.class);
+                            JAnnotationUse visitorGenerateAnnotation = jvisitor.getAnnotation(GenerateValueClassForVisitor.class);
                             if (visitorGenerateAnnotation == null) {
                                 generation.reportError(WrapsGeneratedValueClass.class.getName() + " annotation should have visitor argument set to class annotated with " + GenerateValueClassForVisitor.class.getName() + " annotation");
                             } else {
                                 AbstractJClass visitorWrapper = visitorGenerateAnnotation.getParam("wrapperClass", AbstractJClass.class);
-                                if (visitorWrapper == null || visitorWrapper.isError() || !visitorWrapper.fullName().equals(jelement.fullName()))
+                                if (visitorWrapper == null || visitorWrapper.isError()) {
                                     generation.reportError(WrapsGeneratedValueClass.class.getName() + " annotation should annotate class and should have visitor argument set to another class annotated with " + GenerateValueClassForVisitor.class.getName() + " annotation with wrapperClass argument set to first class");
+                                } else {
+                                    String wrapperFullName = visitorWrapper.fullName();
+                                    if (wrapperFullName == null || !wrapperFullName.equals(jelement.fullName()))
+                                        generation.reportError(WrapsGeneratedValueClass.class.getName() + " annotation should annotate class and should have visitor argument set to another class annotated with " + GenerateValueClassForVisitor.class.getName() + " annotation with wrapperClass argument set to first class");
+                                }
                             }
                         }
                     }
@@ -330,11 +340,39 @@ public class GenerateValueClassForVisitorProcessor extends AbstractProcessor {
                 Stage1ValueClassModel stage1Model = stage1Results.get(element.getQualifiedName().toString());
                 if (stage1Model != null) {
                     JDefinedClass model = generation.processGenerationResult(stage1Model.createResult());
+                    if (model == null)
+                        throw new IllegalStateException("Model shouldn't be null during stage2");
                     errorMap.put(element.getQualifiedName().toString(), generation.reportedErrors());
                     result.put(model.fullName(), element);
                 }
             }
             return result;
+        }
+
+        private class CheckExistingJDefinedClassFactory implements Stage0ValueClassModelFactory.JDefinedClassFactory {
+            private final Elements elementUtils;
+            private final JCodeModelJavaxLangModelAdapter adapter;
+
+            public CheckExistingJDefinedClassFactory(JCodeModelJavaxLangModelAdapter adapter, Elements elementUtils) {
+                this.elementUtils = elementUtils;
+                this.adapter = adapter;
+            }
+
+            @Override
+            public JDefinedClass defineClass(String packageName, int mods, String className) throws JClassAlreadyExistsException {
+                TypeElement typeElement = elementUtils.getTypeElement(packageName + "." + className);
+                if (typeElement != null) {
+                    JDefinedClass existing;
+                    try {
+                        existing = adapter.getClassWithErrorTypes(typeElement);
+                    } catch (CodeModelBuildingException ex) {
+                        throw new RuntimeException(ex);
+                    }
+                    throw new JClassAlreadyExistsException(existing);
+                }
+                JPackage _package = jCodeModel._package(packageName);
+                return _package._class(mods, className);
+            }
         }
 
     }

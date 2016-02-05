@@ -51,13 +51,13 @@ import javax.annotation.Generated;
  * @author vir
  */
 public class Stage0ValueClassModelFactory {
-    public static Stage0ValueClassModelFactory createFactory(JCodeModel jCodeModel) {
-        return new Stage0ValueClassModelFactory(jCodeModel);
+    public static Stage0ValueClassModelFactory createFactory(JDefinedClassFactory factory) {
+        return new Stage0ValueClassModelFactory(factory);
     }
-    private final JCodeModel jCodeModel;
+    private final JDefinedClassFactory factory;
 
-    private Stage0ValueClassModelFactory(JCodeModel jCodeModel) {
-        this.jCodeModel = jCodeModel;
+    private Stage0ValueClassModelFactory(JDefinedClassFactory factory) {
+        this.factory = factory;
     }
 
     public Stage0ValueClassModel createStage0Model(JDefinedClass bootModel, Visitor visitorAnnotation) {
@@ -75,11 +75,10 @@ public class Stage0ValueClassModelFactory {
             throw new IllegalStateException("ValueClassModelFactory can't be run for interface without " + GenerateValueClassForVisitor.class + " annotation");
         VisitorModel visitorModel = generation.processGenerationResult(VisitorModel.createInstance(bootModel, visitorAnnotation));
         ValueClassConfiguration configuration = generation.processGenerationResult(ValueClassConfiguration.createInstance(visitorModel, annotation));
-        JPackage jpackage = jCodeModel._package(bootModel._package().name());
         int mods = configuration.isValueClassPublic() ? JMod.PUBLIC: JMod.NONE;
         JDefinedClass valueClass;
         try {
-            valueClass = jpackage._class(mods, configuration.valueClassName(), EClassType.CLASS);
+            valueClass = factory.defineClass(bootModel._package().name(), mods, configuration.valueClassName());
         } catch (JClassAlreadyExistsException ex) {
             return new Stage0ValueClassModel("Class " + configuration.valueClassName() + " already exists");
         }
@@ -87,5 +86,9 @@ public class Stage0ValueClassModelFactory {
         generatedAnnotation.param("value", GenerateValueClassForVisitorProcessor.class.getName());
         Source.annotateParametersAreNonnullByDefault(valueClass);
         return new Stage0ValueClassModel(valueClass);
+    }
+
+    public interface JDefinedClassFactory {
+        JDefinedClass defineClass(String packageName, int mods, String className) throws JClassAlreadyExistsException;
     }
 }

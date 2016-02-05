@@ -31,7 +31,6 @@ package com.github.sviperll.adt4j.model.config;
 
 import com.github.sviperll.adt4j.Caching;
 import com.github.sviperll.adt4j.MemberAccess;
-import com.github.sviperll.adt4j.Visitor;
 import com.github.sviperll.adt4j.WrapsGeneratedValueClass;
 import com.github.sviperll.adt4j.model.util.GenerationProcess;
 import com.github.sviperll.adt4j.model.util.GenerationResult;
@@ -48,8 +47,6 @@ import com.helger.jcodemodel.JMethod;
 import com.helger.jcodemodel.JTypeVar;
 import com.helger.jcodemodel.JVar;
 import java.text.MessageFormat;
-import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
@@ -110,7 +107,8 @@ public class ValueClassConfiguration {
                 JDefinedClass definition = (JDefinedClass)wrapperClassErasure;
                 JAnnotationUse wrapsGeneratedAnnotation = null;
                 for (JAnnotationUse wrapperAnnotaion: definition.annotations()) {
-                    if (wrapperAnnotaion.getAnnotationClass().erasure().fullName().equals(WrapsGeneratedValueClass.class.getName())) {
+                    String annotationClassFullName = wrapperAnnotaion.getAnnotationClass().erasure().fullName();
+                    if (annotationClassFullName != null && annotationClassFullName.equals(WrapsGeneratedValueClass.class.getName())) {
                         wrapsGeneratedAnnotation = wrapperAnnotaion;
                     }
                 }
@@ -118,7 +116,7 @@ public class ValueClassConfiguration {
                     generation.reportError(MessageFormat.format("Wrapper class should be annotated with @{0} annotation.", com.github.sviperll.adt4j.WrapsGeneratedValueClass.class.getName()));
                 else {
                     AbstractJClass visitor = wrapsGeneratedAnnotation.getParam("visitor", AbstractJClass.class);
-                    if (visitor == null || !visitor.fullName().equals(visitorModel.qualifiedName()))
+                    if (visitor == null || visitor.fullName() == null || !visitor.fullName().equals(visitorModel.qualifiedName()))
                         generation.reportError("@" + WrapsGeneratedValueClass.class.getName() + " annotation should have " + visitorModel.qualifiedName() + " as visitor argument");
                 }
             }
@@ -261,12 +259,12 @@ public class ValueClassConfiguration {
         VisitorModel.NarrowedVisitor narrowed = visitorModel.narrowed(usedValueClassType, visitorModel.getResultTypeParameter(), types._RuntimeException);
         for (JMethod interfaceMethod: visitorModel.methods()) {
             for (JVar param: interfaceMethod.params()) {
-                AbstractJType paramType = Source.toDeclarable(narrowed.getNarrowedType(param.type()));
+                AbstractJType paramType = narrowed.getNarrowedType(param.type()).declarable();
                 generation.processGenerationResult(reader.readGetter(interfaceMethod, param, paramType, false));
             }
             JVar param = interfaceMethod.varParam();
             if (param != null) {
-                AbstractJType paramType = Source.toDeclarable(narrowed.getNarrowedType(param.type()));
+                AbstractJType paramType = narrowed.getNarrowedType(param.type()).declarable();
                 generation.processGenerationResult(reader.readGetter(interfaceMethod, param, paramType, true));
             }
         }
@@ -281,12 +279,12 @@ public class ValueClassConfiguration {
         VisitorModel.NarrowedVisitor narrowed = visitorModel.narrowed(usedValueClassType, visitorModel.getResultTypeParameter(), types._RuntimeException);
         for (JMethod interfaceMethod: visitorModel.methods()) {
             for (JVar param: interfaceMethod.params()) {
-                AbstractJType paramType = Source.toDeclarable(narrowed.getNarrowedType(param.type()));
+                AbstractJType paramType = narrowed.getNarrowedType(param.type()).declarable();
                 generation.processGenerationResult(reader.readUpdater(interfaceMethod, param, paramType, false));
             }
             JVar param = interfaceMethod.varParam();
             if (param != null) {
-                AbstractJType paramType = Source.toDeclarable(narrowed.getNarrowedType(param.type()));
+                AbstractJType paramType = narrowed.getNarrowedType(param.type()).declarable();
                 generation.processGenerationResult(reader.readUpdater(interfaceMethod, param, paramType, true));
             }
         }

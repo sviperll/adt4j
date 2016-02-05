@@ -34,9 +34,6 @@ import com.helger.jcodemodel.AbstractJClass;
 import com.helger.jcodemodel.AbstractJType;
 import com.helger.jcodemodel.IJAnnotatable;
 import com.helger.jcodemodel.JAnnotationUse;
-import com.helger.jcodemodel.JDefinedClass;
-import com.helger.jcodemodel.JInvocation;
-import com.helger.jcodemodel.JMethod;
 import com.helger.jcodemodel.JMod;
 import com.helger.jcodemodel.JTypeWildcard;
 import com.helger.jcodemodel.JVar;
@@ -44,7 +41,6 @@ import java.lang.annotation.Annotation;
 import java.text.MessageFormat;
 import java.util.Collections;
 import java.util.Locale;
-import javax.annotation.Nullable;
 
 /**
  *
@@ -64,21 +60,6 @@ public class Source {
             default:
                 throw new IllegalStateException("Unsupported AccessLevel: " + accessLevel);
         }
-    }
-
-    /**
-     * Convert any java type to one that can be used as declaration-type.
-     * <p>
-     * For example wild-card type will be replaces with it's bound.
-     * @param type
-     * @return type that can be used in declaration.
-     */
-    public static AbstractJType toDeclarable(AbstractJType type) {
-        if (type instanceof JTypeWildcard) {
-            JTypeWildcard wild = (JTypeWildcard)type;
-            return wild.bound();
-        }
-        return type;
     }
 
     public static String capitalize(String s) {
@@ -156,25 +137,6 @@ public class Source {
         } catch (ClassNotFoundException ex) {
             // Skip if no JSR-305 implementation present
         }
-    }
-
-    public static JInvocation staticInvoke(AbstractJClass valueClass, JMethod staticMethod, AbstractJClass... typeArguments) {
-        JInvocation invocation = valueClass.staticInvoke(staticMethod);
-        for (AbstractJClass typeArgument: typeArguments) {
-            invocation.narrow(typeArgument);
-        }
-        return invocation;
-    }
-
-    @Nullable
-    public static JAnnotationUse getAnnotation(JDefinedClass jclass, Class<?> annotationClass) {
-        for (JAnnotationUse jannotation: jclass.annotations()) {
-            AbstractJClass jannotationClass = jannotation.getAnnotationClass();
-            if (!jannotationClass.isError() && jannotationClass.fullName().equals(annotationClass.getName())) {
-                return jannotation;
-            }
-        }
-        return null;
     }
 
     private Source() {

@@ -46,11 +46,14 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
+import javax.annotation.Nullable;
+import javax.annotation.ParametersAreNonnullByDefault;
 
 /**
  *
  * @author Victor Nazarov &lt;asviraspossible@gmail.com&gt;
  */
+@ParametersAreNonnullByDefault
 public class VisitorModel {
     public static GenerationResult<VisitorModel> createInstance(JDefinedClass jVisitorModel, Visitor annotation) {
         GenerationProcess generation = new GenerationProcess();
@@ -100,6 +103,20 @@ public class VisitorModel {
                 generation.reportError(MessageFormat.format("Visitor method is only allowed to return type declared as a result type of visitor: {0}: expecting {1}, found: {2}",
                         method.name(), specialTypeVariables.resultTypeParameter().name(), methodType.fullName()));
             }
+            for (JTypeVar typeVariable: method.typeParamList()) {
+                for (AbstractJClass bound: typeVariable.bounds()) {
+                    if (bound.containsTypeVar(specialTypeVariables.resultTypeParameter())) {
+                        generation.reportError(MessageFormat.format("Visitor method type-parameters shouldn''t depend on result type: {0}: {1} type-variable",
+                                method.name(), typeVariable.name()));
+                    }
+                }
+            }
+            for (JVar parameter: method.listParams()) {
+                if (parameter.type().containsTypeVar(specialTypeVariables.resultTypeParameter())) {
+                    generation.reportError(MessageFormat.format("Visitor method shouldn''t have result type as a parameter: {0}: result type-parameter: {1}",
+                            method.name(), specialTypeVariables.resultTypeParameter().name()));
+                }
+            }
 
             Collection<AbstractJClass> exceptions = method.getThrows();
             if (exceptions.size() > 1)
@@ -142,7 +159,7 @@ public class VisitorModel {
         return methods.values();
     }
 
-    public NarrowedVisitor narrowed(AbstractJClass selfType, AbstractJClass resultType, AbstractJClass exceptionType) {
+    public NarrowedVisitor narrowed(AbstractJClass selfType, AbstractJClass resultType, @Nullable AbstractJClass exceptionType) {
         return new NarrowedVisitor(selfType, resultType, exceptionType);
     }
 
@@ -183,8 +200,8 @@ public class VisitorModel {
     public class NarrowedVisitor {
         private final AbstractJClass selfType;
         private final AbstractJClass resultType;
-        private final AbstractJClass exceptionType;
-        private NarrowedVisitor(AbstractJClass selfType, AbstractJClass resultType, AbstractJClass exceptionType) {
+        private final @Nullable AbstractJClass exceptionType;
+        private NarrowedVisitor(AbstractJClass selfType, AbstractJClass resultType, @Nullable AbstractJClass exceptionType) {
             this.selfType = selfType;
             this.resultType = resultType;
             this.exceptionType = exceptionType;
