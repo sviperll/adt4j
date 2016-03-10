@@ -28,16 +28,15 @@
  *  EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.github.sviperll.codemodel;
+package com.github.sviperll.codemodel.render;
 
 import javax.annotation.ParametersAreNonnullByDefault;
-import javax.annotation.Nonnull;
 
 /**
  *
  * @author Victor Nazarov &lt;asviraspossible@gmail.com&gt;
  */
 @ParametersAreNonnullByDefault
-interface Renderer {
+public interface Renderer {
     void render();
 }

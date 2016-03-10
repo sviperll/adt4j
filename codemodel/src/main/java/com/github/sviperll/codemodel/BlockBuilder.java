@@ -30,6 +30,8 @@
 
 package com.github.sviperll.codemodel;
 
+import com.github.sviperll.codemodel.render.RendererContext;
+import com.github.sviperll.codemodel.render.Renderer;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -133,7 +135,7 @@ public class BlockBuilder {
                         context.append(" ");
                         context.append(name);
                         context.append(" = ");
-                        Renderer initializerRenderer = initializer.createRenderer(context);
+                        Renderer initializerRenderer = initializer.createTopLevelExpressionRenderer(context);
                         initializerRenderer.render();
                     }
                 };
@@ -174,7 +176,7 @@ public class BlockBuilder {
                         context.append(" ");
                         context.append(name);
                         context.append(" = ");
-                        Renderer initializerRenderer = initializer.createRenderer(context);
+                        Renderer initializerRenderer = initializer.createTopLevelExpressionRenderer(context);
                         initializerRenderer.render();
                     }
                 };
@@ -191,7 +193,7 @@ public class BlockBuilder {
                     public void render() {
                         context.append(name);
                         context.append(" = ");
-                        Renderer expressionRenderer = expression.createRenderer(context);
+                        Renderer expressionRenderer = expression.createTopLevelExpressionRenderer(context);
                         expressionRenderer.render();
                     }
                 };
@@ -206,10 +208,10 @@ public class BlockBuilder {
                 return new Renderer() {
                     @Override
                     public void render() {
-                        Renderer lvalueRenderer = lvalue.createRenderer(context);
+                        Renderer lvalueRenderer = lvalue.createTopLevelExpressionRenderer(context);
                         lvalueRenderer.render();
                         context.append(" = ");
-                        Renderer expressionRenderer = expression.createRenderer(context);
+                        Renderer expressionRenderer = expression.createTopLevelExpressionRenderer(context);
                         expressionRenderer.render();
                     }
                 };

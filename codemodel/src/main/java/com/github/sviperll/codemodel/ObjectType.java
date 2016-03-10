@@ -30,7 +30,6 @@
 
 package com.github.sviperll.codemodel;
 
-import java.util.List;
 import javax.annotation.ParametersAreNonnullByDefault;
 
 /**
@@ -105,4 +104,9 @@ public abstract class ObjectType extends Type
     public String getTypeVariableName() {
         throw new UnsupportedOperationException();
     }
+
+    public Expression instanceofOp(Expression expression) throws CodeModelException {
+        return expression.instanceofOp(this);
+    }
+
 }

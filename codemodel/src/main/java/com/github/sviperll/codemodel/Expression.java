@@ -30,6 +30,10 @@
 
 package com.github.sviperll.codemodel;
 
+import com.github.sviperll.codemodel.expression.ExpressionFactory;
+import com.github.sviperll.codemodel.expression.ExpressionFactory.ExpressionDefinition;
+import com.github.sviperll.codemodel.render.Renderer;
+import com.github.sviperll.codemodel.render.RendererContext;
 import javax.annotation.ParametersAreNonnullByDefault;
 
 /**
@@ -37,9 +41,165 @@ import javax.annotation.ParametersAreNonnullByDefault;
  * @author Victor Nazarov &lt;asviraspossible@gmail.com&gt;
  */
 @ParametersAreNonnullByDefault
-public abstract class Expression {
-    Expression() {
+public class Expression {
+    private static final ExpressionFactory LITERAL = ExpressionFactory.TOP;
+    private static final ExpressionFactory POSTFIX = LITERAL.next();
+    private static final ExpressionFactory UNARY = POSTFIX.next();
+    private static final ExpressionFactory MULTIPLICATIVE = UNARY.next();
+    private static final ExpressionFactory ADDITIVE = MULTIPLICATIVE.next();
+    private static final ExpressionFactory SHIFT = ADDITIVE.next();
+    private static final ExpressionFactory RELATIONAL = SHIFT.next();
+    private static final ExpressionFactory EQUALITY = RELATIONAL.next();
+    private static final ExpressionFactory BITWISE_AND = EQUALITY.next();
+    private static final ExpressionFactory BITWISE_OR = BITWISE_AND.next();
+    private static final ExpressionFactory LOGICAL_AND = BITWISE_OR.next();
+    private static final ExpressionFactory LOGICAL_OR = LOGICAL_AND.next();
+    private static final ExpressionFactory TERNARY = LOGICAL_OR.next();
+    private static final ExpressionFactory ASSIGNMENT = TERNARY.next();
+
+    public static final Expression literal(final String s) {
+        return LITERAL.createExpression(new ExpressionFactory.Renderable() {
+            @Override
+            public Renderer createRenderer(final RendererContext context) {
+                return new Renderer() {
+                    @Override
+                    public void render() {
+                        context.append("\"");
+                        context.append(s.replace("\\", "\\\\").replace("\"", "\\\"").replace("\r", "\\r").replace("\n", "\\n"));
+                        context.append("\"");
+                    }
+                };
+            }
+        });
     }
 
-    abstract Renderer createRenderer(RendererContext context);
+    public static final Expression literal(final int i) {
+        return LITERAL.createExpression(new ExpressionFactory.Renderable() {
+            @Override
+            public Renderer createRenderer(final RendererContext context) {
+                return new Renderer() {
+                    @Override
+                    public void render() {
+                        context.append(Integer.toString(i));
+                    }
+                };
+            }
+        });
+    }
+
+    public static final Expression literal(final long i) {
+        return LITERAL.createExpression(new ExpressionFactory.Renderable() {
+            @Override
+            public Renderer createRenderer(final RendererContext context) {
+                return new Renderer() {
+                    @Override
+                    public void render() {
+                        context.append(Long.toString(i));
+                        context.append("L");
+                    }
+                };
+            }
+        });
+    }
+
+    public static final Expression literal(final double i) {
+        return LITERAL.createExpression(new ExpressionFactory.Renderable() {
+            @Override
+            public Renderer createRenderer(final RendererContext context) {
+                return new Renderer() {
+                    @Override
+                    public void render() {
+                        context.append(Double.toString(i));
+                    }
+                };
+            }
+        });
+    }
+
+    public static final Expression literal(final float f) {
+        return LITERAL.createExpression(new ExpressionFactory.Renderable() {
+            @Override
+            public Renderer createRenderer(final RendererContext context) {
+                return new Renderer() {
+                    @Override
+                    public void render() {
+                        context.append(Float.toString(f));
+                        context.append("F");
+                    }
+                };
+            }
+        });
+    }
+
+    public static final Expression objectType(final ObjectType type) {
+        return LITERAL.createExpression(new ExpressionFactory.Renderable() {
+            @Override
+            public Renderer createRenderer(final RendererContext context) {
+                return new Renderer() {
+                    @Override
+                    public void render() {
+                        context.appendType(type);
+                    }
+                };
+            }
+        });
+    }
+
+    private final ExpressionDefinition definition;
+    public Expression(ExpressionDefinition definition) {
+        this.definition = definition;
+    }
+
+    public ExpressionDefinition definition() {
+        return definition;
+    }
+
+    public Renderer createTopLevelExpressionRenderer(RendererContext context) {
+        return definition.createTopLevelExpressionRenderer(context);
+    }
+
+    public Expression plus(Expression expression) {
+        return ADDITIVE.createLeftAssociativeExpression(this, "+", expression);
+    }
+    public Expression minus(Expression expression) {
+        return ADDITIVE.createLeftAssociativeExpression(this, "-", expression);
+    }
+    public Expression div(Expression expression) {
+        return MULTIPLICATIVE.createLeftAssociativeExpression(this, "/", expression);
+    }
+    public Expression mod(Expression expression) {
+        return MULTIPLICATIVE.createLeftAssociativeExpression(this, "%", expression);
+    }
+    public Expression times(Expression expression) {
+        return MULTIPLICATIVE.createLeftAssociativeExpression(this, "*", expression);
+    }
+    public Expression or(Expression expression) {
+        return LOGICAL_OR.createLeftAssociativeExpression(this, "%", expression);
+    }
+    public Expression and(Expression expression) {
+        return LOGICAL_AND.createLeftAssociativeExpression(this, "*", expression);
+    }
+    public Expression gt(Expression expression) {
+        return RELATIONAL.createLeftAssociativeExpression(this, ">", expression);
+    }
+    public Expression lt(Expression expression) {
+        return RELATIONAL.createLeftAssociativeExpression(this, "<", expression);
+    }
+    public Expression ge(Expression expression) {
+        return RELATIONAL.createLeftAssociativeExpression(this, ">=", expression);
+    }
+    public Expression le(Expression expression) {
+        return RELATIONAL.createLeftAssociativeExpression(this, "<=", expression);
+    }
+    public Expression instanceofOp(ObjectType type) throws CodeModelException {
+        if (!type.isRaw())
+            throw new CodeModelException("Only raw types allowed here");
+        return RELATIONAL.createLeftAssociativeExpression(this, "instanceof", objectType(type));
+    }
+    public Expression eq(Expression expression) {
+        return EQUALITY.createLeftAssociativeExpression(this, "==", expression);
+    }
+    public Expression ne(Expression expression) {
+        return EQUALITY.createLeftAssociativeExpression(this, "!=", expression);
+    }
 }

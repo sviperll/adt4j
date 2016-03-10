@@ -27,28 +27,37 @@
  *  (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
  *  EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
 package com.github.sviperll.codemodel;
 
-import javax.annotation.ParametersAreNonnullByDefault;
-import javax.annotation.Nonnull;
+import com.github.sviperll.codemodel.render.Renderer;
+import com.github.sviperll.codemodel.render.RendererContext;
+import org.junit.Test;
+import static org.junit.Assert.*;
+import static com.github.sviperll.codemodel.Expression.literal;
 
 /**
  *
  * @author Victor Nazarov &lt;asviraspossible@gmail.com&gt;
  */
-@ParametersAreNonnullByDefault
-class RendererContext {
-    void append(String s) {
-    }
-    void nextLine() {
-    }
+public class ExpressionTest {
 
-    void appendType(Type type) {
-        throw new UnsupportedOperationException("Not supported yet.");
+    /**
+     * Test of literal method, of class Expression.
+     */
+    @Test
+    public void smoke1() {
+        Expression expression = literal(5).plus(literal(6)).times(literal(6).plus(literal(7)));
+        StringBuilder builder = new StringBuilder();
+        Renderer renderer = expression.createTopLevelExpressionRenderer(RendererContext.createInstance(builder));
+        renderer.render();
+        assertEquals("(5 + 6) * (6 + 7)", builder.toString());
     }
-
-    RendererContext indented() {
-        throw new UnsupportedOperationException("Not supported yet.");
+    @Test
+    public void smoke2() {
+        Expression expression = literal("aa\nbb\"sdfsd\"sdfsd").plus(literal(5)).plus(literal(6)).times(literal(6).plus(literal(7)));
+        StringBuilder builder = new StringBuilder();
+        Renderer renderer = expression.createTopLevelExpressionRenderer(RendererContext.createInstance(builder));
+        renderer.render();
+        assertEquals("(\"aa\\nbb\\\"sdfsd\\\"sdfsd\" + 5 + 6) * (6 + 7)", builder.toString());
     }
 }

@@ -30,6 +30,8 @@
 
 package com.github.sviperll.codemodel;
 
+import com.github.sviperll.codemodel.render.RendererContext;
+import com.github.sviperll.codemodel.render.Renderer;
 import javax.annotation.ParametersAreNonnullByDefault;
 
 /**
@@ -65,7 +67,7 @@ public class IfBuilder {
                     @Override
                     public void render() {
                         context.append("if (");
-                        Renderer expressionRenderer = condition.createRenderer(context);
+                        Renderer expressionRenderer = condition.createTopLevelExpressionRenderer(context);
                         expressionRenderer.render();
                         context.append(")");
                         Renderer thenRenderer;
