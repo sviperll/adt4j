@@ -32,15 +32,26 @@ package com.github.sviperll.codemodel;
 
 import java.util.Collection;
 import java.util.Collections;
-import java.util.List;
 
 /**
  *
  * @author Victor Nazarov &lt;asviraspossible@gmail.com&gt;
  */
 public final class Wildcard extends Type {
-    Wildcard() {
 
+    private final BoundKind boundKind;
+    private final Type bound;
+    Wildcard(BoundKind boundKind, Type bound) {
+        this.boundKind = boundKind;
+        this.bound = bound;
+    }
+
+    public BoundKind getWildcardBoundKind() {
+        return boundKind;
+    }
+
+    public Type getWildcardBound() {
+        return bound;
     }
 
     @Override
@@ -116,5 +127,9 @@ public final class Wildcard extends Type {
     @Override
     public boolean isVoid() {
         return false;
+    }
+
+    public enum BoundKind {
+        SUPER, EXTENDS
     }
 }

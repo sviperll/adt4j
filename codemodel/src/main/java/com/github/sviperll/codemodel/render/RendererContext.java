@@ -30,8 +30,12 @@
 
 package com.github.sviperll.codemodel.render;
 
+import com.github.sviperll.codemodel.ObjectType;
 import com.github.sviperll.codemodel.Type;
+import com.github.sviperll.codemodel.Wildcard;
 import java.io.IOException;
+import java.util.Iterator;
+import java.util.Locale;
 import javax.annotation.ParametersAreNonnullByDefault;
 
 /**
@@ -40,69 +44,86 @@ import javax.annotation.ParametersAreNonnullByDefault;
  */
 @ParametersAreNonnullByDefault
 public class RendererContext {
-    public static RendererContext createInstance(Appendable appendable) {
-        return new RendererContext(new RendererContextImplementation("    ", appendable));
+    public static RendererContext createInstance(final StringBuilder stringBuilder) {
+        return createInstance(new TypeAwareWriter() {
+            @Override
+            public void writeQualifiedTypeName(String name) {
+                stringBuilder.append(name);
+            }
+
+            @Override
+            public void writeText(String text) {
+                stringBuilder.append(text);
+            }
+        });
     }
-    private final RendererContextImplementation implementation;
+    public static RendererContext createInstance(TypeAwareWriter writer) {
+        return new RendererContext(new LineWriter("    ", writer));
+    }
+    private final LineWriter implementation;
     private final int identationLevel;
 
-    private RendererContext(RendererContextImplementation implementation) {
+    private RendererContext(LineWriter implementation) {
         this(implementation, 0);
     }
-    private RendererContext(RendererContextImplementation implementation, int identationLevel) {
+    private RendererContext(LineWriter implementation, int identationLevel) {
         this.implementation = implementation;
         this.identationLevel = identationLevel;
     }
     public void append(String s) {
-        implementation.append(identationLevel, s);
+        implementation.writeText(identationLevel, s);
     }
     public void nextLine() {
         implementation.nextLine();
     }
 
     public void appendType(Type type) {
-        implementation.appendType(identationLevel, type);
+        if (type.isArray()) {
+            appendType(type.getArrayElementType());
+            append("[]");
+        } else if (type.isIntersection()) {
+            Iterator<Type> iterator = type.intersectedTypes().iterator();
+            if (iterator.hasNext()) {
+                appendType(iterator.next());
+                while (iterator.hasNext()) {
+                    append(" & ");
+                    appendType(iterator.next());
+                }
+            }
+        } else if (type.isVoid()) {
+            append("void");
+        } else if (type.isPrimitive()) {
+            append(type.getPrimitiveTypeKind().name().toLowerCase(Locale.US));
+        } else if (type.isTypeVariable()) {
+            append(type.getTypeVariableName());
+        } else if (type.isWildcard()) {
+            Wildcard wildcard = type.asWildcard();
+            append("?");
+            append(wildcard.getWildcardBoundKind() == Wildcard.BoundKind.SUPER ? " super " : " extends ");
+            appendType(wildcard.getWildcardBound());
+        } else if (type.isObjectType()) {
+            ObjectType objectType = type.asObjectType();
+            if (objectType.isRaw())
+                implementation.writeQualifiedTypeName(identationLevel, objectType.definition().qualifiedName());
+            else {
+                appendType(objectType.erasure());
+                Iterator<Type> iterator = objectType.typeArguments().iterator();
+                if (iterator.hasNext()) {
+                    append("<");
+                    appendType(iterator.next());
+                    while (iterator.hasNext()) {
+                        append(", ");
+                        appendType(iterator.next());
+                    }
+                    append(">");
+                }
+            }
+        }
     }
 
     public RendererContext indented() {
         return new RendererContext(implementation, identationLevel + 1);
     }
 
-    private static class RendererContextImplementation {
-        private final String indentation;
-        private final Appendable appendable;
-        private boolean isStartOfLine = true;
 
-        private RendererContextImplementation(String indentation, Appendable appendable) {
-            this.indentation = indentation;
-            this.appendable = appendable;
-        }
-
-        public void append(int identationLevel, String s) {
-            try {
-                if (isStartOfLine) {
-                    for (int i = 0; i < identationLevel; i++) {
-                        appendable.append(indentation);
-                    }
-                    isStartOfLine = false;
-                }
-                appendable.append(s);
-            } catch (IOException ex) {
-                throw new RuntimeException(ex);
-            }
-        }
-
-        public void nextLine() {
-            try {
-                appendable.append("\n");
-                isStartOfLine = false;
-            } catch (IOException ex) {
-                throw new RuntimeException(ex);
-            }
-        }
-
-        public void appendType(int identationLevel, Type type) {
-            append(identationLevel, type.toString());
-        }
-    }
 }

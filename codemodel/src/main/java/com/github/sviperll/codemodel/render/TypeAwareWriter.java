@@ -27,42 +27,20 @@
  *  (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
  *  EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package com.github.sviperll.codemodel;
 
-import com.github.sviperll.codemodel.render.Renderer;
-import com.github.sviperll.codemodel.render.RendererContext;
-import org.junit.Test;
-import static org.junit.Assert.*;
-import static com.github.sviperll.codemodel.Expression.literal;
+package com.github.sviperll.codemodel.render;
+
+import javax.annotation.ParametersAreNonnullByDefault;
+import javax.annotation.Nonnull;
 
 /**
  *
  * @author Victor Nazarov &lt;asviraspossible@gmail.com&gt;
  */
-public class ExpressionTest {
+public interface TypeAwareWriter {
 
-    /**
-     * Test of literal method, of class Expression.
-     */
-    @Test
-    public void smoke1() {
-        Expression expression = literal(5).plus(literal(6)).times(literal(6).plus(literal(7)));
-        StringBuilder builder = new StringBuilder();
-        Renderer renderer = expression.createTopLevelExpressionRenderer(RendererContext.createInstance(builder));
-        renderer.render();
-        assertEquals("(5 + 6) * (6 + 7)", builder.toString());
-    }
-    @Test
-    public void smoke2() {
-        Expression expression = literal("aa\nbb\"sdfsd\"sdfsd").plus(literal(5)).plus(literal(6)).times(literal(6).plus(literal(7)));
-        StringBuilder builder = new StringBuilder();
-        Renderer renderer = expression.createTopLevelExpressionRenderer(RendererContext.createInstance(builder));
-        renderer.render();
-        assertEquals("(\"aa\\nbb\\\"sdfsd\\\"sdfsd\" + 5 + 6) * (6 + 7)", builder.toString());
-    }
-    @Test
-    public void instanceofTest() throws CodeModelException {
-        CodeModel codeModel = new CodeModel();
-        Expression expression = literal("aaa").instanceofOp(codeModel.objectType());
-    }
+    void writeQualifiedTypeName(String name);
+
+    void writeText(String text);
+
 }
