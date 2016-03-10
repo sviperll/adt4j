@@ -26,6 +26,7 @@
         <module>adt4j</module>
         <module>adt4j-examples</module>
         <module>adt4j-shaded</module>
+        <module>codemodel</module>
     </modules>
     <scm>
         <connection>scm:git:git://github.com/sviperll/adt4j.git</connection>
