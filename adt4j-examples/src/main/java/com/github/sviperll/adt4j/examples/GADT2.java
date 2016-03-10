@@ -43,6 +43,18 @@ import javax.annotation.ParametersAreNonnullByDefault;
 @ParametersAreNonnullByDefault
 @WrapsGeneratedValueClass(visitor = GADT2Visitor.class)
 public class GADT2<T> extends GADT2Base<T> {
+    // public static <A, B> GADT2<Function<A, B>> lambda(Function<A, GADT2<B>> function) {
+    //     return GADT2Base.<Function<A, B>, A, B>lambda(function, Type.Equality.<Function<A, B>>obvious());
+    // }
+    public static GADT2<Integer> number(int n) {
+        return GADT2Base.<Integer>number(n, TypeEquality.<Integer>obvious());
+    }
+    public static GADT2<Integer> plus(GADT2<Integer> a, GADT2<Integer> b) {
+        return GADT2Base.<Integer>plus(a, b, TypeEquality.<Integer>obvious());
+    }
+    public static GADT2<Boolean> isLessOrEqual(GADT2<Integer> a, GADT2<Integer> b) {
+        return GADT2Base.<Boolean>isLessOrEqual(a, b, TypeEquality.<Boolean>obvious());
+    }
 
     GADT2(GADT2Base<T> base) {
         super(base);
@@ -50,34 +62,34 @@ public class GADT2<T> extends GADT2Base<T> {
 
     T eval() {
         return accept(new GADT2Visitor<T, T>() {
+            // @Override
+            // public <A, B> T lambda(final Function<A, GADT2<B>> function, Type.Equality<T, Function<A, B>> evidence) {
+            //    return evidence.cast(new Function<A, B>() {
+            //        @Override
+            //        public B apply(A argument) {
+            //            return function.apply(argument).eval();
+            //        }
+            //    });
+            // }
+
+            // @Override
+            // public <U> T apply(GADT2<Function<U, T>> function, GADT2<U> argument) {
+            //     return function.eval().apply(argument.eval());
+            // }
+
             @Override
-            public <A, B> T lambda(final Function<A, GADT2<B>> function, Type.Equality<T, Function<A, B>> proof) {
-                return proof.cast(new Function<A, B>() {
-                    @Override
-                    public B apply(A argument) {
-                        return function.apply(argument).eval();
-                    }
-                });
+            public T number(int n, TypeEquality<T, Integer> evidence) {
+                return evidence.cast(n);
             }
 
             @Override
-            public <U> T apply(GADT2<? extends Function<? super U, T>> function, GADT2<U> argument) {
-                return function.eval().apply(argument.eval());
+            public T plus(GADT2<Integer> a, GADT2<Integer> b, TypeEquality<T, Integer> evidence) {
+                return evidence.cast(a.eval() + b.eval());
             }
 
             @Override
-            public T number(int n, Type.Equality<T, Integer> proof) {
-                return proof.cast(n);
-            }
-
-            @Override
-            public T plus(GADT2<Integer> a, GADT2<Integer> b, Type.Equality<T, Integer> proof) {
-                return proof.cast(a.eval() + b.eval());
-            }
-
-            @Override
-            public T isLessOrEqual(GADT2<Integer> a, GADT2<Integer> b, Type.Equality<T, Boolean> proof) {
-                return proof.cast(a.eval() <= b.eval());
+            public T isLessOrEqual(GADT2<Integer> a, GADT2<Integer> b, TypeEquality<T, Boolean> evidence) {
+                return evidence.cast(a.eval() <= b.eval());
             }
 
             @Override
@@ -89,29 +101,29 @@ public class GADT2<T> extends GADT2Base<T> {
 
     GADT2<T> cloneGADT2() {
         return accept(new GADT2Visitor<T, GADT2<T>>() {
+            // @Override
+            // public <A, B> GADT2<T> lambda(Function<A, GADT2<B>> function, Type.Equality<T, Function<A, B>> evidence) {
+            //     return evidence.<GADT2.TypeConstructor, GADT2<?>, GADT2<T>, GADT2<Function<A, B>>>toTypeConstructorApplication().cast(GADT2.<A, B>lambda(function));
+            // }
+
+            // @Override
+            // public <U> GADT2<T> apply(GADT2<Function<U, T>> function, GADT2<U> argument) {
+            //     return GADT2.apply(function, argument);
+            // }
+
             @Override
-            public <A, B> GADT2<T> lambda(Function<A, GADT2<B>> function, Type.Equality<T, Function<A, B>> proof) {
-                return GADT2.<T, A, B>lambda(function, proof);
+            public GADT2<T> number(int n, TypeEquality<T, Integer> evidence) {
+                return evidence.toGADT2().cast(GADT2.number(n));
             }
 
             @Override
-            public <U> GADT2<T> apply(GADT2<? extends Function<? super U, T>> function, GADT2<U> argument) {
-                return GADT2.apply(function, argument);
+            public GADT2<T> plus(GADT2<Integer> a, GADT2<Integer> b, TypeEquality<T, Integer> evidence) {
+                return evidence.toGADT2().cast(GADT2.plus(a, b));
             }
 
             @Override
-            public GADT2<T> number(int n, Type.Equality<T, Integer> proof) {
-                return GADT2.number(n, proof);
-            }
-
-            @Override
-            public GADT2<T> plus(GADT2<Integer> a, GADT2<Integer> b, Type.Equality<T, Integer> proof) {
-                return GADT2.plus(a, b, proof);
-            }
-
-            @Override
-            public GADT2<T> isLessOrEqual(GADT2<Integer> a, GADT2<Integer> b, Type.Equality<T, Boolean> proof) {
-                return GADT2.isLessOrEqual(a, b, proof);
+            public GADT2<T> isLessOrEqual(GADT2<Integer> a, GADT2<Integer> b, TypeEquality<T, Boolean> evidence) {
+                return evidence.toGADT2().cast(GADT2.isLessOrEqual(a, b));
             }
 
             @Override
@@ -124,11 +136,44 @@ public class GADT2<T> extends GADT2Base<T> {
     @GenerateValueClassForVisitor(wrapperClass = GADT2.class)
     @Visitor(resultVariableName = "R")
     public interface GADT2Visitor<T, R> {
-        <A, B> R lambda(Function<A, GADT2<B>> function, Type.Equality<T, Function<A, B>> proof);
-        <U> R apply(GADT2<? extends Function<? super U, T>> function, GADT2<U> argument);
-        R number(int n, Type.Equality<T, Integer> constr);
-        R plus(GADT2<Integer> a, GADT2<Integer> b, Type.Equality<T, Integer> proof);
-        R isLessOrEqual(GADT2<Integer> a, GADT2<Integer> b, Type.Equality<T, Boolean> proof);
+        // <A, B> R lambda(Function<A, GADT2<B>> function, Type.Equality<T, Function<A, B>> evidence);
+        // <U> R apply(GADT2<Function<U, T>> function, GADT2<U> argument);
+        R number(int n, TypeEquality<T, Integer> constr);
+        R plus(GADT2<Integer> a, GADT2<Integer> b, TypeEquality<T, Integer> evidence);
+        R isLessOrEqual(GADT2<Integer> a, GADT2<Integer> b, TypeEquality<T, Boolean> evidence);
         R if_(GADT2<Boolean> condition, GADT2<T> trueValue, GADT2<T> falseValue);
+    }
+
+    public static class TypeEquality<T, U> {
+        @SuppressWarnings("rawtypes")
+        private static final TypeEquality INSTANCE = new TypeEquality();
+
+        @SuppressWarnings("unchecked")
+        public static <T> TypeEquality<T, T> obvious() {
+            return INSTANCE;
+        }
+
+        private TypeEquality() {
+        }
+
+        @SuppressWarnings("unchecked")
+        public T cast(U u) {
+            return (T)u;
+        }
+
+        @SuppressWarnings("unchecked")
+        public TypeEquality<U, T> reverse() {
+            return INSTANCE;
+        }
+
+        @SuppressWarnings("unchecked")
+        public <V> TypeEquality<T, V> merge(TypeEquality<U, V> equality) {
+            return INSTANCE;
+        }
+
+        @SuppressWarnings("unchecked")
+        public TypeEquality<GADT2<T>, GADT2<U>> toGADT2() {
+            return INSTANCE;
+        }
     }
 }
