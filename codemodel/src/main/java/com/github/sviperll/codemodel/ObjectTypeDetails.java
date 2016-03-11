@@ -37,76 +37,22 @@ import javax.annotation.ParametersAreNonnullByDefault;
  * @author Victor Nazarov &lt;asviraspossible@gmail.com&gt;
  */
 @ParametersAreNonnullByDefault
-public abstract class ObjectType extends Type
-        implements GenericType<ObjectType, ObjectDefinition<?>>, Defined<ObjectDefinition<?>> {
-    ObjectType() {
-    }
-
-    @Override
-    public Kind kind() {
-        return Kind.OBJECT;
+public abstract class ObjectTypeDetails
+        implements GenericType<Type, ObjectDefinition<?>>, Defined<ObjectDefinition<?>> {
+    ObjectTypeDetails() {
     }
 
     @Override
     public abstract ObjectDefinition<?> definition();
 
-    @Override
-    public final boolean isObjectType() {
-        return true;
-    }
-
-    @Override
-    public final boolean isArray() {
-        return false;
-    }
-
-    @Override
-    public final boolean isTypeVariable() {
-        return false;
-    }
-
-    @Override
-    public boolean isVoid() {
-        return false;
-    }
-
-    @Override
-    public final ObjectType asObjectType() {
-        return this;
-    }
-
-    @Override
-    public boolean isPrimitive() {
-        return false;
-    }
-
-    @Override
-    public boolean isWildcard() {
-        return false;
-    }
-
-    @Override
-    public boolean isIntersection() {
-        return false;
-    }
-
-    @Override
-    public PrimitiveTypeKind getPrimitiveTypeKind() {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public Type getArrayElementType() {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public String getTypeVariableName() {
-        throw new UnsupportedOperationException();
-    }
+    public abstract Type asType();
 
     public Expression instanceofOp(Expression expression) throws CodeModelException {
-        return expression.instanceofOp(this);
+        return expression.instanceofOp(this.asType());
+    }
+
+    boolean containsWildcards() {
+        throw new UnsupportedOperationException("Not supported yet.");
     }
 
 }

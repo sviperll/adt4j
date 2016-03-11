@@ -79,7 +79,7 @@ public class TypeParameterBuilder {
             }
             bounds.add(bound);
         } else {
-            addAllBounds(bound.intersectedTypes());
+            addAllBounds(bound.asListOfIntersectedTypes());
         }
     }
     private class BuiltTypeParameter extends TypeParameter {
@@ -98,11 +98,7 @@ public class TypeParameterBuilder {
             } else {
                 bounds = Collections.unmodifiableList(bounds);
                 copyBoundsOnWrite = true;
-                try {
-                    return new IntersectionType(bounds);
-                } catch (CodeModelException ex) {
-                    throw new IllegalStateException(ex);
-                }
+                return Type.intersection(bounds);
             }
         }
 

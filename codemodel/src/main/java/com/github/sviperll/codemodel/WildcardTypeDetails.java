@@ -30,103 +30,25 @@
 
 package com.github.sviperll.codemodel;
 
-import java.util.Collection;
-import java.util.Collections;
-
 /**
  *
  * @author Victor Nazarov &lt;asviraspossible@gmail.com&gt;
  */
-public final class Wildcard extends Type {
+public final class WildcardTypeDetails {
 
     private final BoundKind boundKind;
     private final Type bound;
-    Wildcard(BoundKind boundKind, Type bound) {
+    WildcardTypeDetails(BoundKind boundKind, Type bound) {
         this.boundKind = boundKind;
         this.bound = bound;
     }
 
-    public BoundKind getWildcardBoundKind() {
+    public BoundKind boundKind() {
         return boundKind;
     }
 
-    public Type getWildcardBound() {
+    public Type bound() {
         return bound;
-    }
-
-    @Override
-    public boolean isObjectType() {
-        return false;
-    }
-
-    @Override
-    public boolean isPrimitive() {
-        return false;
-    }
-
-    @Override
-    public boolean isArray() {
-        return false;
-    }
-
-    @Override
-    public boolean isTypeVariable() {
-        return false;
-    }
-
-    @Override
-    public boolean isWildcard() {
-        return true;
-    }
-
-    @Override
-    public boolean isIntersection() {
-        return false;
-    }
-
-    @Override
-    public ObjectType asObjectType() {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public Wildcard asWildcard() {
-        return this;
-    }
-
-    @Override
-    public PrimitiveTypeKind getPrimitiveTypeKind() {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public Type getArrayElementType() {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public String getTypeVariableName() {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public Collection<Type> intersectedTypes() {
-        return Collections.<Type>singletonList(this);
-    }
-
-    @Override
-    public boolean containsWildcards() {
-        return true;
-    }
-
-    @Override
-    public Kind kind() {
-        return Kind.WILDCARD;
-    }
-
-    @Override
-    public boolean isVoid() {
-        return false;
     }
 
     public enum BoundKind {

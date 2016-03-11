@@ -30,94 +30,18 @@
 
 package com.github.sviperll.codemodel;
 
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-import javax.annotation.ParametersAreNonnullByDefault;
-
 /**
  *
  * @author Victor Nazarov &lt;asviraspossible@gmail.com&gt;
  */
-@ParametersAreNonnullByDefault
-final class PrimitiveType extends Type {
-    private final PrimitiveTypeKind kind;
-    PrimitiveType(PrimitiveTypeKind type) {
-        this.kind = type;
+public class ArrayTypeDetails {
+
+    private final Type elementType;
+    ArrayTypeDetails(Type elementType) {
+        this.elementType = elementType;
     }
 
-    @Override
-    public Kind kind() {
-        return Kind.PRIMITIVE;
-    }
-
-    @Override
-    public final boolean isPrimitive() {
-        return true;
-    }
-
-    @Override
-    public boolean isObjectType() {
-        return false;
-    }
-
-    @Override
-    public boolean isArray() {
-        return false;
-    }
-
-    @Override
-    public boolean isTypeVariable() {
-        return false;
-    }
-
-    @Override
-    public boolean isVoid() {
-        return false;
-    }
-
-    @Override
-    public ObjectType asObjectType() {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public boolean isWildcard() {
-        return false;
-    }
-
-    @Override
-    public boolean isIntersection() {
-        return false;
-    }
-
-    @Override
-    public PrimitiveTypeKind getPrimitiveTypeKind() {
-        return kind;
-    }
-
-    @Override
-    public Type getArrayElementType() {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public String getTypeVariableName() {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public Wildcard asWildcard() {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public Collection<Type> intersectedTypes() {
-        return Collections.<Type>singletonList(this);
-    }
-
-    @Override
-    public boolean containsWildcards() {
-        return false;
+    public Type elementType() {
+        return elementType;
     }
 }

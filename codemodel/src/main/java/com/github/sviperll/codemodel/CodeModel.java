@@ -51,7 +51,7 @@ public final class CodeModel {
     private final Package defaultPackage = new Package(this, "");
     private final Map<String, Package> packages = new TreeMap<>();
 
-    public ObjectType objectType() {
+    public Type objectType() {
         throw new UnsupportedOperationException("Not implemented yet");
     }
 

@@ -38,84 +38,20 @@ import java.util.List;
  *
  * @author Victor Nazarov &lt;asviraspossible@gmail.com&gt;
  */
-final class TypeVariable extends Type {
-    private final String name;
-    TypeVariable(String name) {
-        this.name = name;
+public class IntersectionTypeDetails {
+
+    private final List<Type> bounds;
+
+    IntersectionTypeDetails(List<Type> bounds) throws CodeModelException {
+        for (Type type: bounds) {
+            if (!type.isObjectType())
+                throw new CodeModelException("Intersection type can be built from object types only: " + type.kind() + " found: " + type);
+        }
+        this.bounds = bounds;
     }
 
-    @Override
-    public Kind kind() {
-        return Kind.TYPE_VARIABLE;
-    }
 
-    @Override
-    public boolean isObjectType() {
-        return false;
-    }
-
-    @Override
-    public boolean isPrimitive() {
-        return false;
-    }
-
-    @Override
-    public boolean isArray() {
-        return false;
-    }
-
-    @Override
-    public boolean isTypeVariable() {
-        return true;
-    }
-
-    @Override
-    public ObjectType asObjectType() {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public boolean isWildcard() {
-        return false;
-    }
-
-    @Override
-    public boolean isIntersection() {
-        return false;
-    }
-
-    @Override
-    public PrimitiveTypeKind getPrimitiveTypeKind() {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public Type getArrayElementType() {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public String getTypeVariableName() {
-        return name;
-    }
-
-    @Override
-    public Wildcard asWildcard() {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
     public Collection<Type> intersectedTypes() {
-        return Collections.<Type>singletonList(this);
-    }
-
-    @Override
-    public boolean containsWildcards() {
-        return false;
-    }
-
-    @Override
-    public boolean isVoid() {
-        return false;
+        return bounds;
     }
 }

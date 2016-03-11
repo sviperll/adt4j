@@ -41,11 +41,12 @@ import javax.annotation.ParametersAreNonnullByDefault;
  * @author Victor Nazarov &lt;asviraspossible@gmail.com&gt;
  */
 @ParametersAreNonnullByDefault
-final class NarrowedObjectType extends ObjectType {
+final class NarrowedObjectType extends ObjectTypeDetails {
 
-    private final RawObjectType erasure;
+    private final Type type = Type.createObjectType(this);
+    private final RawObjectTypeDetails erasure;
     private final List<Type> arguments;
-    NarrowedObjectType(RawObjectType erasure, List<Type> arguments) throws CodeModelException {
+    NarrowedObjectType(RawObjectTypeDetails erasure, List<Type> arguments) throws CodeModelException {
         if (arguments.isEmpty())
             throw new CodeModelException("Type arguments shouldn't be empty");
         this.erasure = erasure;
@@ -63,7 +64,7 @@ final class NarrowedObjectType extends ObjectType {
     }
 
     @Override
-    public ObjectType narrow(List<Type> typeArguments) {
+    public Type narrow(List<Type> typeArguments) {
         throw new UnsupportedOperationException();
     }
 
@@ -78,26 +79,21 @@ final class NarrowedObjectType extends ObjectType {
     }
 
     @Override
-    public Wildcard asWildcard() {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public Collection<Type> intersectedTypes() {
-        return Collections.<Type>singletonList(this);
-    }
-
-    @Override
-    public ObjectType erasure() {
-        return erasure;
-    }
-
-    @Override
     public boolean containsWildcards() {
         for (Type type: arguments) {
             if (type.containsWildcards())
                 return true;
         }
         return false;
+    }
+
+    @Override
+    public Type asType() {
+        return type;
+    }
+
+    @Override
+    public Type erasure() {
+        return erasure.asType();
     }
 }

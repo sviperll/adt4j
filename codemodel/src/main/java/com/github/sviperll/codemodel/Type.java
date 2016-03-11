@@ -31,6 +31,8 @@
 package com.github.sviperll.codemodel;
 
 import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
 import javax.annotation.ParametersAreNonnullByDefault;
 
 /**
@@ -40,17 +42,23 @@ import javax.annotation.ParametersAreNonnullByDefault;
 @ParametersAreNonnullByDefault
 public abstract class Type {
 
-    private static final Type VOID = new VoidType();
-
     public static Type variable(String name) {
-        return new TypeVariable(name);
+        throw new UnsupportedOperationException("Not implemented yet.");
     }
 
     public static Type voidType() {
-        return VOID;
+        throw new UnsupportedOperationException("Not implemented yet.");
     }
 
-    Type() {
+    static Type intersection(Collection<Type> bounds) {
+        throw new UnsupportedOperationException("Not implemented yet.");
+    }
+
+    static Type createObjectType(ObjectTypeDetails typeDetails) {
+        throw new UnsupportedOperationException("Not supported yet.");
+    }
+
+    private Type() {
     }
 
     public abstract Kind kind();
@@ -63,70 +71,18 @@ public abstract class Type {
     public abstract boolean isWildcard();
     public abstract boolean isIntersection();
 
-    /**
-     * Casts this type to ObjectType.
-     *
-     * Throws UnsupportedOperationException if type is not object
-     * (class, interface, enum, annotation).
-     *
-     * @return this type casted to ObjectType.
-     *
-     * @throws UnsupportedOperationException
-     */
-    public abstract ObjectType asObjectType();
-
-    /**
-     * Type of array element.
-     *
-     * Throws UnsupportedOperationException if type is not array.
-     *
-     * @return Type of array element.
-     * @throws UnsupportedOperationException
-     */
-    public abstract Wildcard asWildcard();
-
-    /**
-     * Primitive kind, specific primitive type.
-     *
-     * Throws UnsupportedOperationException if type is not primitive.
-     *
-     * @return Primitive kind, specific primitive type.
-     * @throws UnsupportedOperationException
-     */
-    public abstract PrimitiveTypeKind getPrimitiveTypeKind();
-
-    /**
-     * Type of array element.
-     *
-     * Throws UnsupportedOperationException if type is not array.
-     *
-     * @return Type of array element.
-     * @throws UnsupportedOperationException
-     */
-    public abstract Type getArrayElementType();
-
-    /**
-     * Name of type-variable.
-     *
-     * Throws UnsupportedOperationException if type is not type-variable.
-     *
-     * @return Name of type-variable.
-     * @throws UnsupportedOperationException
-     */
-    public abstract String getTypeVariableName();
-
-    /**
-     * Collection of intersected types.
-     *
-     * If this type is not intersection,
-     * collection with single element is returned.
-     * The element is this type itself.
-     *
-     * @return Collection of intersected types
-     */
-    public abstract Collection<Type> intersectedTypes();
+    public abstract ObjectTypeDetails getObjectDetails();
+    public abstract WildcardTypeDetails getWildcardDetails();
+    public abstract PrimitiveTypeDetails getPrimitiveDetails();
+    public abstract ArrayTypeDetails getArrayDetails();
+    public abstract TypeVariableDetails getVariableDetails();
+    public abstract IntersectionTypeDetails getIntersectionDetails();
 
     public abstract boolean containsWildcards();
+
+    public Collection<Type> asListOfIntersectedTypes() {
+        return isIntersection() ? getIntersectionDetails().intersectedTypes() : Collections.singletonList(this);
+    }
 
     public enum Kind {
         VOID, OBJECT, PRIMITIVE, ARRAY, TYPE_VARIABLE, WILDCARD, INTERSECTION

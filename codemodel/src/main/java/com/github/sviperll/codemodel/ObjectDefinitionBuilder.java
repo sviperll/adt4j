@@ -49,7 +49,8 @@ public final class ObjectDefinitionBuilder<T extends Residence, B extends Reside
         implements Model, SettledBuilder<T, B>, GenericDefinitionBuilder<T> {
     private final BuiltDefinition definition = new BuiltDefinition();
     private final GenericsConfigBuilder<T> generics = new GenericsConfigBuilder<>(definition);
-    private final BuiltType type = new BuiltType();
+    private final BuiltTypeDetails typeDetails = new BuiltTypeDetails();
+    private final Type type = Type.createObjectType(typeDetails);
     private final B residence;
     private final String name;
     private final ObjectKind kind;
@@ -60,8 +61,8 @@ public final class ObjectDefinitionBuilder<T extends Residence, B extends Reside
     private final List<InitElement> instanceInitOrdering = new ArrayList<>();
     private final Map<String, ObjectDefinition<NestedResidence>> innerClasses = new TreeMap<>();
     private boolean isFinal = false;
-    private ObjectType extendsClass = null;
-    private List<ObjectType> interfaces = new ArrayList<>();
+    private ObjectTypeDetails extendsClass = null;
+    private List<ObjectTypeDetails> interfaces = new ArrayList<>();
 
     ObjectDefinitionBuilder(ObjectKind kind, B residence, String name) throws CodeModelException {
         if ((kind == ObjectKind.INTERFACE || kind == ObjectKind.ENUM || kind == ObjectKind.ANNOTATION)
@@ -92,7 +93,7 @@ public final class ObjectDefinitionBuilder<T extends Residence, B extends Reside
         return generics;
     }
 
-    public void extendsClass(ObjectType type) throws CodeModelException {
+    public void extendsClass(ObjectTypeDetails type) throws CodeModelException {
         if (this.extendsClass != null)
              throw new CodeModelException("Already extended");
         if (!type.definition().kind().isClass())
@@ -104,7 +105,7 @@ public final class ObjectDefinitionBuilder<T extends Residence, B extends Reside
         this.extendsClass = type;
     }
 
-    public void implementsInterface(ObjectType type) throws CodeModelException {
+    public void implementsInterface(ObjectTypeDetails type) throws CodeModelException {
         if (!type.definition().kind().isInterface())
             throw new CodeModelException("Only interfaces can be implemented");
         if (type.containsWildcards())
@@ -253,17 +254,17 @@ public final class ObjectDefinitionBuilder<T extends Residence, B extends Reside
         }
 
         @Override
-        public ObjectType extendsClass() {
-            return extendsClass != null ? extendsClass : getCodeModel().objectType();
+        public ObjectTypeDetails extendsClass() {
+            return extendsClass != null ? extendsClass : getCodeModel().objectType().getObjectDetails();
         }
 
         @Override
-        public List<ObjectType> implementsInterfaces() {
+        public List<ObjectTypeDetails> implementsInterfaces() {
             return Collections.unmodifiableList(interfaces);
         }
 
         @Override
-        public ObjectType toType() {
+        public Type toType() {
             return type;
         }
 
@@ -273,10 +274,15 @@ public final class ObjectDefinitionBuilder<T extends Residence, B extends Reside
         }
     }
 
-    private class BuiltType extends RawObjectType {
+    private class BuiltTypeDetails extends RawObjectTypeDetails {
         @Override
         public ObjectDefinition<?> definition() {
             return definition;
+        }
+
+        @Override
+        public Type asType() {
+            return type;
         }
     }
 }

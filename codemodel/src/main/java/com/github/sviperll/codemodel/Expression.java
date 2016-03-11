@@ -131,20 +131,6 @@ public class Expression {
         });
     }
 
-    public static final Expression objectType(final ObjectType type) {
-        return LITERAL.createExpression(new ExpressionFactory.Renderable() {
-            @Override
-            public Renderer createRenderer(final RendererContext context) {
-                return new Renderer() {
-                    @Override
-                    public void render() {
-                        context.appendType(type);
-                    }
-                };
-            }
-        });
-    }
-
     private final ExpressionDefinition definition;
     public Expression(ExpressionDefinition definition) {
         this.definition = definition;
@@ -191,10 +177,20 @@ public class Expression {
     public Expression le(Expression expression) {
         return RELATIONAL.createLeftAssociativeExpression(this, "<=", expression);
     }
-    public Expression instanceofOp(ObjectType type) throws CodeModelException {
-        if (!type.isRaw())
-            throw new CodeModelException("Only raw types allowed here");
-        return RELATIONAL.createLeftAssociativeExpression(this, "instanceof", objectType(type));
+    public Expression instanceofOp(Type type) throws CodeModelException {
+        if (!type.isObjectType() || !type.getObjectDetails().isRaw())
+            throw new CodeModelException("Only raw object types allowed here");
+        return RELATIONAL.createExpression(new ExpressionFactory.Renderable() {
+            @Override
+            public Renderer createRenderer(RendererContext context) {
+                return new Renderer() {
+                    @Override
+                    public void render() {
+                        throw new UnsupportedOperationException("Not supported yet.");
+                    }
+                };
+            }
+        });
     }
     public Expression eq(Expression expression) {
         return EQUALITY.createLeftAssociativeExpression(this, "==", expression);

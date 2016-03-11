@@ -53,7 +53,7 @@ public abstract class GenericsConfig {
         return new PreventCycleEnvironment(this, name);
     }
 
-    final ObjectType lowerRawBound(String name) throws CodeModelException {
+    final Type lowerRawBound(String name) throws CodeModelException {
         TypeParameter parameter;
         try {
             parameter = get(name);
@@ -65,17 +65,17 @@ public abstract class GenericsConfig {
         GenericsConfig environment = parameter.declaredIn().generics().preventCycle(name);
         Type bound = parameter.bound();
         if (bound.isTypeVariable()) {
-            return environment.lowerRawBound(bound.getTypeVariableName());
+            return environment.lowerRawBound(bound.getVariableDetails().name());
         } else {
-            ObjectType lower = null;
-            for (Type type: bound.intersectedTypes()) {
-                ObjectType objectType = type.asObjectType();
-                if (lower == null || lower.definition().extendsOrImplements(objectType))
-                    lower = objectType;
+            ObjectTypeDetails lower = null;
+            for (Type type: bound.asListOfIntersectedTypes()) {
+                ObjectTypeDetails object = type.getObjectDetails();
+                if (lower == null || lower.definition().extendsOrImplements(object.definition()))
+                    lower = object;
             }
             if (lower == null)
                 throw new CodeModelException("Empty bounds found for variable");
-            return lower;
+            return lower.asType();
         }
     }
 

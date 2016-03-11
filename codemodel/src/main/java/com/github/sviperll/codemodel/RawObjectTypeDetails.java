@@ -39,13 +39,13 @@ import java.util.List;
  *
  * @author Victor Nazarov &lt;asviraspossible@gmail.com&gt;
  */
-abstract class RawObjectType extends ObjectType {
+abstract class RawObjectTypeDetails extends ObjectTypeDetails {
 
-    RawObjectType() {
+    RawObjectTypeDetails() {
     }
 
     @Override
-    public final ObjectType narrow(List<Type> typeArguments) throws CodeModelException {
+    public final Type narrow(List<Type> typeArguments) throws CodeModelException {
         for (Type type: typeArguments) {
             if (type.isVoid())
                 throw new CodeModelException("Void can't be used as a type-argument");
@@ -58,12 +58,12 @@ abstract class RawObjectType extends ObjectType {
         }
         if (typeArguments.size() != definition().generics().typeParameters().size())
             throw new CodeModelException("Type-argument list and type-parameter list differ in size");
-        return new NarrowedObjectType(this, typeArguments);
+        return new NarrowedObjectType(this, typeArguments).asType();
     }
 
     @Override
-    public final ObjectType erasure() {
-        return this;
+    public final Type erasure() {
+        return this.asType();
     }
 
     @Override
@@ -77,16 +77,6 @@ abstract class RawObjectType extends ObjectType {
     }
 
     @Override
-    public final Wildcard asWildcard() {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public final Collection<Type> intersectedTypes() {
-        return Collections.<Type>singletonList(this);
-    }
-
-    @Override
     public final boolean containsWildcards() {
         return false;
     }
@@ -95,7 +85,7 @@ abstract class RawObjectType extends ObjectType {
     public final List<Type> typeArguments() {
         List<Type> result = new ArrayList<>(definition().generics().typeParameters().size());
         for (TypeParameter typeParameter: definition().generics().typeParameters()) {
-            ObjectType lowerRawBound;
+            Type lowerRawBound;
             try {
                 lowerRawBound = definition().generics().lowerRawBound(typeParameter.name());
             } catch (CodeModelException ex) {

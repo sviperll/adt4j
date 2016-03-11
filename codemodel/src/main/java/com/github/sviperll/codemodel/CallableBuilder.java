@@ -49,7 +49,7 @@ public class CallableBuilder {
 
     private final BuiltDefinition definition = new BuiltDefinition();
     private final List<VariableDeclaration> parameters = new ArrayList<>();
-    private final List<ObjectType> throwsList = new ArrayList<>();
+    private final List<ObjectTypeDetails> throwsList = new ArrayList<>();
 
     CallableBuilder() {
     }
@@ -68,7 +68,7 @@ public class CallableBuilder {
         parameters.add(parameter);
     }
 
-    public void throwsException(ObjectType type) throws CodeModelException {
+    public void throwsException(ObjectTypeDetails type) throws CodeModelException {
         if (type.definition().generics().isGeneric())
             throw new CodeModelException("Generic class can't be used as throwable exception");
         throwsList.add(type);
@@ -89,7 +89,7 @@ public class CallableBuilder {
         }
 
         @Override
-        public List<ObjectType> throwsList() {
+        public List<ObjectTypeDetails> throwsList() {
             return Collections.unmodifiableList(throwsList);
         }
     }

@@ -46,5 +46,5 @@ public abstract class CallableDefinition {
 
     public abstract List<VariableDeclaration> parameters();
 
-    public abstract List<ObjectType> throwsList();
+    public abstract List<ObjectTypeDetails> throwsList();
 }

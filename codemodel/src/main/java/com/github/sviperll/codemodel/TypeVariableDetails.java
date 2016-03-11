@@ -32,91 +32,19 @@ package com.github.sviperll.codemodel;
 
 import java.util.Collection;
 import java.util.Collections;
-import javax.annotation.ParametersAreNonnullByDefault;
-import javax.annotation.Nonnull;
+import java.util.List;
 
 /**
  *
  * @author Victor Nazarov &lt;asviraspossible@gmail.com&gt;
  */
-class VoidType extends Type {
-
-    VoidType() {
+public class TypeVariableDetails {
+    private final String name;
+    TypeVariableDetails(String name) {
+        this.name = name;
     }
 
-    @Override
-    public Kind kind() {
-        return Kind.VOID;
+    public String name() {
+        return name;
     }
-
-    @Override
-    public boolean isVoid() {
-        return true;
-    }
-
-    @Override
-    public boolean isObjectType() {
-        return false;
-    }
-
-    @Override
-    public boolean isPrimitive() {
-        return false;
-    }
-
-    @Override
-    public boolean isArray() {
-        return false;
-    }
-
-    @Override
-    public boolean isTypeVariable() {
-        return false;
-    }
-
-    @Override
-    public boolean isWildcard() {
-        return false;
-    }
-
-    @Override
-    public boolean isIntersection() {
-        return false;
-    }
-
-    @Override
-    public ObjectType asObjectType() {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public Wildcard asWildcard() {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public PrimitiveTypeKind getPrimitiveTypeKind() {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public Type getArrayElementType() {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public String getTypeVariableName() {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public Collection<Type> intersectedTypes() {
-        return Collections.<Type>singletonList(this);
-    }
-
-    @Override
-    public boolean containsWildcards() {
-        return false;
-    }
-
 }

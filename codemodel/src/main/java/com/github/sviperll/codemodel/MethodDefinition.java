@@ -87,7 +87,7 @@ public abstract class MethodDefinition
         return callable().parameters();
     }
 
-    public final List<ObjectType> throwsList() {
+    public final List<ObjectTypeDetails> throwsList() {
         return callable().throwsList();
     }
 }

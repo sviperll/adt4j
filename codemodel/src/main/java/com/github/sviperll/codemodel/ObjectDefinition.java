@@ -41,7 +41,7 @@ import javax.annotation.ParametersAreNonnullByDefault;
  */
 @ParametersAreNonnullByDefault
 public abstract class ObjectDefinition<T extends Residence>
-        implements Settled<T>, Model, GenericDefinition<T>, TypeDefinition<ObjectType> {
+        implements Settled<T>, Model, GenericDefinition<T>, TypeDefinition<Type> {
 
     ObjectDefinition() {
     }
@@ -51,9 +51,9 @@ public abstract class ObjectDefinition<T extends Residence>
 
     public abstract ObjectKind kind();
 
-    public abstract ObjectType extendsClass();
+    public abstract ObjectTypeDetails extendsClass();
 
-    public abstract List<ObjectType> implementsInterfaces();
+    public abstract List<ObjectTypeDetails> implementsInterfaces();
 
     public abstract Collection<MethodDefinition> methods();
 
@@ -67,14 +67,14 @@ public abstract class ObjectDefinition<T extends Residence>
         return residence().getPackage().qualifiedName() + "." + simpleName();
     }
 
-    public final boolean extendsOrImplements(ObjectType objectType) {
-        if (this.extendsClass().definition() == objectType.definition()
-                || this.extendsClass().definition().extendsOrImplements(objectType))
+    public final boolean extendsOrImplements(ObjectDefinition<?> objectDefinition) {
+        if (this.extendsClass().definition() == objectDefinition
+                || this.extendsClass().definition().extendsOrImplements(objectDefinition))
             return true;
         else {
-            for (ObjectType implementedInterface: implementsInterfaces()) {
-                if (implementedInterface.definition() == objectType.definition()
-                        || implementedInterface.definition().extendsOrImplements(objectType))
+            for (ObjectTypeDetails implementedInterface: implementsInterfaces()) {
+                if (implementedInterface.definition() == objectDefinition
+                        || implementedInterface.definition().extendsOrImplements(objectDefinition))
                     return true;
             }
             return false;

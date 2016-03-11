@@ -30,9 +30,9 @@
 
 package com.github.sviperll.codemodel.render;
 
-import com.github.sviperll.codemodel.ObjectType;
+import com.github.sviperll.codemodel.ObjectTypeDetails;
 import com.github.sviperll.codemodel.Type;
-import com.github.sviperll.codemodel.Wildcard;
+import com.github.sviperll.codemodel.WildcardTypeDetails;
 import java.io.IOException;
 import java.util.Iterator;
 import java.util.Locale;
@@ -79,10 +79,10 @@ public class RendererContext {
 
     public void appendType(Type type) {
         if (type.isArray()) {
-            appendType(type.getArrayElementType());
+            appendType(type.getArrayDetails().elementType());
             append("[]");
         } else if (type.isIntersection()) {
-            Iterator<Type> iterator = type.intersectedTypes().iterator();
+            Iterator<Type> iterator = type.getIntersectionDetails().intersectedTypes().iterator();
             if (iterator.hasNext()) {
                 appendType(iterator.next());
                 while (iterator.hasNext()) {
@@ -93,16 +93,16 @@ public class RendererContext {
         } else if (type.isVoid()) {
             append("void");
         } else if (type.isPrimitive()) {
-            append(type.getPrimitiveTypeKind().name().toLowerCase(Locale.US));
+            append(type.getPrimitiveDetails().name().toLowerCase(Locale.US));
         } else if (type.isTypeVariable()) {
-            append(type.getTypeVariableName());
+            append(type.getVariableDetails().name());
         } else if (type.isWildcard()) {
-            Wildcard wildcard = type.asWildcard();
+            WildcardTypeDetails wildcard = type.getWildcardDetails();
             append("?");
-            append(wildcard.getWildcardBoundKind() == Wildcard.BoundKind.SUPER ? " super " : " extends ");
-            appendType(wildcard.getWildcardBound());
+            append(wildcard.boundKind() == WildcardTypeDetails.BoundKind.SUPER ? " super " : " extends ");
+            appendType(wildcard.bound());
         } else if (type.isObjectType()) {
-            ObjectType objectType = type.asObjectType();
+            ObjectTypeDetails objectType = type.getObjectDetails();
             if (objectType.isRaw())
                 implementation.writeQualifiedTypeName(identationLevel, objectType.definition().qualifiedName());
             else {

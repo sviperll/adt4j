@@ -79,7 +79,7 @@ abstract class RawMethodType extends MethodType {
     public final List<Type> typeArguments() {
         List<Type> result = new ArrayList<>(definition().generics().typeParameters().size());
         for (TypeParameter typeParameter: definition().generics().typeParameters()) {
-            ObjectType lowerRawBound;
+            Type lowerRawBound;
             try {
                 lowerRawBound = definition().generics().lowerRawBound(typeParameter.name());
             } catch (CodeModelException ex) {
