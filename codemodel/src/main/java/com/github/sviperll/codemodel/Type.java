@@ -32,7 +32,6 @@ package com.github.sviperll.codemodel;
 
 import java.util.Collection;
 import java.util.Collections;
-import java.util.List;
 import javax.annotation.ParametersAreNonnullByDefault;
 
 /**
@@ -41,21 +40,30 @@ import javax.annotation.ParametersAreNonnullByDefault;
  */
 @ParametersAreNonnullByDefault
 public abstract class Type {
+    private static final VoidType VOID = new VoidType();
 
     public static Type variable(String name) {
-        throw new UnsupportedOperationException("Not implemented yet.");
+        return variable(new TypeVariableDetails(name));
+    }
+
+    static Type variable(TypeVariableDetails details) {
+        return new TypeVariable(details);
     }
 
     public static Type voidType() {
-        throw new UnsupportedOperationException("Not implemented yet.");
+        return VOID;
     }
 
-    static Type intersection(Collection<Type> bounds) {
-        throw new UnsupportedOperationException("Not implemented yet.");
+    public static Type intersection(Collection<Type> bounds) throws CodeModelException {
+        return intersection(new IntersectionTypeDetails(bounds));
+    }
+
+    static Type intersection(IntersectionTypeDetails details) {
+        return new IntersectionType(details);
     }
 
     static Type createObjectType(ObjectTypeDetails typeDetails) {
-        throw new UnsupportedOperationException("Not supported yet.");
+        return new ObjectType(typeDetails);
     }
 
     private Type() {
@@ -78,7 +86,9 @@ public abstract class Type {
     public abstract TypeVariableDetails getVariableDetails();
     public abstract IntersectionTypeDetails getIntersectionDetails();
 
-    public abstract boolean containsWildcards();
+    public boolean containsWildcards() {
+        throw new UnsupportedOperationException("Not implemented yet");
+    }
 
     public Collection<Type> asListOfIntersectedTypes() {
         return isIntersection() ? getIntersectionDetails().intersectedTypes() : Collections.singletonList(this);
@@ -87,4 +97,314 @@ public abstract class Type {
     public enum Kind {
         VOID, OBJECT, PRIMITIVE, ARRAY, TYPE_VARIABLE, WILDCARD, INTERSECTION
     }
+
+    private static class VoidType extends Type {
+
+        @Override
+        public Kind kind() {
+            return Kind.VOID;
+        }
+
+        @Override
+        public boolean isVoid() {
+            return true;
+        }
+
+        @Override
+        public boolean isObjectType() {
+            return false;
+        }
+
+        @Override
+        public boolean isPrimitive() {
+            return false;
+        }
+
+        @Override
+        public boolean isArray() {
+            return false;
+        }
+
+        @Override
+        public boolean isTypeVariable() {
+            return false;
+        }
+
+        @Override
+        public boolean isWildcard() {
+            return false;
+        }
+
+        @Override
+        public boolean isIntersection() {
+            return false;
+        }
+
+        @Override
+        public ObjectTypeDetails getObjectDetails() {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public WildcardTypeDetails getWildcardDetails() {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public PrimitiveTypeDetails getPrimitiveDetails() {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public ArrayTypeDetails getArrayDetails() {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public TypeVariableDetails getVariableDetails() {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public IntersectionTypeDetails getIntersectionDetails() {
+            throw new UnsupportedOperationException();
+        }
+
+    }
+    private static class TypeVariable extends Type {
+
+        private final TypeVariableDetails details;
+
+        public TypeVariable(TypeVariableDetails details) {
+            this.details = details;
+        }
+
+        @Override
+        public Kind kind() {
+            return Kind.TYPE_VARIABLE;
+        }
+
+        @Override
+        public boolean isVoid() {
+            return false;
+        }
+
+        @Override
+        public boolean isObjectType() {
+            return false;
+        }
+
+        @Override
+        public boolean isPrimitive() {
+            return false;
+        }
+
+        @Override
+        public boolean isArray() {
+            return false;
+        }
+
+        @Override
+        public boolean isTypeVariable() {
+            return true;
+        }
+
+        @Override
+        public boolean isWildcard() {
+            return false;
+        }
+
+        @Override
+        public boolean isIntersection() {
+            return false;
+        }
+
+        @Override
+        public ObjectTypeDetails getObjectDetails() {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public WildcardTypeDetails getWildcardDetails() {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public PrimitiveTypeDetails getPrimitiveDetails() {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public ArrayTypeDetails getArrayDetails() {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public TypeVariableDetails getVariableDetails() {
+            return details;
+        }
+
+        @Override
+        public IntersectionTypeDetails getIntersectionDetails() {
+            throw new UnsupportedOperationException();
+        }
+    }
+    private static class IntersectionType extends Type {
+
+        private final IntersectionTypeDetails details;
+
+        public IntersectionType(IntersectionTypeDetails details) {
+            this.details = details;
+        }
+
+        @Override
+        public Kind kind() {
+            return Kind.INTERSECTION;
+        }
+
+        @Override
+        public boolean isVoid() {
+            return false;
+        }
+
+        @Override
+        public boolean isObjectType() {
+            return false;
+        }
+
+        @Override
+        public boolean isPrimitive() {
+            return false;
+        }
+
+        @Override
+        public boolean isArray() {
+            return false;
+        }
+
+        @Override
+        public boolean isTypeVariable() {
+            return false;
+        }
+
+        @Override
+        public boolean isWildcard() {
+            return false;
+        }
+
+        @Override
+        public boolean isIntersection() {
+            return true;
+        }
+
+        @Override
+        public ObjectTypeDetails getObjectDetails() {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public WildcardTypeDetails getWildcardDetails() {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public PrimitiveTypeDetails getPrimitiveDetails() {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public ArrayTypeDetails getArrayDetails() {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public TypeVariableDetails getVariableDetails() {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public IntersectionTypeDetails getIntersectionDetails() {
+            return details;
+        }
+    }
+
+    private static class ObjectType extends Type {
+
+        private final ObjectTypeDetails details;
+
+        public ObjectType(ObjectTypeDetails details) {
+            this.details = details;
+        }
+
+        @Override
+        public Kind kind() {
+            return Kind.OBJECT;
+        }
+
+        @Override
+        public boolean isVoid() {
+            return false;
+        }
+
+        @Override
+        public boolean isObjectType() {
+            return true;
+        }
+
+        @Override
+        public boolean isPrimitive() {
+            return false;
+        }
+
+        @Override
+        public boolean isArray() {
+            return false;
+        }
+
+        @Override
+        public boolean isTypeVariable() {
+            return false;
+        }
+
+        @Override
+        public boolean isWildcard() {
+            return false;
+        }
+
+        @Override
+        public boolean isIntersection() {
+            return false;
+        }
+
+        @Override
+        public ObjectTypeDetails getObjectDetails() {
+            return details;
+        }
+
+        @Override
+        public WildcardTypeDetails getWildcardDetails() {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public PrimitiveTypeDetails getPrimitiveDetails() {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public ArrayTypeDetails getArrayDetails() {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public TypeVariableDetails getVariableDetails() {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public IntersectionTypeDetails getIntersectionDetails() {
+            throw new UnsupportedOperationException();
+        }
+    }
+
 }

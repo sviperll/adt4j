@@ -30,6 +30,9 @@
 
 package com.github.sviperll.codemodel;
 
+import java.lang.reflect.Modifier;
+import java.util.Collection;
+import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 import javax.annotation.ParametersAreNonnullByDefault;
@@ -50,9 +53,12 @@ public final class CodeModel {
 
     private final Package defaultPackage = new Package(this, "");
     private final Map<String, Package> packages = new TreeMap<>();
+    private Type objectType = null;
 
     public Type objectType() {
-        throw new UnsupportedOperationException("Not implemented yet");
+        if (objectType == null)
+            objectType = importClass(Object.class).toType();
+        return objectType;
     }
 
     public Package getPackage(String qualifiedName) throws CodeModelException {
@@ -78,10 +84,125 @@ public final class CodeModel {
     }
 
     public ObjectDefinition<?> importClass(Class<?> klass) {
-        throw new UnsupportedOperationException("Not supported yet.");
+        if (klass.isArray())
+            throw new IllegalArgumentException("Arrays don't have class definition");
+        return new ReflectionObjectDefinition(this, klass);
     }
 
     public ObjectDefinition<?> importClass(Element element, Elements elementUtils) {
         throw new UnsupportedOperationException("Not supported yet.");
+    }
+
+    private static class ReflectionObjectDefinition<T extends Residence> extends ObjectDefinition<T> {
+        private final Type type = Type.createObjectType(new TypeDetails());
+        private final CodeModel codeModel;
+
+        private final Class<?> klass;
+
+        public ReflectionObjectDefinition(CodeModel codeModel, Class<?> klass) {
+            this.codeModel = codeModel;
+            this.klass = klass;
+        }
+
+        @Override
+        public boolean isFinal() {
+            return (klass.getModifiers() | Modifier.FINAL) != 0;
+        }
+
+        @Override
+        public ObjectKind kind() {
+            if (klass.isInterface())
+                return ObjectKind.INTERFACE;
+            else if (klass.isEnum())
+                return ObjectKind.ENUM;
+            else if (klass.isAnnotation())
+                return ObjectKind.ANNOTATION;
+            else
+                return ObjectKind.CLASS;
+        }
+
+        @Override
+        public ObjectTypeDetails extendsClass() {
+            throw new UnsupportedOperationException("Not supported yet.");
+        }
+
+        @Override
+        public List<ObjectTypeDetails> implementsInterfaces() {
+            throw new UnsupportedOperationException("Not supported yet.");
+        }
+
+        @Override
+        public Collection<MethodDefinition> methods() {
+            throw new UnsupportedOperationException("Not supported yet.");
+        }
+
+        @Override
+        public Collection<ObjectDefinition<NestedResidence>> innerClasses() {
+            throw new UnsupportedOperationException("Not supported yet.");
+        }
+
+        @Override
+        public Collection<FieldDeclaration> fields() {
+            throw new UnsupportedOperationException("Not supported yet.");
+        }
+
+        @Override
+        public String simpleName() {
+            return klass.getSimpleName();
+        }
+
+        @Override
+        public T residence() {
+            throw new UnsupportedOperationException("Not supported yet.");
+        }
+
+        @Override
+        public CodeModel getCodeModel() {
+            return codeModel;
+        }
+
+        @Override
+        public boolean isObjectDefinition() {
+            return true;
+        }
+
+        @Override
+        public boolean isMethodDefinition() {
+            return false;
+        }
+
+        @Override
+        public ObjectDefinition<?> asObjectDefinition() {
+            return this;
+        }
+
+        @Override
+        public MethodDefinition asMethodDefinition() {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public GenericsConfig generics() {
+            throw new UnsupportedOperationException("Not supported yet.");
+        }
+
+        @Override
+        public Type toType() {
+            return type;
+        }
+
+        public class TypeDetails extends RawObjectTypeDetails {
+
+            @Override
+            public ObjectDefinition<?> definition() {
+                return ReflectionObjectDefinition.this;
+            }
+
+            @Override
+            public Type asType() {
+                return type;
+            }
+
+        }
     }
 }

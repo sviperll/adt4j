@@ -34,8 +34,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 /**
  *
@@ -98,7 +96,11 @@ public class TypeParameterBuilder {
             } else {
                 bounds = Collections.unmodifiableList(bounds);
                 copyBoundsOnWrite = true;
-                return Type.intersection(bounds);
+                try {
+                    return Type.intersection(bounds);
+                } catch (CodeModelException ex) {
+                    throw new IllegalStateException(ex);
+                }
             }
         }
 

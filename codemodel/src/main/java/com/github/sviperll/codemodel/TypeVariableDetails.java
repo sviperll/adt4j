@@ -39,6 +39,7 @@ import java.util.List;
  * @author Victor Nazarov &lt;asviraspossible@gmail.com&gt;
  */
 public class TypeVariableDetails {
+    private final Type type = Type.variable(this);
     private final String name;
     TypeVariableDetails(String name) {
         this.name = name;
@@ -46,5 +47,9 @@ public class TypeVariableDetails {
 
     public String name() {
         return name;
+    }
+
+    public Type asType() {
+        return type;
     }
 }

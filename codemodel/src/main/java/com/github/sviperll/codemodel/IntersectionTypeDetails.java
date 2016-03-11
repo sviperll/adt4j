@@ -40,11 +40,12 @@ import java.util.List;
  */
 public class IntersectionTypeDetails {
 
-    private final List<Type> bounds;
+    private final Type type = Type.intersection(this);
+    private final Collection<Type> bounds;
 
-    IntersectionTypeDetails(List<Type> bounds) throws CodeModelException {
-        for (Type type: bounds) {
-            if (!type.isObjectType())
+    IntersectionTypeDetails(Collection<Type> bounds) throws CodeModelException {
+        for (Type bound: bounds) {
+            if (!bound.isObjectType())
                 throw new CodeModelException("Intersection type can be built from object types only: " + type.kind() + " found: " + type);
         }
         this.bounds = bounds;
@@ -53,5 +54,8 @@ public class IntersectionTypeDetails {
 
     public Collection<Type> intersectedTypes() {
         return bounds;
+    }
+    public Type asType() {
+        return type;
     }
 }
