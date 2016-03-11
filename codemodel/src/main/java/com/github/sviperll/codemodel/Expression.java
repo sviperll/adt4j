@@ -30,11 +30,13 @@
 
 package com.github.sviperll.codemodel;
 
-import com.github.sviperll.codemodel.expression.ExpressionFactory;
-import com.github.sviperll.codemodel.expression.ExpressionFactory.ExpressionDefinition;
+import com.github.sviperll.codemodel.expression.Precedence;
 import com.github.sviperll.codemodel.render.Renderer;
+import com.github.sviperll.codemodel.expression.ExpressionRendererContext;
+import com.github.sviperll.codemodel.expression.PrecedenceRendering;
 import com.github.sviperll.codemodel.render.RendererContext;
 import javax.annotation.ParametersAreNonnullByDefault;
+import com.github.sviperll.codemodel.expression.ExpressionRendering;
 
 /**
  *
@@ -42,25 +44,25 @@ import javax.annotation.ParametersAreNonnullByDefault;
  */
 @ParametersAreNonnullByDefault
 public class Expression {
-    private static final ExpressionFactory LITERAL = ExpressionFactory.TOP;
-    private static final ExpressionFactory POSTFIX = LITERAL.next();
-    private static final ExpressionFactory UNARY = POSTFIX.next();
-    private static final ExpressionFactory MULTIPLICATIVE = UNARY.next();
-    private static final ExpressionFactory ADDITIVE = MULTIPLICATIVE.next();
-    private static final ExpressionFactory SHIFT = ADDITIVE.next();
-    private static final ExpressionFactory RELATIONAL = SHIFT.next();
-    private static final ExpressionFactory EQUALITY = RELATIONAL.next();
-    private static final ExpressionFactory BITWISE_AND = EQUALITY.next();
-    private static final ExpressionFactory BITWISE_OR = BITWISE_AND.next();
-    private static final ExpressionFactory LOGICAL_AND = BITWISE_OR.next();
-    private static final ExpressionFactory LOGICAL_OR = LOGICAL_AND.next();
-    private static final ExpressionFactory TERNARY = LOGICAL_OR.next();
-    private static final ExpressionFactory ASSIGNMENT = TERNARY.next();
+    private static final Precedence LITERAL = Precedence.TOP;
+    private static final Precedence POSTFIX = LITERAL.next();
+    private static final Precedence UNARY = POSTFIX.next();
+    private static final Precedence MULTIPLICATIVE = UNARY.next();
+    private static final Precedence ADDITIVE = MULTIPLICATIVE.next();
+    private static final Precedence SHIFT = ADDITIVE.next();
+    private static final Precedence RELATIONAL = SHIFT.next();
+    private static final Precedence EQUALITY = RELATIONAL.next();
+    private static final Precedence BITWISE_AND = EQUALITY.next();
+    private static final Precedence BITWISE_OR = BITWISE_AND.next();
+    private static final Precedence LOGICAL_AND = BITWISE_OR.next();
+    private static final Precedence LOGICAL_OR = LOGICAL_AND.next();
+    private static final Precedence TERNARY = LOGICAL_OR.next();
+    private static final Precedence ASSIGNMENT = TERNARY.next();
 
     public static final Expression literal(final String s) {
-        return LITERAL.createExpression(new ExpressionFactory.Renderable() {
+        return LITERAL.createExpression(new ExpressionRendering() {
             @Override
-            public Renderer createRenderer(final RendererContext context) {
+            public Renderer createExpressionRenderer(final ExpressionRendererContext context) {
                 return new Renderer() {
                     @Override
                     public void render() {
@@ -74,9 +76,9 @@ public class Expression {
     }
 
     public static final Expression literal(final int i) {
-        return LITERAL.createExpression(new ExpressionFactory.Renderable() {
+        return LITERAL.createExpression(new ExpressionRendering() {
             @Override
-            public Renderer createRenderer(final RendererContext context) {
+            public Renderer createExpressionRenderer(final ExpressionRendererContext context) {
                 return new Renderer() {
                     @Override
                     public void render() {
@@ -88,9 +90,9 @@ public class Expression {
     }
 
     public static final Expression literal(final long i) {
-        return LITERAL.createExpression(new ExpressionFactory.Renderable() {
+        return LITERAL.createExpression(new ExpressionRendering() {
             @Override
-            public Renderer createRenderer(final RendererContext context) {
+            public Renderer createExpressionRenderer(final ExpressionRendererContext context) {
                 return new Renderer() {
                     @Override
                     public void render() {
@@ -103,9 +105,9 @@ public class Expression {
     }
 
     public static final Expression literal(final double i) {
-        return LITERAL.createExpression(new ExpressionFactory.Renderable() {
+        return LITERAL.createExpression(new ExpressionRendering() {
             @Override
-            public Renderer createRenderer(final RendererContext context) {
+            public Renderer createExpressionRenderer(final ExpressionRendererContext context) {
                 return new Renderer() {
                     @Override
                     public void render() {
@@ -117,9 +119,9 @@ public class Expression {
     }
 
     public static final Expression literal(final float f) {
-        return LITERAL.createExpression(new ExpressionFactory.Renderable() {
+        return LITERAL.createExpression(new ExpressionRendering() {
             @Override
-            public Renderer createRenderer(final RendererContext context) {
+            public Renderer createExpressionRenderer(final ExpressionRendererContext context) {
                 return new Renderer() {
                     @Override
                     public void render() {
@@ -130,18 +132,16 @@ public class Expression {
             }
         });
     }
+    private final PrecedenceRendering precedenceRendering;
 
-    private final ExpressionDefinition definition;
-    public Expression(ExpressionDefinition definition) {
-        this.definition = definition;
+    public Expression(PrecedenceRendering precedenceRendering) {
+        this.precedenceRendering = precedenceRendering;
     }
-
-    public ExpressionDefinition definition() {
-        return definition;
+    public PrecedenceRendering rendering() {
+        return precedenceRendering;
     }
-
-    public Renderer createTopLevelExpressionRenderer(RendererContext context) {
-        return definition.createTopLevelExpressionRenderer(context);
+    Renderer createTopLevelExpressionRenderer(RendererContext context) {
+        return precedenceRendering.createTopLevelExpressionRenderer(context);
     }
 
     public Expression plus(Expression expression) {
@@ -177,16 +177,18 @@ public class Expression {
     public Expression le(Expression expression) {
         return RELATIONAL.createLeftAssociativeExpression(this, "<=", expression);
     }
-    public Expression instanceofOp(Type type) throws CodeModelException {
+    public Expression instanceofOp(final Type type) throws CodeModelException {
         if (!type.isObjectType() || !type.getObjectDetails().isRaw())
             throw new CodeModelException("Only raw object types allowed here");
-        return RELATIONAL.createExpression(new ExpressionFactory.Renderable() {
+        return RELATIONAL.createExpression(new ExpressionRendering() {
             @Override
-            public Renderer createRenderer(RendererContext context) {
+            public Renderer createExpressionRenderer(final ExpressionRendererContext context) {
                 return new Renderer() {
                     @Override
                     public void render() {
-                        throw new UnsupportedOperationException("Not supported yet.");
+                        context.appendHigherPrecedenceExpression(Expression.this);
+                        context.append(" instanceof ");
+                        context.appendType(type);
                     }
                 };
             }

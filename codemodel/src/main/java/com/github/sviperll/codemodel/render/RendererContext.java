@@ -30,12 +30,7 @@
 
 package com.github.sviperll.codemodel.render;
 
-import com.github.sviperll.codemodel.ObjectTypeDetails;
 import com.github.sviperll.codemodel.Type;
-import com.github.sviperll.codemodel.WildcardTypeDetails;
-import java.io.IOException;
-import java.util.Iterator;
-import java.util.Locale;
 import javax.annotation.ParametersAreNonnullByDefault;
 
 /**
@@ -43,87 +38,9 @@ import javax.annotation.ParametersAreNonnullByDefault;
  * @author Victor Nazarov &lt;asviraspossible@gmail.com&gt;
  */
 @ParametersAreNonnullByDefault
-public class RendererContext {
-    public static RendererContext createInstance(final StringBuilder stringBuilder) {
-        return createInstance(new TypeAwareWriter() {
-            @Override
-            public void writeQualifiedTypeName(String name) {
-                stringBuilder.append(name);
-            }
-
-            @Override
-            public void writeText(String text) {
-                stringBuilder.append(text);
-            }
-        });
-    }
-    public static RendererContext createInstance(TypeAwareWriter writer) {
-        return new RendererContext(new LineWriter("    ", writer));
-    }
-    private final LineWriter implementation;
-    private final int identationLevel;
-
-    private RendererContext(LineWriter implementation) {
-        this(implementation, 0);
-    }
-    private RendererContext(LineWriter implementation, int identationLevel) {
-        this.implementation = implementation;
-        this.identationLevel = identationLevel;
-    }
-    public void append(String s) {
-        implementation.writeText(identationLevel, s);
-    }
-    public void nextLine() {
-        implementation.nextLine();
-    }
-
-    public void appendType(Type type) {
-        if (type.isArray()) {
-            appendType(type.getArrayDetails().elementType());
-            append("[]");
-        } else if (type.isIntersection()) {
-            Iterator<Type> iterator = type.getIntersectionDetails().intersectedTypes().iterator();
-            if (iterator.hasNext()) {
-                appendType(iterator.next());
-                while (iterator.hasNext()) {
-                    append(" & ");
-                    appendType(iterator.next());
-                }
-            }
-        } else if (type.isVoid()) {
-            append("void");
-        } else if (type.isPrimitive()) {
-            append(type.getPrimitiveDetails().name().toLowerCase(Locale.US));
-        } else if (type.isTypeVariable()) {
-            append(type.getVariableDetails().name());
-        } else if (type.isWildcard()) {
-            WildcardTypeDetails wildcard = type.getWildcardDetails();
-            append("?");
-            append(wildcard.boundKind() == WildcardTypeDetails.BoundKind.SUPER ? " super " : " extends ");
-            appendType(wildcard.bound());
-        } else if (type.isObjectType()) {
-            ObjectTypeDetails objectType = type.getObjectDetails();
-            if (objectType.isRaw())
-                implementation.writeQualifiedTypeName(identationLevel, objectType.definition().qualifiedName());
-            else {
-                appendType(objectType.erasure());
-                Iterator<Type> iterator = objectType.typeArguments().iterator();
-                if (iterator.hasNext()) {
-                    append("<");
-                    appendType(iterator.next());
-                    while (iterator.hasNext()) {
-                        append(", ");
-                        appendType(iterator.next());
-                    }
-                    append(">");
-                }
-            }
-        }
-    }
-
-    public RendererContext indented() {
-        return new RendererContext(implementation, identationLevel + 1);
-    }
-
-
+public interface RendererContext {
+    void append(String text);
+    void nextLine();
+    void appendType(Type type);
+    RendererContext indented();
 }
