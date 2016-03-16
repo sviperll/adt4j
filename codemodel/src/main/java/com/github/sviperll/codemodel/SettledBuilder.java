@@ -31,15 +31,12 @@
 package com.github.sviperll.codemodel;
 
 import javax.annotation.ParametersAreNonnullByDefault;
-import javax.annotation.Nonnull;
 
 /**
  *
  * @author Victor Nazarov &lt;asviraspossible@gmail.com&gt;
- * @param <T>
- * @param <B>
  */
 @ParametersAreNonnullByDefault
-public interface SettledBuilder<T extends Residence, B extends ResidenceBuilder<T>> {
-    B residence();
+public interface SettledBuilder {
+    ResidenceBuilder residence();
 }

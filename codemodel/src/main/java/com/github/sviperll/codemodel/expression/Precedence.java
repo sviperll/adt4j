@@ -50,8 +50,8 @@ public class Precedence {
         return new Precedence(precedence + 1);
     }
 
-    public Expression createExpression(final ExpressionRendering renderable) {
-        return new Expression(new PrecedenceRendering() {
+    public PrecedenceRendering createExpression(final ExpressionRendering renderable) {
+        return new PrecedenceRendering() {
             @Override
             Renderer createExpressionRenderer(final ExpressionRendererContext context) {
                 final Renderer effectiveRenderer = renderable.createExpressionRenderer(context.withPrecedence(precedence));
@@ -68,25 +68,38 @@ public class Precedence {
                     }
                 };
             }
-        });
+        };
     }
 
-    public Expression createLeftAssociativeExpression(final Expression left, final String op, final Expression right) {
-        return createExpression(new ExpressionRendering() {
-            @Override
-            public Renderer createExpressionRenderer(final ExpressionRendererContext context) {
-                return new Renderer() {
-                    @Override
-                    public void render() {
-                        context.appendSamePrecedenceExpression(left);
-                        context.append(" ");
-                        context.append(op);
-                        context.append(" ");
-                        context.appendHigherPrecedenceExpression(right);
-                    }
-                };
-            }
-        });
+    public PrecedenceRendering createLeftAssociativeExpression(final Expression left, final String op, final Expression right) {
+        return createExpression(new BinaryOperationExpressionRendering(left, op, right));
+    }
+
+    private static class BinaryOperationExpressionRendering implements ExpressionRendering {
+
+        private final Expression left;
+        private final String op;
+        private final Expression right;
+
+        public BinaryOperationExpressionRendering(Expression left, String op, Expression right) {
+            this.left = left;
+            this.op = op;
+            this.right = right;
+        }
+
+        @Override
+        public Renderer createExpressionRenderer(final ExpressionRendererContext context) {
+            return new Renderer() {
+                @Override
+                public void render() {
+                    context.appendSamePrecedenceExpression(left);
+                    context.append(" ");
+                    context.append(op);
+                    context.append(" ");
+                    context.appendHigherPrecedenceExpression(right);
+                }
+            };
+        }
     }
 
 

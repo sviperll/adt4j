@@ -44,7 +44,7 @@ public final class Package implements Model {
     private final CodeModel codeModel;
     private final String name;
     private final Package parent;
-    private final Map<String, ObjectDefinition<PackageLevelResidence>> classes = new TreeMap<>();
+    private final Map<String, ObjectDefinition> classes = new TreeMap<>();
     private final Map<String, Package> packages = new TreeMap<>();
     Package(CodeModel codeModel, String name) {
         this(codeModel, name, null);
@@ -60,11 +60,11 @@ public final class Package implements Model {
         return parent;
     }
 
-    public ObjectDefinitionBuilder<PackageLevelResidence, PackageLevelResidenceBuilder> createClass(ObjectKind kind, String className) throws CodeModelException {
+    public ObjectDefinitionBuilder createClass(ObjectKind kind, String className) throws CodeModelException {
         if (classes.containsKey(className))
             throw new CodeModelException(name + "." + className + " already defined");
         PackageLevelResidenceBuilder membershipBuilder = new PackageLevelResidenceBuilder(this);
-        ObjectDefinitionBuilder<PackageLevelResidence, PackageLevelResidenceBuilder> result = new ObjectDefinitionBuilder<>(kind, membershipBuilder, className);
+        ObjectDefinitionBuilder result = new ObjectDefinitionBuilder(kind, membershipBuilder, className);
         classes.put(className, result.definition());
         return result;
     }

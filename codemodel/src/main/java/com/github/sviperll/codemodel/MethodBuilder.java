@@ -46,7 +46,7 @@ public class MethodBuilder
         implements MethodLikeBuilder {
     private final BuiltDefinition definition = new BuiltDefinition();
     private final BuiltType type = new BuiltType();
-    private final GenericsConfigBuilder<NestedResidence> generics = new GenericsConfigBuilder<>(definition);
+    private final GenericsConfigBuilder generics = GenericsConfigBuilder.methodDefinition(definition);
     private final NestedResidenceBuilder residence;
     private final String name;
     private final CallableBuilder callable = new CallableBuilder();
@@ -74,7 +74,7 @@ public class MethodBuilder
     }
 
     @Override
-    public GenericsConfigBuilder<NestedResidence> generics() {
+    public GenericsConfigBuilder generics() {
         return generics;
     }
 
@@ -119,7 +119,7 @@ public class MethodBuilder
         }
 
         @Override
-        public NestedResidence residence() {
+        public Residence residence() {
             return residence.residence();
         }
 

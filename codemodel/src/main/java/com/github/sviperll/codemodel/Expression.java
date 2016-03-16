@@ -60,7 +60,7 @@ public class Expression {
     private static final Precedence ASSIGNMENT = TERNARY.next();
 
     public static final Expression literal(final String s) {
-        return LITERAL.createExpression(new ExpressionRendering() {
+        return new Expression(LITERAL.createExpression(new ExpressionRendering() {
             @Override
             public Renderer createExpressionRenderer(final ExpressionRendererContext context) {
                 return new Renderer() {
@@ -72,11 +72,11 @@ public class Expression {
                     }
                 };
             }
-        });
+        }));
     }
 
     public static final Expression literal(final int i) {
-        return LITERAL.createExpression(new ExpressionRendering() {
+        return new Expression(LITERAL.createExpression(new ExpressionRendering() {
             @Override
             public Renderer createExpressionRenderer(final ExpressionRendererContext context) {
                 return new Renderer() {
@@ -86,11 +86,11 @@ public class Expression {
                     }
                 };
             }
-        });
+        }));
     }
 
     public static final Expression literal(final long i) {
-        return LITERAL.createExpression(new ExpressionRendering() {
+        return new Expression(LITERAL.createExpression(new ExpressionRendering() {
             @Override
             public Renderer createExpressionRenderer(final ExpressionRendererContext context) {
                 return new Renderer() {
@@ -101,11 +101,11 @@ public class Expression {
                     }
                 };
             }
-        });
+        }));
     }
 
     public static final Expression literal(final double i) {
-        return LITERAL.createExpression(new ExpressionRendering() {
+        return new Expression(LITERAL.createExpression(new ExpressionRendering() {
             @Override
             public Renderer createExpressionRenderer(final ExpressionRendererContext context) {
                 return new Renderer() {
@@ -115,11 +115,11 @@ public class Expression {
                     }
                 };
             }
-        });
+        }));
     }
 
     public static final Expression literal(final float f) {
-        return LITERAL.createExpression(new ExpressionRendering() {
+        return new Expression(LITERAL.createExpression(new ExpressionRendering() {
             @Override
             public Renderer createExpressionRenderer(final ExpressionRendererContext context) {
                 return new Renderer() {
@@ -130,7 +130,7 @@ public class Expression {
                     }
                 };
             }
-        });
+        }));
     }
     private final PrecedenceRendering precedenceRendering;
 
@@ -145,42 +145,42 @@ public class Expression {
     }
 
     public Expression plus(Expression expression) {
-        return ADDITIVE.createLeftAssociativeExpression(this, "+", expression);
+        return new Expression(ADDITIVE.createLeftAssociativeExpression(this, "+", expression));
     }
     public Expression minus(Expression expression) {
-        return ADDITIVE.createLeftAssociativeExpression(this, "-", expression);
+        return new Expression(ADDITIVE.createLeftAssociativeExpression(this, "-", expression));
     }
     public Expression div(Expression expression) {
-        return MULTIPLICATIVE.createLeftAssociativeExpression(this, "/", expression);
+        return new Expression(MULTIPLICATIVE.createLeftAssociativeExpression(this, "/", expression));
     }
     public Expression mod(Expression expression) {
-        return MULTIPLICATIVE.createLeftAssociativeExpression(this, "%", expression);
+        return new Expression(MULTIPLICATIVE.createLeftAssociativeExpression(this, "%", expression));
     }
     public Expression times(Expression expression) {
-        return MULTIPLICATIVE.createLeftAssociativeExpression(this, "*", expression);
+        return new Expression(MULTIPLICATIVE.createLeftAssociativeExpression(this, "*", expression));
     }
     public Expression or(Expression expression) {
-        return LOGICAL_OR.createLeftAssociativeExpression(this, "%", expression);
+        return new Expression(LOGICAL_OR.createLeftAssociativeExpression(this, "%", expression));
     }
     public Expression and(Expression expression) {
-        return LOGICAL_AND.createLeftAssociativeExpression(this, "*", expression);
+        return new Expression(LOGICAL_AND.createLeftAssociativeExpression(this, "*", expression));
     }
     public Expression gt(Expression expression) {
-        return RELATIONAL.createLeftAssociativeExpression(this, ">", expression);
+        return new Expression(RELATIONAL.createLeftAssociativeExpression(this, ">", expression));
     }
     public Expression lt(Expression expression) {
-        return RELATIONAL.createLeftAssociativeExpression(this, "<", expression);
+        return new Expression(RELATIONAL.createLeftAssociativeExpression(this, "<", expression));
     }
     public Expression ge(Expression expression) {
-        return RELATIONAL.createLeftAssociativeExpression(this, ">=", expression);
+        return new Expression(RELATIONAL.createLeftAssociativeExpression(this, ">=", expression));
     }
     public Expression le(Expression expression) {
-        return RELATIONAL.createLeftAssociativeExpression(this, "<=", expression);
+        return new Expression(RELATIONAL.createLeftAssociativeExpression(this, "<=", expression));
     }
     public Expression instanceofOp(final Type type) throws CodeModelException {
         if (!type.isObjectType() || !type.getObjectDetails().isRaw())
             throw new CodeModelException("Only raw object types allowed here");
-        return RELATIONAL.createExpression(new ExpressionRendering() {
+        return new Expression(RELATIONAL.createExpression(new ExpressionRendering() {
             @Override
             public Renderer createExpressionRenderer(final ExpressionRendererContext context) {
                 return new Renderer() {
@@ -192,12 +192,12 @@ public class Expression {
                     }
                 };
             }
-        });
+        }));
     }
     public Expression eq(Expression expression) {
-        return EQUALITY.createLeftAssociativeExpression(this, "==", expression);
+        return new Expression(EQUALITY.createLeftAssociativeExpression(this, "==", expression));
     }
     public Expression ne(Expression expression) {
-        return EQUALITY.createLeftAssociativeExpression(this, "!=", expression);
+        return new Expression(EQUALITY.createLeftAssociativeExpression(this, "!=", expression));
     }
 }

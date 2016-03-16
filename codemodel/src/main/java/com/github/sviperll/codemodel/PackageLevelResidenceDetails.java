@@ -37,24 +37,7 @@ import javax.annotation.ParametersAreNonnullByDefault;
  * @author Victor Nazarov &lt;asviraspossible@gmail.com&gt;
  */
 @ParametersAreNonnullByDefault
-public abstract class PackageLevelResidence extends Residence {
+public interface PackageLevelResidenceDetails {
     public abstract boolean isPublic();
-
-    @Override
-    public final boolean isPackageLevel() {
-        return true;
-    }
-    @Override
-    public final boolean isNested() {
-        return false;
-    }
-
-    @Override
-    public final PackageLevelResidence asPackageLevel() {
-        return this;
-    }
-    @Override
-    public final NestedResidence asNested() {
-        throw new UnsupportedOperationException();
-    }
+    public abstract Package getPackage();
 }

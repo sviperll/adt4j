@@ -51,5 +51,5 @@ public abstract class TypeParameter {
      */
     public abstract Type bound();
 
-    public abstract GenericDefinition<?> declaredIn();
+    public abstract GenericsConfig declaredIn();
 }

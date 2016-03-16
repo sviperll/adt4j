@@ -33,10 +33,9 @@ package com.github.sviperll.codemodel;
 /**
  *
  * @author Victor Nazarov &lt;asviraspossible@gmail.com&gt;
- * @param <T>
  */
-public interface Settled<T extends Residence> {
+public interface Settled {
 
-    T residence();
+    Residence residence();
 
 }

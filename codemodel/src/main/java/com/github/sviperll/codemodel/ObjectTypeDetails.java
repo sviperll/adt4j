@@ -38,12 +38,12 @@ import javax.annotation.ParametersAreNonnullByDefault;
  */
 @ParametersAreNonnullByDefault
 public abstract class ObjectTypeDetails
-        implements GenericType<Type, ObjectDefinition<?>>, Defined<ObjectDefinition<?>> {
+        implements GenericType<Type, ObjectDefinition>, Defined<ObjectDefinition> {
     ObjectTypeDetails() {
     }
 
     @Override
-    public abstract ObjectDefinition<?> definition();
+    public abstract ObjectDefinition definition();
 
     public abstract Type asType();
 

@@ -36,10 +36,6 @@ import java.util.List;
  *
  * @author Victor Nazarov &lt;asviraspossible@gmail.com&gt;
  */
-public interface GenericDefinition<T extends Residence> extends Settled<T>, Model {
-    boolean isObjectDefinition();
-    boolean isMethodDefinition();
-    ObjectDefinition<?> asObjectDefinition();
-    MethodDefinition asMethodDefinition();
+public interface GenericDefinition {
     GenericsConfig generics();
 }

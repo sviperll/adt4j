@@ -34,31 +34,10 @@ package com.github.sviperll.codemodel;
  *
  * @author Victor Nazarov &lt;asviraspossible@gmail.com&gt;
  */
-public abstract class NestedResidence extends Residence {
-    NestedResidence() {
-    }
-
+public interface Nesting {
     public abstract MemberAccess accessLevel();
 
     public abstract boolean isStatic();
 
-    public abstract ObjectDefinition<?> parent();
-
-    @Override
-    public final boolean isPackageLevel() {
-        return false;
-    }
-    @Override
-    public final boolean isNested() {
-        return true;
-    }
-
-    @Override
-    public final PackageLevelResidence asPackageLevel() {
-        throw new UnsupportedOperationException();
-    }
-    @Override
-    public final NestedResidence asNested() {
-        return this;
-    }
+    public abstract ObjectDefinition parent();
 }

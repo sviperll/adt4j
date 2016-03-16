@@ -45,13 +45,13 @@ import javax.annotation.ParametersAreNonnullByDefault;
  * @param <B>
  */
 @ParametersAreNonnullByDefault
-public final class ObjectDefinitionBuilder<T extends Residence, B extends ResidenceBuilder<T>>
-        implements Model, SettledBuilder<T, B>, GenericDefinitionBuilder<T> {
+public final class ObjectDefinitionBuilder
+        implements Model, SettledBuilder, GenericDefinitionBuilder {
     private final BuiltDefinition definition = new BuiltDefinition();
-    private final GenericsConfigBuilder<T> generics = new GenericsConfigBuilder<>(definition);
+    private final GenericsConfigBuilder generics = GenericsConfigBuilder.objectDefinition(definition);
     private final BuiltTypeDetails typeDetails = new BuiltTypeDetails();
     private final Type type = Type.createObjectType(typeDetails);
-    private final B residence;
+    private final ResidenceBuilder residence;
     private final String name;
     private final ObjectKind kind;
     private final List<MethodDefinition> constructors = new ArrayList<>();
@@ -59,15 +59,15 @@ public final class ObjectDefinitionBuilder<T extends Residence, B extends Reside
     private final Map<String, FieldDeclaration> fields = new TreeMap<>();
     private final List<InitElement> staticInitOrdering = new ArrayList<>();
     private final List<InitElement> instanceInitOrdering = new ArrayList<>();
-    private final Map<String, ObjectDefinition<NestedResidence>> innerClasses = new TreeMap<>();
+    private final Map<String, ObjectDefinition> innerClasses = new TreeMap<>();
     private boolean isFinal = false;
     private ObjectTypeDetails extendsClass = null;
     private List<ObjectTypeDetails> interfaces = new ArrayList<>();
 
-    ObjectDefinitionBuilder(ObjectKind kind, B residence, String name) throws CodeModelException {
+    ObjectDefinitionBuilder(ObjectKind kind, ResidenceBuilder residence, String name) throws CodeModelException {
         if ((kind == ObjectKind.INTERFACE || kind == ObjectKind.ENUM || kind == ObjectKind.ANNOTATION)
                 && residence.residence().isNested()
-                && !residence.residence().asNested().isStatic()) {
+                && !residence.residence().getNesting().isStatic()) {
             throw new CodeModelException("Interface, enum or annotation should always be static when nested in other class");
         }
         this.residence = residence;
@@ -75,7 +75,7 @@ public final class ObjectDefinitionBuilder<T extends Residence, B extends Reside
         this.kind = kind;
     }
 
-    public ObjectDefinition<T> definition() {
+    public ObjectDefinition definition() {
         return definition;
     }
 
@@ -84,12 +84,12 @@ public final class ObjectDefinitionBuilder<T extends Residence, B extends Reside
     }
 
     @Override
-    public B residence() {
+    public ResidenceBuilder residence() {
         return residence;
     }
 
     @Override
-    public GenericsConfigBuilder<T> generics() {
+    public GenericsConfigBuilder generics() {
         return generics;
     }
 
@@ -135,20 +135,20 @@ public final class ObjectDefinitionBuilder<T extends Residence, B extends Reside
         return result;
     }
 
-    public ObjectDefinitionBuilder<NestedResidence, NestedResidenceBuilder> staticNestedClass(ObjectKind kind, String name) throws CodeModelException {
+    public ObjectDefinitionBuilder staticNestedClass(ObjectKind kind, String name) throws CodeModelException {
         if (innerClasses.containsKey(name))
             throw new CodeModelException(definition.qualifiedName() + "." + name + " already defined");
         NestedResidenceBuilder classResidence = new NestedResidenceBuilder(true, definition);
-        ObjectDefinitionBuilder<NestedResidence, NestedResidenceBuilder> result = new ObjectDefinitionBuilder<>(kind, classResidence, name);
+        ObjectDefinitionBuilder result = new ObjectDefinitionBuilder(kind, classResidence, name);
         innerClasses.put(name, result.definition());
         return result;
     }
 
-    public ObjectDefinitionBuilder<NestedResidence, NestedResidenceBuilder> innerClass(ObjectKind kind, String name) throws CodeModelException {
+    public ObjectDefinitionBuilder innerClass(ObjectKind kind, String name) throws CodeModelException {
         if (innerClasses.containsKey(name))
             throw new CodeModelException(definition.qualifiedName() + "." + name + " already defined");
         NestedResidenceBuilder classResidence = new NestedResidenceBuilder(false, definition);
-        ObjectDefinitionBuilder<NestedResidence, NestedResidenceBuilder> result = new ObjectDefinitionBuilder<>(kind, classResidence, name);
+        ObjectDefinitionBuilder result = new ObjectDefinitionBuilder(kind, classResidence, name);
         innerClasses.put(name, result.definition());
         return result;
     }
@@ -191,7 +191,7 @@ public final class ObjectDefinitionBuilder<T extends Residence, B extends Reside
         }
     }
 
-    private class BuiltDefinition extends ObjectDefinition<T> {
+    private class BuiltDefinition extends ObjectDefinition {
 
         @Override
         public Collection<MethodDefinition> methods() {
@@ -199,7 +199,7 @@ public final class ObjectDefinitionBuilder<T extends Residence, B extends Reside
         }
 
         @Override
-        public Collection<ObjectDefinition<NestedResidence>> innerClasses() {
+        public Collection<ObjectDefinition> innerClasses() {
             return innerClasses.values();
         }
 
@@ -214,7 +214,7 @@ public final class ObjectDefinitionBuilder<T extends Residence, B extends Reside
         }
 
         @Override
-        public T residence() {
+        public Residence residence() {
             return residence.residence();
         }
 
@@ -231,26 +231,6 @@ public final class ObjectDefinitionBuilder<T extends Residence, B extends Reside
         @Override
         public ObjectKind kind() {
             return kind;
-        }
-
-        @Override
-        public boolean isObjectDefinition() {
-            return true;
-        }
-
-        @Override
-        public boolean isMethodDefinition() {
-            return false;
-        }
-
-        @Override
-        public ObjectDefinition<?> asObjectDefinition() {
-            return this;
-        }
-
-        @Override
-        public MethodDefinition asMethodDefinition() {
-            throw new UnsupportedOperationException();
         }
 
         @Override
@@ -276,7 +256,7 @@ public final class ObjectDefinitionBuilder<T extends Residence, B extends Reside
 
     private class BuiltTypeDetails extends RawObjectTypeDetails {
         @Override
-        public ObjectDefinition<?> definition() {
+        public ObjectDefinition definition() {
             return definition;
         }
 

@@ -54,7 +54,7 @@ final class NarrowedObjectType extends ObjectTypeDetails {
     }
 
     @Override
-    public ObjectDefinition<?> definition() {
+    public ObjectDefinition definition() {
         return erasure.definition();
     }
 

@@ -37,28 +37,8 @@ import java.util.List;
  * @author Victor Nazarov &lt;asviraspossible@gmail.com&gt;
  */
 public abstract class MethodDefinition
-        implements Settled<NestedResidence>, GenericDefinition<NestedResidence>, TypeDefinition<MethodType> {
+        implements Settled, GenericDefinition, TypeDefinition<MethodType>, Model {
     MethodDefinition() {
-    }
-
-    @Override
-    public boolean isMethodDefinition() {
-        return true;
-    }
-
-    @Override
-    public boolean isObjectDefinition() {
-        return false;
-    }
-
-    @Override
-    public MethodDefinition asMethodDefinition() {
-        return this;
-    }
-
-    @Override
-    public ObjectDefinition<?> asObjectDefinition() {
-        throw new UnsupportedOperationException();
     }
 
     public abstract boolean isConstructor();

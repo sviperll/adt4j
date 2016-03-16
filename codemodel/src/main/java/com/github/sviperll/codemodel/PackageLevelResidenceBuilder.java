@@ -38,7 +38,7 @@ import javax.annotation.Nonnull;
  * @author Victor Nazarov &lt;asviraspossible@gmail.com&gt;
  */
 @ParametersAreNonnullByDefault
-public class PackageLevelResidenceBuilder extends ResidenceBuilder<PackageLevelResidence> {
+public class PackageLevelResidenceBuilder extends ResidenceBuilder {
     private final Package pkg;
     private final BuiltMembership residence = new BuiltMembership();
     private boolean isPublic = false;
@@ -52,8 +52,8 @@ public class PackageLevelResidenceBuilder extends ResidenceBuilder<PackageLevelR
     }
 
     @Override
-    public PackageLevelResidence residence() {
-        return residence;
+    public Residence residence() {
+        return Residence.packageLevel(residence);
     }
 
     @Override
@@ -61,7 +61,7 @@ public class PackageLevelResidenceBuilder extends ResidenceBuilder<PackageLevelR
         return pkg.getCodeModel();
     }
 
-    public class BuiltMembership extends PackageLevelResidence {
+    public class BuiltMembership implements PackageLevelResidenceDetails {
 
         @Override
         public boolean isPublic() {

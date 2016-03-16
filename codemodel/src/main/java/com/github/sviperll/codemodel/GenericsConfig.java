@@ -39,7 +39,7 @@ import javax.annotation.ParametersAreNonnullByDefault;
  * @author Victor Nazarov &lt;asviraspossible@gmail.com&gt;
  */
 @ParametersAreNonnullByDefault
-public abstract class GenericsConfig {
+public abstract class GenericsConfig implements Model {
     GenericsConfig() {
     }
 
@@ -62,7 +62,7 @@ public abstract class GenericsConfig {
         }
         if (parameter == null)
             throw new CodeModelException(name + " name is not found in environment");
-        GenericsConfig environment = parameter.declaredIn().generics().preventCycle(name);
+        GenericsConfig environment = parameter.declaredIn().preventCycle(name);
         Type bound = parameter.bound();
         if (bound.isTypeVariable()) {
             return environment.lowerRawBound(bound.getVariableDetails().name());
@@ -118,6 +118,11 @@ public abstract class GenericsConfig {
             } catch (CodeModelException ex) {
                 throw new RuntimeCodeModelException(ex);
             }
+        }
+
+        @Override
+        public CodeModel getCodeModel() {
+            return parent.getCodeModel();
         }
     }
 }

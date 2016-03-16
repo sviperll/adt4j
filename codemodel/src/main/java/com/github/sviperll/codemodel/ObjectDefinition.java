@@ -40,8 +40,8 @@ import javax.annotation.ParametersAreNonnullByDefault;
  * @param <T>
  */
 @ParametersAreNonnullByDefault
-public abstract class ObjectDefinition<T extends Residence>
-        implements Settled<T>, Model, GenericDefinition<T>, TypeDefinition<Type> {
+public abstract class ObjectDefinition
+        implements Settled, Model, GenericDefinition, TypeDefinition<Type> {
 
     ObjectDefinition() {
     }
@@ -57,7 +57,7 @@ public abstract class ObjectDefinition<T extends Residence>
 
     public abstract Collection<MethodDefinition> methods();
 
-    public abstract Collection<ObjectDefinition<NestedResidence>> innerClasses();
+    public abstract Collection<ObjectDefinition> innerClasses();
 
     public abstract Collection<FieldDeclaration> fields();
 
@@ -67,7 +67,7 @@ public abstract class ObjectDefinition<T extends Residence>
         return residence().getPackage().qualifiedName() + "." + simpleName();
     }
 
-    public final boolean extendsOrImplements(ObjectDefinition<?> objectDefinition) {
+    public final boolean extendsOrImplements(ObjectDefinition objectDefinition) {
         if (this.extendsClass().definition() == objectDefinition
                 || this.extendsClass().definition().extendsOrImplements(objectDefinition))
             return true;

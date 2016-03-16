@@ -35,14 +35,86 @@ package com.github.sviperll.codemodel;
  * @author Victor Nazarov &lt;asviraspossible@gmail.com&gt;
  */
 public abstract class Residence {
-    Residence() {
+
+    static Residence packageLevel(final PackageLevelResidenceDetails details) {
+        return new PackageLevelResidence(details);
+    }
+
+    static Residence nested(Nesting details) {
+        return new NestedResidence(details);
+    }
+    private Residence() {
     }
 
     public abstract boolean isPackageLevel();
     public abstract boolean isNested();
 
-    public abstract PackageLevelResidence asPackageLevel();
-    public abstract NestedResidence asNested();
+    public abstract PackageLevelResidenceDetails getPackageLevelDetails();
+    public abstract Nesting getNesting();
 
-    public abstract Package getPackage();
+    public Package getPackage() {
+        if (isPackageLevel())
+            return getPackageLevelDetails().getPackage();
+        else {
+            return getNesting().parent().residence().getPackage();
+        }
+    }
+
+    private static class PackageLevelResidence extends Residence {
+
+        private final PackageLevelResidenceDetails details;
+
+        public PackageLevelResidence(PackageLevelResidenceDetails details) {
+            this.details = details;
+        }
+
+        @Override
+        public boolean isPackageLevel() {
+            return true;
+        }
+
+        @Override
+        public boolean isNested() {
+            return false;
+        }
+
+        @Override
+        public PackageLevelResidenceDetails getPackageLevelDetails() {
+            return details;
+        }
+
+        @Override
+        public Nesting getNesting() {
+            throw new UnsupportedOperationException();
+        }
+    }
+
+    private static class NestedResidence extends Residence {
+
+        private final Nesting details;
+
+        public NestedResidence(Nesting details) {
+            this.details = details;
+        }
+
+        @Override
+        public boolean isPackageLevel() {
+            return false;
+        }
+
+        @Override
+        public boolean isNested() {
+            return true;
+        }
+
+        @Override
+        public PackageLevelResidenceDetails getPackageLevelDetails() {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public Nesting getNesting() {
+            return details;
+        }
+    }
 }

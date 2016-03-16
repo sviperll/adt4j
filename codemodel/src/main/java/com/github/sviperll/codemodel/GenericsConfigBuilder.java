@@ -42,40 +42,44 @@ import javax.annotation.ParametersAreNonnullByDefault;
  * @param <T>
  */
 @ParametersAreNonnullByDefault
-public class GenericsConfigBuilder<T extends Residence> {
-    private final BuiltTypeParameterEnvironment typeParameterEnvironment = new BuiltTypeParameterEnvironment();
-    private final GenericDefinition<?> declaredIn;
+public class GenericsConfigBuilder {
+    static GenericsConfigBuilder objectDefinition(ObjectDefinition definition) {
+        return new GenericsConfigBuilder(new ObjectBasicGenericsConfig(definition));
+    }
+    static GenericsConfigBuilder methodDefinition(MethodDefinition definition) {
+        return new GenericsConfigBuilder(new MethodBasicGenericsConfig(definition));
+    }
+    private final GenericsConfig genericsConfig;
     private final List<TypeParameter> typeParameters = new ArrayList<>();
     private final Map<String, TypeParameter> typeParametersMap = new TreeMap<>();
 
-    GenericsConfigBuilder(GenericDefinition<?> declaredIn) {
-        this.declaredIn = declaredIn;
+    private GenericsConfigBuilder(BasicGenericsConfig basicConfig) {
+        this.genericsConfig = new BuiltGenericsConfig(basicConfig);
     }
 
     public TypeParameterBuilder typeParameter(String name) throws CodeModelException {
         if (typeParametersMap.containsKey(name)) {
-            throw new CodeModelException(declaredIn + ": " + name + " type-parameter already defined");
+            throw new CodeModelException(name + " type-parameter already defined");
         }
-        TypeParameterBuilder result = new TypeParameterBuilder(declaredIn, name);
+        TypeParameterBuilder result = new TypeParameterBuilder(genericsConfig, name);
         typeParametersMap.put(name, result.declaration());
         typeParameters.add(result.declaration());
         return result;
     }
 
     GenericsConfig generics() {
-        return typeParameterEnvironment;
+        return genericsConfig;
     }
 
-    private class BuiltTypeParameterEnvironment extends GenericsConfig {
+    private class BuiltGenericsConfig extends GenericsConfig implements BasicGenericsConfig {
+
+        private final BasicGenericsConfig basic;
+        BuiltGenericsConfig(BasicGenericsConfig basic) {
+            this.basic = basic;
+        }
         @Override
         public GenericsConfig parent() {
-            Residence residence = declaredIn.residence();
-            if (residence.isPackageLevel())
-                return null;
-            else {
-                NestedResidence nesting = residence.asNested();
-                return nesting.isStatic() ? null : nesting.parent().generics();
-            }
+            return basic.parent();
         }
 
         @Override
@@ -98,8 +102,118 @@ public class GenericsConfigBuilder<T extends Residence> {
             }
         }
 
+        @Override
+        public CodeModel getCodeModel() {
+            return basic.getCodeModel();
+        }
+
+        @Override
+        public boolean isMethod() {
+            return basic.isMethod();
+        }
+
+        @Override
+        public boolean isObject() {
+            return basic.isObject();
+        }
+
+        @Override
+        public MethodDefinition getMethod() {
+            return basic.getMethod();
+        }
+
+        @Override
+        public ObjectDefinition getObject() {
+            return basic.getObject();
+        }
     }
 
+    private interface BasicGenericsConfig {
+        public GenericsConfig parent();
+        public CodeModel getCodeModel();
+        public boolean isMethod();
+        public boolean isObject();
+        public MethodDefinition getMethod();
+        public ObjectDefinition getObject();
+    }
 
+    private static class MethodBasicGenericsConfig implements BasicGenericsConfig {
 
+        private final MethodDefinition definition;
+        MethodBasicGenericsConfig(MethodDefinition definition) {
+            this.definition = definition;
+        }
+
+        @Override
+        public GenericsConfig parent() {
+            return definition.residence().getNesting().isStatic() ? null : definition.residence().getNesting().parent().generics();
+        }
+
+        @Override
+        public CodeModel getCodeModel() {
+            return definition.getCodeModel();
+        }
+
+        @Override
+        public boolean isMethod() {
+            return true;
+        }
+
+        @Override
+        public boolean isObject() {
+            return false;
+        }
+
+        @Override
+        public MethodDefinition getMethod() {
+            return definition;
+        }
+
+        @Override
+        public ObjectDefinition getObject() {
+            throw new UnsupportedOperationException();
+        }
+    }
+    private static class ObjectBasicGenericsConfig implements BasicGenericsConfig {
+
+        private final ObjectDefinition definition;
+        ObjectBasicGenericsConfig(ObjectDefinition definition) {
+            this.definition = definition;
+        }
+
+        @Override
+        public GenericsConfig parent() {
+            if (definition.residence().isPackageLevel())
+                return null;
+            else {
+                Nesting residence = definition.residence().getNesting();
+                return residence.isStatic() ? null : residence.parent().generics();
+            }
+        }
+
+        @Override
+        public CodeModel getCodeModel() {
+            return definition.getCodeModel();
+        }
+
+        @Override
+        public boolean isMethod() {
+            return false;
+        }
+
+        @Override
+        public boolean isObject() {
+            return true;
+        }
+
+        @Override
+        public MethodDefinition getMethod() {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public ObjectDefinition getObject() {
+            return definition;
+        }
+    }
 }

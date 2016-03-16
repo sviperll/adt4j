@@ -48,22 +48,24 @@ public class ExpressionTest {
     @Test
     public void smoke1() {
         Expression expression = literal(5).plus(literal(6)).times(literal(6).plus(literal(7)));
-        StringBuilder builder = new StringBuilder();
-        Renderer renderer = expression.createTopLevelExpressionRenderer(RendererContexts.createInstance(builder));
-        renderer.render();
-        assertEquals("(5 + 6) * (6 + 7)", builder.toString());
+        assertEquals("(5 + 6) * (6 + 7)", renderExpression(expression));
     }
     @Test
     public void smoke2() {
         Expression expression = literal("aa\nbb\"sdfsd\"sdfsd").plus(literal(5)).plus(literal(6)).times(literal(6).plus(literal(7)));
-        StringBuilder builder = new StringBuilder();
-        Renderer renderer = expression.createTopLevelExpressionRenderer(RendererContexts.createInstance(builder));
-        renderer.render();
-        assertEquals("(\"aa\\nbb\\\"sdfsd\\\"sdfsd\" + 5 + 6) * (6 + 7)", builder.toString());
+        assertEquals("(\"aa\\nbb\\\"sdfsd\\\"sdfsd\" + 5 + 6) * (6 + 7)", renderExpression(expression));
     }
     @Test
     public void instanceofTest() throws CodeModelException {
         CodeModel codeModel = new CodeModel();
         Expression expression = literal("aaa").instanceofOp(codeModel.objectType());
+        assertEquals("\"aaa\" instanceof java.lang.Object", renderExpression(expression));
+    }
+
+    private String renderExpression(Expression expression) {
+        StringBuilder builder = new StringBuilder();
+        Renderer renderer = expression.createTopLevelExpressionRenderer(RendererContexts.createInstance(builder));
+        renderer.render();
+        return builder.toString();
     }
 }

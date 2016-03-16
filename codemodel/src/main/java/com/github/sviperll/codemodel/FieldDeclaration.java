@@ -38,7 +38,7 @@ import javax.annotation.ParametersAreNonnullByDefault;
  */
 @ParametersAreNonnullByDefault
 public abstract class FieldDeclaration extends VariableDeclaration
-        implements Settled<NestedResidence> {
+        implements Settled {
     FieldDeclaration() {
     }
 

@@ -34,7 +34,7 @@ package com.github.sviperll.codemodel;
  *
  * @author Victor Nazarov &lt;asviraspossible@gmail.com&gt;
  */
-public class FieldBuilder implements SettledBuilder<NestedResidence, NestedResidenceBuilder> {
+public class FieldBuilder implements SettledBuilder {
 
     private final FieldDeclaration declaration = new BuiltFieldDeclaration();
     private final NestedResidenceBuilder residence;
@@ -52,6 +52,7 @@ public class FieldBuilder implements SettledBuilder<NestedResidence, NestedResid
         this.name = name;
     }
 
+    @Override
     public NestedResidenceBuilder residence() {
         return residence;
     }
@@ -83,7 +84,7 @@ public class FieldBuilder implements SettledBuilder<NestedResidence, NestedResid
         }
 
         @Override
-        public NestedResidence residence() {
+        public Residence residence() {
             return residence.residence();
         }
 

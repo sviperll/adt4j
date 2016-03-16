@@ -35,6 +35,8 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.annotation.ParametersAreNonnullByDefault;
 import javax.lang.model.element.Element;
 import javax.lang.model.util.Elements;
@@ -46,7 +48,7 @@ import javax.lang.model.util.Elements;
 @ParametersAreNonnullByDefault
 public final class CodeModel {
     static void validateSimpleName(String name) throws CodeModelException {
-        if (!name.matches("[_A-Za-z][_A-Za-z0-9]")) {
+        if (!name.matches("[_A-Za-z][_A-Za-z0-9]*")) {
             throw new CodeModelException(name + " is not allowed Java identifier");
         }
     }
@@ -79,21 +81,21 @@ public final class CodeModel {
             return topLevelPackage.getChildPackageBySuffix(qualifiedName.substring(index + 1));
     }
 
-    public ObjectDefinitionBuilder<PackageLevelResidence, PackageLevelResidenceBuilder> createDefaultPackageClass(ObjectKind kind, String name) throws CodeModelException {
+    public ObjectDefinitionBuilder createDefaultPackageClass(ObjectKind kind, String name) throws CodeModelException {
         return defaultPackage.createClass(kind, name);
     }
 
-    public ObjectDefinition<?> importClass(Class<?> klass) {
+    public ObjectDefinition importClass(Class<?> klass) {
         if (klass.isArray())
             throw new IllegalArgumentException("Arrays don't have class definition");
         return new ReflectionObjectDefinition(this, klass);
     }
 
-    public ObjectDefinition<?> importClass(Element element, Elements elementUtils) {
+    public ObjectDefinition importClass(Element element, Elements elementUtils) {
         throw new UnsupportedOperationException("Not supported yet.");
     }
 
-    private static class ReflectionObjectDefinition<T extends Residence> extends ObjectDefinition<T> {
+    private static class ReflectionObjectDefinition extends ObjectDefinition {
         private final Type type = Type.createObjectType(new TypeDetails());
         private final CodeModel codeModel;
 
@@ -106,7 +108,7 @@ public final class CodeModel {
 
         @Override
         public boolean isFinal() {
-            return (klass.getModifiers() | Modifier.FINAL) != 0;
+            return (klass.getModifiers() & Modifier.FINAL) != 0;
         }
 
         @Override
@@ -137,7 +139,7 @@ public final class CodeModel {
         }
 
         @Override
-        public Collection<ObjectDefinition<NestedResidence>> innerClasses() {
+        public Collection<ObjectDefinition> innerClasses() {
             throw new UnsupportedOperationException("Not supported yet.");
         }
 
@@ -152,33 +154,56 @@ public final class CodeModel {
         }
 
         @Override
-        public T residence() {
-            throw new UnsupportedOperationException("Not supported yet.");
+        public Residence residence() {
+            if (klass.isMemberClass()) {
+                return Residence.nested(new Nesting() {
+                    @Override
+                    public MemberAccess accessLevel() {
+                        int modifiers = klass.getModifiers();
+                        if ((modifiers & Modifier.PUBLIC) != 0)
+                            return MemberAccess.PUBLIC;
+                        else if ((modifiers & Modifier.PROTECTED) != 0)
+                            return MemberAccess.PROTECTED;
+                        else if ((modifiers & Modifier.PRIVATE) != 0)
+                            return MemberAccess.PRIVATE;
+                        else
+                            return MemberAccess.PACKAGE;
+                    }
+
+                    @Override
+                    public boolean isStatic() {
+                        int modifiers = klass.getModifiers();
+                        return (modifiers & Modifier.STATIC) != 0;
+                    }
+
+                    @Override
+                    public ObjectDefinition parent() {
+                        return codeModel.importClass(klass.getEnclosingClass());
+                    }
+                });
+            } else {
+                return Residence.packageLevel(new PackageLevelResidenceDetails() {
+                    @Override
+                    public boolean isPublic() {
+                        int modifiers = klass.getModifiers();
+                        return (modifiers & Modifier.PUBLIC) != 0;
+                    }
+
+                    @Override
+                    public Package getPackage() {
+                        try {
+                            return codeModel.getPackage(klass.getPackage().getName());
+                        } catch (CodeModelException ex) {
+                            throw new RuntimeException(ex);
+                        }
+                    }
+                });
+            }
         }
 
         @Override
         public CodeModel getCodeModel() {
             return codeModel;
-        }
-
-        @Override
-        public boolean isObjectDefinition() {
-            return true;
-        }
-
-        @Override
-        public boolean isMethodDefinition() {
-            return false;
-        }
-
-        @Override
-        public ObjectDefinition<?> asObjectDefinition() {
-            return this;
-        }
-
-        @Override
-        public MethodDefinition asMethodDefinition() {
-            throw new UnsupportedOperationException();
         }
 
         @Override
@@ -194,7 +219,7 @@ public final class CodeModel {
         public class TypeDetails extends RawObjectTypeDetails {
 
             @Override
-            public ObjectDefinition<?> definition() {
+            public ObjectDefinition definition() {
                 return ReflectionObjectDefinition.this;
             }
 

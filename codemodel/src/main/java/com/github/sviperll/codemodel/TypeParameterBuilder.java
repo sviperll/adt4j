@@ -41,12 +41,12 @@ import java.util.List;
  */
 public class TypeParameterBuilder {
     private final BuiltTypeParameter declaration = new BuiltTypeParameter();
-    private final GenericDefinition<?> declaredIn;
+    private final GenericsConfig declaredIn;
     private final String name;
     private List<Type> bounds = new ArrayList<>();
     private boolean copyBoundsOnWrite = false;
 
-    TypeParameterBuilder(GenericDefinition<?> declaredIn, String name) {
+    TypeParameterBuilder(GenericsConfig declaredIn, String name) {
         this.declaredIn = declaredIn;
         this.name = name;
     }
@@ -105,7 +105,7 @@ public class TypeParameterBuilder {
         }
 
         @Override
-        public GenericDefinition<?> declaredIn() {
+        public GenericsConfig declaredIn() {
             return declaredIn;
         }
     }

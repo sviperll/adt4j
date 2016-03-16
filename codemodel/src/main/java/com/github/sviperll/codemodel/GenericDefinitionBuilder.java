@@ -38,6 +38,6 @@ import javax.annotation.Nonnull;
  * @author Victor Nazarov &lt;asviraspossible@gmail.com&gt;
  */
 @ParametersAreNonnullByDefault
-public interface GenericDefinitionBuilder<T extends Residence> {
-    GenericsConfigBuilder<T> generics();
+public interface GenericDefinitionBuilder {
+    GenericsConfigBuilder generics();
 }

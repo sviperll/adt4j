@@ -37,16 +37,15 @@ import javax.annotation.ParametersAreNonnullByDefault;
  * @author Victor Nazarov &lt;asviraspossible@gmail.com&gt;
  */
 @ParametersAreNonnullByDefault
-public final class NestedResidenceBuilder extends ResidenceBuilder<NestedResidence> {
+public final class NestedResidenceBuilder extends ResidenceBuilder {
 
     private final BuiltClassMembership residence = new BuiltClassMembership();
-    private final ObjectDefinition<?> parent;
+    private final ObjectDefinition parent;
     private final boolean isStatic;
     private MemberAccess accessLevel = MemberAccess.PACKAGE;
-    private boolean isFinal = false;
 
-    NestedResidenceBuilder(boolean isStatic, ObjectDefinition<?> parent) throws CodeModelException {
-        if (isStatic && parent.residence().isNested() && !parent.residence().asNested().isStatic())
+    NestedResidenceBuilder(boolean isStatic, ObjectDefinition parent) throws CodeModelException {
+        if (isStatic && parent.residence().isNested() && !parent.residence().getNesting().isStatic())
             throw new CodeModelException("Can't create static member in non-static class");
         this.isStatic = isStatic;
         this.parent = parent;
@@ -57,8 +56,8 @@ public final class NestedResidenceBuilder extends ResidenceBuilder<NestedResiden
     }
 
     @Override
-    public NestedResidence residence() {
-        return residence;
+    public Residence residence() {
+        return Residence.nested(residence);
     }
 
     @Override
@@ -66,7 +65,7 @@ public final class NestedResidenceBuilder extends ResidenceBuilder<NestedResiden
         return parent.getCodeModel();
     }
 
-    private class BuiltClassMembership extends NestedResidence {
+    private class BuiltClassMembership implements Nesting {
         @Override
         public MemberAccess accessLevel() {
             return accessLevel;
@@ -78,14 +77,8 @@ public final class NestedResidenceBuilder extends ResidenceBuilder<NestedResiden
         }
 
         @Override
-        public ObjectDefinition<?> parent() {
+        public ObjectDefinition parent() {
             return parent;
         }
-
-        @Override
-        public Package getPackage() {
-            return parent.residence().getPackage();
-        }
-
     }
 }

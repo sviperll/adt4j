@@ -46,12 +46,12 @@ public class ConstructorBuilder
         implements MethodLikeBuilder {
     private final BuiltDefinition definition = new BuiltDefinition();
     private final BuiltType type = new BuiltType();
-    private final GenericsConfigBuilder<NestedResidence> generics = new GenericsConfigBuilder<>(definition);
+    private final GenericsConfigBuilder generics = GenericsConfigBuilder.methodDefinition(definition);
     private final NestedResidenceBuilder residence;
     private final CallableBuilder callable = new CallableBuilder();
 
     ConstructorBuilder(NestedResidenceBuilder residence) throws CodeModelException {
-        if (residence.residence().isStatic())
+        if (residence.residence().getNesting().isStatic())
             throw new CodeModelException("Constructor can't be static");
         this.residence = residence;
     }
@@ -72,7 +72,7 @@ public class ConstructorBuilder
     }
 
     @Override
-    public GenericsConfigBuilder<NestedResidence> generics() {
+    public GenericsConfigBuilder generics() {
         return generics;
     }
 
@@ -109,7 +109,7 @@ public class ConstructorBuilder
         }
 
         @Override
-        public NestedResidence residence() {
+        public Residence residence() {
             return residence.residence();
         }
 
