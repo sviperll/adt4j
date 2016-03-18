@@ -41,30 +41,29 @@ import javax.annotation.ParametersAreNonnullByDefault;
 /**
  *
  * @author Victor Nazarov &lt;asviraspossible@gmail.com&gt;
- * @param <T>
  * @param <B>
  */
 @ParametersAreNonnullByDefault
-public final class ObjectDefinitionBuilder
-        implements Model, SettledBuilder, GenericDefinitionBuilder {
+public final class ObjectDefinitionBuilder<B extends ResidenceBuilder>
+        implements Model, SettledBuilder<B>, GenericDefinitionBuilder {
     private final BuiltDefinition definition = new BuiltDefinition();
     private final GenericsConfigBuilder generics = GenericsConfigBuilder.objectDefinition(definition);
     private final BuiltTypeDetails typeDetails = new BuiltTypeDetails();
     private final Type type = Type.createObjectType(typeDetails);
-    private final ResidenceBuilder residence;
+    private final B residence;
     private final String name;
     private final ObjectKind kind;
     private final List<MethodDefinition> constructors = new ArrayList<>();
     private final List<MethodDefinition> methods = new ArrayList<>();
     private final Map<String, FieldDeclaration> fields = new TreeMap<>();
-    private final List<InitElement> staticInitOrdering = new ArrayList<>();
-    private final List<InitElement> instanceInitOrdering = new ArrayList<>();
+    private final List<ObjectInitializationElement> staticInitOrdering = new ArrayList<>();
+    private final List<ObjectInitializationElement> instanceInitOrdering = new ArrayList<>();
     private final Map<String, ObjectDefinition> innerClasses = new TreeMap<>();
+    private final List<Type> interfaces = new ArrayList<>();
     private boolean isFinal = false;
     private ObjectTypeDetails extendsClass = null;
-    private List<ObjectTypeDetails> interfaces = new ArrayList<>();
 
-    ObjectDefinitionBuilder(ObjectKind kind, ResidenceBuilder residence, String name) throws CodeModelException {
+    ObjectDefinitionBuilder(ObjectKind kind, B residence, String name) throws CodeModelException {
         if ((kind == ObjectKind.INTERFACE || kind == ObjectKind.ENUM || kind == ObjectKind.ANNOTATION)
                 && residence.residence().isNested()
                 && !residence.residence().getNesting().isStatic()) {
@@ -84,7 +83,7 @@ public final class ObjectDefinitionBuilder
     }
 
     @Override
-    public ResidenceBuilder residence() {
+    public B residence() {
         return residence;
     }
 
@@ -110,7 +109,7 @@ public final class ObjectDefinitionBuilder
             throw new CodeModelException("Only interfaces can be implemented");
         if (type.containsWildcards())
              throw new CodeModelException("Wildcards are not allowed in implemenents clause");
-        interfaces.add(type);
+        interfaces.add(type.asType());
     }
 
     public FieldBuilder staticField(Type type, String name) throws CodeModelException {
@@ -120,7 +119,7 @@ public final class ObjectDefinitionBuilder
         NestedResidenceBuilder membership = new NestedResidenceBuilder(true, definition);
         FieldBuilder result = new FieldBuilder(membership, type, name);
         fields.put(name, result.declaration());
-        staticInitOrdering.add(new InitElement(result.declaration()));
+        staticInitOrdering.add(new ObjectInitializationElement(result.declaration()));
         return result;
     }
 
@@ -131,24 +130,24 @@ public final class ObjectDefinitionBuilder
         NestedResidenceBuilder membership = new NestedResidenceBuilder(false, definition);
         FieldBuilder result = new FieldBuilder(membership, type, name);
         fields.put(name, result.declaration());
-        instanceInitOrdering.add(new InitElement(result.declaration()));
+        instanceInitOrdering.add(new ObjectInitializationElement(result.declaration()));
         return result;
     }
 
-    public ObjectDefinitionBuilder staticNestedClass(ObjectKind kind, String name) throws CodeModelException {
+    public ObjectDefinitionBuilder<NestedResidenceBuilder> staticNestedClass(ObjectKind kind, String name) throws CodeModelException {
         if (innerClasses.containsKey(name))
             throw new CodeModelException(definition.qualifiedName() + "." + name + " already defined");
         NestedResidenceBuilder classResidence = new NestedResidenceBuilder(true, definition);
-        ObjectDefinitionBuilder result = new ObjectDefinitionBuilder(kind, classResidence, name);
+        ObjectDefinitionBuilder<NestedResidenceBuilder> result = new ObjectDefinitionBuilder<>(kind, classResidence, name);
         innerClasses.put(name, result.definition());
         return result;
     }
 
-    public ObjectDefinitionBuilder innerClass(ObjectKind kind, String name) throws CodeModelException {
+    public ObjectDefinitionBuilder<NestedResidenceBuilder> innerClass(ObjectKind kind, String name) throws CodeModelException {
         if (innerClasses.containsKey(name))
             throw new CodeModelException(definition.qualifiedName() + "." + name + " already defined");
         NestedResidenceBuilder classResidence = new NestedResidenceBuilder(false, definition);
-        ObjectDefinitionBuilder result = new ObjectDefinitionBuilder(kind, classResidence, name);
+        ObjectDefinitionBuilder<NestedResidenceBuilder> result = new ObjectDefinitionBuilder<>(kind, classResidence, name);
         innerClasses.put(name, result.definition());
         return result;
     }
@@ -179,17 +178,6 @@ public final class ObjectDefinitionBuilder
         return residence.getCodeModel();
     }
 
-    private static class InitElement {
-        private final InitElement.Kind kind;
-        private final FieldDeclaration field;
-        InitElement(FieldDeclaration field) {
-            kind = InitElement.Kind.FIELD;
-            this.field = field;
-        }
-        private enum Kind {
-            FIELD, INITIALIZER
-        }
-    }
 
     private class BuiltDefinition extends ObjectDefinition {
 
@@ -234,12 +222,12 @@ public final class ObjectDefinitionBuilder
         }
 
         @Override
-        public ObjectTypeDetails extendsClass() {
-            return extendsClass != null ? extendsClass : getCodeModel().objectType().getObjectDetails();
+        public Type extendsClass() {
+            return extendsClass != null ? extendsClass.asType() : getCodeModel().objectType();
         }
 
         @Override
-        public List<ObjectTypeDetails> implementsInterfaces() {
+        public List<Type> implementsInterfaces() {
             return Collections.unmodifiableList(interfaces);
         }
 
@@ -251,6 +239,21 @@ public final class ObjectDefinitionBuilder
         @Override
         public GenericsConfig generics() {
             return generics.generics();
+        }
+
+        @Override
+        List<ObjectInitializationElement> staticInitializationElements() {
+            return staticInitOrdering;
+        }
+
+        @Override
+        List<ObjectInitializationElement> instanceInitializationElements() {
+            return instanceInitOrdering;
+        }
+
+        @Override
+        public Collection<MethodDefinition> constructors() {
+            return constructors;
         }
     }
 

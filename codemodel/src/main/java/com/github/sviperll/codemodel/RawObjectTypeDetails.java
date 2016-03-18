@@ -58,7 +58,7 @@ abstract class RawObjectTypeDetails extends ObjectTypeDetails {
         }
         if (typeArguments.size() != definition().generics().typeParameters().size())
             throw new CodeModelException("Type-argument list and type-parameter list differ in size");
-        return new NarrowedObjectType(this, typeArguments).asType();
+        return new NarrowedObjectTypeDetails(this, typeArguments).asType();
     }
 
     @Override

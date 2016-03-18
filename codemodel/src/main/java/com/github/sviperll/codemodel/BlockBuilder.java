@@ -30,6 +30,7 @@
 
 package com.github.sviperll.codemodel;
 
+import com.github.sviperll.codemodel.render.Renderable;
 import com.github.sviperll.codemodel.render.RendererContext;
 import com.github.sviperll.codemodel.render.Renderer;
 import java.util.ArrayList;
@@ -42,7 +43,7 @@ import javax.annotation.ParametersAreNonnullByDefault;
  * @author Victor Nazarov &lt;asviraspossible@gmail.com&gt;
  */
 @ParametersAreNonnullByDefault
-public class BlockBuilder {
+public class BlockBuilder implements Renderable {
     static BlockBuilder createWithBracesForced(VariableScope scope) {
         return new BlockBuilder(scope, true);
     }
@@ -50,7 +51,7 @@ public class BlockBuilder {
         return new BlockBuilder(scope, false);
     }
 
-    private List<Statement> statements = new ArrayList<>();
+    private final List<Statement> statements = new ArrayList<>();
     private final VariableScope scope;
     private final boolean braces;
     private IfBuilder ifStatement = null;
@@ -60,12 +61,18 @@ public class BlockBuilder {
         this.braces = braces;
     }
 
-    Renderer createBlockRenderer(final RendererContext context) {
+    @Override
+    public Renderer createRenderer(final RendererContext context) {
         return createBlockRenderer(context, false);
     }
 
-    Renderer createBlockRendererWithBraces(final RendererContext context) {
-        return createBlockRenderer(context, true);
+    Renderable withBraces() {
+        return new Renderable() {
+            @Override
+            public Renderer createRenderer(RendererContext context) {
+                return createBlockRenderer(context, braces);
+            }
+        };
     }
 
     private Renderer createBlockRenderer(final RendererContext context, final boolean forceBraces) {
@@ -77,146 +84,79 @@ public class BlockBuilder {
                 if (!useBraces) {
                     statementContext = context;
                 } else {
-                    context.append("{");
-                    context.nextLine();
+                    context.appendText("{");
+                    context.appendLineBreak();
                     statementContext = context.indented();
                 }
                 Iterator<Statement> iterator = statements.iterator();
                 if (!iterator.hasNext()) {
                     if (!useBraces)
-                        statementContext.append(";");
+                        statementContext.appendText(";");
                 } else {
                     Statement statement = iterator.next();
                     Renderer statementRenderer = statement.createStatementRenderer(statementContext);
                     statementRenderer.render();
                     while (iterator.hasNext()) {
-                        statementContext.nextLine();
+                        statementContext.appendLineBreak();
                         statement = iterator.next();
                         statementRenderer = statement.createStatementRenderer(statementContext);
                         statementRenderer.render();
                     }
                 }
                 if (useBraces) {
-                    context.nextLine();
-                    context.append("}");
+                    context.appendLineBreak();
+                    context.appendText("}");
                 }
             }
         };
     }
 
-    public void variable(final Type type, String nameOrTemplate) throws CodeModelException {
+    public VariableDeclaration variable(final Type type, String nameOrTemplate) throws CodeModelException {
         final String name = scope.makeIntroducable(nameOrTemplate);
         scope.introduce(name);
+        Statement.StatementVariableDeclaration statement = new Statement.StatementVariableDeclaration(false, type, name);
+        statements.add(statement);
+        return statement.declaration();
+    }
+
+    public VariableDeclaration variable(final Type type, String nameOrTemplate, final Expression initializer) throws CodeModelException {
+        final String name = scope.makeIntroducable(nameOrTemplate);
+        scope.introduce(name);
+        Statement.StatementVariableDeclaration statement = new Statement.StatementVariableDeclaration(false, type, name, initializer);
+        statements.add(statement);
+        return statement.declaration();
+    }
+
+    public VariableDeclaration finalVariable(final Type type, String nameOrTemplate) throws CodeModelException {
+        final String name = scope.makeIntroducable(nameOrTemplate);
+        scope.introduce(name);
+        Statement.StatementVariableDeclaration statement = new Statement.StatementVariableDeclaration(true, type, name);
+        statements.add(statement);
+        return statement.declaration();
+    }
+
+    public VariableDeclaration finalVariable(final Type type, String nameOrTemplate, final Expression initializer) throws CodeModelException {
+        final String name = scope.makeIntroducable(nameOrTemplate);
+        scope.introduce(name);
+        Statement.StatementVariableDeclaration statement = new Statement.StatementVariableDeclaration(true, type, name, initializer);
+        statements.add(statement);
+        return statement.declaration();
+    }
+
+    public void expression(final Expression expression) throws CodeModelException {
         statements.add(new Statement.Simple() {
             @Override
             Renderer createSimpleStatementRenderer(final RendererContext context) {
-                return new Renderer() {
-                    @Override
-                    public void render() {
-                        context.appendType(type);
-                        context.append(" ");
-                        context.append(name);
-                    }
-                };
+                return expression.createRenderer(context);
             }
         });
     }
-
-    public void variable(final Type type, String nameOrTemplate, final Expression initializer) throws CodeModelException {
-        final String name = scope.makeIntroducable(nameOrTemplate);
-        scope.introduce(name);
-        statements.add(new Statement.Simple() {
-            @Override
-            Renderer createSimpleStatementRenderer(final RendererContext context) {
-                return new Renderer() {
-                    @Override
-                    public void render() {
-                        context.appendType(type); // type?
-                        context.append(" ");
-                        context.append(name);
-                        context.append(" = ");
-                        Renderer initializerRenderer = initializer.createTopLevelExpressionRenderer(context);
-                        initializerRenderer.render();
-                    }
-                };
-            }
-        });
-    }
-
-    public void finalVariable(final Type type, String nameOrTemplate) throws CodeModelException {
-        final String name = scope.makeIntroducable(nameOrTemplate);
-        scope.introduce(name);
-        statements.add(new Statement.Simple() {
-            @Override
-            Renderer createSimpleStatementRenderer(final RendererContext context) {
-                return new Renderer() {
-                    @Override
-                    public void render() {
-                        context.append("final ");
-                        context.appendType(type); // type?
-                        context.append(" ");
-                        context.append(name);
-                    }
-                };
-            }
-        });
-    }
-
-    public void finalVariable(final Type type, String nameOrTemplate, final Expression initializer) throws CodeModelException {
-        final String name = scope.makeIntroducable(nameOrTemplate);
-        scope.introduce(name);
-        statements.add(new Statement.Simple() {
-            @Override
-            Renderer createSimpleStatementRenderer(final RendererContext context) {
-                return new Renderer() {
-                    @Override
-                    public void render() {
-                        context.append("final ");
-                        context.appendType(type); // type?
-                        context.append(" ");
-                        context.append(name);
-                        context.append(" = ");
-                        Renderer initializerRenderer = initializer.createTopLevelExpressionRenderer(context);
-                        initializerRenderer.render();
-                    }
-                };
-            }
-        });
-    }
-
     public void assignment(final String name, final Expression expression) throws CodeModelException {
-        statements.add(new Statement.Simple() {
-            @Override
-            Renderer createSimpleStatementRenderer(final RendererContext context) {
-                return new Renderer() {
-                    @Override
-                    public void render() {
-                        context.append(name);
-                        context.append(" = ");
-                        Renderer expressionRenderer = expression.createTopLevelExpressionRenderer(context);
-                        expressionRenderer.render();
-                    }
-                };
-            }
-        });
+        expression(Expression.variable(name).assignment(expression));
     }
 
     public void assignment(final Expression lvalue, final Expression expression) throws CodeModelException {
-        statements.add(new Statement.Simple() {
-            @Override
-            Renderer createSimpleStatementRenderer(final RendererContext context) {
-                return new Renderer() {
-                    @Override
-                    public void render() {
-                        Renderer lvalueRenderer = lvalue.createTopLevelExpressionRenderer(context);
-                        lvalueRenderer.render();
-                        context.append(" = ");
-                        Renderer expressionRenderer = expression.createTopLevelExpressionRenderer(context);
-                        expressionRenderer.render();
-                    }
-                };
-            }
-        });
+        expression(lvalue.assignment(expression));
     }
 
     public IfBuilder ifStatement(final Expression condition) throws CodeModelException {
@@ -248,5 +188,21 @@ public class BlockBuilder {
 
     boolean inBraces() {
         return braces || statements.size() > 1;
+    }
+
+    void returnStatement(final Expression result) {
+        statements.add(new Statement.Simple() {
+            @Override
+            Renderer createSimpleStatementRenderer(final RendererContext context) {
+                return new Renderer() {
+                    @Override
+                    public void render() {
+                        context.appendText("return");
+                        context.appendWhiteSpace();
+                        context.appendRenderable(result);
+                    }
+                };
+            }
+        });
     }
 }

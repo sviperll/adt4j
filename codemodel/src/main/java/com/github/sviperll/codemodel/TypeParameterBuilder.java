@@ -43,12 +43,13 @@ public class TypeParameterBuilder {
     private final BuiltTypeParameter declaration = new BuiltTypeParameter();
     private final GenericsConfig declaredIn;
     private final String name;
-    private List<Type> bounds = new ArrayList<>();
-    private boolean copyBoundsOnWrite = false;
+    private final List<Type> bounds = new ArrayList<>();
+    private Type effectiveBound;
 
     TypeParameterBuilder(GenericsConfig declaredIn, String name) {
         this.declaredIn = declaredIn;
         this.name = name;
+        effectiveBound = declaredIn.getCodeModel().objectType();
     }
 
     TypeParameter declaration() {
@@ -71,10 +72,10 @@ public class TypeParameterBuilder {
                 || !bounds.isEmpty() && bound.isTypeVariable())
             throw new CodeModelException("Mixing type-variables with other bounds is not allowed");
         if (!bound.isIntersection()) {
-            if (copyBoundsOnWrite) {
-                bounds = new ArrayList<>(bounds);
-                copyBoundsOnWrite = false;
-            }
+            if (bounds.isEmpty())
+                effectiveBound = bound;
+            else if (bounds.size() == 1)
+                effectiveBound = Type.intersection(bounds);
             bounds.add(bound);
         } else {
             addAllBounds(bound.asListOfIntersectedTypes());
@@ -89,19 +90,7 @@ public class TypeParameterBuilder {
 
         @Override
         public Type bound() {
-            if (bounds.isEmpty()) {
-                return declaredIn.getCodeModel().objectType();
-            } else if (bounds.size() == 1) {
-                return bounds.get(0);
-            } else {
-                bounds = Collections.unmodifiableList(bounds);
-                copyBoundsOnWrite = true;
-                try {
-                    return Type.intersection(bounds);
-                } catch (CodeModelException ex) {
-                    throw new IllegalStateException(ex);
-                }
-            }
+            return effectiveBound;
         }
 
         @Override

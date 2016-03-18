@@ -54,61 +54,37 @@ class SimpleRendererContext implements RendererContext {
         this.identationLevel = identationLevel;
     }
     @Override
-    public void append(String s) {
+    public void appendText(String s) {
         implementation.writeText(identationLevel, s);
     }
     @Override
-    public void nextLine() {
-        implementation.nextLine();
-    }
-
-    @Override
-    public void appendType(Type type) {
-        if (type.isArray()) {
-            appendType(type.getArrayDetails().elementType());
-            append("[]");
-        } else if (type.isIntersection()) {
-            Iterator<Type> iterator = type.getIntersectionDetails().intersectedTypes().iterator();
-            if (iterator.hasNext()) {
-                appendType(iterator.next());
-                while (iterator.hasNext()) {
-                    append(" & ");
-                    appendType(iterator.next());
-                }
-            }
-        } else if (type.isVoid()) {
-            append("void");
-        } else if (type.isPrimitive()) {
-            append(type.getPrimitiveDetails().name().toLowerCase(Locale.US));
-        } else if (type.isTypeVariable()) {
-            append(type.getVariableDetails().name());
-        } else if (type.isWildcard()) {
-            WildcardTypeDetails wildcard = type.getWildcardDetails();
-            append("?");
-            append(wildcard.boundKind() == WildcardTypeDetails.BoundKind.SUPER ? " super " : " extends ");
-            appendType(wildcard.bound());
-        } else if (type.isObjectType()) {
-            ObjectTypeDetails objectType = type.getObjectDetails();
-            if (objectType.isRaw())
-                implementation.writeQualifiedTypeName(identationLevel, objectType.definition().qualifiedName());
-            else {
-                appendType(objectType.erasure());
-                Iterator<Type> iterator = objectType.typeArguments().iterator();
-                if (iterator.hasNext()) {
-                    append("<");
-                    appendType(iterator.next());
-                    while (iterator.hasNext()) {
-                        append(", ");
-                        appendType(iterator.next());
-                    }
-                    append(">");
-                }
-            }
-        }
+    public void appendLineBreak() {
+        implementation.writeLineBreak();
     }
 
     @Override
     public RendererContext indented() {
         return new SimpleRendererContext(implementation, identationLevel + 1);
+    }
+
+    @Override
+    public void appendWhiteSpace() {
+        implementation.writeWhiteSpace();
+    }
+
+    @Override
+    public void appendRenderable(Renderable renderable) {
+        Renderer renderer = renderable.createRenderer(this);
+        renderer.render();
+    }
+
+    @Override
+    public void appendQualifiedClassName(String name) {
+        implementation.writeQualifiedTypeName(identationLevel, name);
+    }
+
+    @Override
+    public void appendEmptyLine() {
+        implementation.appendEmptyLine();
     }
 }

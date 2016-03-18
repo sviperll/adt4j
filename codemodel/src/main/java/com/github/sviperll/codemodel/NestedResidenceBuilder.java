@@ -37,7 +37,7 @@ import javax.annotation.ParametersAreNonnullByDefault;
  * @author Victor Nazarov &lt;asviraspossible@gmail.com&gt;
  */
 @ParametersAreNonnullByDefault
-public final class NestedResidenceBuilder extends ResidenceBuilder {
+public final class NestedResidenceBuilder implements ResidenceBuilder {
 
     private final BuiltClassMembership residence = new BuiltClassMembership();
     private final ObjectDefinition parent;

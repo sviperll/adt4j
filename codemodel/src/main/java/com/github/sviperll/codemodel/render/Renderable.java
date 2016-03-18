@@ -28,25 +28,15 @@
  *  EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.github.sviperll.codemodel.expression;
+package com.github.sviperll.codemodel.render;
 
-import com.github.sviperll.codemodel.render.Renderer;
-import com.github.sviperll.codemodel.render.RendererContext;
 import javax.annotation.ParametersAreNonnullByDefault;
-import javax.annotation.Nonnull;
 
 /**
  *
  * @author Victor Nazarov &lt;asviraspossible@gmail.com&gt;
  */
 @ParametersAreNonnullByDefault
-public abstract class PrecedenceRendering {
-    PrecedenceRendering() {
-    }
-
-    abstract Renderer createExpressionRenderer(ExpressionRendererContext context);
-
-    public Renderer createTopLevelExpressionRenderer(RendererContext context) {
-        return createExpressionRenderer(new ExpressionRendererContext(context, Integer.MAX_VALUE));
-    }
+public interface Renderable {
+    Renderer createRenderer(RendererContext context);
 }

@@ -30,11 +30,16 @@
 
 package com.github.sviperll.codemodel;
 
+import com.github.sviperll.codemodel.render.Renderable;
+import com.github.sviperll.codemodel.render.Renderer;
+import com.github.sviperll.codemodel.render.RendererContext;
+import java.util.Locale;
+
 /**
  *
  * @author Victor Nazarov &lt;asviraspossible@gmail.com&gt;
  */
-public abstract class Residence {
+public abstract class Residence implements Renderable {
 
     static Residence packageLevel(final PackageLevelResidenceDetails details) {
         return new PackageLevelResidence(details);
@@ -58,6 +63,28 @@ public abstract class Residence {
         else {
             return getNesting().parent().residence().getPackage();
         }
+    }
+
+    @Override
+    public Renderer createRenderer(final RendererContext context) {
+        return new Renderer() {
+            @Override
+            public void render() {
+                if (isPackageLevel()) {
+                    if (getPackageLevelDetails().isPublic())
+                        context.appendText("public");
+                } else {
+                    Nesting nesting = getNesting();
+                    MemberAccess accessLevel = nesting.accessLevel();
+                    if (accessLevel != MemberAccess.PACKAGE)
+                        context.appendText(accessLevel.name().toLowerCase(Locale.US));
+                    context.appendWhiteSpace();
+                    if (nesting.isStatic())
+                        context.appendText("static");
+                }
+            }
+
+        };
     }
 
     private static class PackageLevelResidence extends Residence {

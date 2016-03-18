@@ -28,8 +28,10 @@
  *  EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.github.sviperll.codemodel.render;
+package com.github.sviperll.codemodel.expression;
 
+import com.github.sviperll.codemodel.render.Renderer;
+import com.github.sviperll.codemodel.render.RendererContext;
 import javax.annotation.ParametersAreNonnullByDefault;
 
 /**
@@ -37,24 +39,31 @@ import javax.annotation.ParametersAreNonnullByDefault;
  * @author Victor Nazarov &lt;asviraspossible@gmail.com&gt;
  */
 @ParametersAreNonnullByDefault
-public class RendererContexts {
-    public static RendererContext createInstance(final StringBuilder stringBuilder) {
-        return createInstance(new ClassAwareWriter() {
-            @Override
-            public void writeQualifiedClassName(String name) {
-                stringBuilder.append(name);
-            }
-
-            @Override
-            public void writeText(String text) {
-                stringBuilder.append(text);
-            }
-        });
-    }
-    public static RendererContext createInstance(ClassAwareWriter writer) {
-        return new SimpleRendererContext(new LineWriter("    ", writer));
+public class PrecedenceRenderable {
+    private final PrecedenceAwareRenderable renderable;
+    private final int precedence;
+    PrecedenceRenderable(PrecedenceAwareRenderable renderable, int precedence) {
+        this.renderable = renderable;
+        this.precedence = precedence;
     }
 
-    private RendererContexts() {
+    Renderer createKnownPrecedenceRenderer(final PrecedenceAwareRendererContext context) {
+        final Renderer effectiveRenderer = renderable.createPrecedenceAwareRenderer(context.withPrecedence(precedence));
+        return new Renderer() {
+            @Override
+            public void render() {
+                if (context.precedence() >= precedence) {
+                    effectiveRenderer.render();
+                } else {
+                    context.appendText("(");
+                    effectiveRenderer.render();
+                    context.appendText(")");
+                }
+            }
+        };
+    }
+
+    public Renderer createFreeStandingRenderer(RendererContext context) {
+        return createKnownPrecedenceRenderer(new PrecedenceAwareRendererContext(context, Integer.MAX_VALUE));
     }
 }

@@ -32,8 +32,6 @@ package com.github.sviperll.codemodel;
 
 import com.github.sviperll.codemodel.render.RendererContext;
 import com.github.sviperll.codemodel.render.Renderer;
-import javax.annotation.ParametersAreNonnullByDefault;
-import javax.annotation.Nonnull;
 
 /**
  *
@@ -55,9 +53,69 @@ abstract class Statement {
                 public void render() {
                     Renderer simple = createSimpleStatementRenderer(context);
                     simple.render();
-                    context.append(";");
+                    context.appendText(";");
                 }
             };
+        }
+    }
+
+    static class StatementVariableDeclaration extends Simple {
+        private final Declaration declaration = new Declaration();
+        private final boolean isFinal;
+        private final Type type;
+        private final String name;
+        private final Expression initializer;
+
+        StatementVariableDeclaration(boolean isFinal, Type type, String name, Expression initializer) {
+            this.isFinal = isFinal;
+            this.type = type;
+            this.name = name;
+            this.initializer = initializer;
+        }
+
+        StatementVariableDeclaration(boolean isFinal, Type type, String name) {
+            this(isFinal, type, name, null);
+        }
+
+        @Override
+        Renderer createSimpleStatementRenderer(RendererContext context) {
+            return declaration.createRenderer(context);
+        }
+
+        VariableDeclaration declaration() {
+            return declaration;
+        }
+
+        private class Declaration extends VariableDeclaration {
+
+            @Override
+            public boolean isFinal() {
+                return isFinal;
+            }
+
+            @Override
+            public Type type() {
+                return type;
+            }
+
+            @Override
+            public String name() {
+                return name;
+            }
+
+            @Override
+            public boolean isInitialized() {
+                return initializer != null;
+            }
+
+            @Override
+            Expression getInitialValue() {
+                if (initializer == null)
+                    throw new IllegalStateException("Variable is not initialized.");
+                else
+                    return initializer;
+            }
+
         }
     }
 }

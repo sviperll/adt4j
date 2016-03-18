@@ -30,70 +30,33 @@
 
 package com.github.sviperll.codemodel;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-import javax.annotation.ParametersAreNonnullByDefault;
+import com.github.sviperll.codemodel.render.Renderable;
+import com.github.sviperll.codemodel.render.Renderer;
+import com.github.sviperll.codemodel.render.RendererContext;
 
 /**
  *
  * @author Victor Nazarov &lt;asviraspossible@gmail.com&gt;
  */
-@ParametersAreNonnullByDefault
-final class NarrowedObjectType extends ObjectTypeDetails {
+class ObjectInitializationElement implements Renderable {
 
-    private final Type type = Type.createObjectType(this);
-    private final RawObjectTypeDetails erasure;
-    private final List<Type> arguments;
-    NarrowedObjectType(RawObjectTypeDetails erasure, List<Type> arguments) throws CodeModelException {
-        if (arguments.isEmpty())
-            throw new CodeModelException("Type arguments shouldn't be empty");
-        this.erasure = erasure;
-        this.arguments = Collections.unmodifiableList(new ArrayList<>(arguments));
+    private final ObjectInitializationElement.Kind kind;
+    private final FieldDeclaration field;
+
+    ObjectInitializationElement(FieldDeclaration field) {
+        kind = ObjectInitializationElement.Kind.FIELD;
+        this.field = field;
+    }
+
+    private enum Kind {
+        FIELD, INITIALIZER
     }
 
     @Override
-    public ObjectDefinition definition() {
-        return erasure.definition();
-    }
-
-    @Override
-    public List<Type> typeArguments() {
-        return arguments;
-    }
-
-    @Override
-    public Type narrow(List<Type> typeArguments) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public boolean isRaw() {
-        return false;
-    }
-
-    @Override
-    public boolean isNarrowed() {
-        return true;
-    }
-
-    @Override
-    public boolean containsWildcards() {
-        for (Type type: arguments) {
-            if (type.containsWildcards())
-                return true;
-        }
-        return false;
-    }
-
-    @Override
-    public Type asType() {
-        return type;
-    }
-
-    @Override
-    public Type erasure() {
-        return erasure.asType();
+    public Renderer createRenderer(RendererContext context) {
+        if (kind == Kind.FIELD)
+            return field.createRenderer(context);
+        else
+            throw new UnsupportedOperationException("Not implemented yet");
     }
 }

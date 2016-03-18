@@ -35,6 +35,20 @@ import org.junit.Test;
 import static org.junit.Assert.*;
 import static com.github.sviperll.codemodel.Expression.literal;
 import static com.github.sviperll.codemodel.Expression.literal;
+import static com.github.sviperll.codemodel.Expression.literal;
+import static com.github.sviperll.codemodel.Expression.literal;
+import static com.github.sviperll.codemodel.Expression.literal;
+import static com.github.sviperll.codemodel.Expression.literal;
+import static com.github.sviperll.codemodel.Expression.literal;
+import static com.github.sviperll.codemodel.Expression.literal;
+import static com.github.sviperll.codemodel.Expression.literal;
+import static com.github.sviperll.codemodel.Expression.literal;
+import static com.github.sviperll.codemodel.Expression.literal;
+import static com.github.sviperll.codemodel.Expression.literal;
+import static com.github.sviperll.codemodel.Expression.literal;
+import static com.github.sviperll.codemodel.Expression.literal;
+import static com.github.sviperll.codemodel.Expression.literal;
+import static com.github.sviperll.codemodel.Expression.literal;
 
 /**
  *
@@ -64,8 +78,7 @@ public class ExpressionTest {
 
     private String renderExpression(Expression expression) {
         StringBuilder builder = new StringBuilder();
-        Renderer renderer = expression.createTopLevelExpressionRenderer(RendererContexts.createInstance(builder));
-        renderer.render();
+        RendererContexts.createInstance(builder).appendRenderable(expression);
         return builder.toString();
     }
 }

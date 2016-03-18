@@ -30,31 +30,14 @@
 
 package com.github.sviperll.codemodel.render;
 
-import javax.annotation.ParametersAreNonnullByDefault;
-
 /**
  *
  * @author Victor Nazarov &lt;asviraspossible@gmail.com&gt;
  */
-@ParametersAreNonnullByDefault
-public class RendererContexts {
-    public static RendererContext createInstance(final StringBuilder stringBuilder) {
-        return createInstance(new ClassAwareWriter() {
-            @Override
-            public void writeQualifiedClassName(String name) {
-                stringBuilder.append(name);
-            }
+public interface ClassAwareWriter {
 
-            @Override
-            public void writeText(String text) {
-                stringBuilder.append(text);
-            }
-        });
-    }
-    public static RendererContext createInstance(ClassAwareWriter writer) {
-        return new SimpleRendererContext(new LineWriter("    ", writer));
-    }
+    void writeQualifiedClassName(String name);
 
-    private RendererContexts() {
-    }
+    void writeText(String text);
+
 }

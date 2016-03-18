@@ -50,57 +50,70 @@ public class Precedence {
         return new Precedence(precedence + 1);
     }
 
-    public PrecedenceRendering createExpression(final ExpressionRendering renderable) {
-        return new PrecedenceRendering() {
-            @Override
-            Renderer createExpressionRenderer(final ExpressionRendererContext context) {
-                final Renderer effectiveRenderer = renderable.createExpressionRenderer(context.withPrecedence(precedence));
-                return new Renderer() {
-                    @Override
-                    public void render() {
-                        if (context.precedence() >= precedence) {
-                            effectiveRenderer.render();
-                        } else {
-                            context.append("(");
-                            effectiveRenderer.render();
-                            context.append(")");
-                        }
-                    }
-                };
-            }
-        };
+    public PrecedenceRenderable createRenderable(final PrecedenceAwareRenderable renderable) {
+        return new PrecedenceRenderable(renderable, precedence);
     }
 
-    public PrecedenceRendering createLeftAssociativeExpression(final Expression left, final String op, final Expression right) {
-        return createExpression(new BinaryOperationExpressionRendering(left, op, right));
+    public PrecedenceRenderable createLeftAssociativeRenderable(final PrecedenceRenderable left, final String op, final PrecedenceRenderable right) {
+        return createRenderable(new LeftAssociativeExpressionRenderable(left, op, right));
     }
 
-    private static class BinaryOperationExpressionRendering implements ExpressionRendering {
+    public PrecedenceRenderable createRightAssociativeRenderable(PrecedenceRenderable left, String op, PrecedenceRenderable right) {
+        return createRenderable(new RightAssociativeExpressionRenderable(left, op, right));
+    }
 
-        private final Expression left;
+    private static class LeftAssociativeExpressionRenderable implements PrecedenceAwareRenderable {
+
+        private final PrecedenceRenderable left;
         private final String op;
-        private final Expression right;
+        private final PrecedenceRenderable right;
 
-        public BinaryOperationExpressionRendering(Expression left, String op, Expression right) {
+        public LeftAssociativeExpressionRenderable(PrecedenceRenderable left, String op, PrecedenceRenderable right) {
             this.left = left;
             this.op = op;
             this.right = right;
         }
 
         @Override
-        public Renderer createExpressionRenderer(final ExpressionRendererContext context) {
+        public Renderer createPrecedenceAwareRenderer(final PrecedenceAwareRendererContext context) {
             return new Renderer() {
                 @Override
                 public void render() {
-                    context.appendSamePrecedenceExpression(left);
-                    context.append(" ");
-                    context.append(op);
-                    context.append(" ");
-                    context.appendHigherPrecedenceExpression(right);
+                    context.appendSamePrecedenceRenderable(left);
+                    context.appendWhiteSpace();
+                    context.appendText(op);
+                    context.appendWhiteSpace();
+                    context.appendHigherPrecedenceRenderable(right);
                 }
             };
         }
     }
 
 
+    private static class RightAssociativeExpressionRenderable implements PrecedenceAwareRenderable {
+
+        private final PrecedenceRenderable left;
+        private final String op;
+        private final PrecedenceRenderable right;
+
+        public RightAssociativeExpressionRenderable(PrecedenceRenderable left, String op, PrecedenceRenderable right) {
+            this.left = left;
+            this.op = op;
+            this.right = right;
+        }
+
+        @Override
+        public Renderer createPrecedenceAwareRenderer(final PrecedenceAwareRendererContext context) {
+            return new Renderer() {
+                @Override
+                public void render() {
+                    context.appendHigherPrecedenceRenderable(left);
+                    context.appendWhiteSpace();
+                    context.appendText(op);
+                    context.appendWhiteSpace();
+                    context.appendSamePrecedenceRenderable(right);
+                }
+            };
+        }
+    }
 }

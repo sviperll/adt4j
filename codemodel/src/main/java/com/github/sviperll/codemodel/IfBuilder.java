@@ -66,28 +66,27 @@ public class IfBuilder {
                 return new Renderer() {
                     @Override
                     public void render() {
-                        context.append("if (");
-                        Renderer expressionRenderer = condition.createTopLevelExpressionRenderer(context);
-                        expressionRenderer.render();
-                        context.append(")");
-                        Renderer thenRenderer;
+                        context.appendText("if (");
+                        context.appendRenderable(condition);
+                        context.appendText(")");
                         if (thenBlock.inBraces()
                                 || (thenBlock.isSingleIf() && thenBlock.getSingleIfStatement().elseBlock().isEmpty() && !elseBlock.isEmpty())) {
-                            context.append(" ");
-                            thenRenderer = thenBlock.createBlockRendererWithBraces(context);
+                            context.appendText(" ");
+                            context.appendRenderable(thenBlock.withBraces());
                         } else {
-                            context.nextLine();
-                            thenRenderer = thenBlock.createBlockRenderer(context.indented());
+                            context.appendLineBreak();
+                            context.indented().appendRenderable(thenBlock);
                         }
-                        thenRenderer.render();
                         if (!elseBlock.isEmpty()) {
-                            context.append(" else");
+                            context.appendText(" else");
                             if (elseBlock.inBraces())
-                                context.append(" ");
+                                context.appendText(" ");
                             else
-                                context.nextLine();
-                            Renderer elseRenderer = elseBlock.createBlockRenderer(elseBlock.inBraces() || elseBlock.isSingleIf() ? context : context.indented());
-                            elseRenderer.render();
+                                context.appendLineBreak();
+                            if (elseBlock.inBraces() || elseBlock.isSingleIf())
+                                context.appendRenderable(elseBlock);
+                            else
+                                context.indented().appendRenderable(elseBlock);
                         }
                     }
                 };

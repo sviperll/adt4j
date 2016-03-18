@@ -28,9 +28,12 @@
  *  EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.github.sviperll.codemodel.expression;
+package com.github.sviperll.codemodel;
 
-import com.github.sviperll.codemodel.render.Renderer;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
 import javax.annotation.ParametersAreNonnullByDefault;
 
 /**
@@ -38,6 +41,59 @@ import javax.annotation.ParametersAreNonnullByDefault;
  * @author Victor Nazarov &lt;asviraspossible@gmail.com&gt;
  */
 @ParametersAreNonnullByDefault
-public interface ExpressionRendering {
-    Renderer createExpressionRenderer(ExpressionRendererContext context);
+final class NarrowedObjectTypeDetails extends ObjectTypeDetails {
+
+    private final Type type = Type.createObjectType(this);
+    private final RawObjectTypeDetails erasure;
+    private final List<Type> arguments;
+    NarrowedObjectTypeDetails(RawObjectTypeDetails erasure, List<Type> arguments) throws CodeModelException {
+        if (arguments.isEmpty())
+            throw new CodeModelException("Type arguments shouldn't be empty");
+        this.erasure = erasure;
+        this.arguments = Collections.unmodifiableList(new ArrayList<>(arguments));
+    }
+
+    @Override
+    public ObjectDefinition definition() {
+        return erasure.definition();
+    }
+
+    @Override
+    public List<Type> typeArguments() {
+        return arguments;
+    }
+
+    @Override
+    public Type narrow(List<Type> typeArguments) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public boolean isRaw() {
+        return false;
+    }
+
+    @Override
+    public boolean isNarrowed() {
+        return true;
+    }
+
+    @Override
+    public boolean containsWildcards() {
+        for (Type type: arguments) {
+            if (type.containsWildcards())
+                return true;
+        }
+        return false;
+    }
+
+    @Override
+    public Type asType() {
+        return type;
+    }
+
+    @Override
+    public Type erasure() {
+        return erasure.asType();
+    }
 }

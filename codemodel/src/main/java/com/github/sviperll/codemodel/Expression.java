@@ -32,20 +32,21 @@ package com.github.sviperll.codemodel;
 
 import com.github.sviperll.codemodel.expression.Precedence;
 import com.github.sviperll.codemodel.render.Renderer;
-import com.github.sviperll.codemodel.expression.ExpressionRendererContext;
-import com.github.sviperll.codemodel.expression.PrecedenceRendering;
+import com.github.sviperll.codemodel.expression.PrecedenceAwareRendererContext;
+import com.github.sviperll.codemodel.expression.PrecedenceRenderable;
 import com.github.sviperll.codemodel.render.RendererContext;
 import javax.annotation.ParametersAreNonnullByDefault;
-import com.github.sviperll.codemodel.expression.ExpressionRendering;
+import com.github.sviperll.codemodel.render.Renderable;
+import com.github.sviperll.codemodel.expression.PrecedenceAwareRenderable;
 
 /**
  *
  * @author Victor Nazarov &lt;asviraspossible@gmail.com&gt;
  */
 @ParametersAreNonnullByDefault
-public class Expression {
-    private static final Precedence LITERAL = Precedence.TOP;
-    private static final Precedence POSTFIX = LITERAL.next();
+public class Expression implements Renderable {
+    private static final Precedence TOP = Precedence.TOP;
+    private static final Precedence POSTFIX = TOP.next();
     private static final Precedence UNARY = POSTFIX.next();
     private static final Precedence MULTIPLICATIVE = UNARY.next();
     private static final Precedence ADDITIVE = MULTIPLICATIVE.next();
@@ -60,15 +61,15 @@ public class Expression {
     private static final Precedence ASSIGNMENT = TERNARY.next();
 
     public static final Expression literal(final String s) {
-        return new Expression(LITERAL.createExpression(new ExpressionRendering() {
+        return new Expression(TOP.createRenderable(new PrecedenceAwareRenderable() {
             @Override
-            public Renderer createExpressionRenderer(final ExpressionRendererContext context) {
+            public Renderer createPrecedenceAwareRenderer(final PrecedenceAwareRendererContext context) {
                 return new Renderer() {
                     @Override
                     public void render() {
-                        context.append("\"");
-                        context.append(s.replace("\\", "\\\\").replace("\"", "\\\"").replace("\r", "\\r").replace("\n", "\\n"));
-                        context.append("\"");
+                        context.appendText("\"");
+                        context.appendText(s.replace("\\", "\\\\").replace("\"", "\\\"").replace("\r", "\\r").replace("\n", "\\n"));
+                        context.appendText("\"");
                     }
                 };
             }
@@ -76,13 +77,13 @@ public class Expression {
     }
 
     public static final Expression literal(final int i) {
-        return new Expression(LITERAL.createExpression(new ExpressionRendering() {
+        return new Expression(TOP.createRenderable(new PrecedenceAwareRenderable() {
             @Override
-            public Renderer createExpressionRenderer(final ExpressionRendererContext context) {
+            public Renderer createPrecedenceAwareRenderer(final PrecedenceAwareRendererContext context) {
                 return new Renderer() {
                     @Override
                     public void render() {
-                        context.append(Integer.toString(i));
+                        context.appendText(Integer.toString(i));
                     }
                 };
             }
@@ -90,14 +91,14 @@ public class Expression {
     }
 
     public static final Expression literal(final long i) {
-        return new Expression(LITERAL.createExpression(new ExpressionRendering() {
+        return new Expression(TOP.createRenderable(new PrecedenceAwareRenderable() {
             @Override
-            public Renderer createExpressionRenderer(final ExpressionRendererContext context) {
+            public Renderer createPrecedenceAwareRenderer(final PrecedenceAwareRendererContext context) {
                 return new Renderer() {
                     @Override
                     public void render() {
-                        context.append(Long.toString(i));
-                        context.append("L");
+                        context.appendText(Long.toString(i));
+                        context.appendText("L");
                     }
                 };
             }
@@ -105,13 +106,13 @@ public class Expression {
     }
 
     public static final Expression literal(final double i) {
-        return new Expression(LITERAL.createExpression(new ExpressionRendering() {
+        return new Expression(TOP.createRenderable(new PrecedenceAwareRenderable() {
             @Override
-            public Renderer createExpressionRenderer(final ExpressionRendererContext context) {
+            public Renderer createPrecedenceAwareRenderer(final PrecedenceAwareRendererContext context) {
                 return new Renderer() {
                     @Override
                     public void render() {
-                        context.append(Double.toString(i));
+                        context.appendText(Double.toString(i));
                     }
                 };
             }
@@ -119,85 +120,103 @@ public class Expression {
     }
 
     public static final Expression literal(final float f) {
-        return new Expression(LITERAL.createExpression(new ExpressionRendering() {
+        return new Expression(TOP.createRenderable(new PrecedenceAwareRenderable() {
             @Override
-            public Renderer createExpressionRenderer(final ExpressionRendererContext context) {
+            public Renderer createPrecedenceAwareRenderer(final PrecedenceAwareRendererContext context) {
                 return new Renderer() {
                     @Override
                     public void render() {
-                        context.append(Float.toString(f));
-                        context.append("F");
+                        context.appendText(Float.toString(f));
+                        context.appendText("F");
                     }
                 };
             }
         }));
     }
-    private final PrecedenceRendering precedenceRendering;
 
-    public Expression(PrecedenceRendering precedenceRendering) {
-        this.precedenceRendering = precedenceRendering;
+    static Expression variable(final String name) throws CodeModelException {
+        CodeModel.validateSimpleName(name);
+        return new Expression(TOP.createRenderable(new PrecedenceAwareRenderable() {
+            @Override
+            public Renderer createPrecedenceAwareRenderer(final PrecedenceAwareRendererContext context) {
+                return new Renderer() {
+                    @Override
+                    public void render() {
+                        context.appendText(name);
+                    }
+                };
+            }
+        }));
     }
-    public PrecedenceRendering rendering() {
-        return precedenceRendering;
-    }
-    Renderer createTopLevelExpressionRenderer(RendererContext context) {
-        return precedenceRendering.createTopLevelExpressionRenderer(context);
+    private final PrecedenceRenderable renderable;
+
+    public Expression(PrecedenceRenderable precedence) {
+        this.renderable = precedence;
     }
 
-    public Expression plus(Expression expression) {
-        return new Expression(ADDITIVE.createLeftAssociativeExpression(this, "+", expression));
+    @Override
+    public Renderer createRenderer(RendererContext context) {
+        return renderable.createFreeStandingRenderer(context);
     }
-    public Expression minus(Expression expression) {
-        return new Expression(ADDITIVE.createLeftAssociativeExpression(this, "-", expression));
+
+    public Expression plus(Expression that) {
+        return new Expression(ADDITIVE.createLeftAssociativeRenderable(this.renderable, "+", that.renderable));
     }
-    public Expression div(Expression expression) {
-        return new Expression(MULTIPLICATIVE.createLeftAssociativeExpression(this, "/", expression));
+    public Expression minus(Expression that) {
+        return new Expression(ADDITIVE.createLeftAssociativeRenderable(this.renderable, "-", that.renderable));
     }
-    public Expression mod(Expression expression) {
-        return new Expression(MULTIPLICATIVE.createLeftAssociativeExpression(this, "%", expression));
+    public Expression div(Expression that) {
+        return new Expression(MULTIPLICATIVE.createLeftAssociativeRenderable(this.renderable, "/", that.renderable));
     }
-    public Expression times(Expression expression) {
-        return new Expression(MULTIPLICATIVE.createLeftAssociativeExpression(this, "*", expression));
+    public Expression mod(Expression that) {
+        return new Expression(MULTIPLICATIVE.createLeftAssociativeRenderable(this.renderable, "%", that.renderable));
     }
-    public Expression or(Expression expression) {
-        return new Expression(LOGICAL_OR.createLeftAssociativeExpression(this, "%", expression));
+    public Expression times(Expression that) {
+        return new Expression(MULTIPLICATIVE.createLeftAssociativeRenderable(this.renderable, "*", that.renderable));
     }
-    public Expression and(Expression expression) {
-        return new Expression(LOGICAL_AND.createLeftAssociativeExpression(this, "*", expression));
+    public Expression or(Expression that) {
+        return new Expression(LOGICAL_OR.createLeftAssociativeRenderable(this.renderable, "%", that.renderable));
     }
-    public Expression gt(Expression expression) {
-        return new Expression(RELATIONAL.createLeftAssociativeExpression(this, ">", expression));
+    public Expression and(Expression that) {
+        return new Expression(LOGICAL_AND.createLeftAssociativeRenderable(this.renderable, "*", that.renderable));
     }
-    public Expression lt(Expression expression) {
-        return new Expression(RELATIONAL.createLeftAssociativeExpression(this, "<", expression));
+    public Expression gt(Expression that) {
+        return new Expression(RELATIONAL.createLeftAssociativeRenderable(this.renderable, ">", that.renderable));
     }
-    public Expression ge(Expression expression) {
-        return new Expression(RELATIONAL.createLeftAssociativeExpression(this, ">=", expression));
+    public Expression lt(Expression that) {
+        return new Expression(RELATIONAL.createLeftAssociativeRenderable(this.renderable, "<", that.renderable));
     }
-    public Expression le(Expression expression) {
-        return new Expression(RELATIONAL.createLeftAssociativeExpression(this, "<=", expression));
+    public Expression ge(Expression that) {
+        return new Expression(RELATIONAL.createLeftAssociativeRenderable(this.renderable, ">=", that.renderable));
+    }
+    public Expression le(Expression that) {
+        return new Expression(RELATIONAL.createLeftAssociativeRenderable(this.renderable, "<=", that.renderable));
     }
     public Expression instanceofOp(final Type type) throws CodeModelException {
         if (!type.isObjectType() || !type.getObjectDetails().isRaw())
             throw new CodeModelException("Only raw object types allowed here");
-        return new Expression(RELATIONAL.createExpression(new ExpressionRendering() {
+        return new Expression(RELATIONAL.createRenderable(new PrecedenceAwareRenderable() {
             @Override
-            public Renderer createExpressionRenderer(final ExpressionRendererContext context) {
+            public Renderer createPrecedenceAwareRenderer(final PrecedenceAwareRendererContext context) {
                 return new Renderer() {
                     @Override
                     public void render() {
-                        context.appendHigherPrecedenceExpression(Expression.this);
-                        context.append(" instanceof ");
-                        context.appendType(type);
+                        context.appendHigherPrecedenceRenderable(renderable);
+                        context.appendText(" instanceof ");
+                        context.appendFreeStandingRenderable(type);
                     }
                 };
             }
         }));
     }
-    public Expression eq(Expression expression) {
-        return new Expression(EQUALITY.createLeftAssociativeExpression(this, "==", expression));
+    public Expression eq(Expression that) {
+        return new Expression(EQUALITY.createLeftAssociativeRenderable(this.renderable, "==", that.renderable));
     }
-    public Expression ne(Expression expression) {
-        return new Expression(EQUALITY.createLeftAssociativeExpression(this, "!=", expression));
+    public Expression ne(Expression that) {
+        return new Expression(EQUALITY.createLeftAssociativeRenderable(this.renderable, "!=", that.renderable));
+    }
+
+    Expression assignment(Expression that) {
+        return new Expression(ASSIGNMENT.createRightAssociativeRenderable(this.renderable, "!=", that.renderable));
     }
 }

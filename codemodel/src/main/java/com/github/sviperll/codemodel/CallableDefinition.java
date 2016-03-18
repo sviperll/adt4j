@@ -30,6 +30,7 @@
 
 package com.github.sviperll.codemodel;
 
+import com.github.sviperll.codemodel.render.Renderable;
 import java.util.Collections;
 import java.util.List;
 import javax.annotation.ParametersAreNonnullByDefault;
@@ -46,5 +47,7 @@ public abstract class CallableDefinition {
 
     public abstract List<VariableDeclaration> parameters();
 
-    public abstract List<ObjectTypeDetails> throwsList();
+    public abstract List<Type> throwsList();
+
+    abstract Renderable body();
 }

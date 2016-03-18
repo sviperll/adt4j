@@ -30,18 +30,22 @@
 
 package com.github.sviperll.codemodel;
 
+import com.github.sviperll.codemodel.render.Renderable;
+import com.github.sviperll.codemodel.render.Renderer;
+import com.github.sviperll.codemodel.render.RendererContext;
 import java.util.Collection;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Locale;
 import javax.annotation.ParametersAreNonnullByDefault;
 
 /**
  *
  * @author Victor Nazarov &lt;asviraspossible@gmail.com&gt;
- * @param <T>
  */
 @ParametersAreNonnullByDefault
 public abstract class ObjectDefinition
-        implements Settled, Model, GenericDefinition, TypeDefinition<Type> {
+        implements Settled, Model, GenericDefinition, TypeDefinition<Type>, Renderable {
 
     ObjectDefinition() {
     }
@@ -51,9 +55,11 @@ public abstract class ObjectDefinition
 
     public abstract ObjectKind kind();
 
-    public abstract ObjectTypeDetails extendsClass();
+    public abstract Type extendsClass();
 
-    public abstract List<ObjectTypeDetails> implementsInterfaces();
+    public abstract List<Type> implementsInterfaces();
+
+    public abstract Collection<MethodDefinition> constructors();
 
     public abstract Collection<MethodDefinition> methods();
 
@@ -63,21 +69,107 @@ public abstract class ObjectDefinition
 
     public abstract String simpleName();
 
+    abstract List<ObjectInitializationElement> staticInitializationElements();
+
+    abstract List<ObjectInitializationElement> instanceInitializationElements();
+
     public final String qualifiedName() {
         return residence().getPackage().qualifiedName() + "." + simpleName();
     }
 
     public final boolean extendsOrImplements(ObjectDefinition objectDefinition) {
-        if (this.extendsClass().definition() == objectDefinition
-                || this.extendsClass().definition().extendsOrImplements(objectDefinition))
+        if (this.extendsClass().getObjectDetails().definition() == objectDefinition
+                || this.extendsClass().getObjectDetails().definition().extendsOrImplements(objectDefinition))
             return true;
         else {
-            for (ObjectTypeDetails implementedInterface: implementsInterfaces()) {
-                if (implementedInterface.definition() == objectDefinition
-                        || implementedInterface.definition().extendsOrImplements(objectDefinition))
+            for (Type implementedInterface: implementsInterfaces()) {
+                if (implementedInterface.getObjectDetails().definition() == objectDefinition
+                        || implementedInterface.getObjectDetails().definition().extendsOrImplements(objectDefinition))
                     return true;
             }
             return false;
         }
+    }
+
+    @Override
+    public final Renderer createRenderer(final RendererContext context) {
+        return new Renderer() {
+            @Override
+            public void render() {
+                context.appendRenderable(residence());
+                context.appendWhiteSpace();
+                if (isFinal())
+                    context.appendText("final");
+                context.appendWhiteSpace();
+                if (kind() == ObjectKind.ANNOTATION)
+                    context.appendText("@interface");
+                else
+                    context.appendText(kind().name().toLowerCase(Locale.US));
+                context.appendWhiteSpace();
+                context.appendText(simpleName());
+                context.appendRenderable(generics());
+                context.appendText(" extends ");
+                context.appendRenderable(extendsClass());
+                Iterator<Type> interfaces = implementsInterfaces().iterator();
+                if (interfaces.hasNext()) {
+                    context.appendText(" implements ");
+                    Type implementedInterface = interfaces.next();
+                    context.appendRenderable(implementedInterface);
+                    while (interfaces.hasNext()) {
+                        context.appendText(", ");
+                        implementedInterface = interfaces.next();
+                        context.appendRenderable(implementedInterface);
+                    }
+                }
+                context.appendWhiteSpace();
+                context.appendText("{");
+                context.appendLineBreak();
+                RendererContext nestedContext = context.indented();
+
+                for (ObjectInitializationElement element: staticInitializationElements()) {
+                    nestedContext.appendRenderable(element);
+                }
+
+                for (MethodDefinition method: methods()) {
+                    if (method.residence().getNesting().isStatic()) {
+                        nestedContext.appendEmptyLine();
+                        nestedContext.appendRenderable(method);
+                    }
+                }
+
+                for (ObjectInitializationElement element: instanceInitializationElements()) {
+                    nestedContext.appendRenderable(element);
+                }
+
+                for (MethodDefinition constructor: constructors()) {
+                    nestedContext.appendEmptyLine();
+                    nestedContext.appendRenderable(constructor);
+                }
+
+                for (MethodDefinition method: methods()) {
+                    if (!method.residence().getNesting().isStatic()) {
+                        nestedContext.appendEmptyLine();
+                        nestedContext.appendRenderable(method);
+                    }
+                }
+
+                for (ObjectDefinition innerClass: innerClasses()) {
+                    if (!innerClass.residence().getNesting().isStatic()) {
+                        nestedContext.appendEmptyLine();
+                        nestedContext.appendRenderable(innerClass);
+                    }
+                }
+
+                for (ObjectDefinition innerClass: innerClasses()) {
+                    if (innerClass.residence().getNesting().isStatic()) {
+                        nestedContext.appendEmptyLine();
+                        nestedContext.appendRenderable(innerClass);
+                    }
+                }
+
+                context.appendText("}");
+                context.appendLineBreak();
+            }
+        };
     }
 }

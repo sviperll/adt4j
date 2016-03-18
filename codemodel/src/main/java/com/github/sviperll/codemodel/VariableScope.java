@@ -32,6 +32,8 @@ package com.github.sviperll.codemodel;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
+import java.util.TreeSet;
 import javax.annotation.ParametersAreNonnullByDefault;
 import javax.annotation.Nonnull;
 
@@ -46,6 +48,7 @@ class VariableScope {
     }
 
     private final List<VariableScope> childScopes = new ArrayList<>();
+    private final Set<String> variables = new TreeSet<>();
     private final VariableScope parent;
     private VariableScope() {
         this(null);
@@ -56,16 +59,49 @@ class VariableScope {
     }
 
     void introduce(String name) throws CodeModelException {
-        throw new UnsupportedOperationException("Not supported yet.");
+        CodeModel.validateSimpleName(name);
+        if (isDefinedInScope(name))
+            throw new CodeModelException("Variable already defined in current scope");
+        if (isReservedByChildScope(name))
+            throw new CodeModelException("Variable is reserved by enclosed scope");
+        variables.add(name);
     }
 
     String makeIntroducable(String name) {
-        throw new UnsupportedOperationException("Not supported yet.");
+        if (!name.endsWith("%")) {
+            return name;
+        } else {
+            String prefix = name.substring(0, name.length() - 1);
+            if (isIntroduceable(prefix))
+                return prefix;
+            for (int i = 0; i < Integer.MAX_VALUE; i++) {
+                String candidate = prefix + i;
+                if (isIntroduceable(candidate))
+                    return candidate;
+            }
+            throw new IllegalStateException("Unintroducable variable: " + name);
+        }
     }
 
     VariableScope createNested() {
         VariableScope result = new VariableScope(this);
         childScopes.add(result);
         return result;
+    }
+
+    private boolean isDefinedInScope(String name) {
+        return variables.contains(name) || (parent != null && parent.isDefinedInScope(name));
+    }
+
+    private boolean isReservedByChildScope(String name) {
+        for (VariableScope child: childScopes) {
+            if (child.variables.contains(name) || child.isReservedByChildScope(name))
+                return true;
+        }
+        return false;
+    }
+
+    private boolean isIntroduceable(String name) {
+        return !isDefinedInScope(name) && !isReservedByChildScope(name);
     }
 }

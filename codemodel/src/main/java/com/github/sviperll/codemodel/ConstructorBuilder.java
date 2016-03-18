@@ -42,8 +42,7 @@ import javax.annotation.ParametersAreNonnullByDefault;
  * @author Victor Nazarov &lt;asviraspossible@gmail.com&gt;
  */
 @ParametersAreNonnullByDefault
-public class ConstructorBuilder
-        implements MethodLikeBuilder {
+public class ConstructorBuilder implements MethodLikeBuilder {
     private final BuiltDefinition definition = new BuiltDefinition();
     private final BuiltType type = new BuiltType();
     private final GenericsConfigBuilder generics = GenericsConfigBuilder.methodDefinition(definition);

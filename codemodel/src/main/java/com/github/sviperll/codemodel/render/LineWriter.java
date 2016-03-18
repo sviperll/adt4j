@@ -30,9 +30,6 @@
 
 package com.github.sviperll.codemodel.render;
 
-import javax.annotation.ParametersAreNonnullByDefault;
-import javax.annotation.Nonnull;
-
 /**
  *
  * @author Victor Nazarov &lt;asviraspossible@gmail.com&gt;
@@ -40,10 +37,12 @@ import javax.annotation.Nonnull;
  class LineWriter {
 
     private final String indentation;
-    private final TypeAwareWriter writer;
+    private final ClassAwareWriter writer;
     private boolean isStartOfLine = true;
+    private boolean wasWhiteSpace = true;
+    private boolean wasEmptyLine = true;
 
-    LineWriter(String indentation, TypeAwareWriter writer) {
+    LineWriter(String indentation, ClassAwareWriter writer) {
         this.indentation = indentation;
         this.writer = writer;
     }
@@ -56,11 +55,16 @@ import javax.annotation.Nonnull;
             isStartOfLine = false;
         }
         writer.writeText(s);
+        wasWhiteSpace = false;
+        wasEmptyLine = false;
     }
 
-    public void nextLine() {
+    public void writeLineBreak() {
+        if (isStartOfLine)
+            wasEmptyLine = true;
         writer.writeText("\n");
-        isStartOfLine = false;
+        isStartOfLine = true;
+        wasWhiteSpace = true;
     }
 
     public void writeQualifiedTypeName(int identationLevel, String name) {
@@ -70,7 +74,24 @@ import javax.annotation.Nonnull;
             }
             isStartOfLine = false;
         }
-        writer.writeQualifiedTypeName(name);
+        writer.writeQualifiedClassName(name);
+        wasWhiteSpace = false;
+        wasEmptyLine = false;
     }
 
+    void writeWhiteSpace() {
+        if (!wasWhiteSpace) {
+            writer.writeText(" ");
+            wasWhiteSpace = true;
+            wasEmptyLine = false;
+        }
+    }
+
+    void appendEmptyLine() {
+        if (!wasEmptyLine) {
+            if (!isStartOfLine)
+                writeLineBreak();
+            writeLineBreak();
+        }
+    }
 }

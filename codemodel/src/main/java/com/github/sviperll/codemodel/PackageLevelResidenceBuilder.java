@@ -38,7 +38,7 @@ import javax.annotation.Nonnull;
  * @author Victor Nazarov &lt;asviraspossible@gmail.com&gt;
  */
 @ParametersAreNonnullByDefault
-public class PackageLevelResidenceBuilder extends ResidenceBuilder {
+public class PackageLevelResidenceBuilder implements ResidenceBuilder {
     private final Package pkg;
     private final BuiltMembership residence = new BuiltMembership();
     private boolean isPublic = false;

@@ -34,7 +34,7 @@ package com.github.sviperll.codemodel;
  *
  * @author Victor Nazarov &lt;asviraspossible@gmail.com&gt;
  */
-public interface MethodLikeBuilder extends GenericDefinitionBuilder, Model, SettledBuilder {
+public interface MethodLikeBuilder extends GenericDefinitionBuilder, Model, SettledBuilder<NestedResidenceBuilder> {
     MethodDefinition definition();
 
     CallableBuilder callable();

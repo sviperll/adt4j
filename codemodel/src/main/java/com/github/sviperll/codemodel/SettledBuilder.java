@@ -35,8 +35,9 @@ import javax.annotation.ParametersAreNonnullByDefault;
 /**
  *
  * @author Victor Nazarov &lt;asviraspossible@gmail.com&gt;
+ * @param <B>
  */
 @ParametersAreNonnullByDefault
-public interface SettledBuilder {
-    ResidenceBuilder residence();
+public interface SettledBuilder<B extends ResidenceBuilder> {
+    B residence();
 }

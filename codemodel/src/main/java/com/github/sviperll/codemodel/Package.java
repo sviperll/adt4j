@@ -30,6 +30,7 @@
 
 package com.github.sviperll.codemodel;
 
+import java.lang.reflect.Modifier;
 import java.util.Map;
 import java.util.TreeMap;
 import javax.annotation.ParametersAreNonnullByDefault;
@@ -60,11 +61,11 @@ public final class Package implements Model {
         return parent;
     }
 
-    public ObjectDefinitionBuilder createClass(ObjectKind kind, String className) throws CodeModelException {
+    public ObjectDefinitionBuilder<PackageLevelResidenceBuilder> createClass(ObjectKind kind, String className) throws CodeModelException {
         if (classes.containsKey(className))
             throw new CodeModelException(name + "." + className + " already defined");
         PackageLevelResidenceBuilder membershipBuilder = new PackageLevelResidenceBuilder(this);
-        ObjectDefinitionBuilder result = new ObjectDefinitionBuilder(kind, membershipBuilder, className);
+        ObjectDefinitionBuilder<PackageLevelResidenceBuilder> result = new ObjectDefinitionBuilder<>(kind, membershipBuilder, className);
         classes.put(className, result.definition());
         return result;
     }
@@ -96,5 +97,29 @@ public final class Package implements Model {
             return childPackage;
         else
             return childPackage.getChildPackageBySuffix(suffix.substring(index + 1));
+    }
+
+    ObjectDefinition importClass(final Class<?> klass) throws CodeModelException {
+        assert klass.getEnclosingClass() == null;
+        assert klass.getPackage().getName().equals(name);
+        String className = klass.getSimpleName();
+        if (classes.containsKey(className))
+            throw new CodeModelException(name + "." + className + " already defined");
+        int modifiers = klass.getModifiers();
+        final boolean isPublic = (modifiers & Modifier.PUBLIC) != 0;
+        Residence residence = Residence.packageLevel(new PackageLevelResidenceDetails() {
+            @Override
+            public boolean isPublic() {
+                return isPublic;
+            }
+
+            @Override
+            public Package getPackage() {
+                return Package.this;
+            }
+        });
+        ObjectDefinition definition = new ReflectionObjectDefinition(codeModel, residence, klass);
+        classes.put(className, definition);
+        return definition;
     }
 }

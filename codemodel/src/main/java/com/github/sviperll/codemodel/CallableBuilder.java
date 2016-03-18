@@ -30,6 +30,7 @@
 
 package com.github.sviperll.codemodel;
 
+import com.github.sviperll.codemodel.render.Renderable;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -49,7 +50,7 @@ public class CallableBuilder {
 
     private final BuiltDefinition definition = new BuiltDefinition();
     private final List<VariableDeclaration> parameters = new ArrayList<>();
-    private final List<ObjectTypeDetails> throwsList = new ArrayList<>();
+    private final List<Type> throwsList = new ArrayList<>();
 
     CallableBuilder() {
     }
@@ -68,8 +69,10 @@ public class CallableBuilder {
         parameters.add(parameter);
     }
 
-    public void throwsException(ObjectTypeDetails type) throws CodeModelException {
-        if (type.definition().generics().isGeneric())
+    public void throwsException(Type type) throws CodeModelException {
+        if (!type.isObjectType())
+            throw new CodeModelException("Only object type can be an exception");
+        if (type.getObjectDetails().definition().generics().isGeneric())
             throw new CodeModelException("Generic class can't be used as throwable exception");
         throwsList.add(type);
     }
@@ -89,8 +92,13 @@ public class CallableBuilder {
         }
 
         @Override
-        public List<ObjectTypeDetails> throwsList() {
+        public List<Type> throwsList() {
             return Collections.unmodifiableList(throwsList);
+        }
+
+        @Override
+        Renderable body() {
+            return body;
         }
     }
 
@@ -126,6 +134,11 @@ public class CallableBuilder {
         @Override
         public boolean isInitialized() {
             return false;
+        }
+
+        @Override
+        Expression getInitialValue() {
+            throw new UnsupportedOperationException();
         }
     }
 

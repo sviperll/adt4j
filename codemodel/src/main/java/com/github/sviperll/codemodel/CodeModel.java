@@ -30,13 +30,8 @@
 
 package com.github.sviperll.codemodel;
 
-import java.lang.reflect.Modifier;
-import java.util.Collection;
-import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import javax.annotation.ParametersAreNonnullByDefault;
 import javax.lang.model.element.Element;
 import javax.lang.model.util.Elements;
@@ -58,8 +53,13 @@ public final class CodeModel {
     private Type objectType = null;
 
     public Type objectType() {
-        if (objectType == null)
-            objectType = importClass(Object.class).toType();
+        if (objectType == null) {
+            try {
+                objectType = importTopLevelClass(Object.class).toType();
+            } catch (CodeModelException ex) {
+                throw new RuntimeException(ex);
+            }
+        }
         return objectType;
     }
 
@@ -81,153 +81,26 @@ public final class CodeModel {
             return topLevelPackage.getChildPackageBySuffix(qualifiedName.substring(index + 1));
     }
 
-    public ObjectDefinitionBuilder createDefaultPackageClass(ObjectKind kind, String name) throws CodeModelException {
+    public ObjectDefinitionBuilder<PackageLevelResidenceBuilder> createDefaultPackageClass(ObjectKind kind, String name) throws CodeModelException {
         return defaultPackage.createClass(kind, name);
     }
 
-    public ObjectDefinition importClass(Class<?> klass) {
+    public ObjectDefinition importTopLevelClass(final Class<?> klass) throws CodeModelException {
         if (klass.isArray())
             throw new IllegalArgumentException("Arrays don't have class definition");
-        return new ReflectionObjectDefinition(this, klass);
+        if (klass.isPrimitive())
+            throw new IllegalArgumentException("Primitives don't have class definition");
+        final Package pkg;
+        try {
+            pkg = getPackage(klass.getPackage().getName());
+        } catch (CodeModelException ex) {
+            throw new RuntimeException(ex);
+        }
+        return pkg.importClass(klass);
     }
 
     public ObjectDefinition importClass(Element element, Elements elementUtils) {
         throw new UnsupportedOperationException("Not supported yet.");
     }
 
-    private static class ReflectionObjectDefinition extends ObjectDefinition {
-        private final Type type = Type.createObjectType(new TypeDetails());
-        private final CodeModel codeModel;
-
-        private final Class<?> klass;
-
-        public ReflectionObjectDefinition(CodeModel codeModel, Class<?> klass) {
-            this.codeModel = codeModel;
-            this.klass = klass;
-        }
-
-        @Override
-        public boolean isFinal() {
-            return (klass.getModifiers() & Modifier.FINAL) != 0;
-        }
-
-        @Override
-        public ObjectKind kind() {
-            if (klass.isInterface())
-                return ObjectKind.INTERFACE;
-            else if (klass.isEnum())
-                return ObjectKind.ENUM;
-            else if (klass.isAnnotation())
-                return ObjectKind.ANNOTATION;
-            else
-                return ObjectKind.CLASS;
-        }
-
-        @Override
-        public ObjectTypeDetails extendsClass() {
-            throw new UnsupportedOperationException("Not supported yet.");
-        }
-
-        @Override
-        public List<ObjectTypeDetails> implementsInterfaces() {
-            throw new UnsupportedOperationException("Not supported yet.");
-        }
-
-        @Override
-        public Collection<MethodDefinition> methods() {
-            throw new UnsupportedOperationException("Not supported yet.");
-        }
-
-        @Override
-        public Collection<ObjectDefinition> innerClasses() {
-            throw new UnsupportedOperationException("Not supported yet.");
-        }
-
-        @Override
-        public Collection<FieldDeclaration> fields() {
-            throw new UnsupportedOperationException("Not supported yet.");
-        }
-
-        @Override
-        public String simpleName() {
-            return klass.getSimpleName();
-        }
-
-        @Override
-        public Residence residence() {
-            if (klass.isMemberClass()) {
-                return Residence.nested(new Nesting() {
-                    @Override
-                    public MemberAccess accessLevel() {
-                        int modifiers = klass.getModifiers();
-                        if ((modifiers & Modifier.PUBLIC) != 0)
-                            return MemberAccess.PUBLIC;
-                        else if ((modifiers & Modifier.PROTECTED) != 0)
-                            return MemberAccess.PROTECTED;
-                        else if ((modifiers & Modifier.PRIVATE) != 0)
-                            return MemberAccess.PRIVATE;
-                        else
-                            return MemberAccess.PACKAGE;
-                    }
-
-                    @Override
-                    public boolean isStatic() {
-                        int modifiers = klass.getModifiers();
-                        return (modifiers & Modifier.STATIC) != 0;
-                    }
-
-                    @Override
-                    public ObjectDefinition parent() {
-                        return codeModel.importClass(klass.getEnclosingClass());
-                    }
-                });
-            } else {
-                return Residence.packageLevel(new PackageLevelResidenceDetails() {
-                    @Override
-                    public boolean isPublic() {
-                        int modifiers = klass.getModifiers();
-                        return (modifiers & Modifier.PUBLIC) != 0;
-                    }
-
-                    @Override
-                    public Package getPackage() {
-                        try {
-                            return codeModel.getPackage(klass.getPackage().getName());
-                        } catch (CodeModelException ex) {
-                            throw new RuntimeException(ex);
-                        }
-                    }
-                });
-            }
-        }
-
-        @Override
-        public CodeModel getCodeModel() {
-            return codeModel;
-        }
-
-        @Override
-        public GenericsConfig generics() {
-            throw new UnsupportedOperationException("Not supported yet.");
-        }
-
-        @Override
-        public Type toType() {
-            return type;
-        }
-
-        public class TypeDetails extends RawObjectTypeDetails {
-
-            @Override
-            public ObjectDefinition definition() {
-                return ReflectionObjectDefinition.this;
-            }
-
-            @Override
-            public Type asType() {
-                return type;
-            }
-
-        }
-    }
 }

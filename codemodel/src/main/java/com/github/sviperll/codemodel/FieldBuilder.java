@@ -34,7 +34,7 @@ package com.github.sviperll.codemodel;
  *
  * @author Victor Nazarov &lt;asviraspossible@gmail.com&gt;
  */
-public class FieldBuilder implements SettledBuilder {
+public class FieldBuilder implements SettledBuilder<NestedResidenceBuilder> {
 
     private final FieldDeclaration declaration = new BuiltFieldDeclaration();
     private final NestedResidenceBuilder residence;
@@ -96,6 +96,14 @@ public class FieldBuilder implements SettledBuilder {
         @Override
         public boolean isFinal() {
             return isFinal;
+        }
+
+        @Override
+        Expression getInitialValue() {
+            if (!isInitialized)
+                throw new IllegalStateException("Field is not initialized");
+            else
+                return initializer;
         }
     }
 }

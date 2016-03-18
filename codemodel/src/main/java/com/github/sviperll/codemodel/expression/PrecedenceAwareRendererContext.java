@@ -32,6 +32,7 @@ package com.github.sviperll.codemodel.expression;
 
 import com.github.sviperll.codemodel.Expression;
 import com.github.sviperll.codemodel.Type;
+import com.github.sviperll.codemodel.render.Renderable;
 import com.github.sviperll.codemodel.render.Renderer;
 import com.github.sviperll.codemodel.render.RendererContext;
 
@@ -39,52 +40,51 @@ import com.github.sviperll.codemodel.render.RendererContext;
  *
  * @author Victor Nazarov &lt;asviraspossible@gmail.com&gt;
  */
-public class ExpressionRendererContext implements RendererContext {
+public class PrecedenceAwareRendererContext {
 
     private final RendererContext context;
     private final int precedence;
 
-    ExpressionRendererContext(RendererContext context, int precedence) {
+    PrecedenceAwareRendererContext(RendererContext context, int precedence) {
         this.context = context;
         this.precedence = precedence;
     }
 
-    public void appendSamePrecedenceExpression(Expression expression) {
-        Renderer renderer = expression.rendering().createExpressionRenderer(new ExpressionRendererContext(context, precedence));
+    public void appendSamePrecedenceRenderable(PrecedenceRenderable expression) {
+        Renderer renderer = expression.createKnownPrecedenceRenderer(this);
         renderer.render();
     }
 
-    public void appendHigherPrecedenceExpression(Expression expression) {
-        Renderer renderer = expression.rendering().createExpressionRenderer(new ExpressionRendererContext(context, precedence - 1));
+    public void appendHigherPrecedenceRenderable(PrecedenceRenderable expression) {
+        Renderer renderer = expression.createKnownPrecedenceRenderer(withPrecedence(precedence - 1));
         renderer.render();
     }
 
-    @Override
-    public void append(String text) {
-        context.append(text);
+    public void appendText(String text) {
+        context.appendText(text);
     }
 
-    @Override
     public void nextLine() {
-        context.nextLine();
+        context.appendLineBreak();
     }
 
-    @Override
-    public void appendType(Type type) {
-        context.appendType(type);
+    public PrecedenceAwareRendererContext indented() {
+        return new PrecedenceAwareRendererContext(context.indented(), precedence);
     }
 
-    @Override
-    public ExpressionRendererContext indented() {
-        return new ExpressionRendererContext(context.indented(), precedence);
-    }
-
-    ExpressionRendererContext withPrecedence(int newPrecedence) {
-        return new ExpressionRendererContext(context, newPrecedence);
+    PrecedenceAwareRendererContext withPrecedence(int newPrecedence) {
+        return new PrecedenceAwareRendererContext(context, newPrecedence);
     }
 
     int precedence() {
         return precedence;
     }
 
+    public void appendWhiteSpace() {
+        context.appendWhiteSpace();
+    }
+
+    public void appendFreeStandingRenderable(Renderable renderable) {
+        context.appendRenderable(renderable);
+    }
 }

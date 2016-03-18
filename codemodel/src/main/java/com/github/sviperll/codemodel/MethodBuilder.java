@@ -30,11 +30,6 @@
 
 package com.github.sviperll.codemodel;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.TreeMap;
 import javax.annotation.ParametersAreNonnullByDefault;
 
 /**
@@ -42,8 +37,7 @@ import javax.annotation.ParametersAreNonnullByDefault;
  * @author Victor Nazarov &lt;asviraspossible@gmail.com&gt;
  */
 @ParametersAreNonnullByDefault
-public class MethodBuilder
-        implements MethodLikeBuilder {
+public class MethodBuilder implements MethodLikeBuilder {
     private final BuiltDefinition definition = new BuiltDefinition();
     private final BuiltType type = new BuiltType();
     private final GenericsConfigBuilder generics = GenericsConfigBuilder.methodDefinition(definition);

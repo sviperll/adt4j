@@ -30,6 +30,8 @@
 
 package com.github.sviperll.codemodel;
 
+import com.github.sviperll.codemodel.render.Renderer;
+import com.github.sviperll.codemodel.render.RendererContext;
 import javax.annotation.ParametersAreNonnullByDefault;
 
 /**
@@ -37,8 +39,7 @@ import javax.annotation.ParametersAreNonnullByDefault;
  * @author Victor Nazarov &lt;asviraspossible@gmail.com&gt;
  */
 @ParametersAreNonnullByDefault
-public abstract class FieldDeclaration extends VariableDeclaration
-        implements Settled {
+public abstract class FieldDeclaration extends VariableDeclaration implements Settled {
     FieldDeclaration() {
     }
 
@@ -50,4 +51,19 @@ public abstract class FieldDeclaration extends VariableDeclaration
 
     @Override
     public abstract boolean isInitialized();
+
+    @Override
+    public Renderer createRenderer(final RendererContext context) {
+        final Renderer simpleRenderer = super.createRenderer(context);
+        return new Renderer() {
+            @Override
+            public void render() {
+                context.appendRenderable(residence());
+                simpleRenderer.render();
+                context.appendText(";");
+                context.appendLineBreak();
+            }
+        };
+    }
+
 }

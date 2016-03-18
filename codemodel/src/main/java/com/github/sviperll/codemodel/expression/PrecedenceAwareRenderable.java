@@ -28,16 +28,16 @@
  *  EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.github.sviperll.codemodel.render;
+package com.github.sviperll.codemodel.expression;
+
+import com.github.sviperll.codemodel.render.Renderer;
+import javax.annotation.ParametersAreNonnullByDefault;
 
 /**
  *
  * @author Victor Nazarov &lt;asviraspossible@gmail.com&gt;
  */
-public interface TypeAwareWriter {
-
-    void writeQualifiedTypeName(String name);
-
-    void writeText(String text);
-
+@ParametersAreNonnullByDefault
+public interface PrecedenceAwareRenderable {
+    Renderer createPrecedenceAwareRenderer(PrecedenceAwareRendererContext context);
 }

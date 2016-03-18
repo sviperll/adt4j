@@ -27,50 +27,51 @@
  *  (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
  *  EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
 package com.github.sviperll.codemodel;
 
-import com.github.sviperll.codemodel.render.Renderable;
 import com.github.sviperll.codemodel.render.Renderer;
 import com.github.sviperll.codemodel.render.RendererContext;
-import javax.annotation.ParametersAreNonnullByDefault;
-import javax.annotation.Nonnull;
+import com.github.sviperll.codemodel.render.RendererContexts;
+import java.util.Collection;
+import java.util.List;
+import org.junit.Test;
+import static org.junit.Assert.*;
 
 /**
  *
  * @author Victor Nazarov &lt;asviraspossible@gmail.com&gt;
  */
-@ParametersAreNonnullByDefault
-public abstract class VariableDeclaration implements Renderable {
-    VariableDeclaration() {
-    }
+public class ObjectDefinitionTest {
+    /**
+     * Test of isFinal method, of class ObjectDefinition.
+     */
+    @Test
+    public void smoke1() throws CodeModelException {
+        CodeModel codeModel = new CodeModel();
+        Package pkg = codeModel.getPackage("com.github.sviperll.codemodel.test");
+        ObjectDefinitionBuilder<PackageLevelResidenceBuilder> test1 = pkg.createClass(ObjectKind.CLASS, "Test1");
+        test1.generics().typeParameter("T");
+        FieldBuilder field1 = test1.field(Type.intType(), "field1");
+        field1.residence().setAccessLevel(MemberAccess.PRIVATE);
+        FieldBuilder field2 = test1.field(Type.variable("T"), "field2");
+        field2.residence().setAccessLevel(MemberAccess.PROTECTED);
+        MethodBuilder method = test1.method("test");
+        method.residence().setAccessLevel(MemberAccess.PUBLIC);
+        method.resultType(Type.intType());
+        method.callable().addParameter(Type.intType(), "param1");
+        method.callable().body().returnStatement(Expression.variable("param1").plus(Expression.variable("field1")));
 
-    public abstract boolean isFinal();
-
-    public abstract Type type();
-
-    public abstract String name();
-
-    public abstract boolean isInitialized();
-
-    abstract Expression getInitialValue();
-
-    @Override
-    public Renderer createRenderer(final RendererContext context) {
-        return new Renderer() {
-            @Override
-            public void render() {
-                if (isFinal()) {
-                    context.appendText("final");
-                    context.appendWhiteSpace();
-                }
-                context.appendRenderable(type());
-                context.appendWhiteSpace();
-                context.appendText(name());
-                if (isInitialized()) {
-                    context.appendRenderable(getInitialValue());
-                }
-            }
-        };
+        String result =
+            "class Test1<T extends java.lang.Object> extends java.lang.Object {\n" +
+            "    private int field1;\n" +
+            "    protected T field2;\n" +
+            "\n" +
+            "    public int test(int param1) {\n" +
+            "        return param1 + field1;\n" +
+            "    }\n" +
+            "}\n";
+        StringBuilder builder = new StringBuilder();
+        RendererContexts.createInstance(builder).appendRenderable(test1.definition());
+        assertEquals(result, builder.toString());
     }
 }

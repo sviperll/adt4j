@@ -30,7 +30,11 @@
 
 package com.github.sviperll.codemodel;
 
+import com.github.sviperll.codemodel.render.Renderable;
+import com.github.sviperll.codemodel.render.Renderer;
+import com.github.sviperll.codemodel.render.RendererContext;
 import java.util.Collections;
+import java.util.Iterator;
 import java.util.List;
 import javax.annotation.ParametersAreNonnullByDefault;
 
@@ -39,7 +43,7 @@ import javax.annotation.ParametersAreNonnullByDefault;
  * @author Victor Nazarov &lt;asviraspossible@gmail.com&gt;
  */
 @ParametersAreNonnullByDefault
-public abstract class GenericsConfig implements Model {
+public abstract class GenericsConfig implements Model, Renderable {
     GenericsConfig() {
     }
 
@@ -86,6 +90,31 @@ public abstract class GenericsConfig implements Model {
             GenericsConfig parent = parent();
             return parent != null && parent.isGeneric();
         }
+    }
+
+    @Override
+    public Renderer createRenderer(final RendererContext context) {
+        return new Renderer() {
+            @Override
+            public void render() {
+                Iterator<TypeParameter> typeParameters = typeParameters().iterator();
+                if (typeParameters.hasNext()) {
+                    context.appendText("<");
+                    TypeParameter typeParameter = typeParameters.next();
+                    context.appendText(typeParameter.name());
+                    context.appendText(" extends ");
+                    context.appendRenderable(typeParameter.bound());
+                    while (typeParameters.hasNext()) {
+                        context.appendText(", ");
+                        typeParameter = typeParameters.next();
+                        context.appendText(typeParameter.name());
+                        context.appendText(" extends ");
+                        context.appendRenderable(typeParameter.bound());
+                    }
+                    context.appendText(">");
+                }
+            }
+        };
     }
 
     private static class PreventCycleEnvironment extends GenericsConfig {

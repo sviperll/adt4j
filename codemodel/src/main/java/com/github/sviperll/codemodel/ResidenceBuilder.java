@@ -33,10 +33,7 @@ package com.github.sviperll.codemodel;
 /**
  *
  * @author Victor Nazarov &lt;asviraspossible@gmail.com&gt;
- * @param <T>
  */
-public abstract class ResidenceBuilder implements Model {
-    ResidenceBuilder() {
-    }
+public interface ResidenceBuilder extends Model {
     public abstract Residence residence();
 }

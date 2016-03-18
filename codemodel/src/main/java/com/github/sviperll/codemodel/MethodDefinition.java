@@ -30,6 +30,10 @@
 
 package com.github.sviperll.codemodel;
 
+import com.github.sviperll.codemodel.render.Renderable;
+import com.github.sviperll.codemodel.render.Renderer;
+import com.github.sviperll.codemodel.render.RendererContext;
+import java.util.Iterator;
 import java.util.List;
 
 /**
@@ -37,7 +41,7 @@ import java.util.List;
  * @author Victor Nazarov &lt;asviraspossible@gmail.com&gt;
  */
 public abstract class MethodDefinition
-        implements Settled, GenericDefinition, TypeDefinition<MethodType>, Model {
+        implements Settled, GenericDefinition, TypeDefinition<MethodType>, Model, Renderable {
     MethodDefinition() {
     }
 
@@ -67,7 +71,59 @@ public abstract class MethodDefinition
         return callable().parameters();
     }
 
-    public final List<ObjectTypeDetails> throwsList() {
+    public final List<Type> throwsList() {
         return callable().throwsList();
+    }
+
+    @Override
+    public Renderer createRenderer(final RendererContext context) {
+        return new Renderer() {
+            @Override
+            public void render() {
+                context.appendRenderable(residence());
+                context.appendWhiteSpace();
+                if (!isConstructor() && isFinal()) {
+                    context.appendText("final");
+                }
+                context.appendWhiteSpace();
+                context.appendRenderable(generics());
+                context.appendWhiteSpace();
+                if (!isConstructor()) {
+                    context.appendRenderable(returnType());
+                    context.appendWhiteSpace();
+                    context.appendText(getName());
+                } else {
+                    context.appendText(residence().getNesting().parent().simpleName());
+                }
+                context.appendText("(");
+                Iterator<VariableDeclaration> parameters = parameters().iterator();
+                if (parameters.hasNext()) {
+                    VariableDeclaration parameter = parameters.next();
+                    context.appendRenderable(parameter);
+                    while (parameters.hasNext()) {
+                        context.appendText(", ");
+                        parameter = parameters.next();
+                        context.appendRenderable(parameter);
+                    }
+                }
+                context.appendText(")");
+                Iterator<Type> throwsExceptions = throwsList().iterator();
+                if (throwsExceptions.hasNext()) {
+                    Type exceptionType = throwsExceptions.next();
+                    context.appendWhiteSpace();
+                    context.appendText("throws");
+                    context.appendWhiteSpace();
+                    context.appendRenderable(exceptionType);
+                    while (throwsExceptions.hasNext()) {
+                        exceptionType = throwsExceptions.next();
+                        context.appendText(", ");
+                        context.appendRenderable(exceptionType);
+                    }
+                }
+                context.appendWhiteSpace();
+                context.appendRenderable(callable().body());
+                context.appendLineBreak();
+            }
+        };
     }
 }

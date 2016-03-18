@@ -30,10 +30,6 @@
 
 package com.github.sviperll.codemodel;
 
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-
 /**
  *
  * @author Victor Nazarov &lt;asviraspossible@gmail.com&gt;

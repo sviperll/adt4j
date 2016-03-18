@@ -30,7 +30,6 @@
 
 package com.github.sviperll.codemodel.render;
 
-import com.github.sviperll.codemodel.Type;
 import javax.annotation.ParametersAreNonnullByDefault;
 
 /**
@@ -39,8 +38,11 @@ import javax.annotation.ParametersAreNonnullByDefault;
  */
 @ParametersAreNonnullByDefault
 public interface RendererContext {
-    void append(String text);
-    void nextLine();
-    void appendType(Type type);
+    void appendText(String text);
+    void appendLineBreak();
+    void appendQualifiedClassName(String name);
     RendererContext indented();
+    void appendWhiteSpace();
+    void appendEmptyLine();
+    void appendRenderable(Renderable renderable);
 }
