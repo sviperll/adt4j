@@ -46,7 +46,7 @@ public class GenericsConfigBuilder {
     static GenericsConfigBuilder objectDefinition(ObjectDefinition definition) {
         return new GenericsConfigBuilder(new ObjectBasicGenericsConfig(definition));
     }
-    static GenericsConfigBuilder methodDefinition(MethodDefinition definition) {
+    static GenericsConfigBuilder methodDefinition(ExecutableDefinition definition) {
         return new GenericsConfigBuilder(new MethodBasicGenericsConfig(definition));
     }
     private final GenericsConfig genericsConfig;
@@ -118,7 +118,7 @@ public class GenericsConfigBuilder {
         }
 
         @Override
-        public MethodDefinition getMethod() {
+        public ExecutableDefinition getMethod() {
             return basic.getMethod();
         }
 
@@ -133,14 +133,14 @@ public class GenericsConfigBuilder {
         public CodeModel getCodeModel();
         public boolean isMethod();
         public boolean isObject();
-        public MethodDefinition getMethod();
+        public ExecutableDefinition getMethod();
         public ObjectDefinition getObject();
     }
 
     private static class MethodBasicGenericsConfig implements BasicGenericsConfig {
 
-        private final MethodDefinition definition;
-        MethodBasicGenericsConfig(MethodDefinition definition) {
+        private final ExecutableDefinition definition;
+        MethodBasicGenericsConfig(ExecutableDefinition definition) {
             this.definition = definition;
         }
 
@@ -165,7 +165,7 @@ public class GenericsConfigBuilder {
         }
 
         @Override
-        public MethodDefinition getMethod() {
+        public ExecutableDefinition getMethod() {
             return definition;
         }
 
@@ -207,7 +207,7 @@ public class GenericsConfigBuilder {
         }
 
         @Override
-        public MethodDefinition getMethod() {
+        public ExecutableDefinition getMethod() {
             throw new UnsupportedOperationException();
         }
 

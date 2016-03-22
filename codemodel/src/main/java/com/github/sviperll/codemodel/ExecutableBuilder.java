@@ -34,26 +34,36 @@ import com.github.sviperll.codemodel.render.Renderable;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.Map;
-import java.util.TreeMap;
 import javax.annotation.ParametersAreNonnullByDefault;
-import javax.annotation.Nonnull;
 
 /**
  *
  * @author Victor Nazarov &lt;asviraspossible@gmail.com&gt;
  */
 @ParametersAreNonnullByDefault
-public class CallableBuilder {
+public abstract class ExecutableBuilder implements SettledBuilder<NestedResidenceBuilder>, GenericDefinitionBuilder {
     private final VariableScope scope = VariableScope.createTopLevel();
     private final BlockBuilder body = BlockBuilder.createWithBracesForced(scope.createNested());
-
     private final BuiltDefinition definition = new BuiltDefinition();
+    private final GenericsConfigBuilder generics = GenericsConfigBuilder.methodDefinition(definition);
     private final List<VariableDeclaration> parameters = new ArrayList<>();
     private final List<Type> throwsList = new ArrayList<>();
 
-    CallableBuilder() {
+    private final TypeContainer typeContainer;
+    private final NestedResidenceBuilder residence;
+
+    ExecutableBuilder(NestedResidenceBuilder residence) {
+        this.residence = residence;
+        if (residence.residence().getNesting().isStatic()) {
+            typeContainer = new TypeContainer(null);
+        } else {
+            typeContainer = null;
+        }
     }
+
+    abstract boolean isConstructor();
+
+    abstract MethodDefinitionDetails getMethodDefinitionDetails();
 
     public void addParameter(Type type, String name) throws CodeModelException {
         name = scope.makeIntroducable(name);
@@ -77,7 +87,7 @@ public class CallableBuilder {
         throwsList.add(type);
     }
 
-    public CallableDefinition definition() {
+    public ExecutableDefinition definition() {
         return definition;
     }
 
@@ -85,7 +95,17 @@ public class CallableBuilder {
         return body;
     }
 
-    private class BuiltDefinition extends CallableDefinition {
+    @Override
+    public NestedResidenceBuilder residence() {
+        return residence;
+    }
+
+    @Override
+    public GenericsConfigBuilder generics() {
+        return generics;
+    }
+
+    private class BuiltDefinition extends ExecutableDefinition {
         @Override
         public List<VariableDeclaration> parameters() {
             return Collections.unmodifiableList(parameters);
@@ -100,7 +120,79 @@ public class CallableBuilder {
         Renderable body() {
             return body;
         }
+
+        @Override
+        public Type toType() {
+            if (residence.residence().getNesting().isStatic()) {
+                return typeContainer.type;
+            } else {
+                throw new UnsupportedOperationException("Parent instance type is required");
+            }
+        }
+
+        @Override
+        public Type toType(Type parentInstanceType) {
+            if (residence.residence().getNesting().isStatic()) {
+                throw new UnsupportedOperationException("Type is static memeber, no parent is expected.");
+            } else {
+                TypeContainer typeContainer = new TypeContainer(parentInstanceType.getObjectDetails());
+                return typeContainer.type;
+            }
+        }
+
+        @Override
+        public boolean isConstructor() {
+            return ExecutableBuilder.this.isConstructor();
+        }
+
+        @Override
+        public boolean isMethod() {
+            return !ExecutableBuilder.this.isConstructor();
+        }
+
+        @Override
+        public MethodDefinitionDetails getMethodDetails() {
+            return ExecutableBuilder.this.getMethodDefinitionDetails();
+        }
+
+        @Override
+        public Residence residence() {
+            return residence.residence();
+        }
+
+        @Override
+        public GenericsConfig generics() {
+            return generics.generics();
+        }
+
+        @Override
+        public CodeModel getCodeModel() {
+            return residence.getCodeModel();
+        }
     }
+
+    private class TypeContainer {
+        private final ObjectTypeDetails parentInstanceType;
+        private Type type = Type.executable(new BuiltTypeDetails());
+
+        TypeContainer(ObjectTypeDetails parentInstanceType) {
+            this.parentInstanceType = parentInstanceType;
+        }
+
+        private class BuiltTypeDetails extends RawExecutableTypeDetails {
+
+            @Override
+            public Type asType() {
+                return type;
+            }
+
+            @Override
+            public ExecutableDefinition definition() {
+                return definition;
+            }
+        }
+    }
+
 
     private static class Parameter extends VariableDeclaration {
 

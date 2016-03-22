@@ -40,40 +40,28 @@ import java.util.List;
  *
  * @author Victor Nazarov &lt;asviraspossible@gmail.com&gt;
  */
-public abstract class MethodDefinition
-        implements Settled, GenericDefinition, TypeDefinition<MethodType>, Model, Renderable {
-    MethodDefinition() {
+public abstract class ExecutableDefinition
+        implements Settled, GenericDefinition, Model, Renderable, TypeDefinition {
+    ExecutableDefinition() {
     }
+
+    @Override
+    public abstract Type toType();
+
+    @Override
+    public abstract Type toType(Type parentInstanceType);
 
     public abstract boolean isConstructor();
 
-    /**
-     * @return Wheather method is marked as final
-     * @throws UnsupportedOperationException for constructors
-     */
-    public abstract boolean isFinal();
+    public abstract boolean isMethod();
 
-    /**
-     * @return Method return type
-     * @throws UnsupportedOperationException for constructors
-     */
-    public abstract Type returnType();
+    public abstract MethodDefinitionDetails getMethodDetails();
 
-    /**
-     * @return Method name
-     * @throws UnsupportedOperationException for constructors
-     */
-    public abstract String getName();
+    public abstract List<VariableDeclaration> parameters();
 
-    abstract CallableDefinition callable();
+    public abstract List<Type> throwsList();
 
-    public final List<VariableDeclaration> parameters() {
-        return callable().parameters();
-    }
-
-    public final List<Type> throwsList() {
-        return callable().throwsList();
-    }
+    abstract Renderable body();
 
     @Override
     public Renderer createRenderer(final RendererContext context) {
@@ -82,16 +70,16 @@ public abstract class MethodDefinition
             public void render() {
                 context.appendRenderable(residence());
                 context.appendWhiteSpace();
-                if (!isConstructor() && isFinal()) {
+                if (!isConstructor() && getMethodDetails().isFinal()) {
                     context.appendText("final");
                 }
                 context.appendWhiteSpace();
                 context.appendRenderable(generics());
                 context.appendWhiteSpace();
                 if (!isConstructor()) {
-                    context.appendRenderable(returnType());
+                    context.appendRenderable(getMethodDetails().returnType());
                     context.appendWhiteSpace();
-                    context.appendText(getName());
+                    context.appendText(getMethodDetails().name());
                 } else {
                     context.appendText(residence().getNesting().parent().simpleName());
                 }
@@ -121,7 +109,7 @@ public abstract class MethodDefinition
                     }
                 }
                 context.appendWhiteSpace();
-                context.appendRenderable(callable().body());
+                context.appendRenderable(body());
                 context.appendLineBreak();
             }
         };

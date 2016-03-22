@@ -30,11 +30,61 @@
 
 package com.github.sviperll.codemodel;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import javax.annotation.ParametersAreNonnullByDefault;
+
 /**
  *
  * @author Victor Nazarov &lt;asviraspossible@gmail.com&gt;
  */
-public abstract class MethodType implements GenericType<MethodType, MethodDefinition>, Defined<MethodDefinition> {
-    MethodType() {
+@ParametersAreNonnullByDefault
+final class NarrowedExecutableTypeDetails extends ExecutableTypeDetails {
+
+    private final Type type = Type.executable(this);
+    private final RawExecutableTypeDetails erasure;
+    private final List<Type> arguments;
+    NarrowedExecutableTypeDetails(RawExecutableTypeDetails erasure, List<Type> arguments) throws CodeModelException {
+        if (arguments.isEmpty())
+            throw new CodeModelException("Type arguments shouldn't be empty");
+        this.erasure = erasure;
+        this.arguments = Collections.unmodifiableList(new ArrayList<>(arguments));
     }
+
+    @Override
+    public Type erasure() {
+        return erasure.asType();
+    }
+
+    @Override
+    public boolean isNarrowed() {
+        return true;
+    }
+
+    @Override
+    public boolean isRaw() {
+        return false;
+    }
+
+    @Override
+    public Type narrow(List<Type> typeArguments) throws CodeModelException {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public List<Type> typeArguments() {
+        return arguments;
+    }
+
+    @Override
+    public ExecutableDefinition definition() {
+        return erasure.definition();
+    }
+
+    @Override
+    public Type asType() {
+        return type;
+    }
+
 }

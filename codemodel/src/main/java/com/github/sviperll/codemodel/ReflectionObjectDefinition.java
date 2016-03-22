@@ -30,6 +30,7 @@
 
 package com.github.sviperll.codemodel;
 
+import com.github.sviperll.codemodel.render.Renderable;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
@@ -47,7 +48,7 @@ class ReflectionObjectDefinition extends ObjectDefinition {
     private final Residence residence;
     private final Class<?> klass;
     private Collection<ObjectDefinition> innerClasses = null;
-    private Collection<MethodDefinition> methods = null;
+    private Collection<ExecutableDefinition> methods = null;
 
     ReflectionObjectDefinition(CodeModel codeModel, Residence residence, Class<?> klass) {
         this.codeModel = codeModel;
@@ -84,7 +85,7 @@ class ReflectionObjectDefinition extends ObjectDefinition {
     }
 
     @Override
-    public Collection<MethodDefinition> methods() {
+    public Collection<ExecutableDefinition> methods() {
         if (methods == null) {
             methods = new ArrayList<>();
             for (final Method method: klass.getDeclaredMethods()) {
@@ -138,6 +139,11 @@ class ReflectionObjectDefinition extends ObjectDefinition {
     }
 
     @Override
+    public Type toType(Type parentInstanceType) {
+        throw new UnsupportedOperationException("Not supported yet.");
+    }
+
+    @Override
     List<ObjectInitializationElement> staticInitializationElements() {
         return Collections.emptyList();
     }
@@ -148,7 +154,7 @@ class ReflectionObjectDefinition extends ObjectDefinition {
     }
 
     @Override
-    public Collection<MethodDefinition> constructors() {
+    public Collection<ExecutableDefinition> constructors() {
         throw new UnsupportedOperationException("Not supported yet.");
     }
 
@@ -198,8 +204,8 @@ class ReflectionObjectDefinition extends ObjectDefinition {
         }
     }
 
-    private static class ReflectionMethodDefinition extends MethodDefinition {
-
+    private static class ReflectionMethodDefinition extends ExecutableDefinition {
+        private final ReflectedMethodDefinitionDetails details = new ReflectedMethodDefinitionDetails();
         private final CodeModel codeModel;
         private final Residence residence;
         private final Method method;
@@ -216,26 +222,6 @@ class ReflectionObjectDefinition extends ObjectDefinition {
         }
 
         @Override
-        public boolean isFinal() {
-            return (method.getModifiers() & Modifier.FINAL) != 0;
-        }
-
-        @Override
-        public Type returnType() {
-            throw new UnsupportedOperationException("Not supported yet.");
-        }
-
-        @Override
-        public String getName() {
-            return method.getName();
-        }
-
-        @Override
-        CallableDefinition callable() {
-            throw new UnsupportedOperationException("Not supported yet.");
-        }
-
-        @Override
         public Residence residence() {
             throw new UnsupportedOperationException("Not supported yet.");
         }
@@ -246,13 +232,64 @@ class ReflectionObjectDefinition extends ObjectDefinition {
         }
 
         @Override
-        public MethodType toType() {
+        public Type toType() {
             throw new UnsupportedOperationException("Not supported yet.");
         }
 
         @Override
         public CodeModel getCodeModel() {
             return codeModel;
+        }
+
+        @Override
+        public Type toType(Type parentInstanceType) {
+            throw new UnsupportedOperationException("Not supported yet.");
+        }
+
+        @Override
+        public boolean isMethod() {
+            return true;
+        }
+
+        @Override
+        public MethodDefinitionDetails getMethodDetails() {
+            return details;
+        }
+
+        @Override
+        public List<VariableDeclaration> parameters() {
+            throw new UnsupportedOperationException("Not supported yet.");
+        }
+
+        @Override
+        public List<Type> throwsList() {
+            throw new UnsupportedOperationException("Not supported yet.");
+        }
+
+        @Override
+        Renderable body() {
+            throw new UnsupportedOperationException("Not supported yet.");
+        }
+
+        private class ReflectedMethodDefinitionDetails extends MethodDefinitionDetails {
+
+            public ReflectedMethodDefinitionDetails() {
+            }
+
+            @Override
+            public boolean isFinal() {
+                return (method.getModifiers() & Modifier.FINAL) != 0;
+            }
+
+            @Override
+            public Type returnType() {
+                throw new UnsupportedOperationException("Not supported yet.");
+            }
+
+            @Override
+            public String name() {
+                return method.getName();
+            }
         }
     }
 }

@@ -30,11 +30,6 @@
 
 package com.github.sviperll.codemodel;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.TreeMap;
 import javax.annotation.ParametersAreNonnullByDefault;
 
 /**
@@ -42,98 +37,21 @@ import javax.annotation.ParametersAreNonnullByDefault;
  * @author Victor Nazarov &lt;asviraspossible@gmail.com&gt;
  */
 @ParametersAreNonnullByDefault
-public class ConstructorBuilder implements MethodLikeBuilder {
-    private final BuiltDefinition definition = new BuiltDefinition();
-    private final BuiltType type = new BuiltType();
-    private final GenericsConfigBuilder generics = GenericsConfigBuilder.methodDefinition(definition);
-    private final NestedResidenceBuilder residence;
-    private final CallableBuilder callable = new CallableBuilder();
-
+public class ConstructorBuilder extends ExecutableBuilder {
     ConstructorBuilder(NestedResidenceBuilder residence) throws CodeModelException {
+        super(residence);
         if (residence.residence().getNesting().isStatic())
             throw new CodeModelException("Constructor can't be static");
-        this.residence = residence;
     }
 
     @Override
-    public MethodDefinition definition() {
-        return definition;
+    boolean isConstructor() {
+        return true;
     }
 
     @Override
-    public CodeModel getCodeModel() {
-        return residence.getCodeModel();
+    MethodDefinitionDetails getMethodDefinitionDetails() {
+        throw new UnsupportedOperationException();
     }
 
-    @Override
-    public NestedResidenceBuilder residence() {
-        return residence;
-    }
-
-    @Override
-    public GenericsConfigBuilder generics() {
-        return generics;
-    }
-
-    @Override
-    public CallableBuilder callable() {
-        return callable;
-    }
-
-    private class BuiltDefinition extends MethodDefinition {
-
-        @Override
-        public boolean isConstructor() {
-            return false;
-        }
-
-        @Override
-        public String getName() {
-            throw new UnsupportedOperationException();
-        }
-
-        @Override
-        public boolean isFinal() {
-            throw new UnsupportedOperationException();
-        }
-
-        @Override
-        public Type returnType() {
-            throw new UnsupportedOperationException();
-        }
-
-        @Override
-        CallableDefinition callable() {
-            return callable.definition();
-        }
-
-        @Override
-        public Residence residence() {
-            return residence.residence();
-        }
-
-        @Override
-        public GenericsConfig generics() {
-            return generics.generics();
-        }
-
-        @Override
-        public CodeModel getCodeModel() {
-            return residence.getCodeModel();
-        }
-
-        @Override
-        public MethodType toType() {
-            return type;
-        }
-
-
-    }
-    private class BuiltType extends RawMethodType {
-
-        @Override
-        public MethodDefinition definition() {
-            return definition;
-        }
-    }
 }

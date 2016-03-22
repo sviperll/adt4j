@@ -30,9 +30,6 @@
 
 package com.github.sviperll.codemodel;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
 import javax.annotation.ParametersAreNonnullByDefault;
 
 /**
@@ -40,45 +37,22 @@ import javax.annotation.ParametersAreNonnullByDefault;
  * @author Victor Nazarov &lt;asviraspossible@gmail.com&gt;
  */
 @ParametersAreNonnullByDefault
-final class NarrowedMethodType extends MethodType {
+public abstract class MethodDefinitionDetails {
+    /**
+     * @return Wheather method is marked as final
+     * @throws UnsupportedOperationException for constructors
+     */
+    public abstract boolean isFinal();
 
-    private final RawMethodType erasure;
-    private final List<Type> arguments;
-    NarrowedMethodType(RawMethodType erasure, List<Type> arguments) throws CodeModelException {
-        if (arguments.isEmpty())
-            throw new CodeModelException("Type arguments shouldn't be empty");
-        this.erasure = erasure;
-        this.arguments = Collections.unmodifiableList(new ArrayList<>(arguments));
-    }
+    /**
+     * @return Method return type
+     * @throws UnsupportedOperationException for constructors
+     */
+    public abstract Type returnType();
 
-    @Override
-    public MethodType erasure() {
-        return erasure;
-    }
-
-    @Override
-    public boolean isNarrowed() {
-        return true;
-    }
-
-    @Override
-    public boolean isRaw() {
-        return false;
-    }
-
-    @Override
-    public MethodType narrow(List<Type> typeArguments) throws CodeModelException {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public List<Type> typeArguments() {
-        return arguments;
-    }
-
-    @Override
-    public MethodDefinition definition() {
-        return erasure.definition();
-    }
-
+    /**
+     * @return Method name
+     * @throws UnsupportedOperationException for constructors
+     */
+    public abstract String name();
 }

@@ -32,19 +32,19 @@ package com.github.sviperll.codemodel;
 
 import java.util.ArrayList;
 import java.util.List;
-import javax.annotation.ParametersAreNonnullByDefault;
-import javax.annotation.Nonnull;
 
 /**
  *
  * @author Victor Nazarov &lt;asviraspossible@gmail.com&gt;
  */
-abstract class RawMethodType extends MethodType {
-    RawMethodType() {
+abstract class RawExecutableTypeDetails extends ExecutableTypeDetails {
+    private List<Type> typeArguments = null;
+
+    RawExecutableTypeDetails() {
     }
 
     @Override
-    public final MethodType narrow(List<Type> typeArguments) throws CodeModelException {
+    public final Type narrow(List<Type> typeArguments) throws CodeModelException {
         for (Type type: typeArguments) {
             if (type.isVoid())
                 throw new CodeModelException("Void can't be used as a type-argument");
@@ -57,12 +57,12 @@ abstract class RawMethodType extends MethodType {
         }
         if (typeArguments.size() != definition().generics().typeParameters().size())
             throw new CodeModelException("Type-argument list and type-parameter list differ in size");
-        return new NarrowedMethodType(this, typeArguments);
+        return new NarrowedExecutableTypeDetails(this, typeArguments).asType();
     }
 
     @Override
-    public final MethodType erasure() {
-        return this;
+    public final Type erasure() {
+        return this.asType();
     }
 
     @Override
@@ -77,16 +77,18 @@ abstract class RawMethodType extends MethodType {
 
     @Override
     public final List<Type> typeArguments() {
-        List<Type> result = new ArrayList<>(definition().generics().typeParameters().size());
-        for (TypeParameter typeParameter: definition().generics().typeParameters()) {
-            Type lowerRawBound;
-            try {
-                lowerRawBound = definition().generics().lowerRawBound(typeParameter.name());
-            } catch (CodeModelException ex) {
-                lowerRawBound = definition().getCodeModel().objectType();
+        if (typeArguments == null) {
+            typeArguments = new ArrayList<>(definition().generics().typeParameters().size());
+            for (TypeParameter typeParameter: definition().generics().typeParameters()) {
+                Type lowerRawBound;
+                try {
+                    lowerRawBound = definition().generics().lowerRawBound(typeParameter.name());
+                } catch (CodeModelException ex) {
+                    lowerRawBound = definition().getCodeModel().objectType();
+                }
+                typeArguments.add(lowerRawBound);
             }
-            result.add(lowerRawBound);
         }
-        return result;
+        return typeArguments;
     }
 }

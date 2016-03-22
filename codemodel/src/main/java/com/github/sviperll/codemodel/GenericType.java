@@ -31,23 +31,22 @@
 package com.github.sviperll.codemodel;
 
 import java.util.List;
-import javax.annotation.ParametersAreNonnullByDefault;
-import javax.annotation.Nonnull;
 
 /**
  *
  * @author Victor Nazarov &lt;asviraspossible@gmail.com&gt;
  */
-public interface GenericType<T, D> extends Defined<D> {
+public interface GenericType<D> extends Defined<D> {
 
-    T erasure();
+    Type erasure();
 
     boolean isNarrowed();
 
     boolean isRaw();
 
-    T narrow(List<Type> typeArguments) throws CodeModelException;
+    Type narrow(List<Type> typeArguments) throws CodeModelException;
 
     List<Type> typeArguments();
 
+    Type asType();
 }

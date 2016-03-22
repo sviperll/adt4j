@@ -37,39 +37,15 @@ import javax.annotation.ParametersAreNonnullByDefault;
  * @author Victor Nazarov &lt;asviraspossible@gmail.com&gt;
  */
 @ParametersAreNonnullByDefault
-public class MethodBuilder implements MethodLikeBuilder {
-    private final BuiltDefinition definition = new BuiltDefinition();
-    private final BuiltType type = new BuiltType();
-    private final GenericsConfigBuilder generics = GenericsConfigBuilder.methodDefinition(definition);
-    private final NestedResidenceBuilder residence;
+public class MethodBuilder extends ExecutableBuilder {
+    private final BuiltDefinition details = new BuiltDefinition();
     private final String name;
-    private final CallableBuilder callable = new CallableBuilder();
     private boolean isFinal;
     private Type resultType = Type.voidType();
 
     MethodBuilder(NestedResidenceBuilder residence, String name) {
-        this.residence = residence;
+        super(residence);
         this.name = name;
-    }
-
-    @Override
-    public MethodDefinition definition() {
-        return definition;
-    }
-
-    @Override
-    public CodeModel getCodeModel() {
-        return residence.getCodeModel();
-    }
-
-    @Override
-    public NestedResidenceBuilder residence() {
-        return residence;
-    }
-
-    @Override
-    public GenericsConfigBuilder generics() {
-        return generics;
     }
 
     public void setFinal(boolean isFinal) {
@@ -81,19 +57,19 @@ public class MethodBuilder implements MethodLikeBuilder {
     }
 
     @Override
-    public CallableBuilder callable() {
-        return callable;
+    boolean isConstructor() {
+        return false;
     }
 
-    private class BuiltDefinition extends MethodDefinition {
+    @Override
+    MethodDefinitionDetails getMethodDefinitionDetails() {
+        return details;
+    }
+
+    private class BuiltDefinition extends MethodDefinitionDetails {
 
         @Override
-        public boolean isConstructor() {
-            return false;
-        }
-
-        @Override
-        public String getName() {
+        public String name() {
             return name;
         }
 
@@ -107,37 +83,5 @@ public class MethodBuilder implements MethodLikeBuilder {
             return resultType;
         }
 
-        @Override
-        CallableDefinition callable() {
-            return callable.definition();
-        }
-
-        @Override
-        public Residence residence() {
-            return residence.residence();
-        }
-
-        @Override
-        public GenericsConfig generics() {
-            return generics.generics();
-        }
-
-        @Override
-        public CodeModel getCodeModel() {
-            return residence.getCodeModel();
-        }
-
-        @Override
-        public MethodType toType() {
-            return type;
-        }
-    }
-
-    private class BuiltType extends RawMethodType {
-
-        @Override
-        public MethodDefinition definition() {
-            return definition;
-        }
     }
 }

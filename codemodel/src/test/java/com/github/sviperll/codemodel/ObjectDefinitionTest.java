@@ -33,6 +33,7 @@ import com.github.sviperll.codemodel.render.Renderer;
 import com.github.sviperll.codemodel.render.RendererContext;
 import com.github.sviperll.codemodel.render.RendererContexts;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import org.junit.Test;
 import static org.junit.Assert.*;
@@ -46,7 +47,96 @@ public class ObjectDefinitionTest {
      * Test of isFinal method, of class ObjectDefinition.
      */
     @Test
-    public void smoke1() throws CodeModelException {
+    public void smokePrettyPrinting() throws CodeModelException {
+        ObjectDefinition test1 = buildClass();
+        String result =
+            "class Test1<T extends java.lang.Object> extends java.lang.Object {\n" +
+            "    private int field1;\n" +
+            "    protected T field2;\n" +
+            "\n" +
+            "    public int test(int param1) {\n" +
+            "        return param1 + field1;\n" +
+            "    }\n" +
+            "\n" +
+            "    public T test2(T param1) {\n" +
+            "        return field2;\n" +
+            "    }\n" +
+            "}\n";
+        StringBuilder builder = new StringBuilder();
+        RendererContexts.createInstance(builder).appendRenderable(test1);
+        assertEquals(result, builder.toString());
+    }
+
+    @Test
+    public void smokeRawTypes() throws CodeModelException {
+        ObjectDefinition test1 = buildClass();
+        CodeModel codeModel = test1.getCodeModel();
+
+        Type test1Type = test1.toType();
+        assertTrue(test1Type.isObjectType());
+        ObjectTypeDetails details = test1Type.getObjectDetails();
+        assertEquals(test1, details.definition());
+        assertTrue(details.isRaw());
+
+        Type typeArgument = details.typeArguments().get(0);
+        assertTrue(typeArgument.isObjectType());
+        ObjectTypeDetails typeArgumentDetails = typeArgument.getObjectDetails();
+        assertEquals(codeModel.objectType().getObjectDetails().definition(), typeArgumentDetails.definition());
+    }
+
+    @Test
+    public void smokeNarrowedTypes() throws CodeModelException {
+        ObjectDefinition test1 = buildClass();
+        CodeModel codeModel = test1.getCodeModel();
+        ObjectDefinition stringDefinition = codeModel.importTopLevelClass(String.class);
+        Type stringType = stringDefinition.toType();
+
+        Type test1Type = test1.toType().getObjectDetails().narrow(Collections.singletonList(stringType));
+        assertTrue(test1Type.isObjectType());
+        ObjectTypeDetails details = test1Type.getObjectDetails();
+        assertEquals(test1, details.definition());
+        assertFalse(details.isRaw());
+        assertTrue(details.isNarrowed());
+
+        Type typeArgument = details.typeArguments().get(0);
+        assertTrue(typeArgument.isObjectType());
+        ObjectTypeDetails typeArgumentDetails = typeArgument.getObjectDetails();
+        assertEquals(stringDefinition, typeArgumentDetails.definition());
+    }
+
+    @Test
+    public void smokeRawMethodTypes() throws CodeModelException {
+        ObjectDefinition test1 = buildClass();
+        CodeModel codeModel = test1.getCodeModel();
+
+        Type test1Type = test1.toType();
+        List<Type> methods = test1Type.getObjectDetails().methods();
+        for (Type type: methods) {
+            ExecutableTypeDetails executableDetails = type.getExecutableDetails();
+            if (executableDetails.definition().getMethodDetails().name().equals("test2")) {
+                assertEquals(codeModel.objectType().getObjectDetails().definition(), executableDetails.returnType().getObjectDetails().definition());
+            }
+        }
+    }
+
+    @Test
+    public void smokeNarrowedMethodTypes() throws CodeModelException {
+        ObjectDefinition test1 = buildClass();
+        CodeModel codeModel = test1.getCodeModel();
+        ObjectDefinition stringDefinition = codeModel.importTopLevelClass(String.class);
+        Type stringType = stringDefinition.toType();
+
+        Type test1Type = test1.toType().getObjectDetails().narrow(Collections.singletonList(stringType));
+        List<Type> methods = test1Type.getObjectDetails().methods();
+        for (Type type: methods) {
+            ExecutableTypeDetails executableDetails = type.getExecutableDetails();
+            if (executableDetails.definition().getMethodDetails().name().equals("test2")) {
+                assertEquals(stringType.getObjectDetails().definition(), executableDetails.returnType().getObjectDetails().definition());
+            }
+        }
+    }
+
+    private ObjectDefinition buildClass() throws CodeModelException {
         CodeModel codeModel = new CodeModel();
         Package pkg = codeModel.getPackage("com.github.sviperll.codemodel.test");
         ObjectDefinitionBuilder<PackageLevelResidenceBuilder> test1 = pkg.createClass(ObjectKind.CLASS, "Test1");
@@ -58,20 +148,13 @@ public class ObjectDefinitionTest {
         MethodBuilder method = test1.method("test");
         method.residence().setAccessLevel(MemberAccess.PUBLIC);
         method.resultType(Type.intType());
-        method.callable().addParameter(Type.intType(), "param1");
-        method.callable().body().returnStatement(Expression.variable("param1").plus(Expression.variable("field1")));
-
-        String result =
-            "class Test1<T extends java.lang.Object> extends java.lang.Object {\n" +
-            "    private int field1;\n" +
-            "    protected T field2;\n" +
-            "\n" +
-            "    public int test(int param1) {\n" +
-            "        return param1 + field1;\n" +
-            "    }\n" +
-            "}\n";
-        StringBuilder builder = new StringBuilder();
-        RendererContexts.createInstance(builder).appendRenderable(test1.definition());
-        assertEquals(result, builder.toString());
+        method.addParameter(Type.intType(), "param1");
+        method.body().returnStatement(Expression.variable("param1").plus(Expression.variable("field1")));
+        MethodBuilder method2 = test1.method("test2");
+        method2.residence().setAccessLevel(MemberAccess.PUBLIC);
+        method2.resultType(Type.variable("T"));
+        method2.addParameter(Type.variable("T"), "param1");
+        method2.body().returnStatement(Expression.variable("field2"));
+        return test1.definition();
     }
 }

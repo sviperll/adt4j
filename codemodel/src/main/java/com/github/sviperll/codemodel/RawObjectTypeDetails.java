@@ -31,8 +31,6 @@
 package com.github.sviperll.codemodel;
 
 import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
 
 /**
@@ -40,6 +38,7 @@ import java.util.List;
  * @author Victor Nazarov &lt;asviraspossible@gmail.com&gt;
  */
 abstract class RawObjectTypeDetails extends ObjectTypeDetails {
+    private List<Type> typeArguments = null;
 
     RawObjectTypeDetails() {
     }
@@ -83,16 +82,18 @@ abstract class RawObjectTypeDetails extends ObjectTypeDetails {
 
     @Override
     public final List<Type> typeArguments() {
-        List<Type> result = new ArrayList<>(definition().generics().typeParameters().size());
-        for (TypeParameter typeParameter: definition().generics().typeParameters()) {
-            Type lowerRawBound;
-            try {
-                lowerRawBound = definition().generics().lowerRawBound(typeParameter.name());
-            } catch (CodeModelException ex) {
-                lowerRawBound = definition().getCodeModel().objectType();
+        if (typeArguments == null) {
+            typeArguments = new ArrayList<>(definition().generics().typeParameters().size());
+            for (TypeParameter typeParameter: definition().generics().typeParameters()) {
+                Type lowerRawBound;
+                try {
+                    lowerRawBound = definition().generics().lowerRawBound(typeParameter.name());
+                } catch (CodeModelException ex) {
+                    lowerRawBound = definition().getCodeModel().objectType();
+                }
+                typeArguments.add(lowerRawBound);
             }
-            result.add(lowerRawBound);
         }
-        return result;
+        return typeArguments;
     }
 }

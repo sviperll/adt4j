@@ -45,7 +45,7 @@ import javax.annotation.ParametersAreNonnullByDefault;
  */
 @ParametersAreNonnullByDefault
 public abstract class ObjectDefinition
-        implements Settled, Model, GenericDefinition, TypeDefinition<Type>, Renderable {
+        implements Settled, Model, GenericDefinition, Renderable, TypeDefinition {
 
     ObjectDefinition() {
     }
@@ -59,9 +59,9 @@ public abstract class ObjectDefinition
 
     public abstract List<Type> implementsInterfaces();
 
-    public abstract Collection<MethodDefinition> constructors();
+    public abstract Collection<ExecutableDefinition> constructors();
 
-    public abstract Collection<MethodDefinition> methods();
+    public abstract Collection<ExecutableDefinition> methods();
 
     public abstract Collection<ObjectDefinition> innerClasses();
 
@@ -130,7 +130,7 @@ public abstract class ObjectDefinition
                     nestedContext.appendRenderable(element);
                 }
 
-                for (MethodDefinition method: methods()) {
+                for (ExecutableDefinition method: methods()) {
                     if (method.residence().getNesting().isStatic()) {
                         nestedContext.appendEmptyLine();
                         nestedContext.appendRenderable(method);
@@ -141,12 +141,12 @@ public abstract class ObjectDefinition
                     nestedContext.appendRenderable(element);
                 }
 
-                for (MethodDefinition constructor: constructors()) {
+                for (ExecutableDefinition constructor: constructors()) {
                     nestedContext.appendEmptyLine();
                     nestedContext.appendRenderable(constructor);
                 }
 
-                for (MethodDefinition method: methods()) {
+                for (ExecutableDefinition method: methods()) {
                     if (!method.residence().getNesting().isStatic()) {
                         nestedContext.appendEmptyLine();
                         nestedContext.appendRenderable(method);

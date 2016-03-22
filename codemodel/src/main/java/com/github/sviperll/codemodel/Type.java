@@ -110,25 +110,74 @@ public abstract class Type implements Renderable {
         return new PrimitiveType(details);
     }
 
+    static Type executable(ExecutableTypeDetails details) {
+        return new ExecutableType(details);
+    }
+
     private Type() {
     }
 
     public abstract Kind kind();
 
-    public abstract boolean isVoid();
-    public abstract boolean isObjectType();
-    public abstract boolean isPrimitive();
-    public abstract boolean isArray();
-    public abstract boolean isTypeVariable();
-    public abstract boolean isWildcard();
-    public abstract boolean isIntersection();
+    public final boolean isVoid() {
+        return kind() == Kind.VOID;
+    }
 
-    public abstract ObjectTypeDetails getObjectDetails();
-    public abstract WildcardTypeDetails getWildcardDetails();
-    public abstract PrimitiveTypeDetails getPrimitiveDetails();
-    public abstract ArrayTypeDetails getArrayDetails();
-    public abstract TypeVariableDetails getVariableDetails();
-    public abstract IntersectionTypeDetails getIntersectionDetails();
+    public final boolean isObjectType() {
+        return kind() == Kind.OBJECT;
+    }
+
+    public final boolean isPrimitive() {
+        return kind() == Kind.PRIMITIVE;
+    }
+
+    public final boolean isArray() {
+        return kind() == Kind.ARRAY;
+    }
+
+    public final boolean isTypeVariable() {
+        return kind() == Kind.TYPE_VARIABLE;
+    }
+
+    public final boolean isWildcard() {
+        return kind() == Kind.WILDCARD;
+    }
+
+    public final boolean isIntersection() {
+        return kind() == Kind.INTERSECTION;
+    }
+
+    public final boolean isExecutable() {
+        return kind() == Kind.EXECUTABLE;
+    }
+
+    public ObjectTypeDetails getObjectDetails() {
+        throw new UnsupportedOperationException();
+    }
+
+    public WildcardTypeDetails getWildcardDetails() {
+        throw new UnsupportedOperationException();
+    }
+
+    public PrimitiveTypeDetails getPrimitiveDetails() {
+        throw new UnsupportedOperationException();
+    }
+
+    public ArrayTypeDetails getArrayDetails() {
+        throw new UnsupportedOperationException();
+    }
+
+    public TypeVariableDetails getVariableDetails() {
+        throw new UnsupportedOperationException();
+    }
+
+    public IntersectionTypeDetails getIntersectionDetails() {
+        throw new UnsupportedOperationException();
+    }
+
+    public ExecutableTypeDetails getExecutableDetails() {
+        throw new UnsupportedOperationException();
+    }
 
     public boolean containsWildcards() {
         throw new UnsupportedOperationException("Not implemented yet");
@@ -191,82 +240,16 @@ public abstract class Type implements Renderable {
     }
 
     public enum Kind {
-        VOID, OBJECT, PRIMITIVE, ARRAY, TYPE_VARIABLE, WILDCARD, INTERSECTION
+        VOID, OBJECT, PRIMITIVE, ARRAY, TYPE_VARIABLE, WILDCARD, INTERSECTION, EXECUTABLE
     }
 
     private static class VoidType extends Type {
-
         @Override
         public Kind kind() {
             return Kind.VOID;
         }
-
-        @Override
-        public boolean isVoid() {
-            return true;
-        }
-
-        @Override
-        public boolean isObjectType() {
-            return false;
-        }
-
-        @Override
-        public boolean isPrimitive() {
-            return false;
-        }
-
-        @Override
-        public boolean isArray() {
-            return false;
-        }
-
-        @Override
-        public boolean isTypeVariable() {
-            return false;
-        }
-
-        @Override
-        public boolean isWildcard() {
-            return false;
-        }
-
-        @Override
-        public boolean isIntersection() {
-            return false;
-        }
-
-        @Override
-        public ObjectTypeDetails getObjectDetails() {
-            throw new UnsupportedOperationException();
-        }
-
-        @Override
-        public WildcardTypeDetails getWildcardDetails() {
-            throw new UnsupportedOperationException();
-        }
-
-        @Override
-        public PrimitiveTypeDetails getPrimitiveDetails() {
-            throw new UnsupportedOperationException();
-        }
-
-        @Override
-        public ArrayTypeDetails getArrayDetails() {
-            throw new UnsupportedOperationException();
-        }
-
-        @Override
-        public TypeVariableDetails getVariableDetails() {
-            throw new UnsupportedOperationException();
-        }
-
-        @Override
-        public IntersectionTypeDetails getIntersectionDetails() {
-            throw new UnsupportedOperationException();
-        }
-
     }
+
     private static class TypeVariable extends Type {
 
         private final TypeVariableDetails details;
@@ -281,68 +264,8 @@ public abstract class Type implements Renderable {
         }
 
         @Override
-        public boolean isVoid() {
-            return false;
-        }
-
-        @Override
-        public boolean isObjectType() {
-            return false;
-        }
-
-        @Override
-        public boolean isPrimitive() {
-            return false;
-        }
-
-        @Override
-        public boolean isArray() {
-            return false;
-        }
-
-        @Override
-        public boolean isTypeVariable() {
-            return true;
-        }
-
-        @Override
-        public boolean isWildcard() {
-            return false;
-        }
-
-        @Override
-        public boolean isIntersection() {
-            return false;
-        }
-
-        @Override
-        public ObjectTypeDetails getObjectDetails() {
-            throw new UnsupportedOperationException();
-        }
-
-        @Override
-        public WildcardTypeDetails getWildcardDetails() {
-            throw new UnsupportedOperationException();
-        }
-
-        @Override
-        public PrimitiveTypeDetails getPrimitiveDetails() {
-            throw new UnsupportedOperationException();
-        }
-
-        @Override
-        public ArrayTypeDetails getArrayDetails() {
-            throw new UnsupportedOperationException();
-        }
-
-        @Override
         public TypeVariableDetails getVariableDetails() {
             return details;
-        }
-
-        @Override
-        public IntersectionTypeDetails getIntersectionDetails() {
-            throw new UnsupportedOperationException();
         }
     }
     private static class IntersectionType extends Type {
@@ -356,66 +279,6 @@ public abstract class Type implements Renderable {
         @Override
         public Kind kind() {
             return Kind.INTERSECTION;
-        }
-
-        @Override
-        public boolean isVoid() {
-            return false;
-        }
-
-        @Override
-        public boolean isObjectType() {
-            return false;
-        }
-
-        @Override
-        public boolean isPrimitive() {
-            return false;
-        }
-
-        @Override
-        public boolean isArray() {
-            return false;
-        }
-
-        @Override
-        public boolean isTypeVariable() {
-            return false;
-        }
-
-        @Override
-        public boolean isWildcard() {
-            return false;
-        }
-
-        @Override
-        public boolean isIntersection() {
-            return true;
-        }
-
-        @Override
-        public ObjectTypeDetails getObjectDetails() {
-            throw new UnsupportedOperationException();
-        }
-
-        @Override
-        public WildcardTypeDetails getWildcardDetails() {
-            throw new UnsupportedOperationException();
-        }
-
-        @Override
-        public PrimitiveTypeDetails getPrimitiveDetails() {
-            throw new UnsupportedOperationException();
-        }
-
-        @Override
-        public ArrayTypeDetails getArrayDetails() {
-            throw new UnsupportedOperationException();
-        }
-
-        @Override
-        public TypeVariableDetails getVariableDetails() {
-            throw new UnsupportedOperationException();
         }
 
         @Override
@@ -438,68 +301,8 @@ public abstract class Type implements Renderable {
         }
 
         @Override
-        public boolean isVoid() {
-            return false;
-        }
-
-        @Override
-        public boolean isObjectType() {
-            return true;
-        }
-
-        @Override
-        public boolean isPrimitive() {
-            return false;
-        }
-
-        @Override
-        public boolean isArray() {
-            return false;
-        }
-
-        @Override
-        public boolean isTypeVariable() {
-            return false;
-        }
-
-        @Override
-        public boolean isWildcard() {
-            return false;
-        }
-
-        @Override
-        public boolean isIntersection() {
-            return false;
-        }
-
-        @Override
         public ObjectTypeDetails getObjectDetails() {
             return details;
-        }
-
-        @Override
-        public WildcardTypeDetails getWildcardDetails() {
-            throw new UnsupportedOperationException();
-        }
-
-        @Override
-        public PrimitiveTypeDetails getPrimitiveDetails() {
-            throw new UnsupportedOperationException();
-        }
-
-        @Override
-        public ArrayTypeDetails getArrayDetails() {
-            throw new UnsupportedOperationException();
-        }
-
-        @Override
-        public TypeVariableDetails getVariableDetails() {
-            throw new UnsupportedOperationException();
-        }
-
-        @Override
-        public IntersectionTypeDetails getIntersectionDetails() {
-            throw new UnsupportedOperationException();
         }
     }
 
@@ -515,71 +318,26 @@ public abstract class Type implements Renderable {
         public Kind kind() {
             return Kind.PRIMITIVE;
         }
-
-        @Override
-        public boolean isVoid() {
-            return false;
-        }
-
-        @Override
-        public boolean isObjectType() {
-            return false;
-        }
-
-        @Override
-        public boolean isPrimitive() {
-            return true;
-        }
-
-        @Override
-        public boolean isArray() {
-            return false;
-        }
-
-        @Override
-        public boolean isTypeVariable() {
-            return false;
-        }
-
-        @Override
-        public boolean isWildcard() {
-            return false;
-        }
-
-        @Override
-        public boolean isIntersection() {
-            return false;
-        }
-
-        @Override
-        public ObjectTypeDetails getObjectDetails() {
-            throw new UnsupportedOperationException();
-        }
-
-        @Override
-        public WildcardTypeDetails getWildcardDetails() {
-            throw new UnsupportedOperationException();
-        }
-
         @Override
         public PrimitiveTypeDetails getPrimitiveDetails() {
             return details;
         }
+    }
+    private static class ExecutableType extends Type {
 
-        @Override
-        public ArrayTypeDetails getArrayDetails() {
-            throw new UnsupportedOperationException();
+        private final ExecutableTypeDetails details;
+
+        public ExecutableType(ExecutableTypeDetails details) {
+            this.details = details;
         }
 
         @Override
-        public TypeVariableDetails getVariableDetails() {
-            throw new UnsupportedOperationException();
+        public Kind kind() {
+            return Kind.EXECUTABLE;
         }
-
         @Override
-        public IntersectionTypeDetails getIntersectionDetails() {
-            throw new UnsupportedOperationException();
+        public ExecutableTypeDetails getExecutableDetails() {
+            return details;
         }
     }
-
 }

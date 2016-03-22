@@ -30,12 +30,22 @@
 
 package com.github.sviperll.codemodel;
 
+import java.util.List;
+import javax.annotation.ParametersAreNonnullByDefault;
+import javax.annotation.Nonnull;
+
 /**
  *
  * @author Victor Nazarov &lt;asviraspossible@gmail.com&gt;
  */
-public interface MethodLikeBuilder extends GenericDefinitionBuilder, Model, SettledBuilder<NestedResidenceBuilder> {
-    MethodDefinition definition();
+@ParametersAreNonnullByDefault
+public abstract class ExecutableTypeDetails implements GenericType<ExecutableDefinition> {
+    ExecutableTypeDetails() {
+    }
 
-    CallableBuilder callable();
+    public abstract List<VariableDeclaration> parameters();
+
+    public abstract List<Type> throwsList();
+
+    public abstract Type returnType();
 }

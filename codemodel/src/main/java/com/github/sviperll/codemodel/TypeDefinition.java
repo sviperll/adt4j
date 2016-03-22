@@ -30,14 +30,14 @@
 
 package com.github.sviperll.codemodel;
 
-import javax.annotation.ParametersAreNonnullByDefault;
-import javax.annotation.Nonnull;
-
 /**
  *
  * @author Victor Nazarov &lt;asviraspossible@gmail.com&gt;
  */
-@ParametersAreNonnullByDefault
-public interface TypeDefinition<T> {
-    T toType();
+public interface TypeDefinition extends Settled {
+
+    Type toType();
+
+    Type toType(Type parentInstanceType);
+
 }

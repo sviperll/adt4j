@@ -48,18 +48,19 @@ public final class ObjectDefinitionBuilder<B extends ResidenceBuilder>
         implements Model, SettledBuilder<B>, GenericDefinitionBuilder {
     private final BuiltDefinition definition = new BuiltDefinition();
     private final GenericsConfigBuilder generics = GenericsConfigBuilder.objectDefinition(definition);
-    private final BuiltTypeDetails typeDetails = new BuiltTypeDetails();
-    private final Type type = Type.createObjectType(typeDetails);
-    private final B residence;
-    private final String name;
-    private final ObjectKind kind;
-    private final List<MethodDefinition> constructors = new ArrayList<>();
-    private final List<MethodDefinition> methods = new ArrayList<>();
+    private final List<ExecutableDefinition> constructors = new ArrayList<>();
+    private final List<ExecutableDefinition> methods = new ArrayList<>();
     private final Map<String, FieldDeclaration> fields = new TreeMap<>();
     private final List<ObjectInitializationElement> staticInitOrdering = new ArrayList<>();
     private final List<ObjectInitializationElement> instanceInitOrdering = new ArrayList<>();
     private final Map<String, ObjectDefinition> innerClasses = new TreeMap<>();
     private final List<Type> interfaces = new ArrayList<>();
+
+    private final TypeContainer typeContainer;
+    private final B residence;
+    private final String name;
+    private final ObjectKind kind;
+
     private boolean isFinal = false;
     private ObjectTypeDetails extendsClass = null;
 
@@ -68,6 +69,11 @@ public final class ObjectDefinitionBuilder<B extends ResidenceBuilder>
                 && residence.residence().isNested()
                 && !residence.residence().getNesting().isStatic()) {
             throw new CodeModelException("Interface, enum or annotation should always be static when nested in other class");
+        }
+        if (residence.residence().isPackageLevel() || residence.residence().getNesting().isStatic()) {
+            typeContainer = new TypeContainer(null);
+        } else {
+            typeContainer = null;
         }
         this.residence = residence;
         this.name = name;
@@ -182,7 +188,7 @@ public final class ObjectDefinitionBuilder<B extends ResidenceBuilder>
     private class BuiltDefinition extends ObjectDefinition {
 
         @Override
-        public Collection<MethodDefinition> methods() {
+        public Collection<ExecutableDefinition> methods() {
             return Collections.unmodifiableList(methods);
         }
 
@@ -233,7 +239,21 @@ public final class ObjectDefinitionBuilder<B extends ResidenceBuilder>
 
         @Override
         public Type toType() {
-            return type;
+            if (residence.residence().isPackageLevel() || residence.residence().getNesting().isStatic()) {
+                return typeContainer.type;
+            } else {
+                throw new UnsupportedOperationException("Parent instance type is required");
+            }
+        }
+
+        @Override
+        public Type toType(Type parentInstanceType) {
+            if (residence.residence().isPackageLevel() || residence.residence().getNesting().isStatic()) {
+                throw new UnsupportedOperationException("Type is static memeber, no parent is expected.");
+            } else {
+                TypeContainer typeContainer = new TypeContainer(parentInstanceType.getObjectDetails());
+                return typeContainer.type;
+            }
         }
 
         @Override
@@ -252,20 +272,31 @@ public final class ObjectDefinitionBuilder<B extends ResidenceBuilder>
         }
 
         @Override
-        public Collection<MethodDefinition> constructors() {
+        public Collection<ExecutableDefinition> constructors() {
             return constructors;
         }
+
     }
 
-    private class BuiltTypeDetails extends RawObjectTypeDetails {
-        @Override
-        public ObjectDefinition definition() {
-            return definition;
+    private class TypeContainer {
+        private final ObjectTypeDetails parentInstanceType;
+        private Type type = Type.createObjectType(new BuiltTypeDetails());
+
+        TypeContainer(ObjectTypeDetails parentInstanceType) {
+            this.parentInstanceType = parentInstanceType;
         }
 
-        @Override
-        public Type asType() {
-            return type;
+        private class BuiltTypeDetails extends RawObjectTypeDetails {
+            @Override
+            public ObjectDefinition definition() {
+                return definition;
+            }
+
+            @Override
+            public Type asType() {
+                return type;
+            }
         }
     }
+
 }
