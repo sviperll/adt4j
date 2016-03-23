@@ -30,9 +30,12 @@
 
 package com.github.sviperll.codemodel;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  *
@@ -57,5 +60,17 @@ public class IntersectionTypeDetails {
     }
     public Type asType() {
         return type;
+    }
+
+    IntersectionTypeDetails inEnvironment(TypeEnvironment environment) {
+        Collection<Type> inEnvironment = new ArrayList<>(bounds.size());
+        for (Type bound: bounds) {
+            inEnvironment.add(bound.inEnvironment(environment));
+        }
+        try {
+            return new IntersectionTypeDetails(inEnvironment);
+        } catch (CodeModelException ex) {
+            throw new RuntimeException("Should never happen because of type-level preservation under substitution", ex);
+        }
     }
 }

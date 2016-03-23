@@ -55,7 +55,7 @@ public final class CodeModel {
     public Type objectType() {
         if (objectType == null) {
             try {
-                objectType = importTopLevelClass(Object.class).toType();
+                objectType = importTopLevelClass(Object.class).rawType();
             } catch (CodeModelException ex) {
                 throw new RuntimeException(ex);
             }
@@ -81,7 +81,7 @@ public final class CodeModel {
             return topLevelPackage.getChildPackageBySuffix(qualifiedName.substring(index + 1));
     }
 
-    public ObjectDefinitionBuilder<PackageLevelResidenceBuilder> createDefaultPackageClass(ObjectKind kind, String name) throws CodeModelException {
+    public ObjectBuilder<PackageLevelBuilder> createDefaultPackageClass(ObjectKind kind, String name) throws CodeModelException {
         return defaultPackage.createClass(kind, name);
     }
 

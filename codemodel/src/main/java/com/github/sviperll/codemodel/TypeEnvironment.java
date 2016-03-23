@@ -30,23 +30,66 @@
 
 package com.github.sviperll.codemodel;
 
-import java.util.List;
+import java.util.Collections;
+import java.util.Map;
+import java.util.TreeMap;
+import javax.annotation.ParametersAreNonnullByDefault;
 
 /**
  *
  * @author Victor Nazarov &lt;asviraspossible@gmail.com&gt;
  */
-public interface GenericType<D> extends Defined<D> {
+@ParametersAreNonnullByDefault
+class TypeEnvironment {
 
-    Type erasure();
+    static Builder createBuilder(TypeEnvironment parent) {
+        return new Builder(parent);
+    }
 
-    boolean isNarrowed();
+    static Builder createBuilder() {
+        return new Builder();
+    }
+    private final Map<String, Type> map;
+    private final TypeEnvironment parent;
 
-    boolean isRaw();
+    private TypeEnvironment(Map<String, Type> map, TypeEnvironment parent) {
+        this.map = map;
+        this.parent = parent;
+    }
 
-    Type narrow(List<Type> typeArguments) throws CodeModelException;
+    Type get(String name) {
+        Type value = map.get(name);
+        if (value != null || parent == null)
+            return value;
+        else
+            return parent.get(name);
+    }
 
-    List<Type> typeArguments();
+    static class Builder {
+        private final TypeEnvironment parent;
+        private Map<String, Type> map = new TreeMap<>();
+        private boolean copyOnWrite = false;
 
-    Type asType();
+        public Builder() {
+            this(null);
+        }
+
+        private Builder(TypeEnvironment parent) {
+            this.parent = parent;
+        }
+
+        void put(String name, Type typeArgument) {
+            if (copyOnWrite) {
+                map = new TreeMap<>(map);
+                copyOnWrite = false;
+            }
+            map.put(name, typeArgument);
+        }
+
+        TypeEnvironment build() {
+            map = Collections.unmodifiableMap(map);
+            copyOnWrite = true;
+            return new TypeEnvironment(map, parent);
+        }
+    }
 }

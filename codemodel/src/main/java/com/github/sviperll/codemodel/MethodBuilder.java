@@ -43,7 +43,7 @@ public class MethodBuilder extends ExecutableBuilder {
     private boolean isFinal;
     private Type resultType = Type.voidType();
 
-    MethodBuilder(NestedResidenceBuilder residence, String name) {
+    MethodBuilder(NestingBuilder residence, String name) {
         super(residence);
         this.name = name;
     }

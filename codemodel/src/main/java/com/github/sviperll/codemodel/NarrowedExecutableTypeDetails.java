@@ -87,4 +87,24 @@ final class NarrowedExecutableTypeDetails extends ExecutableTypeDetails {
         return type;
     }
 
+    @Override
+    public Type enclosingType() {
+        return erasure.enclosingType();
+    }
+
+    @Override
+    public List<VariableDeclaration> parameters() {
+        throw new UnsupportedOperationException("Not supported yet.");
+    }
+
+    @Override
+    public List<Type> throwsList() {
+        throw new UnsupportedOperationException("Not supported yet.");
+    }
+
+    @Override
+    public Type returnType() {
+        throw new UnsupportedOperationException("Not supported yet.");
+    }
+
 }

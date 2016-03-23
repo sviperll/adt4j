@@ -32,14 +32,13 @@ package com.github.sviperll.codemodel;
 
 import java.util.List;
 import javax.annotation.ParametersAreNonnullByDefault;
-import javax.annotation.Nonnull;
 
 /**
  *
  * @author Victor Nazarov &lt;asviraspossible@gmail.com&gt;
  */
 @ParametersAreNonnullByDefault
-public abstract class ExecutableTypeDetails implements GenericType<ExecutableDefinition> {
+public abstract class ExecutableTypeDetails extends GenericTypeDetails<ExecutableDefinition> {
     ExecutableTypeDetails() {
     }
 
@@ -48,4 +47,8 @@ public abstract class ExecutableTypeDetails implements GenericType<ExecutableDef
     public abstract List<Type> throwsList();
 
     public abstract Type returnType();
+
+    ExecutableTypeDetails inEnvironment(TypeEnvironment environment) {
+        throw new UnsupportedOperationException("Not supported yet.");
+    }
 }

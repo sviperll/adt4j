@@ -29,25 +29,9 @@
  */
 package com.github.sviperll.codemodel;
 
-import com.github.sviperll.codemodel.render.Renderer;
 import com.github.sviperll.codemodel.render.RendererContexts;
 import org.junit.Test;
 import static org.junit.Assert.*;
-import static com.github.sviperll.codemodel.Expression.literal;
-import static com.github.sviperll.codemodel.Expression.literal;
-import static com.github.sviperll.codemodel.Expression.literal;
-import static com.github.sviperll.codemodel.Expression.literal;
-import static com.github.sviperll.codemodel.Expression.literal;
-import static com.github.sviperll.codemodel.Expression.literal;
-import static com.github.sviperll.codemodel.Expression.literal;
-import static com.github.sviperll.codemodel.Expression.literal;
-import static com.github.sviperll.codemodel.Expression.literal;
-import static com.github.sviperll.codemodel.Expression.literal;
-import static com.github.sviperll.codemodel.Expression.literal;
-import static com.github.sviperll.codemodel.Expression.literal;
-import static com.github.sviperll.codemodel.Expression.literal;
-import static com.github.sviperll.codemodel.Expression.literal;
-import static com.github.sviperll.codemodel.Expression.literal;
 import static com.github.sviperll.codemodel.Expression.literal;
 
 /**

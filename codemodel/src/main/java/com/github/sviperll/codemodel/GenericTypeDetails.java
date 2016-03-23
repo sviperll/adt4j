@@ -30,55 +30,55 @@
 
 package com.github.sviperll.codemodel;
 
-import javax.annotation.ParametersAreNonnullByDefault;
+import java.util.Iterator;
+import java.util.List;
+import javax.annotation.Nullable;
 
 /**
  *
  * @author Victor Nazarov &lt;asviraspossible@gmail.com&gt;
+ * @param <D>
  */
-@ParametersAreNonnullByDefault
-public final class NestedResidenceBuilder implements ResidenceBuilder {
+public abstract class GenericTypeDetails<D extends GenericDefinition> {
+    public abstract D definition();
 
-    private final BuiltClassMembership residence = new BuiltClassMembership();
-    private final ObjectDefinition parent;
-    private final boolean isStatic;
-    private MemberAccess accessLevel = MemberAccess.PACKAGE;
+    public abstract Type erasure();
 
-    NestedResidenceBuilder(boolean isStatic, ObjectDefinition parent) throws CodeModelException {
-        if (isStatic && parent.residence().isNested() && !parent.residence().getNesting().isStatic())
-            throw new CodeModelException("Can't create static member in non-static class");
-        this.isStatic = isStatic;
-        this.parent = parent;
-    }
+    public abstract boolean isNarrowed();
 
-    public void setAccessLevel(MemberAccess accessLevel) {
-        this.accessLevel = accessLevel;
-    }
+    public abstract boolean isRaw();
 
-    @Override
-    public Residence residence() {
-        return Residence.nested(residence);
-    }
+    public abstract Type narrow(List<Type> typeArguments) throws CodeModelException;
 
-    @Override
-    public CodeModel getCodeModel() {
-        return parent.getCodeModel();
-    }
+    public abstract List<Type> typeArguments();
 
-    private class BuiltClassMembership implements Nesting {
-        @Override
-        public MemberAccess accessLevel() {
-            return accessLevel;
+    public abstract Type asType();
+
+    /**
+     * Type of enclosing definition.
+     * Current type definition should be enclosed in some generic definition.
+     * Enclosed definition is inner-class or non-static method.
+     * @return Type of enclosing definition or null for top-level or static members
+     */
+    @Nullable
+    public abstract Type enclosingType();
+
+    final TypeEnvironment definitionEnvironment() {
+        Type enclosingType = enclosingType();
+        TypeEnvironment.Builder builder;
+        if (enclosingType == null)
+            builder = TypeEnvironment.createBuilder();
+        else
+            builder = TypeEnvironment.createBuilder(enclosingType.getGenericTypeDetails().definitionEnvironment());
+        GenericDefinition definition = definition();
+        Iterator<TypeParameter> typeParameters = definition.generics().typeParameters().iterator();
+        Iterator<Type> typeArguments = typeArguments().iterator();
+        while (typeParameters.hasNext() && typeArguments.hasNext()) {
+            TypeParameter typeParameter = typeParameters.next();
+            Type typeArgument = typeArguments.next();
+            builder.put(typeParameter.name(), typeArgument);
         }
-
-        @Override
-        public boolean isStatic() {
-            return isStatic;
-        }
-
-        @Override
-        public ObjectDefinition parent() {
-            return parent;
-        }
+        return builder.build();
     }
+
 }

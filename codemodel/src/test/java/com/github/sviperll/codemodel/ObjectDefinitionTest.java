@@ -29,10 +29,7 @@
  */
 package com.github.sviperll.codemodel;
 
-import com.github.sviperll.codemodel.render.Renderer;
-import com.github.sviperll.codemodel.render.RendererContext;
 import com.github.sviperll.codemodel.render.RendererContexts;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import org.junit.Test;
@@ -72,7 +69,7 @@ public class ObjectDefinitionTest {
         ObjectDefinition test1 = buildClass();
         CodeModel codeModel = test1.getCodeModel();
 
-        Type test1Type = test1.toType();
+        Type test1Type = test1.rawType();
         assertTrue(test1Type.isObjectType());
         ObjectTypeDetails details = test1Type.getObjectDetails();
         assertEquals(test1, details.definition());
@@ -89,9 +86,9 @@ public class ObjectDefinitionTest {
         ObjectDefinition test1 = buildClass();
         CodeModel codeModel = test1.getCodeModel();
         ObjectDefinition stringDefinition = codeModel.importTopLevelClass(String.class);
-        Type stringType = stringDefinition.toType();
+        Type stringType = stringDefinition.rawType();
 
-        Type test1Type = test1.toType().getObjectDetails().narrow(Collections.singletonList(stringType));
+        Type test1Type = test1.rawType().getObjectDetails().narrow(Collections.singletonList(stringType));
         assertTrue(test1Type.isObjectType());
         ObjectTypeDetails details = test1Type.getObjectDetails();
         assertEquals(test1, details.definition());
@@ -109,7 +106,7 @@ public class ObjectDefinitionTest {
         ObjectDefinition test1 = buildClass();
         CodeModel codeModel = test1.getCodeModel();
 
-        Type test1Type = test1.toType();
+        Type test1Type = test1.rawType();
         List<Type> methods = test1Type.getObjectDetails().methods();
         for (Type type: methods) {
             ExecutableTypeDetails executableDetails = type.getExecutableDetails();
@@ -124,9 +121,9 @@ public class ObjectDefinitionTest {
         ObjectDefinition test1 = buildClass();
         CodeModel codeModel = test1.getCodeModel();
         ObjectDefinition stringDefinition = codeModel.importTopLevelClass(String.class);
-        Type stringType = stringDefinition.toType();
+        Type stringType = stringDefinition.rawType();
 
-        Type test1Type = test1.toType().getObjectDetails().narrow(Collections.singletonList(stringType));
+        Type test1Type = test1.rawType().getObjectDetails().narrow(Collections.singletonList(stringType));
         List<Type> methods = test1Type.getObjectDetails().methods();
         for (Type type: methods) {
             ExecutableTypeDetails executableDetails = type.getExecutableDetails();
@@ -139,7 +136,7 @@ public class ObjectDefinitionTest {
     private ObjectDefinition buildClass() throws CodeModelException {
         CodeModel codeModel = new CodeModel();
         Package pkg = codeModel.getPackage("com.github.sviperll.codemodel.test");
-        ObjectDefinitionBuilder<PackageLevelResidenceBuilder> test1 = pkg.createClass(ObjectKind.CLASS, "Test1");
+        ObjectBuilder<PackageLevelBuilder> test1 = pkg.createClass(ObjectKind.CLASS, "Test1");
         test1.generics().typeParameter("T");
         FieldBuilder field1 = test1.field(Type.intType(), "field1");
         field1.residence().setAccessLevel(MemberAccess.PRIVATE);

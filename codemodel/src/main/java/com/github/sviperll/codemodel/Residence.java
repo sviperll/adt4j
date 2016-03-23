@@ -41,7 +41,7 @@ import java.util.Locale;
  */
 public abstract class Residence implements Renderable {
 
-    static Residence packageLevel(final PackageLevelResidenceDetails details) {
+    static Residence packageLevel(final PackageLevelDetails details) {
         return new PackageLevelResidence(details);
     }
 
@@ -54,7 +54,7 @@ public abstract class Residence implements Renderable {
     public abstract boolean isPackageLevel();
     public abstract boolean isNested();
 
-    public abstract PackageLevelResidenceDetails getPackageLevelDetails();
+    public abstract PackageLevelDetails getPackageLevelDetails();
     public abstract Nesting getNesting();
 
     public Package getPackage() {
@@ -89,9 +89,9 @@ public abstract class Residence implements Renderable {
 
     private static class PackageLevelResidence extends Residence {
 
-        private final PackageLevelResidenceDetails details;
+        private final PackageLevelDetails details;
 
-        public PackageLevelResidence(PackageLevelResidenceDetails details) {
+        public PackageLevelResidence(PackageLevelDetails details) {
             this.details = details;
         }
 
@@ -106,7 +106,7 @@ public abstract class Residence implements Renderable {
         }
 
         @Override
-        public PackageLevelResidenceDetails getPackageLevelDetails() {
+        public PackageLevelDetails getPackageLevelDetails() {
             return details;
         }
 
@@ -135,7 +135,7 @@ public abstract class Residence implements Renderable {
         }
 
         @Override
-        public PackageLevelResidenceDetails getPackageLevelDetails() {
+        public PackageLevelDetails getPackageLevelDetails() {
             throw new UnsupportedOperationException();
         }
 

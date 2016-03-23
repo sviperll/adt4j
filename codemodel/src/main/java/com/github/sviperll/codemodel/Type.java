@@ -114,7 +114,36 @@ public abstract class Type implements Renderable {
         return new ExecutableType(details);
     }
 
+    static Type array(ArrayTypeDetails details) {
+        return new ArrayType(details);
+    }
+
+    static Type wildcard(WildcardTypeDetails details) {
+        return new WildcardType(details);
+    }
+
     private Type() {
+    }
+
+    Type inEnvironment(TypeEnvironment environment) {
+        if (isTypeVariable()) {
+            Type replacement = environment.get(getVariableDetails().name());
+            if (replacement != null)
+                return replacement;
+            else
+                return this;
+        } else if (isObjectType()) {
+            return getObjectDetails().inEnvironment(environment).asType();
+        } else if (isArray()) {
+            return getArrayDetails().inEnvironment(environment).asType();
+        } else if (isExecutable()) {
+            return getExecutableDetails().inEnvironment(environment).asType();
+        } else if (isIntersection()) {
+            return getIntersectionDetails().inEnvironment(environment).asType();
+        } else if (isWildcard()) {
+            return getWildcardDetails().inEnvironment(environment).asType();
+        } else
+            return this;
     }
 
     public abstract Kind kind();
@@ -152,31 +181,40 @@ public abstract class Type implements Renderable {
     }
 
     public ObjectTypeDetails getObjectDetails() {
-        throw new UnsupportedOperationException();
+        throw new UnsupportedOperationException("Object type expected");
     }
 
     public WildcardTypeDetails getWildcardDetails() {
-        throw new UnsupportedOperationException();
+        throw new UnsupportedOperationException("Wildcard type expected");
     }
 
     public PrimitiveTypeDetails getPrimitiveDetails() {
-        throw new UnsupportedOperationException();
+        throw new UnsupportedOperationException("Primitive type expected");
     }
 
     public ArrayTypeDetails getArrayDetails() {
-        throw new UnsupportedOperationException();
+        throw new UnsupportedOperationException("Array type expected");
     }
 
     public TypeVariableDetails getVariableDetails() {
-        throw new UnsupportedOperationException();
+        throw new UnsupportedOperationException("Type variable expected");
     }
 
     public IntersectionTypeDetails getIntersectionDetails() {
-        throw new UnsupportedOperationException();
+        throw new UnsupportedOperationException("Intersection type expected");
     }
 
     public ExecutableTypeDetails getExecutableDetails() {
-        throw new UnsupportedOperationException();
+        throw new UnsupportedOperationException("Executable type expected");
+    }
+
+    GenericTypeDetails<?> getGenericTypeDetails() {
+        if (isObjectType())
+            return getObjectDetails();
+        else if (isExecutable())
+            return getExecutableDetails();
+        else
+            throw new UnsupportedOperationException("Object or executable type expected.");
     }
 
     public boolean containsWildcards() {
@@ -234,6 +272,8 @@ public abstract class Type implements Renderable {
                             context.appendText(">");
                         }
                     }
+                } else if (isExecutable()) {
+                    context.appendText("<executable>");
                 }
             }
         };
@@ -254,7 +294,7 @@ public abstract class Type implements Renderable {
 
         private final TypeVariableDetails details;
 
-        public TypeVariable(TypeVariableDetails details) {
+        TypeVariable(TypeVariableDetails details) {
             this.details = details;
         }
 
@@ -272,7 +312,7 @@ public abstract class Type implements Renderable {
 
         private final IntersectionTypeDetails details;
 
-        public IntersectionType(IntersectionTypeDetails details) {
+        IntersectionType(IntersectionTypeDetails details) {
             this.details = details;
         }
 
@@ -291,7 +331,7 @@ public abstract class Type implements Renderable {
 
         private final ObjectTypeDetails details;
 
-        public ObjectType(ObjectTypeDetails details) {
+        ObjectType(ObjectTypeDetails details) {
             this.details = details;
         }
 
@@ -310,7 +350,7 @@ public abstract class Type implements Renderable {
 
         private final PrimitiveTypeDetails details;
 
-        public PrimitiveType(PrimitiveTypeDetails details) {
+        PrimitiveType(PrimitiveTypeDetails details) {
             this.details = details;
         }
 
@@ -327,7 +367,7 @@ public abstract class Type implements Renderable {
 
         private final ExecutableTypeDetails details;
 
-        public ExecutableType(ExecutableTypeDetails details) {
+        ExecutableType(ExecutableTypeDetails details) {
             this.details = details;
         }
 
@@ -340,4 +380,44 @@ public abstract class Type implements Renderable {
             return details;
         }
     }
+
+    private static class ArrayType extends Type {
+
+        private final ArrayTypeDetails details;
+
+        ArrayType(ArrayTypeDetails details) {
+            this.details = details;
+        }
+
+        @Override
+        public Kind kind() {
+            return Kind.ARRAY;
+        }
+
+        @Override
+        public ArrayTypeDetails getArrayDetails() {
+            return details;
+        }
+    }
+
+    private static class WildcardType extends Type {
+
+        private final WildcardTypeDetails details;
+
+        WildcardType(WildcardTypeDetails details) {
+            this.details = details;
+        }
+
+        @Override
+        public Kind kind() {
+            return Kind.WILDCARD;
+        }
+
+        @Override
+        public WildcardTypeDetails getWildcardDetails() {
+            return details;
+        }
+    }
+
+
 }

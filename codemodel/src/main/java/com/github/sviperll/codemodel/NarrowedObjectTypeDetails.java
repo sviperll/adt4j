@@ -31,7 +31,6 @@
 package com.github.sviperll.codemodel;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import javax.annotation.ParametersAreNonnullByDefault;
@@ -90,6 +89,11 @@ final class NarrowedObjectTypeDetails extends ObjectTypeDetails {
     @Override
     public Type asType() {
         return type;
+    }
+
+    @Override
+    public Type enclosingType() {
+        return erasure.enclosingType();
     }
 
     @Override

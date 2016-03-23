@@ -35,7 +35,7 @@ package com.github.sviperll.codemodel;
  * @author Victor Nazarov &lt;asviraspossible@gmail.com&gt;
  */
 public class ArrayTypeDetails {
-
+    private final Type type = Type.array(this);
     private final Type elementType;
     ArrayTypeDetails(Type elementType) {
         this.elementType = elementType;
@@ -43,5 +43,13 @@ public class ArrayTypeDetails {
 
     public Type elementType() {
         return elementType;
+    }
+
+    ArrayTypeDetails inEnvironment(TypeEnvironment environment) {
+        return new ArrayTypeDetails(elementType.inEnvironment(environment));
+    }
+
+    Type asType() {
+        return type;
     }
 }

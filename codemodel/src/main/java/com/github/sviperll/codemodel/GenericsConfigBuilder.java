@@ -51,6 +51,7 @@ public class GenericsConfigBuilder {
     }
     private final GenericsConfig genericsConfig;
     private final List<TypeParameter> typeParameters = new ArrayList<>();
+    private final List<Type> typeParametersAsInternalTypeArguments = new ArrayList<>();
     private final Map<String, TypeParameter> typeParametersMap = new TreeMap<>();
 
     private GenericsConfigBuilder(BasicGenericsConfig basicConfig) {
@@ -64,6 +65,7 @@ public class GenericsConfigBuilder {
         TypeParameterBuilder result = new TypeParameterBuilder(genericsConfig, name);
         typeParametersMap.put(name, result.declaration());
         typeParameters.add(result.declaration());
+        typeParametersAsInternalTypeArguments.add(Type.variable(name));
         return result;
     }
 
@@ -125,6 +127,11 @@ public class GenericsConfigBuilder {
         @Override
         public ObjectDefinition getObject() {
             return basic.getObject();
+        }
+
+        @Override
+        List<Type> typeParametersAsInternalTypeArguments() {
+            return typeParametersAsInternalTypeArguments;
         }
     }
 

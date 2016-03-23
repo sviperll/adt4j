@@ -34,17 +34,17 @@ package com.github.sviperll.codemodel;
  *
  * @author Victor Nazarov &lt;asviraspossible@gmail.com&gt;
  */
-public class FieldBuilder implements SettledBuilder<NestedResidenceBuilder> {
+public class FieldBuilder implements SettledBuilder<NestingBuilder> {
 
     private final FieldDeclaration declaration = new BuiltFieldDeclaration();
-    private final NestedResidenceBuilder residence;
+    private final NestingBuilder residence;
     private final Type type;
     private final String name;
     private boolean isFinal = false;
     private boolean isInitialized = false;
     private Expression initializer = null;
 
-    FieldBuilder(NestedResidenceBuilder residence, Type type, String name) throws CodeModelException {
+    FieldBuilder(NestingBuilder residence, Type type, String name) throws CodeModelException {
         if (type.isVoid())
             throw new CodeModelException("void is not allowed here");
         this.residence = residence;
@@ -53,7 +53,7 @@ public class FieldBuilder implements SettledBuilder<NestedResidenceBuilder> {
     }
 
     @Override
-    public NestedResidenceBuilder residence() {
+    public NestingBuilder residence() {
         return residence;
     }
 

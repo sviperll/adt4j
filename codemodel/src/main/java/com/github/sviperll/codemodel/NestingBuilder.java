@@ -37,7 +37,48 @@ import javax.annotation.ParametersAreNonnullByDefault;
  * @author Victor Nazarov &lt;asviraspossible@gmail.com&gt;
  */
 @ParametersAreNonnullByDefault
-public interface PackageLevelResidenceDetails {
-    public abstract boolean isPublic();
-    public abstract Package getPackage();
+public final class NestingBuilder implements ResidenceBuilder {
+
+    private final BuiltClassMembership residence = new BuiltClassMembership();
+    private final ObjectDefinition parent;
+    private final boolean isStatic;
+    private MemberAccess accessLevel = MemberAccess.PACKAGE;
+
+    NestingBuilder(boolean isStatic, ObjectDefinition parent) throws CodeModelException {
+        if (isStatic && parent.residence().isNested() && !parent.residence().getNesting().isStatic())
+            throw new CodeModelException("Can't create static member in non-static class");
+        this.isStatic = isStatic;
+        this.parent = parent;
+    }
+
+    public void setAccessLevel(MemberAccess accessLevel) {
+        this.accessLevel = accessLevel;
+    }
+
+    @Override
+    public Residence residence() {
+        return Residence.nested(residence);
+    }
+
+    @Override
+    public CodeModel getCodeModel() {
+        return parent.getCodeModel();
+    }
+
+    private class BuiltClassMembership implements Nesting {
+        @Override
+        public MemberAccess accessLevel() {
+            return accessLevel;
+        }
+
+        @Override
+        public boolean isStatic() {
+            return isStatic;
+        }
+
+        @Override
+        public ObjectDefinition parent() {
+            return parent;
+        }
+    }
 }

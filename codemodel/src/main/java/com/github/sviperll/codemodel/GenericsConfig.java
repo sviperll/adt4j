@@ -53,6 +53,8 @@ public abstract class GenericsConfig implements Model, Renderable {
 
     public abstract TypeParameter get(String name);
 
+    abstract List<Type> typeParametersAsInternalTypeArguments();
+
     final GenericsConfig preventCycle(String name) {
         return new PreventCycleEnvironment(this, name);
     }
@@ -152,6 +154,11 @@ public abstract class GenericsConfig implements Model, Renderable {
         @Override
         public CodeModel getCodeModel() {
             return parent.getCodeModel();
+        }
+
+        @Override
+        List<Type> typeParametersAsInternalTypeArguments() {
+            return parent.typeParametersAsInternalTypeArguments();
         }
     }
 }

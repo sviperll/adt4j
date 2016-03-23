@@ -30,12 +30,21 @@
 
 package com.github.sviperll.codemodel;
 
-import java.util.List;
+import com.github.sviperll.codemodel.render.Renderable;
 
 /**
  *
  * @author Victor Nazarov &lt;asviraspossible@gmail.com&gt;
  */
-public interface GenericDefinition {
+public interface GenericDefinition extends Settled, Renderable, Model {
     GenericsConfig generics();
+
+    Type rawType();
+    Type rawType(Type enclosingType);
+
+    /**
+     * Type of this definition usable inside definition.
+     * @return type usable inside it's own definition.
+     */
+    Type internalType();
 }

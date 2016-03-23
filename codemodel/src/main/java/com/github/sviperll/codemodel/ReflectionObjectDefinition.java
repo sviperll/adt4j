@@ -134,12 +134,12 @@ class ReflectionObjectDefinition extends ObjectDefinition {
     }
 
     @Override
-    public Type toType() {
+    public Type rawType() {
         return type;
     }
 
     @Override
-    public Type toType(Type parentInstanceType) {
+    public Type rawType(Type parentInstanceType) {
         throw new UnsupportedOperationException("Not supported yet.");
     }
 
@@ -158,6 +158,11 @@ class ReflectionObjectDefinition extends ObjectDefinition {
         throw new UnsupportedOperationException("Not supported yet.");
     }
 
+    @Override
+    public Type internalType() {
+        throw new UnsupportedOperationException("Not supported yet.");
+    }
+
     public class TypeDetails extends RawObjectTypeDetails {
 
         @Override
@@ -168,6 +173,11 @@ class ReflectionObjectDefinition extends ObjectDefinition {
         @Override
         public Type asType() {
             return type;
+        }
+
+        @Override
+        public Type enclosingType() {
+            throw new UnsupportedOperationException("Not supported yet.");
         }
     }
 
@@ -232,7 +242,7 @@ class ReflectionObjectDefinition extends ObjectDefinition {
         }
 
         @Override
-        public Type toType() {
+        public Type rawType() {
             throw new UnsupportedOperationException("Not supported yet.");
         }
 
@@ -242,7 +252,7 @@ class ReflectionObjectDefinition extends ObjectDefinition {
         }
 
         @Override
-        public Type toType(Type parentInstanceType) {
+        public Type rawType(Type parentInstanceType) {
             throw new UnsupportedOperationException("Not supported yet.");
         }
 
@@ -268,6 +278,11 @@ class ReflectionObjectDefinition extends ObjectDefinition {
 
         @Override
         Renderable body() {
+            throw new UnsupportedOperationException("Not supported yet.");
+        }
+
+        @Override
+        public Type internalType() {
             throw new UnsupportedOperationException("Not supported yet.");
         }
 

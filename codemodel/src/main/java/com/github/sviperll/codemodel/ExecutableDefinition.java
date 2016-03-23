@@ -40,16 +40,15 @@ import java.util.List;
  *
  * @author Victor Nazarov &lt;asviraspossible@gmail.com&gt;
  */
-public abstract class ExecutableDefinition
-        implements Settled, GenericDefinition, Model, Renderable, TypeDefinition {
+public abstract class ExecutableDefinition implements GenericDefinition {
     ExecutableDefinition() {
     }
 
     @Override
-    public abstract Type toType();
+    public abstract Type rawType();
 
     @Override
-    public abstract Type toType(Type parentInstanceType);
+    public abstract Type rawType(Type parentInstanceType);
 
     public abstract boolean isConstructor();
 

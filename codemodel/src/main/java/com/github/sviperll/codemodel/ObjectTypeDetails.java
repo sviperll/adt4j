@@ -39,7 +39,7 @@ import javax.annotation.ParametersAreNonnullByDefault;
  * @author Victor Nazarov &lt;asviraspossible@gmail.com&gt;
  */
 @ParametersAreNonnullByDefault
-public abstract class ObjectTypeDetails implements GenericType<ObjectDefinition> {
+public abstract class ObjectTypeDetails extends GenericTypeDetails<ObjectDefinition> {
     private List<Type> methods = null;
 
     ObjectTypeDetails() {
@@ -60,9 +60,14 @@ public abstract class ObjectTypeDetails implements GenericType<ObjectDefinition>
         if (methods == null) {
             methods = new ArrayList<>(definition().methods().size());
             for (final ExecutableDefinition definition: definition().methods()) {
-                methods.add(definition.toType(this.asType()));
+                methods.add(definition.rawType(this.asType()));
             }
         }
         return methods;
     }
+
+    ObjectTypeDetails inEnvironment(TypeEnvironment environment) {
+        throw new UnsupportedOperationException("Not supported yet.");
+    }
+
 }

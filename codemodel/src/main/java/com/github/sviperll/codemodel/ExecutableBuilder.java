@@ -34,6 +34,8 @@ import com.github.sviperll.codemodel.render.Renderable;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.annotation.ParametersAreNonnullByDefault;
 
 /**
@@ -41,7 +43,7 @@ import javax.annotation.ParametersAreNonnullByDefault;
  * @author Victor Nazarov &lt;asviraspossible@gmail.com&gt;
  */
 @ParametersAreNonnullByDefault
-public abstract class ExecutableBuilder implements SettledBuilder<NestedResidenceBuilder>, GenericDefinitionBuilder {
+public abstract class ExecutableBuilder implements SettledBuilder<NestingBuilder>, GenericDefinitionBuilder {
     private final VariableScope scope = VariableScope.createTopLevel();
     private final BlockBuilder body = BlockBuilder.createWithBracesForced(scope.createNested());
     private final BuiltDefinition definition = new BuiltDefinition();
@@ -50,9 +52,9 @@ public abstract class ExecutableBuilder implements SettledBuilder<NestedResidenc
     private final List<Type> throwsList = new ArrayList<>();
 
     private final TypeContainer typeContainer;
-    private final NestedResidenceBuilder residence;
+    private final NestingBuilder residence;
 
-    ExecutableBuilder(NestedResidenceBuilder residence) {
+    ExecutableBuilder(NestingBuilder residence) {
         this.residence = residence;
         if (residence.residence().getNesting().isStatic()) {
             typeContainer = new TypeContainer(null);
@@ -96,7 +98,7 @@ public abstract class ExecutableBuilder implements SettledBuilder<NestedResidenc
     }
 
     @Override
-    public NestedResidenceBuilder residence() {
+    public NestingBuilder residence() {
         return residence;
     }
 
@@ -122,7 +124,7 @@ public abstract class ExecutableBuilder implements SettledBuilder<NestedResidenc
         }
 
         @Override
-        public Type toType() {
+        public Type rawType() {
             if (residence.residence().getNesting().isStatic()) {
                 return typeContainer.type;
             } else {
@@ -131,7 +133,7 @@ public abstract class ExecutableBuilder implements SettledBuilder<NestedResidenc
         }
 
         @Override
-        public Type toType(Type parentInstanceType) {
+        public Type rawType(Type parentInstanceType) {
             if (residence.residence().getNesting().isStatic()) {
                 throw new UnsupportedOperationException("Type is static memeber, no parent is expected.");
             } else {
@@ -169,6 +171,22 @@ public abstract class ExecutableBuilder implements SettledBuilder<NestedResidenc
         public CodeModel getCodeModel() {
             return residence.getCodeModel();
         }
+
+        @Override
+        public Type internalType() {
+            Type rawType;
+            if (residence.residence().getNesting().isStatic()) {
+                rawType = rawType();
+            } else {
+                rawType = rawType(residence.residence().getNesting().parent().internalType());
+            }
+            List<Type> internalTypeArguments = generics.generics().typeParametersAsInternalTypeArguments();
+            try {
+                return rawType.getExecutableDetails().narrow(internalTypeArguments);
+            } catch (CodeModelException ex) {
+                throw new RuntimeException("No parameter-argument mismatch is guaranteed to ever happen", ex);
+            }
+        }
     }
 
     private class TypeContainer {
@@ -190,9 +208,38 @@ public abstract class ExecutableBuilder implements SettledBuilder<NestedResidenc
             public ExecutableDefinition definition() {
                 return definition;
             }
+
+            @Override
+            public List<VariableDeclaration> parameters() {
+                throw new UnsupportedOperationException("Not supported yet.");
+            }
+
+            @Override
+            public List<Type> throwsList() {
+                throw new UnsupportedOperationException("Not supported yet.");
+            }
+
+            @Override
+            public Type returnType() {
+                if (definition.isConstructor())
+                    return parentInstanceType.asType();
+                else {
+                    return wrapType(definition.getMethodDetails().returnType());
+                }
+            }
+
+            private Type wrapType(Type type) {
+                if (parentInstanceType != null)
+                    type = type.inEnvironment(parentInstanceType.definitionEnvironment());
+                return type;
+            }
+
+            @Override
+            public Type enclosingType() {
+                return parentInstanceType == null ? null : parentInstanceType.asType();
+            }
         }
     }
-
 
     private static class Parameter extends VariableDeclaration {
 

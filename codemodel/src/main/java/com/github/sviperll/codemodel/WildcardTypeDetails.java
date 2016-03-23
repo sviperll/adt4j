@@ -36,6 +36,7 @@ package com.github.sviperll.codemodel;
  */
 public final class WildcardTypeDetails {
 
+    private final Type type = Type.wildcard(this);
     private final BoundKind boundKind;
     private final Type bound;
     WildcardTypeDetails(BoundKind boundKind, Type bound) {
@@ -49,6 +50,14 @@ public final class WildcardTypeDetails {
 
     public Type bound() {
         return bound;
+    }
+
+    WildcardTypeDetails inEnvironment(TypeEnvironment environment) {
+        return new WildcardTypeDetails(boundKind, bound.inEnvironment(environment));
+    }
+
+    Type asType() {
+        return type;
     }
 
     public enum BoundKind {

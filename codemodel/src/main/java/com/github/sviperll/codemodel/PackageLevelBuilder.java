@@ -36,9 +36,41 @@ import javax.annotation.Nonnull;
 /**
  *
  * @author Victor Nazarov &lt;asviraspossible@gmail.com&gt;
- * @param <T>
  */
 @ParametersAreNonnullByDefault
-public interface Defined<T> {
-    T definition();
+public class PackageLevelBuilder implements ResidenceBuilder {
+    private final Package pkg;
+    private final BuiltMembership residence = new BuiltMembership();
+    private boolean isPublic = false;
+
+    PackageLevelBuilder(Package pkg) {
+        this.pkg = pkg;
+    }
+
+    public void setPublic(boolean value) {
+        this.isPublic = value;
+    }
+
+    @Override
+    public Residence residence() {
+        return Residence.packageLevel(residence);
+    }
+
+    @Override
+    public CodeModel getCodeModel() {
+        return pkg.getCodeModel();
+    }
+
+    public class BuiltMembership implements PackageLevelDetails {
+
+        @Override
+        public boolean isPublic() {
+            return isPublic;
+        }
+
+        @Override
+        public Package getPackage() {
+            return pkg;
+        }
+    }
 }

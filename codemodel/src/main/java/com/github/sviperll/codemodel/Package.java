@@ -61,11 +61,11 @@ public final class Package implements Model {
         return parent;
     }
 
-    public ObjectDefinitionBuilder<PackageLevelResidenceBuilder> createClass(ObjectKind kind, String className) throws CodeModelException {
+    public ObjectBuilder<PackageLevelBuilder> createClass(ObjectKind kind, String className) throws CodeModelException {
         if (classes.containsKey(className))
             throw new CodeModelException(name + "." + className + " already defined");
-        PackageLevelResidenceBuilder membershipBuilder = new PackageLevelResidenceBuilder(this);
-        ObjectDefinitionBuilder<PackageLevelResidenceBuilder> result = new ObjectDefinitionBuilder<>(kind, membershipBuilder, className);
+        PackageLevelBuilder membershipBuilder = new PackageLevelBuilder(this);
+        ObjectBuilder<PackageLevelBuilder> result = new ObjectBuilder<>(kind, membershipBuilder, className);
         classes.put(className, result.definition());
         return result;
     }
@@ -107,7 +107,7 @@ public final class Package implements Model {
             throw new CodeModelException(name + "." + className + " already defined");
         int modifiers = klass.getModifiers();
         final boolean isPublic = (modifiers & Modifier.PUBLIC) != 0;
-        Residence residence = Residence.packageLevel(new PackageLevelResidenceDetails() {
+        Residence residence = Residence.packageLevel(new PackageLevelDetails() {
             @Override
             public boolean isPublic() {
                 return isPublic;

@@ -38,7 +38,7 @@ import javax.annotation.ParametersAreNonnullByDefault;
  */
 @ParametersAreNonnullByDefault
 public class ConstructorBuilder extends ExecutableBuilder {
-    ConstructorBuilder(NestedResidenceBuilder residence) throws CodeModelException {
+    ConstructorBuilder(NestingBuilder residence) throws CodeModelException {
         super(residence);
         if (residence.residence().getNesting().isStatic())
             throw new CodeModelException("Constructor can't be static");

@@ -44,8 +44,7 @@ import javax.annotation.ParametersAreNonnullByDefault;
  * @author Victor Nazarov &lt;asviraspossible@gmail.com&gt;
  */
 @ParametersAreNonnullByDefault
-public abstract class ObjectDefinition
-        implements Settled, Model, GenericDefinition, Renderable, TypeDefinition {
+public abstract class ObjectDefinition implements GenericDefinition {
 
     ObjectDefinition() {
     }
