@@ -55,7 +55,7 @@ abstract class RawExecutableTypeDetails extends ExecutableTypeDetails {
             if (!type.isArray() && !type.isWildcard() && !type.isObjectType())
                 throw new CodeModelException("Only array, wildcard or object type can be used as type argument: found " + type.kind());
         }
-        if (typeArguments.size() != definition().generics().typeParameters().size())
+        if (typeArguments.size() != definition().typeParameters().all().size())
             throw new CodeModelException("Type-argument list and type-parameter list differ in size");
         return new NarrowedExecutableTypeDetails(this, typeArguments).asType();
     }
@@ -78,11 +78,11 @@ abstract class RawExecutableTypeDetails extends ExecutableTypeDetails {
     @Override
     public final List<Type> typeArguments() {
         if (typeArguments == null) {
-            typeArguments = new ArrayList<>(definition().generics().typeParameters().size());
-            for (TypeParameter typeParameter: definition().generics().typeParameters()) {
+            typeArguments = new ArrayList<>(definition().typeParameters().all().size());
+            for (TypeParameter typeParameter: definition().typeParameters().all()) {
                 Type lowerRawBound;
                 try {
-                    lowerRawBound = definition().generics().lowerRawBound(typeParameter.name());
+                    lowerRawBound = typeParameter.lowerRawBound();
                 } catch (CodeModelException ex) {
                     lowerRawBound = definition().getCodeModel().objectType();
                 }

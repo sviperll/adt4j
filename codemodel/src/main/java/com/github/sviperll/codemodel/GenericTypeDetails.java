@@ -71,7 +71,7 @@ public abstract class GenericTypeDetails<D extends GenericDefinition> {
         else
             builder = TypeEnvironment.createBuilder(enclosingType.getGenericTypeDetails().definitionEnvironment());
         GenericDefinition definition = definition();
-        Iterator<TypeParameter> typeParameters = definition.generics().typeParameters().iterator();
+        Iterator<TypeParameter> typeParameters = definition.typeParameters().all().iterator();
         Iterator<Type> typeArguments = typeArguments().iterator();
         while (typeParameters.hasNext() && typeArguments.hasNext()) {
             TypeParameter typeParameter = typeParameters.next();

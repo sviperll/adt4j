@@ -30,14 +30,71 @@
 
 package com.github.sviperll.codemodel;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.TreeMap;
 import javax.annotation.ParametersAreNonnullByDefault;
-import javax.annotation.Nonnull;
 
 /**
  *
  * @author Victor Nazarov &lt;asviraspossible@gmail.com&gt;
+ * @param <D>
  */
 @ParametersAreNonnullByDefault
-public interface GenericDefinitionBuilder {
-    GenericsConfigBuilder generics();
+public abstract class GenericDefinitionBuilder {
+    private final GenericDefinition enclosingDefinition;
+    private final List<TypeParameter> typeParameters = new ArrayList<>();
+    private final List<Type> typeParametersAsInternalTypeArguments = new ArrayList<>();
+    private final Map<String, TypeParameter> typeParametersMap = new TreeMap<>();
+    private final BuiltTypeParameters builtTypeParameters = new BuiltTypeParameters();
+
+    GenericDefinitionBuilder(GenericDefinition enclosingDefinition) {
+        this.enclosingDefinition = enclosingDefinition;
+    }
+
+    public TypeParameterBuilder typeParameter(String name) throws CodeModelException {
+        if (typeParametersMap.containsKey(name)) {
+            throw new CodeModelException(name + " type-parameter already defined");
+        }
+        TypeParameterBuilder result = new TypeParameterBuilder(definition(), name);
+        typeParametersMap.put(name, result.declaration());
+        typeParameters.add(result.declaration());
+        typeParametersAsInternalTypeArguments.add(Type.variable(name));
+        return result;
+    }
+
+    public abstract GenericDefinition definition();
+
+    BuiltTypeParameters typeParameters() {
+        return builtTypeParameters;
+    }
+
+    private class BuiltTypeParameters extends TypeParameters {
+
+        @Override
+        public List<TypeParameter> all() {
+            return typeParameters;
+        }
+
+        @Override
+        public TypeParameter get(String name) {
+            TypeParameter result = typeParametersMap.get(name);
+            if (result != null)
+                return result;
+            else {
+                if (enclosingDefinition == null)
+                    return null;
+                else {
+                    return enclosingDefinition.typeParameters().get(name);
+                }
+            }
+        }
+
+
+        @Override
+        List<Type> asInternalTypeArguments() {
+            return typeParametersAsInternalTypeArguments;
+        }
+    }
 }

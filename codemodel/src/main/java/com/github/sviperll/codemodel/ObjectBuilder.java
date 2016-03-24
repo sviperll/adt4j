@@ -44,10 +44,9 @@ import javax.annotation.ParametersAreNonnullByDefault;
  * @param <B>
  */
 @ParametersAreNonnullByDefault
-public final class ObjectBuilder<B extends ResidenceBuilder>
-        implements Model, SettledBuilder<B>, GenericDefinitionBuilder {
+public final class ObjectBuilder<B extends ResidenceBuilder> extends GenericDefinitionBuilder
+        implements Model, SettledBuilder<B> {
     private final BuiltDefinition definition = new BuiltDefinition();
-    private final GenericsConfigBuilder generics = GenericsConfigBuilder.objectDefinition(definition);
     private final List<ExecutableDefinition> constructors = new ArrayList<>();
     private final List<ExecutableDefinition> methods = new ArrayList<>();
     private final Map<String, FieldDeclaration> fields = new TreeMap<>();
@@ -65,6 +64,7 @@ public final class ObjectBuilder<B extends ResidenceBuilder>
     private Type extendsClass = null;
 
     ObjectBuilder(ObjectKind kind, B residence, String name) throws CodeModelException {
+        super(residence.residence().isPackageLevel() || residence.residence().getNesting().isStatic() ? null : residence.residence().getNesting().parent());
         if ((kind == ObjectKind.INTERFACE || kind == ObjectKind.ENUM || kind == ObjectKind.ANNOTATION)
                 && residence.residence().isNested()
                 && !residence.residence().getNesting().isStatic()) {
@@ -80,6 +80,7 @@ public final class ObjectBuilder<B extends ResidenceBuilder>
         this.kind = kind;
     }
 
+    @Override
     public ObjectDefinition definition() {
         return definition;
     }
@@ -91,11 +92,6 @@ public final class ObjectBuilder<B extends ResidenceBuilder>
     @Override
     public B residence() {
         return residence;
-    }
-
-    @Override
-    public GenericsConfigBuilder generics() {
-        return generics;
     }
 
     public void extendsClass(Type type) throws CodeModelException {
@@ -268,17 +264,12 @@ public final class ObjectBuilder<B extends ResidenceBuilder>
             } else {
                 rawType = rawType(residence.residence().getNesting().parent().internalType());
             }
-            List<Type> internalTypeArguments = generics.generics().typeParametersAsInternalTypeArguments();
+            List<Type> internalTypeArguments = typeParameters().asInternalTypeArguments();
             try {
                 return rawType.getExecutableDetails().narrow(internalTypeArguments);
             } catch (CodeModelException ex) {
                 throw new RuntimeException("No parameter-argument mismatch is guaranteed to ever happen", ex);
             }
-        }
-
-        @Override
-        public GenericsConfig generics() {
-            return generics.generics();
         }
 
         @Override
@@ -296,6 +287,15 @@ public final class ObjectBuilder<B extends ResidenceBuilder>
             return constructors;
         }
 
+        @Override
+        public TypeParameters typeParameters() {
+            return ObjectBuilder.this.typeParameters();
+        }
+
+        @Override
+        public GenericDefinition enclosingDefinition() {
+            return residence.residence().isPackageLevel() || residence.residence().getNesting().isStatic() ? null : residence.residence().getNesting().parent();
+        }
     }
 
     private class TypeContainer {

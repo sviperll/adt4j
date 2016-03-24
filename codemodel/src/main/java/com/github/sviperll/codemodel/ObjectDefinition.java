@@ -30,7 +30,6 @@
 
 package com.github.sviperll.codemodel;
 
-import com.github.sviperll.codemodel.render.Renderable;
 import com.github.sviperll.codemodel.render.Renderer;
 import com.github.sviperll.codemodel.render.RendererContext;
 import java.util.Collection;
@@ -44,7 +43,7 @@ import javax.annotation.ParametersAreNonnullByDefault;
  * @author Victor Nazarov &lt;asviraspossible@gmail.com&gt;
  */
 @ParametersAreNonnullByDefault
-public abstract class ObjectDefinition implements GenericDefinition {
+public abstract class ObjectDefinition extends GenericDefinition {
 
     ObjectDefinition() {
     }
@@ -106,7 +105,7 @@ public abstract class ObjectDefinition implements GenericDefinition {
                     context.appendText(kind().name().toLowerCase(Locale.US));
                 context.appendWhiteSpace();
                 context.appendText(simpleName());
-                context.appendRenderable(generics());
+                context.appendRenderable(typeParameters());
                 context.appendText(" extends ");
                 context.appendRenderable(extendsClass());
                 Iterator<Type> interfaces = implementsInterfaces().iterator();

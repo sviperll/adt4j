@@ -32,7 +32,6 @@ package com.github.sviperll.codemodel;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
 
 /**
@@ -41,12 +40,12 @@ import java.util.List;
  */
 public class TypeParameterBuilder {
     private final BuiltTypeParameter declaration = new BuiltTypeParameter();
-    private final GenericsConfig declaredIn;
+    private final GenericDefinition declaredIn;
     private final String name;
     private final List<Type> bounds = new ArrayList<>();
     private Type effectiveBound;
 
-    TypeParameterBuilder(GenericsConfig declaredIn, String name) {
+    TypeParameterBuilder(GenericDefinition declaredIn, String name) {
         this.declaredIn = declaredIn;
         this.name = name;
         effectiveBound = declaredIn.getCodeModel().objectType();
@@ -94,7 +93,7 @@ public class TypeParameterBuilder {
         }
 
         @Override
-        public GenericsConfig declaredIn() {
+        public GenericDefinition declaredIn() {
             return declaredIn;
         }
     }

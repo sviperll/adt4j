@@ -43,24 +43,25 @@ import javax.annotation.ParametersAreNonnullByDefault;
  * @author Victor Nazarov &lt;asviraspossible@gmail.com&gt;
  */
 @ParametersAreNonnullByDefault
-public abstract class ExecutableBuilder implements SettledBuilder<NestingBuilder>, GenericDefinitionBuilder {
+public abstract class ExecutableBuilder extends GenericDefinitionBuilder implements SettledBuilder<NestingBuilder> {
     private final VariableScope scope = VariableScope.createTopLevel();
     private final BlockBuilder body = BlockBuilder.createWithBracesForced(scope.createNested());
-    private final BuiltDefinition definition = new BuiltDefinition();
-    private final GenericsConfigBuilder generics = GenericsConfigBuilder.methodDefinition(definition);
     private final List<VariableDeclaration> parameters = new ArrayList<>();
     private final List<Type> throwsList = new ArrayList<>();
+    private final BuiltDefinition definition = new BuiltDefinition();
 
     private final TypeContainer typeContainer;
     private final NestingBuilder residence;
 
     ExecutableBuilder(NestingBuilder residence) {
-        this.residence = residence;
+        super(residence.residence().getNesting().isStatic() ? null : residence.residence().getNesting().parent());
         if (residence.residence().getNesting().isStatic()) {
             typeContainer = new TypeContainer(null);
         } else {
             typeContainer = null;
         }
+        this.residence = residence;
+        
     }
 
     abstract boolean isConstructor();
@@ -84,11 +85,12 @@ public abstract class ExecutableBuilder implements SettledBuilder<NestingBuilder
     public void throwsException(Type type) throws CodeModelException {
         if (!type.isObjectType())
             throw new CodeModelException("Only object type can be an exception");
-        if (type.getObjectDetails().definition().generics().isGeneric())
+        if (type.getObjectDetails().definition().isGeneric())
             throw new CodeModelException("Generic class can't be used as throwable exception");
         throwsList.add(type);
     }
 
+    @Override
     public ExecutableDefinition definition() {
         return definition;
     }
@@ -100,11 +102,6 @@ public abstract class ExecutableBuilder implements SettledBuilder<NestingBuilder
     @Override
     public NestingBuilder residence() {
         return residence;
-    }
-
-    @Override
-    public GenericsConfigBuilder generics() {
-        return generics;
     }
 
     private class BuiltDefinition extends ExecutableDefinition {
@@ -163,11 +160,6 @@ public abstract class ExecutableBuilder implements SettledBuilder<NestingBuilder
         }
 
         @Override
-        public GenericsConfig generics() {
-            return generics.generics();
-        }
-
-        @Override
         public CodeModel getCodeModel() {
             return residence.getCodeModel();
         }
@@ -180,12 +172,22 @@ public abstract class ExecutableBuilder implements SettledBuilder<NestingBuilder
             } else {
                 rawType = rawType(residence.residence().getNesting().parent().internalType());
             }
-            List<Type> internalTypeArguments = generics.generics().typeParametersAsInternalTypeArguments();
+            List<Type> internalTypeArguments = typeParameters().asInternalTypeArguments();
             try {
                 return rawType.getExecutableDetails().narrow(internalTypeArguments);
             } catch (CodeModelException ex) {
                 throw new RuntimeException("No parameter-argument mismatch is guaranteed to ever happen", ex);
             }
+        }
+
+        @Override
+        public TypeParameters typeParameters() {
+            return ExecutableBuilder.this.typeParameters();
+        }
+
+        @Override
+        public GenericDefinition enclosingDefinition() {
+            return residence.residence().getNesting().isStatic() ? null : residence.residence().getNesting().parent();
         }
     }
 

@@ -40,7 +40,7 @@ import java.util.List;
  *
  * @author Victor Nazarov &lt;asviraspossible@gmail.com&gt;
  */
-public abstract class ExecutableDefinition implements GenericDefinition {
+public abstract class ExecutableDefinition extends GenericDefinition {
     ExecutableDefinition() {
     }
 
@@ -73,7 +73,7 @@ public abstract class ExecutableDefinition implements GenericDefinition {
                     context.appendText("final");
                 }
                 context.appendWhiteSpace();
-                context.appendRenderable(generics());
+                context.appendRenderable(typeParameters());
                 context.appendWhiteSpace();
                 if (!isConstructor()) {
                     context.appendRenderable(getMethodDetails().returnType());

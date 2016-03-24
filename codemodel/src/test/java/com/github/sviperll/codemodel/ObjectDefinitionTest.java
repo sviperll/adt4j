@@ -137,7 +137,7 @@ public class ObjectDefinitionTest {
         CodeModel codeModel = new CodeModel();
         Package pkg = codeModel.getPackage("com.github.sviperll.codemodel.test");
         ObjectBuilder<PackageLevelBuilder> test1 = pkg.createClass(ObjectKind.CLASS, "Test1");
-        test1.generics().typeParameter("T");
+        test1.typeParameter("T");
         FieldBuilder field1 = test1.field(Type.intType(), "field1");
         field1.residence().setAccessLevel(MemberAccess.PRIVATE);
         FieldBuilder field2 = test1.field(Type.variable("T"), "field2");

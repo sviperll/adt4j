@@ -30,9 +30,6 @@
 
 package com.github.sviperll.codemodel;
 
-import javax.annotation.ParametersAreNonnullByDefault;
-import javax.annotation.Nonnull;
-
 /**
  *
  * @author Victor Nazarov &lt;asviraspossible@gmail.com&gt;
@@ -51,5 +48,23 @@ public abstract class TypeParameter {
      */
     public abstract Type bound();
 
-    public abstract GenericsConfig declaredIn();
+    public abstract GenericDefinition declaredIn();
+
+    final Type lowerRawBound() throws CodeModelException {
+        TypeParameters environment = declaredIn().typeParameters().preventCycle(name());
+        Type bound = bound();
+        if (bound.isTypeVariable()) {
+            return environment.get(bound.getVariableDetails().name()).lowerRawBound();
+        } else {
+            ObjectTypeDetails lower = null;
+            for (Type type: bound.asListOfIntersectedTypes()) {
+                ObjectTypeDetails object = type.getObjectDetails();
+                if (lower == null || lower.definition().extendsOrImplements(object.definition()))
+                    lower = object;
+            }
+            if (lower == null)
+                throw new CodeModelException("Empty bounds found for variable");
+            return lower.asType();
+        }
+    }
 }

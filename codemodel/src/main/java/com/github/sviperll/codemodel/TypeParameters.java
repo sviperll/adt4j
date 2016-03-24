@@ -37,61 +37,25 @@ import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import javax.annotation.ParametersAreNonnullByDefault;
+import javax.annotation.Nonnull;
 
 /**
  *
  * @author Victor Nazarov &lt;asviraspossible@gmail.com&gt;
  */
 @ParametersAreNonnullByDefault
-public abstract class GenericsConfig implements Model, Renderable {
-    GenericsConfig() {
+public abstract class TypeParameters implements Renderable {
+    TypeParameters() {
     }
 
-    public abstract GenericsConfig parent();
-
-    public abstract List<TypeParameter> typeParameters();
+    public abstract List<TypeParameter> all();
 
     public abstract TypeParameter get(String name);
 
-    abstract List<Type> typeParametersAsInternalTypeArguments();
+    abstract List<Type> asInternalTypeArguments();
 
-    final GenericsConfig preventCycle(String name) {
-        return new PreventCycleEnvironment(this, name);
-    }
-
-    final Type lowerRawBound(String name) throws CodeModelException {
-        TypeParameter parameter;
-        try {
-            parameter = get(name);
-        } catch (RuntimeCodeModelException ex) {
-            throw ex.getCause();
-        }
-        if (parameter == null)
-            throw new CodeModelException(name + " name is not found in environment");
-        GenericsConfig environment = parameter.declaredIn().preventCycle(name);
-        Type bound = parameter.bound();
-        if (bound.isTypeVariable()) {
-            return environment.lowerRawBound(bound.getVariableDetails().name());
-        } else {
-            ObjectTypeDetails lower = null;
-            for (Type type: bound.asListOfIntersectedTypes()) {
-                ObjectTypeDetails object = type.getObjectDetails();
-                if (lower == null || lower.definition().extendsOrImplements(object.definition()))
-                    lower = object;
-            }
-            if (lower == null)
-                throw new CodeModelException("Empty bounds found for variable");
-            return lower.asType();
-        }
-    }
-
-    public boolean isGeneric() {
-        if (!typeParameters().isEmpty())
-            return true;
-        else {
-            GenericsConfig parent = parent();
-            return parent != null && parent.isGeneric();
-        }
+    final TypeParameters preventCycle(String name) {
+        return new PreventCycleTypeParameters(this, name);
     }
 
     @Override
@@ -99,7 +63,7 @@ public abstract class GenericsConfig implements Model, Renderable {
         return new Renderer() {
             @Override
             public void render() {
-                Iterator<TypeParameter> typeParameters = typeParameters().iterator();
+                Iterator<TypeParameter> typeParameters = all().iterator();
                 if (typeParameters.hasNext()) {
                     context.appendText("<");
                     TypeParameter typeParameter = typeParameters.next();
@@ -119,30 +83,25 @@ public abstract class GenericsConfig implements Model, Renderable {
         };
     }
 
-    private static class PreventCycleEnvironment extends GenericsConfig {
-        private final GenericsConfig parent;
+    private static class PreventCycleTypeParameters extends TypeParameters {
+        private final TypeParameters parameters;
         private final String name;
 
-        public PreventCycleEnvironment(GenericsConfig parent, String name) {
-            this.parent = parent;
+        public PreventCycleTypeParameters(TypeParameters parent, String name) {
+            this.parameters = parent;
             this.name = name;
         }
 
         @Override
-        public GenericsConfig parent() {
-            return parent;
-        }
-
-        @Override
-        public List<TypeParameter> typeParameters() {
-            return Collections.emptyList();
+        public List<TypeParameter> all() {
+            return parameters.all();
         }
 
         @Override
         public TypeParameter get(String name) {
             try {
                 if (!name.equals(this.name))
-                    return parent.get(name);
+                    return parameters.get(name);
                 else {
                     throw new CodeModelException("Cyclic definition: " + name);
                 }
@@ -152,13 +111,9 @@ public abstract class GenericsConfig implements Model, Renderable {
         }
 
         @Override
-        public CodeModel getCodeModel() {
-            return parent.getCodeModel();
-        }
-
-        @Override
-        List<Type> typeParametersAsInternalTypeArguments() {
-            return parent.typeParametersAsInternalTypeArguments();
+        List<Type> asInternalTypeArguments() {
+            return parameters.asInternalTypeArguments();
         }
     }
+
 }

@@ -129,11 +129,6 @@ class ReflectionObjectDefinition extends ObjectDefinition {
     }
 
     @Override
-    public GenericsConfig generics() {
-        throw new UnsupportedOperationException("Not supported yet.");
-    }
-
-    @Override
     public Type rawType() {
         return type;
     }
@@ -160,6 +155,16 @@ class ReflectionObjectDefinition extends ObjectDefinition {
 
     @Override
     public Type internalType() {
+        throw new UnsupportedOperationException("Not supported yet.");
+    }
+
+    @Override
+    public TypeParameters typeParameters() {
+        throw new UnsupportedOperationException("Not supported yet.");
+    }
+
+    @Override
+    public GenericDefinition enclosingDefinition() {
         throw new UnsupportedOperationException("Not supported yet.");
     }
 
@@ -237,11 +242,6 @@ class ReflectionObjectDefinition extends ObjectDefinition {
         }
 
         @Override
-        public GenericsConfig generics() {
-            throw new UnsupportedOperationException("Not supported yet.");
-        }
-
-        @Override
         public Type rawType() {
             throw new UnsupportedOperationException("Not supported yet.");
         }
@@ -283,6 +283,16 @@ class ReflectionObjectDefinition extends ObjectDefinition {
 
         @Override
         public Type internalType() {
+            throw new UnsupportedOperationException("Not supported yet.");
+        }
+
+        @Override
+        public TypeParameters typeParameters() {
+            throw new UnsupportedOperationException("Not supported yet.");
+        }
+
+        @Override
+        public GenericDefinition enclosingDefinition() {
             throw new UnsupportedOperationException("Not supported yet.");
         }
 
