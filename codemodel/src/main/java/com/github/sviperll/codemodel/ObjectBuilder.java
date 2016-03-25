@@ -44,8 +44,7 @@ import javax.annotation.ParametersAreNonnullByDefault;
  * @param <B>
  */
 @ParametersAreNonnullByDefault
-public final class ObjectBuilder<B extends ResidenceBuilder> extends GenericDefinitionBuilder
-        implements Model, SettledBuilder<B> {
+public final class ObjectBuilder<B extends ResidenceBuilder> extends GenericDefinitionBuilder<B> {
     private final BuiltDefinition definition = new BuiltDefinition();
     private final List<ExecutableDefinition> constructors = new ArrayList<>();
     private final List<ExecutableDefinition> methods = new ArrayList<>();
@@ -64,13 +63,13 @@ public final class ObjectBuilder<B extends ResidenceBuilder> extends GenericDefi
     private Type extendsClass = null;
 
     ObjectBuilder(ObjectKind kind, B residence, String name) throws CodeModelException {
-        super(residence.residence().isPackageLevel() || residence.residence().getNesting().isStatic() ? null : residence.residence().getNesting().parent());
+        super(residence);
         if ((kind == ObjectKind.INTERFACE || kind == ObjectKind.ENUM || kind == ObjectKind.ANNOTATION)
                 && residence.residence().isNested()
                 && !residence.residence().getNesting().isStatic()) {
             throw new CodeModelException("Interface, enum or annotation should always be static when nested in other class");
         }
-        if (residence.residence().isPackageLevel() || residence.residence().getNesting().isStatic()) {
+        if (residence.residence().contextDefinition() == null) {
             typeContainer = new TypeContainer(null);
         } else {
             typeContainer = null;
@@ -87,11 +86,6 @@ public final class ObjectBuilder<B extends ResidenceBuilder> extends GenericDefi
 
     public void setFinal(boolean value) {
         this.isFinal = value;
-    }
-
-    @Override
-    public B residence() {
-        return residence;
     }
 
     public void extendsClass(Type type) throws CodeModelException {
@@ -179,12 +173,6 @@ public final class ObjectBuilder<B extends ResidenceBuilder> extends GenericDefi
         return result;
     }
 
-    @Override
-    public CodeModel getCodeModel() {
-        return residence.getCodeModel();
-    }
-
-
     private class BuiltDefinition extends ObjectDefinition {
 
         @Override
@@ -239,7 +227,7 @@ public final class ObjectBuilder<B extends ResidenceBuilder> extends GenericDefi
 
         @Override
         public Type rawType() {
-            if (residence.residence().isPackageLevel() || residence.residence().getNesting().isStatic()) {
+            if (residence.residence().contextDefinition() == null) {
                 return typeContainer.type;
             } else {
                 throw new UnsupportedOperationException("Parent instance type is required");
@@ -248,7 +236,7 @@ public final class ObjectBuilder<B extends ResidenceBuilder> extends GenericDefi
 
         @Override
         public Type rawType(Type parentInstanceType) {
-            if (residence.residence().isPackageLevel() || residence.residence().getNesting().isStatic()) {
+            if (residence.residence().contextDefinition() == null) {
                 throw new UnsupportedOperationException("Type is static memeber, no parent is expected.");
             } else {
                 TypeContainer typeContainer = new TypeContainer(parentInstanceType.getObjectDetails());
@@ -259,10 +247,10 @@ public final class ObjectBuilder<B extends ResidenceBuilder> extends GenericDefi
         @Override
         public Type internalType() {
             Type rawType;
-            if (residence.residence().isPackageLevel() || residence.residence().getNesting().isStatic()) {
+            if (residence.residence().contextDefinition() == null) {
                 rawType = rawType();
             } else {
-                rawType = rawType(residence.residence().getNesting().parent().internalType());
+                rawType = rawType(residence.residence().contextDefinition().internalType());
             }
             List<Type> internalTypeArguments = typeParameters().asInternalTypeArguments();
             try {
@@ -291,11 +279,6 @@ public final class ObjectBuilder<B extends ResidenceBuilder> extends GenericDefi
         public TypeParameters typeParameters() {
             return ObjectBuilder.this.typeParameters();
         }
-
-        @Override
-        public GenericDefinition enclosingDefinition() {
-            return residence.residence().isPackageLevel() || residence.residence().getNesting().isStatic() ? null : residence.residence().getNesting().parent();
-        }
     }
 
     private class TypeContainer {
@@ -318,7 +301,7 @@ public final class ObjectBuilder<B extends ResidenceBuilder> extends GenericDefi
             }
 
             @Override
-            public Type enclosingType() {
+            public Type capturedEnclosingType() {
                 return parentInstanceType == null ? null : parentInstanceType.asType();
             }
         }

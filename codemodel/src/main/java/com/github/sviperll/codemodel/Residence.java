@@ -48,20 +48,61 @@ public abstract class Residence implements Renderable {
     static Residence nested(Nesting details) {
         return new NestedResidence(details);
     }
+
+    static Residence local(MethodLocalDetails details) {
+        return new MethodLocalResidence(details);
+    }
+
     private Residence() {
     }
 
-    public abstract boolean isPackageLevel();
-    public abstract boolean isNested();
+    public abstract Kind kind();
+    public final boolean isPackageLevel() {
+        return kind() == Kind.PACKAGE_LEVEL;
+    }
+    public final boolean isNested() {
+        return kind() == Kind.NESTED;
+    }
+    public final boolean isLocal() {
+        return kind() == Kind.LOCAL;
+    }
 
-    public abstract PackageLevelDetails getPackageLevelDetails();
-    public abstract Nesting getNesting();
+    public PackageLevelDetails getPackageLevelDetails() {
+        throw new UnsupportedOperationException("Package level residence expected");
+    }
+    public Nesting getNesting() {
+        throw new UnsupportedOperationException("Nested residence expected");
+    }
+    public MethodLocalDetails getLocalDetails() {
+        throw new UnsupportedOperationException("Local residence expected");
+    }
 
     public Package getPackage() {
-        if (isPackageLevel())
+        if (isPackageLevel()) {
             return getPackageLevelDetails().getPackage();
-        else {
+        } else if (isNested()) {
             return getNesting().parent().residence().getPackage();
+        } else if (isLocal()) {
+            return getLocalDetails().parent().residence().getPackage();
+        } else {
+            throw new UnsupportedOperationException("Unsupported residence: " + kind());
+        }
+    }
+
+    /**
+     * Enclosing definition that provide effective context for current definition.
+     *
+     * @return Enclosing definition or null for package-level definitions or static members
+     */
+    public GenericDefinition contextDefinition() {
+        if (isPackageLevel()) {
+            return null;
+        } else if (isNested()) {
+            return getNesting().isStatic() ? null : getNesting().parent();
+        } else if (isNested()) {
+            return getLocalDetails().parent();
+        } else {
+            throw new UnsupportedOperationException("Unsupported residence: " + kind());
         }
     }
 
@@ -87,6 +128,10 @@ public abstract class Residence implements Renderable {
         };
     }
 
+    public enum Kind {
+        PACKAGE_LEVEL, NESTED, LOCAL;
+    }
+
     private static class PackageLevelResidence extends Residence {
 
         private final PackageLevelDetails details;
@@ -96,23 +141,13 @@ public abstract class Residence implements Renderable {
         }
 
         @Override
-        public boolean isPackageLevel() {
-            return true;
-        }
-
-        @Override
-        public boolean isNested() {
-            return false;
+        public Kind kind() {
+            return Kind.PACKAGE_LEVEL;
         }
 
         @Override
         public PackageLevelDetails getPackageLevelDetails() {
             return details;
-        }
-
-        @Override
-        public Nesting getNesting() {
-            throw new UnsupportedOperationException();
         }
     }
 
@@ -125,18 +160,8 @@ public abstract class Residence implements Renderable {
         }
 
         @Override
-        public boolean isPackageLevel() {
-            return false;
-        }
-
-        @Override
-        public boolean isNested() {
-            return true;
-        }
-
-        @Override
-        public PackageLevelDetails getPackageLevelDetails() {
-            throw new UnsupportedOperationException();
+        public Kind kind() {
+            return Kind.NESTED;
         }
 
         @Override
@@ -144,4 +169,26 @@ public abstract class Residence implements Renderable {
             return details;
         }
     }
+
+    private static class MethodLocalResidence extends Residence {
+
+        private final MethodLocalDetails details;
+
+        public MethodLocalResidence(MethodLocalDetails details) {
+            this.details = details;
+        }
+
+        @Override
+        public Kind kind() {
+            return Kind.LOCAL;
+        }
+
+        @Override
+        public MethodLocalDetails getLocalDetails() {
+            return details;
+        }
+
+    }
+
+
 }

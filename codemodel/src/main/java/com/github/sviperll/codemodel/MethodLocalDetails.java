@@ -30,54 +30,14 @@
 
 package com.github.sviperll.codemodel;
 
-import java.util.Iterator;
-import java.util.List;
-import javax.annotation.Nullable;
+import javax.annotation.ParametersAreNonnullByDefault;
+import javax.annotation.Nonnull;
 
 /**
  *
  * @author Victor Nazarov &lt;asviraspossible@gmail.com&gt;
- * @param <D>
  */
-public abstract class GenericTypeDetails<D extends GenericDefinition> {
-    public abstract D definition();
-
-    public abstract Type erasure();
-
-    public abstract boolean isNarrowed();
-
-    public abstract boolean isRaw();
-
-    public abstract Type narrow(List<Type> typeArguments) throws CodeModelException;
-
-    public abstract List<Type> typeArguments();
-
-    public abstract Type asType();
-
-    /**
-     * Type of enclosing definition that defines a context for current type.
-     *
-     * @return Type of enclosing definition or null for types with package-level or static member definitions.
-     */
-    @Nullable
-    public abstract Type capturedEnclosingType();
-
-    final TypeEnvironment definitionEnvironment() {
-        Type enclosingType = capturedEnclosingType();
-        TypeEnvironment.Builder builder;
-        if (enclosingType == null)
-            builder = TypeEnvironment.createBuilder();
-        else
-            builder = TypeEnvironment.createBuilder(enclosingType.getGenericTypeDetails().definitionEnvironment());
-        GenericDefinition definition = definition();
-        Iterator<TypeParameter> typeParameters = definition.typeParameters().all().iterator();
-        Iterator<Type> typeArguments = typeArguments().iterator();
-        while (typeParameters.hasNext() && typeArguments.hasNext()) {
-            TypeParameter typeParameter = typeParameters.next();
-            Type typeArgument = typeArguments.next();
-            builder.put(typeParameter.name(), typeArgument);
-        }
-        return builder.build();
-    }
-
+@ParametersAreNonnullByDefault
+public interface MethodLocalDetails {
+    ExecutableDefinition parent();
 }

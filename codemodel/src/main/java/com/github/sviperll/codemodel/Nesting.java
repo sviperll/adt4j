@@ -35,9 +35,9 @@ package com.github.sviperll.codemodel;
  * @author Victor Nazarov &lt;asviraspossible@gmail.com&gt;
  */
 public interface Nesting {
-    public abstract MemberAccess accessLevel();
+    MemberAccess accessLevel();
 
-    public abstract boolean isStatic();
+    boolean isStatic();
 
-    public abstract ObjectDefinition parent();
+    ObjectDefinition parent();
 }

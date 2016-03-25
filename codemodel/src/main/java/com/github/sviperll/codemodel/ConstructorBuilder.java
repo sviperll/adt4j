@@ -51,7 +51,7 @@ public class ConstructorBuilder extends ExecutableBuilder {
 
     @Override
     MethodDefinitionDetails getMethodDefinitionDetails() {
-        throw new UnsupportedOperationException();
+        throw new UnsupportedOperationException("Expected method, bun constructor is used");
     }
 
 }

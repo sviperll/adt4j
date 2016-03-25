@@ -88,8 +88,8 @@ final class NarrowedExecutableTypeDetails extends ExecutableTypeDetails {
     }
 
     @Override
-    public Type enclosingType() {
-        return erasure.enclosingType();
+    public Type capturedEnclosingType() {
+        return erasure.capturedEnclosingType();
     }
 
     @Override

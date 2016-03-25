@@ -163,11 +163,6 @@ class ReflectionObjectDefinition extends ObjectDefinition {
         throw new UnsupportedOperationException("Not supported yet.");
     }
 
-    @Override
-    public GenericDefinition enclosingDefinition() {
-        throw new UnsupportedOperationException("Not supported yet.");
-    }
-
     public class TypeDetails extends RawObjectTypeDetails {
 
         @Override
@@ -181,7 +176,7 @@ class ReflectionObjectDefinition extends ObjectDefinition {
         }
 
         @Override
-        public Type enclosingType() {
+        public Type capturedEnclosingType() {
             throw new UnsupportedOperationException("Not supported yet.");
         }
     }
@@ -288,11 +283,6 @@ class ReflectionObjectDefinition extends ObjectDefinition {
 
         @Override
         public TypeParameters typeParameters() {
-            throw new UnsupportedOperationException("Not supported yet.");
-        }
-
-        @Override
-        public GenericDefinition enclosingDefinition() {
             throw new UnsupportedOperationException("Not supported yet.");
         }
 

@@ -34,8 +34,6 @@ import com.github.sviperll.codemodel.render.Renderable;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import javax.annotation.ParametersAreNonnullByDefault;
 
 /**
@@ -43,7 +41,7 @@ import javax.annotation.ParametersAreNonnullByDefault;
  * @author Victor Nazarov &lt;asviraspossible@gmail.com&gt;
  */
 @ParametersAreNonnullByDefault
-public abstract class ExecutableBuilder extends GenericDefinitionBuilder implements SettledBuilder<NestingBuilder> {
+public abstract class ExecutableBuilder extends GenericDefinitionBuilder<NestingBuilder> {
     private final VariableScope scope = VariableScope.createTopLevel();
     private final BlockBuilder body = BlockBuilder.createWithBracesForced(scope.createNested());
     private final List<VariableDeclaration> parameters = new ArrayList<>();
@@ -54,7 +52,7 @@ public abstract class ExecutableBuilder extends GenericDefinitionBuilder impleme
     private final NestingBuilder residence;
 
     ExecutableBuilder(NestingBuilder residence) {
-        super(residence.residence().getNesting().isStatic() ? null : residence.residence().getNesting().parent());
+        super(residence);
         if (residence.residence().getNesting().isStatic()) {
             typeContainer = new TypeContainer(null);
         } else {
@@ -97,11 +95,6 @@ public abstract class ExecutableBuilder extends GenericDefinitionBuilder impleme
 
     public BlockBuilder body() {
         return body;
-    }
-
-    @Override
-    public NestingBuilder residence() {
-        return residence;
     }
 
     private class BuiltDefinition extends ExecutableDefinition {
@@ -184,11 +177,6 @@ public abstract class ExecutableBuilder extends GenericDefinitionBuilder impleme
         public TypeParameters typeParameters() {
             return ExecutableBuilder.this.typeParameters();
         }
-
-        @Override
-        public GenericDefinition enclosingDefinition() {
-            return residence.residence().getNesting().isStatic() ? null : residence.residence().getNesting().parent();
-        }
     }
 
     private class TypeContainer {
@@ -237,7 +225,7 @@ public abstract class ExecutableBuilder extends GenericDefinitionBuilder impleme
             }
 
             @Override
-            public Type enclosingType() {
+            public Type capturedEnclosingType() {
                 return parentInstanceType == null ? null : parentInstanceType.asType();
             }
         }

@@ -39,19 +39,22 @@ import javax.annotation.ParametersAreNonnullByDefault;
 /**
  *
  * @author Victor Nazarov &lt;asviraspossible@gmail.com&gt;
+ * @param <B>
  * @param <D>
  */
 @ParametersAreNonnullByDefault
-public abstract class GenericDefinitionBuilder {
-    private final GenericDefinition enclosingDefinition;
+public abstract class GenericDefinitionBuilder<B extends ResidenceBuilder> implements SettledBuilder<B>, Model {
     private final List<TypeParameter> typeParameters = new ArrayList<>();
     private final List<Type> typeParametersAsInternalTypeArguments = new ArrayList<>();
     private final Map<String, TypeParameter> typeParametersMap = new TreeMap<>();
     private final BuiltTypeParameters builtTypeParameters = new BuiltTypeParameters();
+    private final B residence;
 
-    GenericDefinitionBuilder(GenericDefinition enclosingDefinition) {
-        this.enclosingDefinition = enclosingDefinition;
+    GenericDefinitionBuilder(B residence) {
+        this.residence = residence;
     }
+
+    public abstract GenericDefinition definition();
 
     public TypeParameterBuilder typeParameter(String name) throws CodeModelException {
         if (typeParametersMap.containsKey(name)) {
@@ -64,7 +67,15 @@ public abstract class GenericDefinitionBuilder {
         return result;
     }
 
-    public abstract GenericDefinition definition();
+    @Override
+    final public B residence() {
+        return residence;
+    }
+
+    @Override
+    final public CodeModel getCodeModel() {
+        return residence.getCodeModel();
+    }
 
     BuiltTypeParameters typeParameters() {
         return builtTypeParameters;
@@ -83,14 +94,13 @@ public abstract class GenericDefinitionBuilder {
             if (result != null)
                 return result;
             else {
-                if (enclosingDefinition == null)
+                if (residence.residence().contextDefinition() == null)
                     return null;
                 else {
-                    return enclosingDefinition.typeParameters().get(name);
+                    return residence.residence().contextDefinition().typeParameters().get(name);
                 }
             }
         }
-
 
         @Override
         List<Type> asInternalTypeArguments() {

@@ -31,6 +31,7 @@
 package com.github.sviperll.codemodel;
 
 import com.github.sviperll.codemodel.render.Renderable;
+import javax.annotation.Nullable;
 
 /**
  *
@@ -42,14 +43,12 @@ public abstract class GenericDefinition implements Settled, Renderable, Model {
 
     public abstract TypeParameters typeParameters();
 
-    public abstract GenericDefinition enclosingDefinition();
-
     public boolean isGeneric() {
         if (!typeParameters().all().isEmpty())
             return true;
         else {
-            GenericDefinition enclosing = enclosingDefinition();
-            return enclosing != null && enclosing.isGeneric();
+            GenericDefinition context = residence().contextDefinition();
+            return context != null && context.isGeneric();
         }
     }
 
