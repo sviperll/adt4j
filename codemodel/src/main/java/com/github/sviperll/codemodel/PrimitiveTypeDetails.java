@@ -41,5 +41,6 @@ import javax.annotation.Nonnull;
 public enum PrimitiveTypeDetails {
     BYTE, SHORT, INT, LONG,
     FLOAT, DOUBLE,
-    CHAR
+    CHAR,
+    BOOLEAN
 }

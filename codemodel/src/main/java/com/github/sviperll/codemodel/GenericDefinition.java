@@ -31,7 +31,6 @@
 package com.github.sviperll.codemodel;
 
 import com.github.sviperll.codemodel.render.Renderable;
-import javax.annotation.Nullable;
 
 /**
  *

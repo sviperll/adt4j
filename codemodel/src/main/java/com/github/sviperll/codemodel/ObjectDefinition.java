@@ -67,6 +67,8 @@ public abstract class ObjectDefinition extends GenericDefinition {
 
     public abstract String simpleName();
 
+    public abstract boolean isAnonymous();
+
     abstract List<ObjectInitializationElement> staticInitializationElements();
 
     abstract List<ObjectInitializationElement> instanceInitializationElements();
@@ -87,6 +89,23 @@ public abstract class ObjectDefinition extends GenericDefinition {
             }
             return false;
         }
+    }
+
+    ObjectDefinition reference(String relativelyQualifiedName) {
+        int index = relativelyQualifiedName.indexOf('.');
+        if (index == 0)
+            throw new IllegalArgumentException(relativelyQualifiedName + " illegal name");
+        boolean needsToGoDeeper = index >= 0;
+        String simpleName = !needsToGoDeeper ? relativelyQualifiedName : relativelyQualifiedName.substring(0, index);
+        for (ObjectDefinition innerClass: innerClasses()) {
+            if (innerClass.simpleName().equals(simpleName)) {
+                if (!needsToGoDeeper)
+                    return innerClass;
+                else
+                    return innerClass.reference(relativelyQualifiedName.substring(simpleName.length() + 1));
+            }
+        }
+        return null;
     }
 
     @Override

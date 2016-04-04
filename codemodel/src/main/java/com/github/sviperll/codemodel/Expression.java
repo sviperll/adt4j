@@ -217,6 +217,6 @@ public class Expression implements Renderable {
     }
 
     Expression assignment(Expression that) {
-        return new Expression(ASSIGNMENT.createRightAssociativeRenderable(this.renderable, "!=", that.renderable));
+        return new Expression(ASSIGNMENT.createRightAssociativeRenderable(this.renderable, "=", that.renderable));
     }
 }

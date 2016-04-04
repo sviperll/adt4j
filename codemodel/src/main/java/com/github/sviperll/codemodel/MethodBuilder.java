@@ -38,7 +38,8 @@ import javax.annotation.ParametersAreNonnullByDefault;
  */
 @ParametersAreNonnullByDefault
 public class MethodBuilder extends ExecutableBuilder {
-    private final BuiltDefinition details = new BuiltDefinition();
+    private final ExecutableDefinition definition = new BuiltDefinition();
+    private final BuiltDefinitionDetails details = new BuiltDefinitionDetails();
     private final String name;
     private boolean isFinal;
     private Type resultType = Type.voidType();
@@ -57,16 +58,25 @@ public class MethodBuilder extends ExecutableBuilder {
     }
 
     @Override
-    boolean isConstructor() {
-        return false;
+    public ExecutableDefinition definition() {
+        return definition;
     }
 
-    @Override
-    MethodDefinitionDetails getMethodDefinitionDetails() {
-        return details;
+    private class BuiltDefinition extends ExecutableBuilder.BuiltDefinition {
+
+        @Override
+        public MethodDefinitionDetails getMethodDetails() {
+            return details;
+        }
+
+        @Override
+        public boolean isConstructor() {
+            return false;
+        }
+
     }
 
-    private class BuiltDefinition extends MethodDefinitionDetails {
+    private class BuiltDefinitionDetails extends MethodDefinitionDetails {
 
         @Override
         public String name() {

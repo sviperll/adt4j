@@ -30,6 +30,8 @@
 
 package com.github.sviperll.codemodel;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import javax.annotation.Nullable;
@@ -40,17 +42,41 @@ import javax.annotation.Nullable;
  * @param <D>
  */
 public abstract class GenericTypeDetails<D extends GenericDefinition> {
+    static <T extends GenericTypeDetails<?>> T createRawTypeDetails(final Factory<T> factory) {
+        return factory.createGenericTypeDetails(new Parametrization() {
+            @Override
+            Implementation createImplementation(GenericTypeDetails<?> typeDetails) {
+                return new Raw<>(typeDetails, factory);
+            }
+        });
+    }
+
+    private final Implementation implementation;
+    GenericTypeDetails(Parametrization implementationFactory) {
+        this.implementation = implementationFactory.createImplementation(this);
+    }
+
     public abstract D definition();
 
-    public abstract Type erasure();
+    public final Type erasure() {
+        return implementation.erasure();
+    }
 
-    public abstract boolean isNarrowed();
+    public final boolean isNarrowed() {
+        return implementation.isNarrowed();
+    }
 
-    public abstract boolean isRaw();
+    public final boolean isRaw() {
+        return implementation.isRaw();
+    }
 
-    public abstract Type narrow(List<Type> typeArguments) throws CodeModelException;
+    public final Type narrow(List<Type> typeArguments) throws CodeModelException {
+        return implementation.narrow(typeArguments);
+    }
 
-    public abstract List<Type> typeArguments();
+    public final List<Type> typeArguments() {
+        return implementation.typeArguments();
+    }
 
     public abstract Type asType();
 
@@ -80,4 +106,130 @@ public abstract class GenericTypeDetails<D extends GenericDefinition> {
         return builder.build();
     }
 
+    interface Factory<T extends GenericTypeDetails<?>> {
+        T createGenericTypeDetails(Parametrization parametrization);
+    }
+
+    static abstract class Parametrization {
+        private Parametrization() {
+        }
+        abstract Implementation createImplementation(GenericTypeDetails<?> instance);
+    }
+    private static class IdentityImplementationFactory extends Parametrization {
+
+        private final Implementation implementation;
+        IdentityImplementationFactory(Implementation implementation) {
+            this.implementation = implementation;
+        }
+        @Override
+        Implementation createImplementation(GenericTypeDetails<?> instance) {
+            return implementation;
+        }
+    }
+    private static abstract class Implementation {
+        private Implementation() {
+        }
+        abstract Type narrow(List<Type> typeArguments) throws CodeModelException;
+        abstract Type erasure();
+        abstract boolean isRaw();
+        abstract boolean isNarrowed();
+        abstract List<Type> typeArguments();
+    }
+    private static class Raw<T extends GenericTypeDetails<?>> extends Implementation {
+        private List<Type> typeArguments = null;
+        private final GenericTypeDetails<?> genericTypeDetails;
+        private final Factory<T> factory;
+
+        Raw(GenericTypeDetails<?> genericTypeDetails, Factory<T> factory) {
+            this.genericTypeDetails = genericTypeDetails;
+            this.factory = factory;
+        }
+
+        @Override
+        final Type narrow(List<Type> typeArguments) throws CodeModelException {
+            for (Type type: typeArguments) {
+                if (type.isVoid())
+                    throw new CodeModelException("Void can't be used as a type-argument");
+                if (type.isPrimitive())
+                    throw new CodeModelException("Primitive type can't be used as a type-argument");
+                if (type.isIntersection())
+                    throw new CodeModelException("Intersection can't be used as type-argument");
+                if (!type.isArray() && !type.isWildcard() && !type.isObjectType())
+                    throw new CodeModelException("Only array, wildcard or object type can be used as type argument: found " + type.kind());
+            }
+            if (typeArguments.size() != genericTypeDetails.definition().typeParameters().all().size())
+                throw new CodeModelException("Type-argument list and type-parameter list differ in size");
+            return factory.createGenericTypeDetails(new IdentityImplementationFactory(new Narrowed(genericTypeDetails, typeArguments))).asType();
+        }
+
+        @Override
+        final boolean isRaw() {
+            return true;
+        }
+
+        @Override
+        final boolean isNarrowed() {
+            return false;
+        }
+
+        @Override
+        final List<Type> typeArguments() {
+            if (typeArguments == null) {
+                typeArguments = new ArrayList<>(genericTypeDetails.definition().typeParameters().all().size());
+                for (TypeParameter typeParameter: genericTypeDetails.definition().typeParameters().all()) {
+                    Type lowerRawBound;
+                    try {
+                        lowerRawBound = typeParameter.lowerRawBound();
+                    } catch (CodeModelException ex) {
+                        lowerRawBound = genericTypeDetails.definition().getCodeModel().objectType();
+                    }
+                    typeArguments.add(lowerRawBound);
+                }
+            }
+            return typeArguments;
+        }
+
+        @Override
+        Type erasure() {
+            return genericTypeDetails.asType();
+        }
+    }
+
+    private static class Narrowed extends Implementation {
+
+        private final GenericTypeDetails<?> erasure;
+        private final List<Type> arguments;
+        Narrowed(GenericTypeDetails<?> erasure, List<Type> arguments) throws CodeModelException {
+            if (arguments.isEmpty())
+                throw new CodeModelException("Type arguments shouldn't be empty");
+            this.erasure = erasure;
+            this.arguments = Collections.unmodifiableList(new ArrayList<>(arguments));
+        }
+
+        @Override
+        public Type erasure() {
+            return erasure.asType();
+        }
+
+        @Override
+        public boolean isNarrowed() {
+            return true;
+        }
+
+        @Override
+        public boolean isRaw() {
+            return false;
+        }
+
+        @Override
+        public Type narrow(List<Type> typeArguments) throws CodeModelException {
+            throw new UnsupportedOperationException("Raw type expected");
+        }
+
+        @Override
+        public List<Type> typeArguments() {
+            return arguments;
+        }
+
+    }
 }

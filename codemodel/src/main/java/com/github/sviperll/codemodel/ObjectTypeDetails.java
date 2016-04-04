@@ -42,7 +42,8 @@ import javax.annotation.ParametersAreNonnullByDefault;
 public abstract class ObjectTypeDetails extends GenericTypeDetails<ObjectDefinition> {
     private List<Type> methods = null;
 
-    ObjectTypeDetails() {
+    ObjectTypeDetails(GenericTypeDetails.Parametrization implementation) {
+        super(implementation);
     }
 
     @Override

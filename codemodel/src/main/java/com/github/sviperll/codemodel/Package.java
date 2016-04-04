@@ -33,6 +33,8 @@ package com.github.sviperll.codemodel;
 import java.lang.reflect.Modifier;
 import java.util.Map;
 import java.util.TreeMap;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.annotation.ParametersAreNonnullByDefault;
 
 /**
@@ -41,13 +43,19 @@ import javax.annotation.ParametersAreNonnullByDefault;
  */
 @ParametersAreNonnullByDefault
 public final class Package implements Model {
+    private static final Logger logger = Logger.getLogger(Package.class.getName());
+
+    static Package createTopLevelPackage(CodeModel codeModel) {
+        return new Package(codeModel, "");
+    }
 
     private final CodeModel codeModel;
     private final String name;
     private final Package parent;
     private final Map<String, ObjectDefinition> classes = new TreeMap<>();
     private final Map<String, Package> packages = new TreeMap<>();
-    Package(CodeModel codeModel, String name) {
+
+    private Package(CodeModel codeModel, String name) {
         this(codeModel, name, null);
     }
 
@@ -61,17 +69,59 @@ public final class Package implements Model {
         return parent;
     }
 
-    public ObjectBuilder<PackageLevelBuilder> createClass(ObjectKind kind, String className) throws CodeModelException {
-        if (classes.containsKey(className))
-            throw new CodeModelException(name + "." + className + " already defined");
+    public NamedObjectBuilder<PackageLevelBuilder> createClass(ObjectKind kind, String className) throws CodeModelException {
+        if (reference(className) != null)
+            throw new CodeModelException(packageAsNamePrefix() + className + " already defined");
         PackageLevelBuilder membershipBuilder = new PackageLevelBuilder(this);
-        ObjectBuilder<PackageLevelBuilder> result = new ObjectBuilder<>(kind, membershipBuilder, className);
+        NamedObjectBuilder<PackageLevelBuilder> result = new NamedObjectBuilder<>(kind, membershipBuilder, className);
         classes.put(className, result.definition());
         return result;
     }
 
+    ObjectDefinition reference(String relativelyQualifiedName) {
+        int index = relativelyQualifiedName.indexOf('.');
+        if (index == 0)
+            throw new IllegalArgumentException(packageAsNamePrefix() + relativelyQualifiedName + " illegal name");
+        boolean needsToGoDeeper = index >= 0;
+        String simpleName = !needsToGoDeeper ? relativelyQualifiedName : relativelyQualifiedName.substring(0, index);
+        ObjectDefinition result = classes.get(simpleName);
+        if (result == null) {
+            if (codeModel.includesLoadableClasses()) {
+                try {
+                    Class<?> klass = Class.forName(packageAsNamePrefix() + simpleName);
+                    try {
+                        result = createObjectDefinitionForClass(klass);
+                    } catch (CodeModelException ex) {
+                        throw new RuntimeException("Should never happen");
+                    }
+                    classes.put(simpleName, result);
+                } catch (ClassNotFoundException ex) {
+                }
+            }
+        }
+        if (!needsToGoDeeper) {
+            return result;
+        } else {
+            String childRelativeName = relativelyQualifiedName.substring(simpleName.length() + 1);
+            if (result != null) {
+                return result.reference(childRelativeName);
+            } else {
+                Package childPackage = packages.get(simpleName);
+                if (childPackage == null) {
+                    childPackage = new Package(codeModel, packageAsNamePrefix() + simpleName, this);
+                    packages.put(simpleName, childPackage);
+                }
+                return childPackage.reference(childRelativeName);
+            }
+        }
+    }
+
     String qualifiedName() {
         return name;
+    }
+
+    private String packageAsNamePrefix() {
+        return name.isEmpty() ? "" : name + ".";
     }
 
     @Override
@@ -82,15 +132,15 @@ public final class Package implements Model {
     Package getChildPackageBySuffix(String suffix) throws CodeModelException {
         int index = suffix.indexOf('.');
         if (index == 0)
-            throw new CodeModelException(name + "." + suffix + " illegal package name");
+            throw new CodeModelException(packageAsNamePrefix() + suffix + " illegal package name");
         boolean isChild = index < 0;
         String childSuffix = isChild ? suffix : suffix.substring(0, index);
         if (classes.containsKey(childSuffix))
-            throw new CodeModelException(name + "." + childSuffix + " is a class, but package expected");
+            throw new CodeModelException(packageAsNamePrefix() + childSuffix + " is a class, but package expected");
         Package childPackage = packages.get(childSuffix);
         if (childPackage == null) {
             CodeModel.validateSimpleName(childSuffix);
-            childPackage = new Package(codeModel, name + "." + childSuffix, this);
+            childPackage = new Package(codeModel, packageAsNamePrefix() + childSuffix, this);
             packages.put(childSuffix, childPackage);
         }
         if (isChild)
@@ -99,12 +149,12 @@ public final class Package implements Model {
             return childPackage.getChildPackageBySuffix(suffix.substring(index + 1));
     }
 
-    ObjectDefinition importClass(final Class<?> klass) throws CodeModelException {
+    private ObjectDefinition createObjectDefinitionForClass(final Class<?> klass) throws CodeModelException {
         assert klass.getEnclosingClass() == null;
         assert klass.getPackage().getName().equals(name);
         String className = klass.getSimpleName();
         if (classes.containsKey(className))
-            throw new CodeModelException(name + "." + className + " already defined");
+            throw new CodeModelException(packageAsNamePrefix() + className + " already defined");
         int modifiers = klass.getModifiers();
         final boolean isPublic = (modifiers & Modifier.PUBLIC) != 0;
         Residence residence = Residence.packageLevel(new PackageLevelDetails() {
@@ -118,8 +168,6 @@ public final class Package implements Model {
                 return Package.this;
             }
         });
-        ObjectDefinition definition = new ReflectionObjectDefinition(codeModel, residence, klass);
-        classes.put(className, definition);
-        return definition;
+        return new ReflectionObjectDefinition(codeModel, residence, klass);
     }
 }

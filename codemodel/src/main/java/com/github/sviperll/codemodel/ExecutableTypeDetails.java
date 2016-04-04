@@ -39,7 +39,8 @@ import javax.annotation.ParametersAreNonnullByDefault;
  */
 @ParametersAreNonnullByDefault
 public abstract class ExecutableTypeDetails extends GenericTypeDetails<ExecutableDefinition> {
-    ExecutableTypeDetails() {
+    ExecutableTypeDetails(GenericTypeDetails.Parametrization implementation) {
+        super(implementation);
     }
 
     public abstract List<VariableDeclaration> parameters();

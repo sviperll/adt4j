@@ -38,6 +38,7 @@ import javax.annotation.ParametersAreNonnullByDefault;
  */
 @ParametersAreNonnullByDefault
 public class ConstructorBuilder extends ExecutableBuilder {
+    private final ExecutableDefinition definition = new BuiltDefinition();
     ConstructorBuilder(NestingBuilder residence) throws CodeModelException {
         super(residence);
         if (residence.residence().getNesting().isStatic())
@@ -45,13 +46,21 @@ public class ConstructorBuilder extends ExecutableBuilder {
     }
 
     @Override
-    boolean isConstructor() {
-        return true;
+    public ExecutableDefinition definition() {
+        return definition;
     }
 
-    @Override
-    MethodDefinitionDetails getMethodDefinitionDetails() {
-        throw new UnsupportedOperationException("Expected method, bun constructor is used");
-    }
+    private class BuiltDefinition extends ExecutableBuilder.BuiltDefinition {
 
+        @Override
+        public MethodDefinitionDetails getMethodDetails() {
+            throw new UnsupportedOperationException("Method expected!");
+        }
+
+        @Override
+        public boolean isConstructor() {
+            return true;
+        }
+
+    }
 }

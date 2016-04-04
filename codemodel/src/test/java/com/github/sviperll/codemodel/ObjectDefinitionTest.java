@@ -85,7 +85,7 @@ public class ObjectDefinitionTest {
     public void smokeNarrowedTypes() throws CodeModelException {
         ObjectDefinition test1 = buildClass();
         CodeModel codeModel = test1.getCodeModel();
-        ObjectDefinition stringDefinition = codeModel.importTopLevelClass(String.class);
+        ObjectDefinition stringDefinition = codeModel.reference(String.class.getName());
         Type stringType = stringDefinition.rawType();
 
         Type test1Type = test1.rawType().getObjectDetails().narrow(Collections.singletonList(stringType));
@@ -120,7 +120,7 @@ public class ObjectDefinitionTest {
     public void smokeNarrowedMethodTypes() throws CodeModelException {
         ObjectDefinition test1 = buildClass();
         CodeModel codeModel = test1.getCodeModel();
-        ObjectDefinition stringDefinition = codeModel.importTopLevelClass(String.class);
+        ObjectDefinition stringDefinition = codeModel.reference(String.class.getName());
         Type stringType = stringDefinition.rawType();
 
         Type test1Type = test1.rawType().getObjectDetails().narrow(Collections.singletonList(stringType));
@@ -134,7 +134,9 @@ public class ObjectDefinitionTest {
     }
 
     private ObjectDefinition buildClass() throws CodeModelException {
-        CodeModel codeModel = new CodeModel();
+        CodeModel.Builder builder = CodeModel.createBuilder();
+        builder.includeLoadableClasses();
+        CodeModel codeModel = builder.build();
         Package pkg = codeModel.getPackage("com.github.sviperll.codemodel.test");
         ObjectBuilder<PackageLevelBuilder> test1 = pkg.createClass(ObjectKind.CLASS, "Test1");
         test1.typeParameter("T");

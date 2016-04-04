@@ -46,7 +46,6 @@ public abstract class ExecutableBuilder extends GenericDefinitionBuilder<Nesting
     private final BlockBuilder body = BlockBuilder.createWithBracesForced(scope.createNested());
     private final List<VariableDeclaration> parameters = new ArrayList<>();
     private final List<Type> throwsList = new ArrayList<>();
-    private final BuiltDefinition definition = new BuiltDefinition();
 
     private final TypeContainer typeContainer;
     private final NestingBuilder residence;
@@ -62,9 +61,8 @@ public abstract class ExecutableBuilder extends GenericDefinitionBuilder<Nesting
         
     }
 
-    abstract boolean isConstructor();
-
-    abstract MethodDefinitionDetails getMethodDefinitionDetails();
+    @Override
+    public abstract ExecutableDefinition definition();
 
     public void addParameter(Type type, String name) throws CodeModelException {
         name = scope.makeIntroducable(name);
@@ -88,77 +86,68 @@ public abstract class ExecutableBuilder extends GenericDefinitionBuilder<Nesting
         throwsList.add(type);
     }
 
-    @Override
-    public ExecutableDefinition definition() {
-        return definition;
-    }
-
     public BlockBuilder body() {
         return body;
     }
 
-    private class BuiltDefinition extends ExecutableDefinition {
+    abstract class BuiltDefinition extends GenericDefinitionBuilder<NestingBuilder>.BuiltExecutableDefinition {
         @Override
-        public List<VariableDeclaration> parameters() {
+        public abstract MethodDefinitionDetails getMethodDetails();
+
+        @Override
+        public abstract boolean isConstructor();
+
+        @Override
+        public final boolean isMethod() {
+            return !isConstructor();
+        }
+
+        @Override
+        public final List<VariableDeclaration> parameters() {
             return Collections.unmodifiableList(parameters);
         }
 
         @Override
-        public List<Type> throwsList() {
+        public final List<Type> throwsList() {
             return Collections.unmodifiableList(throwsList);
         }
 
         @Override
-        Renderable body() {
+        final Renderable body() {
             return body;
         }
 
         @Override
-        public Type rawType() {
+        public final Type rawType() {
             if (residence.residence().getNesting().isStatic()) {
-                return typeContainer.type;
+                return typeContainer.rawTypeDetails.asType();
             } else {
                 throw new UnsupportedOperationException("Parent instance type is required");
             }
         }
 
         @Override
-        public Type rawType(Type parentInstanceType) {
+        public final Type rawType(Type parentInstanceType) {
             if (residence.residence().getNesting().isStatic()) {
                 throw new UnsupportedOperationException("Type is static memeber, no parent is expected.");
             } else {
                 TypeContainer typeContainer = new TypeContainer(parentInstanceType.getObjectDetails());
-                return typeContainer.type;
+                return typeContainer.rawTypeDetails.asType();
             }
         }
 
         @Override
-        public boolean isConstructor() {
-            return ExecutableBuilder.this.isConstructor();
-        }
-
-        @Override
-        public boolean isMethod() {
-            return !ExecutableBuilder.this.isConstructor();
-        }
-
-        @Override
-        public MethodDefinitionDetails getMethodDetails() {
-            return ExecutableBuilder.this.getMethodDefinitionDetails();
-        }
-
-        @Override
-        public Residence residence() {
+        public final Residence residence() {
             return residence.residence();
         }
 
         @Override
-        public CodeModel getCodeModel() {
+        public final CodeModel getCodeModel() {
             return residence.getCodeModel();
         }
 
         @Override
-        public Type internalType() {
+        public final Type internalType() {
             Type rawType;
             if (residence.residence().getNesting().isStatic()) {
                 rawType = rawType();
@@ -172,22 +161,26 @@ public abstract class ExecutableBuilder extends GenericDefinitionBuilder<Nesting
                 throw new RuntimeException("No parameter-argument mismatch is guaranteed to ever happen", ex);
             }
         }
-
-        @Override
-        public TypeParameters typeParameters() {
-            return ExecutableBuilder.this.typeParameters();
-        }
     }
 
     private class TypeContainer {
         private final ObjectTypeDetails parentInstanceType;
-        private Type type = Type.executable(new BuiltTypeDetails());
-
+        private final ExecutableTypeDetails rawTypeDetails = GenericTypeDetails.createRawTypeDetails(new GenericTypeDetails.Factory<ExecutableTypeDetails>() {
+            @Override
+            public ExecutableTypeDetails createGenericTypeDetails(GenericTypeDetails.Parametrization implementation) {
+                return new BuiltTypeDetails(implementation);
+            }
+        });
         TypeContainer(ObjectTypeDetails parentInstanceType) {
             this.parentInstanceType = parentInstanceType;
         }
 
-        private class BuiltTypeDetails extends RawExecutableTypeDetails {
+        private class BuiltTypeDetails extends ExecutableTypeDetails {
+            Type type = Type.executable(this);
+
+            BuiltTypeDetails(GenericTypeDetails.Parametrization implementation) {
+                super(implementation);
+            }
 
             @Override
             public Type asType() {
@@ -196,7 +189,7 @@ public abstract class ExecutableBuilder extends GenericDefinitionBuilder<Nesting
 
             @Override
             public ExecutableDefinition definition() {
-                return definition;
+                return ExecutableBuilder.this.definition();
             }
 
             @Override
@@ -211,17 +204,11 @@ public abstract class ExecutableBuilder extends GenericDefinitionBuilder<Nesting
 
             @Override
             public Type returnType() {
-                if (definition.isConstructor())
+                if (definition().isConstructor())
                     return parentInstanceType.asType();
                 else {
-                    return wrapType(definition.getMethodDetails().returnType());
+                    return definition().getMethodDetails().returnType().inEnvironment(definitionEnvironment());
                 }
-            }
-
-            private Type wrapType(Type type) {
-                if (parentInstanceType != null)
-                    type = type.inEnvironment(parentInstanceType.definitionEnvironment());
-                return type;
             }
 
             @Override

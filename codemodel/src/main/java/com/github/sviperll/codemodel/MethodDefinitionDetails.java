@@ -38,21 +38,7 @@ import javax.annotation.ParametersAreNonnullByDefault;
  */
 @ParametersAreNonnullByDefault
 public abstract class MethodDefinitionDetails {
-    /**
-     * @return Wheather method is marked as final
-     * @throws UnsupportedOperationException for constructors
-     */
     public abstract boolean isFinal();
-
-    /**
-     * @return Method return type
-     * @throws UnsupportedOperationException for constructors
-     */
     public abstract Type returnType();
-
-    /**
-     * @return Method name
-     * @throws UnsupportedOperationException for constructors
-     */
     public abstract String name();
 }

@@ -30,11 +30,7 @@
 
 package com.github.sviperll.codemodel;
 
-import java.util.Map;
-import java.util.TreeMap;
 import javax.annotation.ParametersAreNonnullByDefault;
-import javax.lang.model.element.Element;
-import javax.lang.model.util.Elements;
 
 /**
  *
@@ -48,59 +44,68 @@ public final class CodeModel {
         }
     }
 
-    private final Package defaultPackage = new Package(this, "");
-    private final Map<String, Package> packages = new TreeMap<>();
+    public static Builder createBuilder() {
+        return new Builder();
+    }
+
+    private final boolean includesLoadableClasses;
+    private final Package defaultPackage = Package.createTopLevelPackage(this);
     private Type objectType = null;
+
+    private CodeModel(boolean includesLoadableClasses) {
+        this.includesLoadableClasses = includesLoadableClasses;
+    }
 
     public Type objectType() {
         if (objectType == null) {
-            try {
-                objectType = importTopLevelClass(Object.class).rawType();
-            } catch (CodeModelException ex) {
-                throw new RuntimeException(ex);
+            objectType = reference(Object.class.getName()).rawType();
+            if (objectType == null) {
+                try {
+                    Package pkg = getPackage("java.lang");
+                    NamedObjectBuilder<PackageLevelBuilder> builder = pkg.createClass(ObjectKind.CLASS, "Object");
+                    objectType = builder.definition().rawType();
+                    builder.residence().setPublic(true);
+                    MethodBuilder equals = builder.method("equals");
+                    equals.resultType(Type.booleanType());
+                    equals.addParameter(objectType, "that");
+                } catch (CodeModelException ex) {
+                    throw new RuntimeException("Should never happen");
+                }
             }
         }
         return objectType;
     }
 
     public Package getPackage(String qualifiedName) throws CodeModelException {
-        int index = qualifiedName.indexOf('.');
-        if (index == 0)
-            throw new CodeModelException(qualifiedName + " illegal qualified name");
-        boolean isTopLevelPackage = index < 0;
-        String topLevelName = isTopLevelPackage ? qualifiedName : qualifiedName.substring(0, index);
-        Package topLevelPackage = packages.get(topLevelName);
-        if (topLevelPackage == null) {
-            validateSimpleName(topLevelName);
-            topLevelPackage = new Package(this, topLevelName);
-            packages.put(topLevelName, topLevelPackage);
-        }
-        if (isTopLevelPackage)
-            return topLevelPackage;
-        else
-            return topLevelPackage.getChildPackageBySuffix(qualifiedName.substring(index + 1));
+        return defaultPackage.getChildPackageBySuffix(qualifiedName);
     }
 
     public ObjectBuilder<PackageLevelBuilder> createDefaultPackageClass(ObjectKind kind, String name) throws CodeModelException {
         return defaultPackage.createClass(kind, name);
     }
 
-    public ObjectDefinition importTopLevelClass(final Class<?> klass) throws CodeModelException {
-        if (klass.isArray())
-            throw new IllegalArgumentException("Arrays don't have class definition");
-        if (klass.isPrimitive())
-            throw new IllegalArgumentException("Primitives don't have class definition");
-        final Package pkg;
-        try {
-            pkg = getPackage(klass.getPackage().getName());
-        } catch (CodeModelException ex) {
-            throw new RuntimeException(ex);
-        }
-        return pkg.importClass(klass);
+    public ObjectDefinition reference(String qualifiedName) {
+        return defaultPackage.reference(qualifiedName);
     }
 
-    public ObjectDefinition importClass(Element element, Elements elementUtils) {
-        throw new UnsupportedOperationException("Not supported yet.");
+    boolean includesLoadableClasses() {
+        return includesLoadableClasses;
+    }
+
+    public static class Builder {
+        private boolean includesLoadableClasses = true;
+
+        public Builder() {
+        }
+        public void includeLoadableClasses() {
+            includesLoadableClasses = true;
+        }
+        public void doNotIncludeLoadableClasses() {
+            includesLoadableClasses = false;
+        }
+        public CodeModel build() {
+            return new CodeModel(includesLoadableClasses);
+        }
     }
 
 }

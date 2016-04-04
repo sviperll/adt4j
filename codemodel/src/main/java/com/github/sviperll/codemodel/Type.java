@@ -53,21 +53,54 @@ public abstract class Type implements Renderable {
     private static final Type FLOAT = Type.primitive(PrimitiveTypeDetails.FLOAT);
     private static final Type DOUBLE = Type.primitive(PrimitiveTypeDetails.DOUBLE);
     private static final Type CHAR = Type.primitive(PrimitiveTypeDetails.CHAR);
+    private static final Type BOOLEAN = Type.primitive(PrimitiveTypeDetails.BOOLEAN);
 
     public static Type variable(String name) {
         return variable(new TypeVariableDetails(name));
-    }
-
-    static Type variable(TypeVariableDetails details) {
-        return new TypeVariable(details);
     }
 
     public static Type voidType() {
         return VOID;
     }
 
+    public static Type byteType() {
+        return BYTE;
+    }
+
+    public static Type shortType() {
+        return SHORT;
+    }
+
+    public static Type intType() {
+        return INT;
+    }
+
+    public static Type longType() {
+        return LONG;
+    }
+
+    public static Type floatType() {
+        return FLOAT;
+    }
+
+    public static Type doubleType() {
+        return DOUBLE;
+    }
+
+    public static Type charType() {
+        return CHAR;
+    }
+
+    public static Type booleanType() {
+        return BOOLEAN;
+    }
+
     public static Type intersection(Collection<Type> bounds) throws CodeModelException {
         return intersection(new IntersectionTypeDetails(bounds));
+    }
+
+    static Type variable(TypeVariableDetails details) {
+        return new TypeVariable(details);
     }
 
     static Type intersection(IntersectionTypeDetails details) {
@@ -76,38 +109,6 @@ public abstract class Type implements Renderable {
 
     static Type createObjectType(ObjectTypeDetails typeDetails) {
         return new ObjectType(typeDetails);
-    }
-
-    static Type byteType() {
-        return BYTE;
-    }
-
-    static Type shortType() {
-        return SHORT;
-    }
-
-    static Type intType() {
-        return INT;
-    }
-
-    static Type longType() {
-        return LONG;
-    }
-
-    static Type floatType() {
-        return FLOAT;
-    }
-
-    static Type doubleType() {
-        return DOUBLE;
-    }
-
-    static Type charType() {
-        return CHAR;
-    }
-
-    private static Type primitive(final PrimitiveTypeDetails details) {
-        return new PrimitiveType(details);
     }
 
     static Type executable(ExecutableTypeDetails details) {
@@ -120,6 +121,10 @@ public abstract class Type implements Renderable {
 
     static Type wildcard(WildcardTypeDetails details) {
         return new WildcardType(details);
+    }
+
+    private static Type primitive(final PrimitiveTypeDetails details) {
+        return new PrimitiveType(details);
     }
 
     private Type() {

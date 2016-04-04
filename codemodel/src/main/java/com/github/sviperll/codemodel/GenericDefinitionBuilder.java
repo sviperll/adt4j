@@ -40,7 +40,6 @@ import javax.annotation.ParametersAreNonnullByDefault;
  *
  * @author Victor Nazarov &lt;asviraspossible@gmail.com&gt;
  * @param <B>
- * @param <D>
  */
 @ParametersAreNonnullByDefault
 public abstract class GenericDefinitionBuilder<B extends ResidenceBuilder> implements SettledBuilder<B>, Model {
@@ -77,8 +76,18 @@ public abstract class GenericDefinitionBuilder<B extends ResidenceBuilder> imple
         return residence.getCodeModel();
     }
 
-    BuiltTypeParameters typeParameters() {
-        return builtTypeParameters;
+    abstract class BuiltExecutableDefinition extends ExecutableDefinition {
+        @Override
+        public final TypeParameters typeParameters() {
+            return builtTypeParameters;
+        }
+    }
+
+    abstract class BuiltObjectDefinition extends ObjectDefinition {
+        @Override
+        public final TypeParameters typeParameters() {
+            return builtTypeParameters;
+        }
     }
 
     private class BuiltTypeParameters extends TypeParameters {

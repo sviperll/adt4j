@@ -43,7 +43,12 @@ import java.util.List;
  * @author Victor Nazarov &lt;asviraspossible@gmail.com&gt;
  */
 class ReflectionObjectDefinition extends ObjectDefinition {
-    private final Type type = Type.createObjectType(new TypeDetails());
+    private final ObjectTypeDetails rawTypeDetails = GenericTypeDetails.createRawTypeDetails(new GenericTypeDetails.Factory<ObjectTypeDetails>() {
+        @Override
+        public ObjectTypeDetails createGenericTypeDetails(GenericTypeDetails.Parametrization implementation) {
+            return new TypeDetails(implementation);
+        }
+    });
     private final CodeModel codeModel;
     private final Residence residence;
     private final Class<?> klass;
@@ -130,7 +135,7 @@ class ReflectionObjectDefinition extends ObjectDefinition {
 
     @Override
     public Type rawType() {
-        return type;
+        return rawTypeDetails.asType();
     }
 
     @Override
@@ -163,7 +168,16 @@ class ReflectionObjectDefinition extends ObjectDefinition {
         throw new UnsupportedOperationException("Not supported yet.");
     }
 
-    public class TypeDetails extends RawObjectTypeDetails {
+    @Override
+    public boolean isAnonymous() {
+        throw new UnsupportedOperationException("Not supported yet.");
+    }
+
+    public class TypeDetails extends ObjectTypeDetails {
+        private final Type type = Type.createObjectType(this);
+        TypeDetails(GenericTypeDetails.Parametrization implementation) {
+            super(implementation);
+        }
 
         @Override
         public ObjectDefinition definition() {
