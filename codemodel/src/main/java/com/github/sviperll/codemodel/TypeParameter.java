@@ -48,7 +48,7 @@ public abstract class TypeParameter {
      */
     public abstract Type bound();
 
-    public abstract GenericDefinition declaredIn();
+    public abstract GenericDefinition<?> declaredIn();
 
     final Type lowerRawBound() throws CodeModelException {
         TypeParameters environment = declaredIn().typeParameters().preventCycle(name());
@@ -56,9 +56,9 @@ public abstract class TypeParameter {
         if (bound.isTypeVariable()) {
             return environment.get(bound.getVariableDetails().name()).lowerRawBound();
         } else {
-            ObjectTypeDetails lower = null;
+            ObjectType lower = null;
             for (Type type: bound.asListOfIntersectedTypes()) {
-                ObjectTypeDetails object = type.getObjectDetails();
+                ObjectType object = type.getObjectDetails();
                 if (lower == null || lower.definition().extendsOrImplements(object.definition()))
                     lower = object;
             }

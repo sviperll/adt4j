@@ -30,26 +30,14 @@
 
 package com.github.sviperll.codemodel;
 
+import javax.annotation.ParametersAreNonnullByDefault;
+import javax.annotation.Nonnull;
+
 /**
  *
  * @author Victor Nazarov &lt;asviraspossible@gmail.com&gt;
  */
-public class ArrayTypeDetails {
-    private final Type type = Type.array(this);
-    private final Type elementType;
-    ArrayTypeDetails(Type elementType) {
-        this.elementType = elementType;
-    }
-
-    public Type elementType() {
-        return elementType;
-    }
-
-    ArrayTypeDetails inEnvironment(TypeEnvironment environment) {
-        return new ArrayTypeDetails(elementType.inEnvironment(environment));
-    }
-
-    Type asType() {
-        return type;
-    }
+@ParametersAreNonnullByDefault
+public interface Generic {
+    GenericType<?, ?> getGenericDetails();
 }

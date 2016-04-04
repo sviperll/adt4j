@@ -30,6 +30,7 @@
 
 package com.github.sviperll.codemodel;
 
+import java.util.List;
 import javax.annotation.ParametersAreNonnullByDefault;
 
 /**
@@ -38,15 +39,22 @@ import javax.annotation.ParametersAreNonnullByDefault;
  */
 @ParametersAreNonnullByDefault
 public class MethodBuilder extends ExecutableBuilder {
-    private final ExecutableDefinition definition = new BuiltDefinition();
-    private final BuiltDefinitionDetails details = new BuiltDefinitionDetails();
+    private final MethodDefinition definition = new BuiltDefinition(createExecutableDefinitionSubstance());
     private final String name;
+    private final NestingBuilder residence;
     private boolean isFinal;
     private Type resultType = Type.voidType();
+    private final TypeContainer typeContainer;
 
     MethodBuilder(NestingBuilder residence, String name) {
         super(residence);
+        this.residence = residence;
         this.name = name;
+        if (residence.residence().getNesting().isStatic()) {
+            typeContainer = new TypeContainer(null);
+        } else {
+            typeContainer = null;
+        }
     }
 
     public void setFinal(boolean isFinal) {
@@ -58,25 +66,19 @@ public class MethodBuilder extends ExecutableBuilder {
     }
 
     @Override
-    public ExecutableDefinition definition() {
+    public MethodDefinition definition() {
         return definition;
     }
 
-    private class BuiltDefinition extends ExecutableBuilder.BuiltDefinition {
-
-        @Override
-        public MethodDefinitionDetails getMethodDetails() {
-            return details;
+    private class BuiltDefinition extends MethodDefinition {
+        BuiltDefinition(ExecutableDefinitionSubstance executableDefinition) {
+            super(executableDefinition);
         }
 
         @Override
         public boolean isConstructor() {
             return false;
         }
-
-    }
-
-    private class BuiltDefinitionDetails extends MethodDefinitionDetails {
 
         @Override
         public String name() {
@@ -93,5 +95,93 @@ public class MethodBuilder extends ExecutableBuilder {
             return resultType;
         }
 
+        @Override
+        public boolean isMethod() {
+            return true;
+        }
+
+        @Override
+        public MethodDefinition getMethodDetails() {
+            return this;
+        }
+
+        @Override
+        public final MethodType rawType() {
+            if (residence.residence().getNesting().isStatic()) {
+                return typeContainer.rawType;
+            } else {
+                throw new UnsupportedOperationException("Parent instance type is required");
+            }
+        }
+
+        @Override
+        public final MethodType rawType(GenericType<?, ?> parentInstanceType) {
+            if (residence.residence().getNesting().isStatic()) {
+                throw new UnsupportedOperationException("Type is static memeber, no parent is expected.");
+            } else {
+                TypeContainer typeContainer = new TypeContainer(parentInstanceType);
+                return typeContainer.rawType;
+            }
+        }
+
+        @Override
+        public final MethodType internalType() {
+            MethodType rawType;
+            if (residence.residence().getNesting().isStatic()) {
+                rawType = rawType();
+            } else {
+                rawType = rawType(residence.residence().getNesting().parent().internalType().getObjectDetails());
+            }
+            List<Type> internalTypeArguments = typeParameters().asInternalTypeArguments();
+            try {
+                return rawType.narrow(internalTypeArguments);
+            } catch (CodeModelException ex) {
+                throw new RuntimeException("No parameter-argument mismatch is guaranteed to ever happen", ex);
+            }
+        }
     }
+
+    private class TypeContainer {
+        private final GenericType<?, ?> parentInstanceType;
+        private final ExecutableTypeSubstance executableSubstance;
+        private final MethodType rawType = GenericType.createRawTypeDetails(new GenericType.Factory<MethodType>() {
+            @Override
+            public MethodType createGenericType(GenericType.Parametrization<MethodType> parametrization) {
+                return new BuiltTypeDetails(parametrization, executableSubstance);
+            }
+        });
+        TypeContainer(GenericType<?, ?> parentInstanceType) {
+            this.parentInstanceType = parentInstanceType;
+            this.executableSubstance = createExecutableTypeSubstance(parentInstanceType);
+        }
+
+        private class BuiltTypeDetails extends MethodType {
+            BuiltTypeDetails(GenericType.Parametrization<MethodType> implementation, ExecutableTypeSubstance executableSubstance) {
+                super(implementation, executableSubstance);
+            }
+
+            @Override
+            public MethodType asType() {
+                return this;
+            }
+
+            @Override
+            public MethodDefinition definition() {
+                return MethodBuilder.this.definition();
+            }
+
+            @Override
+            public Type returnType() {
+                return definition().returnType().inEnvironment(definitionEnvironment());
+            }
+
+            @Override
+            public GenericType<?, ?> capturedEnclosingType() {
+                return parentInstanceType == null ? null : parentInstanceType;
+            }
+
+
+        }
+    }
+
 }

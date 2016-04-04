@@ -28,63 +28,27 @@
  *  EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.github.sviperll.codemodel.render;
+package com.github.sviperll.codemodel;
 
-import com.github.sviperll.codemodel.ObjectType;
-import com.github.sviperll.codemodel.Type;
-import com.github.sviperll.codemodel.WildcardType;
-import java.util.Iterator;
-import java.util.Locale;
-import javax.annotation.ParametersAreNonnullByDefault;
+import com.github.sviperll.codemodel.render.Renderable;
+import java.util.List;
 
 /**
  *
  * @author Victor Nazarov &lt;asviraspossible@gmail.com&gt;
  */
-@ParametersAreNonnullByDefault
-class SimpleRendererContext implements RendererContext {
-    private final LineWriter implementation;
-    private final int identationLevel;
+interface ExecutableDefinitionSubstance {
 
-    SimpleRendererContext(LineWriter implementation) {
-        this(implementation, 0);
-    }
-    SimpleRendererContext(LineWriter implementation, int identationLevel) {
-        this.implementation = implementation;
-        this.identationLevel = identationLevel;
-    }
-    @Override
-    public void appendText(String s) {
-        implementation.writeText(identationLevel, s);
-    }
-    @Override
-    public void appendLineBreak() {
-        implementation.writeLineBreak();
-    }
+    TypeParameters typeParameters();
 
-    @Override
-    public RendererContext indented() {
-        return new SimpleRendererContext(implementation, identationLevel + 1);
-    }
+    List<VariableDeclaration> parameters();
 
-    @Override
-    public void appendWhiteSpace() {
-        implementation.writeWhiteSpace();
-    }
+    List<Type> throwsList();
 
-    @Override
-    public void appendRenderable(Renderable renderable) {
-        Renderer renderer = renderable.createRenderer(this);
-        renderer.render();
-    }
+    Renderable body();
 
-    @Override
-    public void appendQualifiedClassName(String name) {
-        implementation.writeQualifiedTypeName(identationLevel, name);
-    }
+    Residence residence();
 
-    @Override
-    public void appendEmptyLine() {
-        implementation.appendEmptyLine();
-    }
+    CodeModel getCodeModel();
+
 }

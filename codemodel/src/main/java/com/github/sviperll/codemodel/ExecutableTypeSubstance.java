@@ -30,14 +30,18 @@
 
 package com.github.sviperll.codemodel;
 
+import java.util.List;
 import javax.annotation.ParametersAreNonnullByDefault;
+import javax.annotation.Nonnull;
 
 /**
  *
  * @author Victor Nazarov &lt;asviraspossible@gmail.com&gt;
  */
 @ParametersAreNonnullByDefault
-public interface PackageLevelDetails {
-    public abstract boolean isPublic();
-    public abstract Package getPackage();
+public interface ExecutableTypeSubstance {
+    List<VariableDeclaration> parameters();
+
+    List<Type> throwsList();
+
 }

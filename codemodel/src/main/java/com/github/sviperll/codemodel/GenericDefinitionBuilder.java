@@ -46,14 +46,13 @@ public abstract class GenericDefinitionBuilder<B extends ResidenceBuilder> imple
     private final List<TypeParameter> typeParameters = new ArrayList<>();
     private final List<Type> typeParametersAsInternalTypeArguments = new ArrayList<>();
     private final Map<String, TypeParameter> typeParametersMap = new TreeMap<>();
-    private final BuiltTypeParameters builtTypeParameters = new BuiltTypeParameters();
     private final B residence;
 
     GenericDefinitionBuilder(B residence) {
         this.residence = residence;
     }
 
-    public abstract GenericDefinition definition();
+    public abstract GenericDefinition<?> definition();
 
     public TypeParameterBuilder typeParameter(String name) throws CodeModelException {
         if (typeParametersMap.containsKey(name)) {
@@ -76,29 +75,19 @@ public abstract class GenericDefinitionBuilder<B extends ResidenceBuilder> imple
         return residence.getCodeModel();
     }
 
-    abstract class BuiltExecutableDefinition extends ExecutableDefinition {
-        @Override
-        public final TypeParameters typeParameters() {
-            return builtTypeParameters;
-        }
-    }
-
-    abstract class BuiltObjectDefinition extends ObjectDefinition {
-        @Override
-        public final TypeParameters typeParameters() {
-            return builtTypeParameters;
-        }
+    TypeParameters createTypeParameters() {
+        return new BuiltTypeParameters();
     }
 
     private class BuiltTypeParameters extends TypeParameters {
 
         @Override
-        public List<TypeParameter> all() {
+        public final List<TypeParameter> all() {
             return typeParameters;
         }
 
         @Override
-        public TypeParameter get(String name) {
+        public final TypeParameter get(String name) {
             TypeParameter result = typeParametersMap.get(name);
             if (result != null)
                 return result;
@@ -112,7 +101,7 @@ public abstract class GenericDefinitionBuilder<B extends ResidenceBuilder> imple
         }
 
         @Override
-        List<Type> asInternalTypeArguments() {
+        final List<Type> asInternalTypeArguments() {
             return typeParametersAsInternalTypeArguments;
         }
     }

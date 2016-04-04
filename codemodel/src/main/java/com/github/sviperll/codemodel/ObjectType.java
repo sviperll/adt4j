@@ -31,46 +31,44 @@
 package com.github.sviperll.codemodel;
 
 import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import javax.annotation.ParametersAreNonnullByDefault;
 
 /**
  *
  * @author Victor Nazarov &lt;asviraspossible@gmail.com&gt;
  */
-public class IntersectionTypeDetails {
+@ParametersAreNonnullByDefault
+public abstract class ObjectType extends GenericType<Type, ObjectDefinition> {
+    private List<MethodType> methods = null;
 
-    private final Type type = Type.intersection(this);
-    private final Collection<Type> bounds;
+    ObjectType(GenericType.Parametrization<Type> implementation) {
+        super(implementation);
+    }
 
-    IntersectionTypeDetails(Collection<Type> bounds) throws CodeModelException {
-        for (Type bound: bounds) {
-            if (!bound.isObjectType())
-                throw new CodeModelException("Intersection type can be built from object types only: " + type.kind() + " found: " + type);
+    @Override
+    public abstract ObjectDefinition definition();
+
+    public Expression instanceofOp(Expression expression) throws CodeModelException {
+        return expression.instanceofOp(this.asType());
+    }
+
+    boolean containsWildcards() {
+        throw new UnsupportedOperationException("Not supported yet.");
+    }
+
+    public final List<MethodType> methods() {
+        if (methods == null) {
+            methods = new ArrayList<>(definition().methods().size());
+            for (final MethodDefinition definition: definition().methods()) {
+                methods.add(definition.rawType(this));
+            }
         }
-        this.bounds = bounds;
+        return methods;
     }
 
-
-    public Collection<Type> intersectedTypes() {
-        return bounds;
-    }
-    public Type asType() {
-        return type;
+    ObjectType inEnvironment(TypeEnvironment environment) {
+        throw new UnsupportedOperationException("Not supported yet.");
     }
 
-    IntersectionTypeDetails inEnvironment(TypeEnvironment environment) {
-        Collection<Type> inEnvironment = new ArrayList<>(bounds.size());
-        for (Type bound: bounds) {
-            inEnvironment.add(bound.inEnvironment(environment));
-        }
-        try {
-            return new IntersectionTypeDetails(inEnvironment);
-        } catch (CodeModelException ex) {
-            throw new RuntimeException("Should never happen because of type-level preservation under substitution", ex);
-        }
-    }
 }

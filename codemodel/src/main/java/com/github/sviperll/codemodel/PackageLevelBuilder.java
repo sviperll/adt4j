@@ -61,7 +61,7 @@ public class PackageLevelBuilder implements ResidenceBuilder {
         return pkg.getCodeModel();
     }
 
-    public class BuiltMembership implements PackageLevelDetails {
+    public class BuiltMembership implements PackageLevelResidence {
 
         @Override
         public boolean isPublic() {

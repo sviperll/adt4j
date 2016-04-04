@@ -45,7 +45,7 @@ import javax.annotation.ParametersAreNonnullByDefault;
  */
 @ParametersAreNonnullByDefault
 public abstract class ObjectBuilder<B extends ResidenceBuilder> extends GenericDefinitionBuilder<B> {
-    private final List<ExecutableDefinition> methods = new ArrayList<>();
+    private final List<MethodDefinition> methods = new ArrayList<>();
     private final Map<String, FieldDeclaration> fields = new TreeMap<>();
     private final List<ObjectInitializationElement> staticInitOrdering = new ArrayList<>();
     private final List<ObjectInitializationElement> instanceInitOrdering = new ArrayList<>();
@@ -128,10 +128,13 @@ public abstract class ObjectBuilder<B extends ResidenceBuilder> extends GenericD
         return result;
     }
 
-    abstract class BuiltDefinition extends GenericDefinitionBuilder<B>.BuiltObjectDefinition {
+    abstract class BuiltDefinition extends ObjectDefinition {
+        BuiltDefinition(TypeParameters typeParameters) {
+            super(typeParameters);
+        }
 
         @Override
-        public final Collection<ExecutableDefinition> methods() {
+        public final Collection<MethodDefinition> methods() {
             return Collections.unmodifiableList(methods);
         }
 
@@ -163,19 +166,19 @@ public abstract class ObjectBuilder<B extends ResidenceBuilder> extends GenericD
         @Override
         public final Type rawType() {
             if (residence.residence().contextDefinition() == null) {
-                return typeContainer.rawTypeDetails.asType();
+                return typeContainer.rawType;
             } else {
                 throw new UnsupportedOperationException("Parent instance type is required");
             }
         }
 
         @Override
-        public final Type rawType(Type parentInstanceType) {
+        public final Type rawType(GenericType<?, ?> parentInstanceType) {
             if (residence.residence().contextDefinition() == null) {
                 throw new UnsupportedOperationException("Type is static memeber, no parent is expected.");
             } else {
-                TypeContainer typeContainer = new TypeContainer(parentInstanceType.getObjectDetails());
-                return typeContainer.rawTypeDetails.asType();
+                TypeContainer typeContainer = new TypeContainer(parentInstanceType);
+                return typeContainer.rawType;
             }
         }
 
@@ -185,11 +188,11 @@ public abstract class ObjectBuilder<B extends ResidenceBuilder> extends GenericD
             if (residence.residence().contextDefinition() == null) {
                 rawType = rawType();
             } else {
-                rawType = rawType(residence.residence().contextDefinition().internalType());
+                rawType = rawType(residence.residence().contextDefinition().internalType().getGenericDetails());
             }
             List<Type> internalTypeArguments = typeParameters().asInternalTypeArguments();
             try {
-                return rawType.getExecutableDetails().narrow(internalTypeArguments);
+                return rawType.getObjectDetails().narrow(internalTypeArguments);
             } catch (CodeModelException ex) {
                 throw new RuntimeException("No parameter-argument mismatch is guaranteed to ever happen", ex);
             }
@@ -207,21 +210,21 @@ public abstract class ObjectBuilder<B extends ResidenceBuilder> extends GenericD
     }
 
     private class TypeContainer {
-        private final ObjectTypeDetails parentInstanceType;
-        private final ObjectTypeDetails rawTypeDetails = GenericTypeDetails.createRawTypeDetails(new GenericTypeDetails.Factory<ObjectTypeDetails>() {
+        private final GenericType<?, ?> parentInstanceType;
+        private final Type rawType = GenericType.createRawTypeDetails(new GenericType.Factory<Type>() {
             @Override
-            public ObjectTypeDetails createGenericTypeDetails(GenericTypeDetails.Parametrization implementation) {
-                return new BuiltTypeDetails(implementation);
+            public Type createGenericType(GenericType.Parametrization<Type> implementation) {
+                return new BuiltTypeDetails(implementation).asType();
             }
         });
 
-        TypeContainer(ObjectTypeDetails parentInstanceType) {
+        TypeContainer(GenericType<?, ?> parentInstanceType) {
             this.parentInstanceType = parentInstanceType;
         }
 
-        private class BuiltTypeDetails extends ObjectTypeDetails {
+        private class BuiltTypeDetails extends ObjectType {
             private Type type = Type.createObjectType(this);
-            BuiltTypeDetails(GenericTypeDetails.Parametrization implementation) {
+            BuiltTypeDetails(GenericType.Parametrization<Type> implementation) {
                 super(implementation);
             }
 
@@ -236,8 +239,8 @@ public abstract class ObjectBuilder<B extends ResidenceBuilder> extends GenericD
             }
 
             @Override
-            public Type capturedEnclosingType() {
-                return parentInstanceType == null ? null : parentInstanceType.asType();
+            public GenericType<?, ?> capturedEnclosingType() {
+                return parentInstanceType == null ? null : parentInstanceType;
             }
         }
     }

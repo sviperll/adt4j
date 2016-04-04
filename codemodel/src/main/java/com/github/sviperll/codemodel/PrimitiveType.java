@@ -31,12 +31,16 @@
 package com.github.sviperll.codemodel;
 
 import javax.annotation.ParametersAreNonnullByDefault;
+import javax.annotation.Nonnull;
 
 /**
  *
  * @author Victor Nazarov &lt;asviraspossible@gmail.com&gt;
  */
 @ParametersAreNonnullByDefault
-public interface MethodLocalDetails {
-    ExecutableDefinition parent();
+public enum PrimitiveType {
+    BYTE, SHORT, INT, LONG,
+    FLOAT, DOUBLE,
+    CHAR,
+    BOOLEAN
 }

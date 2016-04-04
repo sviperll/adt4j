@@ -30,8 +30,6 @@
 
 package com.github.sviperll.codemodel;
 
-import java.util.ArrayList;
-import java.util.List;
 import javax.annotation.ParametersAreNonnullByDefault;
 
 /**
@@ -39,36 +37,12 @@ import javax.annotation.ParametersAreNonnullByDefault;
  * @author Victor Nazarov &lt;asviraspossible@gmail.com&gt;
  */
 @ParametersAreNonnullByDefault
-public abstract class ObjectTypeDetails extends GenericTypeDetails<ObjectDefinition> {
-    private List<Type> methods = null;
-
-    ObjectTypeDetails(GenericTypeDetails.Parametrization implementation) {
-        super(implementation);
+public abstract class MethodDefinition extends ExecutableDefinition<MethodType> {
+    MethodDefinition(ExecutableDefinitionSubstance definition) {
+        super(definition);
     }
 
-    @Override
-    public abstract ObjectDefinition definition();
-
-    public Expression instanceofOp(Expression expression) throws CodeModelException {
-        return expression.instanceofOp(this.asType());
-    }
-
-    boolean containsWildcards() {
-        throw new UnsupportedOperationException("Not supported yet.");
-    }
-
-    public final List<Type> methods() {
-        if (methods == null) {
-            methods = new ArrayList<>(definition().methods().size());
-            for (final ExecutableDefinition definition: definition().methods()) {
-                methods.add(definition.rawType(this.asType()));
-            }
-        }
-        return methods;
-    }
-
-    ObjectTypeDetails inEnvironment(TypeEnvironment environment) {
-        throw new UnsupportedOperationException("Not supported yet.");
-    }
-
+    public abstract boolean isFinal();
+    public abstract Type returnType();
+    public abstract String name();
 }

@@ -37,8 +37,6 @@ import javax.annotation.ParametersAreNonnullByDefault;
  * @author Victor Nazarov &lt;asviraspossible@gmail.com&gt;
  */
 @ParametersAreNonnullByDefault
-public abstract class MethodDefinitionDetails {
-    public abstract boolean isFinal();
-    public abstract Type returnType();
-    public abstract String name();
+public interface MethodLocalResidence {
+    ExecutableDefinition<Type> parent();
 }

@@ -44,19 +44,19 @@ import javax.annotation.ParametersAreNonnullByDefault;
  * @author Victor Nazarov &lt;asviraspossible@gmail.com&gt;
  */
 @ParametersAreNonnullByDefault
-public abstract class Type implements Renderable {
+public abstract class Type implements Renderable, Generic {
     private static final VoidType VOID = new VoidType();
-    private static final Type BYTE = Type.primitive(PrimitiveTypeDetails.BYTE);
-    private static final Type SHORT = Type.primitive(PrimitiveTypeDetails.SHORT);
-    private static final Type INT = Type.primitive(PrimitiveTypeDetails.INT);
-    private static final Type LONG = Type.primitive(PrimitiveTypeDetails.LONG);
-    private static final Type FLOAT = Type.primitive(PrimitiveTypeDetails.FLOAT);
-    private static final Type DOUBLE = Type.primitive(PrimitiveTypeDetails.DOUBLE);
-    private static final Type CHAR = Type.primitive(PrimitiveTypeDetails.CHAR);
-    private static final Type BOOLEAN = Type.primitive(PrimitiveTypeDetails.BOOLEAN);
+    private static final Type BYTE = Type.primitive(PrimitiveType.BYTE);
+    private static final Type SHORT = Type.primitive(PrimitiveType.SHORT);
+    private static final Type INT = Type.primitive(PrimitiveType.INT);
+    private static final Type LONG = Type.primitive(PrimitiveType.LONG);
+    private static final Type FLOAT = Type.primitive(PrimitiveType.FLOAT);
+    private static final Type DOUBLE = Type.primitive(PrimitiveType.DOUBLE);
+    private static final Type CHAR = Type.primitive(PrimitiveType.CHAR);
+    private static final Type BOOLEAN = Type.primitive(PrimitiveType.BOOLEAN);
 
     public static Type variable(String name) {
-        return variable(new TypeVariableDetails(name));
+        return variable(new TypeVariable(name));
     }
 
     public static Type voidType() {
@@ -96,35 +96,31 @@ public abstract class Type implements Renderable {
     }
 
     public static Type intersection(Collection<Type> bounds) throws CodeModelException {
-        return intersection(new IntersectionTypeDetails(bounds));
+        return intersection(new IntersectionType(bounds));
     }
 
-    static Type variable(TypeVariableDetails details) {
-        return new TypeVariable(details);
+    static Type variable(TypeVariable details) {
+        return new TypeVariableWrapper(details);
     }
 
-    static Type intersection(IntersectionTypeDetails details) {
-        return new IntersectionType(details);
+    static Type intersection(IntersectionType details) {
+        return new IntersectionTypeWrapper(details);
     }
 
-    static Type createObjectType(ObjectTypeDetails typeDetails) {
-        return new ObjectType(typeDetails);
+    static Type createObjectType(ObjectType typeDetails) {
+        return new ObjectTypeWrapper(typeDetails);
     }
 
-    static Type executable(ExecutableTypeDetails details) {
-        return new ExecutableType(details);
+    static Type array(ArrayType details) {
+        return new ArrayTypeWrapper(details);
     }
 
-    static Type array(ArrayTypeDetails details) {
-        return new ArrayType(details);
+    static Type wildcard(WildcardType details) {
+        return new WildcardTypeWrapper(details);
     }
 
-    static Type wildcard(WildcardTypeDetails details) {
-        return new WildcardType(details);
-    }
-
-    private static Type primitive(final PrimitiveTypeDetails details) {
-        return new PrimitiveType(details);
+    private static Type primitive(final PrimitiveType details) {
+        return new PrimitiveTypeWrapper(details);
     }
 
     private Type() {
@@ -141,8 +137,6 @@ public abstract class Type implements Renderable {
             return getObjectDetails().inEnvironment(environment).asType();
         } else if (isArray()) {
             return getArrayDetails().inEnvironment(environment).asType();
-        } else if (isExecutable()) {
-            return getExecutableDetails().inEnvironment(environment).asType();
         } else if (isIntersection()) {
             return getIntersectionDetails().inEnvironment(environment).asType();
         } else if (isWildcard()) {
@@ -181,45 +175,32 @@ public abstract class Type implements Renderable {
         return kind() == Kind.INTERSECTION;
     }
 
-    public final boolean isExecutable() {
-        return kind() == Kind.EXECUTABLE;
-    }
-
-    public ObjectTypeDetails getObjectDetails() {
+    public ObjectType getObjectDetails() {
         throw new UnsupportedOperationException("Object type expected");
     }
 
-    public WildcardTypeDetails getWildcardDetails() {
+    public WildcardType getWildcardDetails() {
         throw new UnsupportedOperationException("Wildcard type expected");
     }
 
-    public PrimitiveTypeDetails getPrimitiveDetails() {
+    public PrimitiveType getPrimitiveDetails() {
         throw new UnsupportedOperationException("Primitive type expected");
     }
 
-    public ArrayTypeDetails getArrayDetails() {
+    public ArrayType getArrayDetails() {
         throw new UnsupportedOperationException("Array type expected");
     }
 
-    public TypeVariableDetails getVariableDetails() {
+    public TypeVariable getVariableDetails() {
         throw new UnsupportedOperationException("Type variable expected");
     }
 
-    public IntersectionTypeDetails getIntersectionDetails() {
+    public IntersectionType getIntersectionDetails() {
         throw new UnsupportedOperationException("Intersection type expected");
     }
 
-    public ExecutableTypeDetails getExecutableDetails() {
+    public MethodType getExecutableDetails() {
         throw new UnsupportedOperationException("Executable type expected");
-    }
-
-    GenericTypeDetails<?> getGenericTypeDetails() {
-        if (isObjectType())
-            return getObjectDetails();
-        else if (isExecutable())
-            return getExecutableDetails();
-        else
-            throw new UnsupportedOperationException("Object or executable type expected.");
     }
 
     public boolean containsWildcards() {
@@ -228,6 +209,14 @@ public abstract class Type implements Renderable {
 
     public Collection<Type> asListOfIntersectedTypes() {
         return isIntersection() ? getIntersectionDetails().intersectedTypes() : Collections.singletonList(this);
+    }
+
+    @Override
+    public GenericType<?, ?> getGenericDetails() {
+        if (isObjectType())
+            return getObjectDetails();
+        else
+            throw new UnsupportedOperationException("Generic type expected");
     }
 
     @Override
@@ -254,14 +243,14 @@ public abstract class Type implements Renderable {
                 } else if (isTypeVariable()) {
                     context.appendText(getVariableDetails().name());
                 } else if (isWildcard()) {
-                    WildcardTypeDetails wildcard = getWildcardDetails();
+                    WildcardType wildcard = getWildcardDetails();
                     context.appendText("?");
                     context.appendWhiteSpace();
                     context.appendText(wildcard.boundKind().name().toLowerCase(Locale.US));
                     context.appendWhiteSpace();
                     context.appendRenderable(wildcard.bound());
                 } else if (isObjectType()) {
-                    ObjectTypeDetails objectType = getObjectDetails();
+                    ObjectType objectType = getObjectDetails();
                     if (objectType.isRaw())
                         context.appendQualifiedClassName(objectType.definition().qualifiedName());
                     else {
@@ -277,15 +266,13 @@ public abstract class Type implements Renderable {
                             context.appendText(">");
                         }
                     }
-                } else if (isExecutable()) {
-                    context.appendText("<executable>");
                 }
             }
         };
     }
 
     public enum Kind {
-        VOID, OBJECT, PRIMITIVE, ARRAY, TYPE_VARIABLE, WILDCARD, INTERSECTION, EXECUTABLE
+        VOID, OBJECT, PRIMITIVE, ARRAY, TYPE_VARIABLE, WILDCARD, INTERSECTION
     }
 
     private static class VoidType extends Type {
@@ -295,11 +282,11 @@ public abstract class Type implements Renderable {
         }
     }
 
-    private static class TypeVariable extends Type {
+    private static class TypeVariableWrapper extends Type {
 
-        private final TypeVariableDetails details;
+        private final TypeVariable details;
 
-        TypeVariable(TypeVariableDetails details) {
+        TypeVariableWrapper(TypeVariable details) {
             this.details = details;
         }
 
@@ -309,15 +296,15 @@ public abstract class Type implements Renderable {
         }
 
         @Override
-        public TypeVariableDetails getVariableDetails() {
+        public TypeVariable getVariableDetails() {
             return details;
         }
     }
-    private static class IntersectionType extends Type {
+    private static class IntersectionTypeWrapper extends Type {
 
-        private final IntersectionTypeDetails details;
+        private final IntersectionType details;
 
-        IntersectionType(IntersectionTypeDetails details) {
+        IntersectionTypeWrapper(IntersectionType details) {
             this.details = details;
         }
 
@@ -327,16 +314,16 @@ public abstract class Type implements Renderable {
         }
 
         @Override
-        public IntersectionTypeDetails getIntersectionDetails() {
+        public IntersectionType getIntersectionDetails() {
             return details;
         }
     }
 
-    private static class ObjectType extends Type {
+    private static class ObjectTypeWrapper extends Type {
 
-        private final ObjectTypeDetails details;
+        private final ObjectType details;
 
-        ObjectType(ObjectTypeDetails details) {
+        ObjectTypeWrapper(ObjectType details) {
             this.details = details;
         }
 
@@ -346,16 +333,16 @@ public abstract class Type implements Renderable {
         }
 
         @Override
-        public ObjectTypeDetails getObjectDetails() {
+        public ObjectType getObjectDetails() {
             return details;
         }
     }
 
-    private static class PrimitiveType extends Type {
+    private static class PrimitiveTypeWrapper extends Type {
 
-        private final PrimitiveTypeDetails details;
+        private final PrimitiveType details;
 
-        PrimitiveType(PrimitiveTypeDetails details) {
+        PrimitiveTypeWrapper(PrimitiveType details) {
             this.details = details;
         }
 
@@ -364,33 +351,16 @@ public abstract class Type implements Renderable {
             return Kind.PRIMITIVE;
         }
         @Override
-        public PrimitiveTypeDetails getPrimitiveDetails() {
-            return details;
-        }
-    }
-    private static class ExecutableType extends Type {
-
-        private final ExecutableTypeDetails details;
-
-        ExecutableType(ExecutableTypeDetails details) {
-            this.details = details;
-        }
-
-        @Override
-        public Kind kind() {
-            return Kind.EXECUTABLE;
-        }
-        @Override
-        public ExecutableTypeDetails getExecutableDetails() {
+        public PrimitiveType getPrimitiveDetails() {
             return details;
         }
     }
 
-    private static class ArrayType extends Type {
+    private static class ArrayTypeWrapper extends Type {
 
-        private final ArrayTypeDetails details;
+        private final ArrayType details;
 
-        ArrayType(ArrayTypeDetails details) {
+        ArrayTypeWrapper(ArrayType details) {
             this.details = details;
         }
 
@@ -400,16 +370,16 @@ public abstract class Type implements Renderable {
         }
 
         @Override
-        public ArrayTypeDetails getArrayDetails() {
+        public ArrayType getArrayDetails() {
             return details;
         }
     }
 
-    private static class WildcardType extends Type {
+    private static class WildcardTypeWrapper extends Type {
 
-        private final WildcardTypeDetails details;
+        private final WildcardType details;
 
-        WildcardType(WildcardTypeDetails details) {
+        WildcardTypeWrapper(WildcardType details) {
             this.details = details;
         }
 
@@ -419,7 +389,7 @@ public abstract class Type implements Renderable {
         }
 
         @Override
-        public WildcardTypeDetails getWildcardDetails() {
+        public WildcardType getWildcardDetails() {
             return details;
         }
     }

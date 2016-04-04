@@ -36,27 +36,32 @@ import com.github.sviperll.codemodel.render.Renderable;
  *
  * @author Victor Nazarov &lt;asviraspossible@gmail.com&gt;
  */
-public abstract class GenericDefinition implements Settled, Renderable, Model {
-    GenericDefinition() {
+public abstract class GenericDefinition<T extends Generic> implements Settled, Renderable, Model {
+
+    private final TypeParameters typeParameters;
+    GenericDefinition(TypeParameters typeParameters) {
+        this.typeParameters = typeParameters;
     }
 
-    public abstract TypeParameters typeParameters();
+    public final TypeParameters typeParameters() {
+        return typeParameters;
+    }
 
-    public boolean isGeneric() {
-        if (!typeParameters().all().isEmpty())
+    public final boolean isGeneric() {
+        if (!typeParameters.all().isEmpty())
             return true;
         else {
-            GenericDefinition context = residence().contextDefinition();
+            GenericDefinition<?> context = residence().contextDefinition();
             return context != null && context.isGeneric();
         }
     }
 
-    public abstract Type rawType();
-    public abstract Type rawType(Type enclosingType);
+    public abstract T rawType();
+    public abstract T rawType(GenericType<?, ?> enclosingType);
 
     /**
      * Type of this definition usable inside definition.
      * @return type usable inside it's own definition.
      */
-    public abstract Type internalType();
+    public abstract T internalType();
 }

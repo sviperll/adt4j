@@ -30,26 +30,37 @@
 
 package com.github.sviperll.codemodel;
 
-import java.util.List;
-import javax.annotation.ParametersAreNonnullByDefault;
-
 /**
  *
  * @author Victor Nazarov &lt;asviraspossible@gmail.com&gt;
  */
-@ParametersAreNonnullByDefault
-public abstract class ExecutableTypeDetails extends GenericTypeDetails<ExecutableDefinition> {
-    ExecutableTypeDetails(GenericTypeDetails.Parametrization implementation) {
-        super(implementation);
+public final class WildcardType {
+
+    private final Type type = Type.wildcard(this);
+    private final BoundKind boundKind;
+    private final Type bound;
+    WildcardType(BoundKind boundKind, Type bound) {
+        this.boundKind = boundKind;
+        this.bound = bound;
     }
 
-    public abstract List<VariableDeclaration> parameters();
+    public BoundKind boundKind() {
+        return boundKind;
+    }
 
-    public abstract List<Type> throwsList();
+    public Type bound() {
+        return bound;
+    }
 
-    public abstract Type returnType();
+    WildcardType inEnvironment(TypeEnvironment environment) {
+        return new WildcardType(boundKind, bound.inEnvironment(environment));
+    }
 
-    ExecutableTypeDetails inEnvironment(TypeEnvironment environment) {
-        throw new UnsupportedOperationException("Not supported yet.");
+    Type asType() {
+        return type;
+    }
+
+    public enum BoundKind {
+        SUPER, EXTENDS
     }
 }

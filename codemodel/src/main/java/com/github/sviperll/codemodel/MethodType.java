@@ -28,13 +28,9 @@
  *  EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.github.sviperll.codemodel.render;
+package com.github.sviperll.codemodel;
 
-import com.github.sviperll.codemodel.ObjectType;
-import com.github.sviperll.codemodel.Type;
-import com.github.sviperll.codemodel.WildcardType;
-import java.util.Iterator;
-import java.util.Locale;
+import java.util.List;
 import javax.annotation.ParametersAreNonnullByDefault;
 
 /**
@@ -42,49 +38,20 @@ import javax.annotation.ParametersAreNonnullByDefault;
  * @author Victor Nazarov &lt;asviraspossible@gmail.com&gt;
  */
 @ParametersAreNonnullByDefault
-class SimpleRendererContext implements RendererContext {
-    private final LineWriter implementation;
-    private final int identationLevel;
+public abstract class MethodType extends ExecutableType<MethodType, MethodDefinition> implements Generic {
+    MethodType(GenericType.Parametrization<MethodType> implementation, ExecutableTypeSubstance substance) {
+        super(implementation, substance);
+    }
 
-    SimpleRendererContext(LineWriter implementation) {
-        this(implementation, 0);
-    }
-    SimpleRendererContext(LineWriter implementation, int identationLevel) {
-        this.implementation = implementation;
-        this.identationLevel = identationLevel;
-    }
-    @Override
-    public void appendText(String s) {
-        implementation.writeText(identationLevel, s);
-    }
-    @Override
-    public void appendLineBreak() {
-        implementation.writeLineBreak();
+    public abstract Type returnType();
+
+    MethodType inEnvironment(TypeEnvironment environment) {
+        throw new UnsupportedOperationException("Not supported yet.");
     }
 
     @Override
-    public RendererContext indented() {
-        return new SimpleRendererContext(implementation, identationLevel + 1);
+    public GenericType<?, ?> getGenericDetails() {
+        return this;
     }
 
-    @Override
-    public void appendWhiteSpace() {
-        implementation.writeWhiteSpace();
-    }
-
-    @Override
-    public void appendRenderable(Renderable renderable) {
-        Renderer renderer = renderable.createRenderer(this);
-        renderer.render();
-    }
-
-    @Override
-    public void appendQualifiedClassName(String name) {
-        implementation.writeQualifiedTypeName(identationLevel, name);
-    }
-
-    @Override
-    public void appendEmptyLine() {
-        implementation.appendEmptyLine();
-    }
 }

@@ -28,63 +28,45 @@
  *  EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.github.sviperll.codemodel.render;
+package com.github.sviperll.codemodel;
 
-import com.github.sviperll.codemodel.ObjectType;
-import com.github.sviperll.codemodel.Type;
-import com.github.sviperll.codemodel.WildcardType;
-import java.util.Iterator;
-import java.util.Locale;
-import javax.annotation.ParametersAreNonnullByDefault;
+import java.util.ArrayList;
+import java.util.Collection;
 
 /**
  *
  * @author Victor Nazarov &lt;asviraspossible@gmail.com&gt;
  */
-@ParametersAreNonnullByDefault
-class SimpleRendererContext implements RendererContext {
-    private final LineWriter implementation;
-    private final int identationLevel;
+public class IntersectionType {
 
-    SimpleRendererContext(LineWriter implementation) {
-        this(implementation, 0);
-    }
-    SimpleRendererContext(LineWriter implementation, int identationLevel) {
-        this.implementation = implementation;
-        this.identationLevel = identationLevel;
-    }
-    @Override
-    public void appendText(String s) {
-        implementation.writeText(identationLevel, s);
-    }
-    @Override
-    public void appendLineBreak() {
-        implementation.writeLineBreak();
+    private final Type type = Type.intersection(this);
+    private final Collection<Type> bounds;
+
+    IntersectionType(Collection<Type> bounds) throws CodeModelException {
+        for (Type bound: bounds) {
+            if (!bound.isObjectType())
+                throw new CodeModelException("Intersection type can be built from object types only: " + type.kind() + " found: " + type);
+        }
+        this.bounds = bounds;
     }
 
-    @Override
-    public RendererContext indented() {
-        return new SimpleRendererContext(implementation, identationLevel + 1);
+
+    public Collection<Type> intersectedTypes() {
+        return bounds;
+    }
+    public Type asType() {
+        return type;
     }
 
-    @Override
-    public void appendWhiteSpace() {
-        implementation.writeWhiteSpace();
-    }
-
-    @Override
-    public void appendRenderable(Renderable renderable) {
-        Renderer renderer = renderable.createRenderer(this);
-        renderer.render();
-    }
-
-    @Override
-    public void appendQualifiedClassName(String name) {
-        implementation.writeQualifiedTypeName(identationLevel, name);
-    }
-
-    @Override
-    public void appendEmptyLine() {
-        implementation.appendEmptyLine();
+    IntersectionType inEnvironment(TypeEnvironment environment) {
+        Collection<Type> inEnvironment = new ArrayList<>(bounds.size());
+        for (Type bound: bounds) {
+            inEnvironment.add(bound.inEnvironment(environment));
+        }
+        try {
+            return new IntersectionType(inEnvironment);
+        } catch (CodeModelException ex) {
+            throw new RuntimeException("Should never happen because of type-level preservation under substitution", ex);
+        }
     }
 }

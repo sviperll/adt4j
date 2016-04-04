@@ -30,37 +30,17 @@
 
 package com.github.sviperll.codemodel;
 
+import javax.annotation.ParametersAreNonnullByDefault;
+import javax.annotation.Nonnull;
+
 /**
  *
  * @author Victor Nazarov &lt;asviraspossible@gmail.com&gt;
  */
-public final class WildcardTypeDetails {
+@ParametersAreNonnullByDefault
+public abstract class ConstructorDefinition extends ExecutableDefinition<ConstructorType> {
 
-    private final Type type = Type.wildcard(this);
-    private final BoundKind boundKind;
-    private final Type bound;
-    WildcardTypeDetails(BoundKind boundKind, Type bound) {
-        this.boundKind = boundKind;
-        this.bound = bound;
-    }
-
-    public BoundKind boundKind() {
-        return boundKind;
-    }
-
-    public Type bound() {
-        return bound;
-    }
-
-    WildcardTypeDetails inEnvironment(TypeEnvironment environment) {
-        return new WildcardTypeDetails(boundKind, bound.inEnvironment(environment));
-    }
-
-    Type asType() {
-        return type;
-    }
-
-    public enum BoundKind {
-        SUPER, EXTENDS
+    ConstructorDefinition(ExecutableDefinitionSubstance executable) {
+        super(executable);
     }
 }

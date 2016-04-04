@@ -157,7 +157,7 @@ public final class Package implements Model {
             throw new CodeModelException(packageAsNamePrefix() + className + " already defined");
         int modifiers = klass.getModifiers();
         final boolean isPublic = (modifiers & Modifier.PUBLIC) != 0;
-        Residence residence = Residence.packageLevel(new PackageLevelDetails() {
+        Residence residence = Residence.packageLevel(new PackageLevelResidence() {
             @Override
             public boolean isPublic() {
                 return isPublic;

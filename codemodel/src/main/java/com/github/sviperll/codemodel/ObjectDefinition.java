@@ -43,9 +43,10 @@ import javax.annotation.ParametersAreNonnullByDefault;
  * @author Victor Nazarov &lt;asviraspossible@gmail.com&gt;
  */
 @ParametersAreNonnullByDefault
-public abstract class ObjectDefinition extends GenericDefinition {
+public abstract class ObjectDefinition extends GenericDefinition<Type> {
 
-    ObjectDefinition() {
+    ObjectDefinition(TypeParameters typeParameters) {
+        super(typeParameters);
     }
 
 
@@ -57,9 +58,9 @@ public abstract class ObjectDefinition extends GenericDefinition {
 
     public abstract List<Type> implementsInterfaces();
 
-    public abstract Collection<ExecutableDefinition> constructors();
+    public abstract Collection<ConstructorDefinition> constructors();
 
-    public abstract Collection<ExecutableDefinition> methods();
+    public abstract Collection<MethodDefinition> methods();
 
     public abstract Collection<ObjectDefinition> innerClasses();
 
@@ -147,7 +148,7 @@ public abstract class ObjectDefinition extends GenericDefinition {
                     nestedContext.appendRenderable(element);
                 }
 
-                for (ExecutableDefinition method: methods()) {
+                for (MethodDefinition method: methods()) {
                     if (method.residence().getNesting().isStatic()) {
                         nestedContext.appendEmptyLine();
                         nestedContext.appendRenderable(method);
@@ -158,12 +159,12 @@ public abstract class ObjectDefinition extends GenericDefinition {
                     nestedContext.appendRenderable(element);
                 }
 
-                for (ExecutableDefinition constructor: constructors()) {
+                for (ConstructorDefinition constructor: constructors()) {
                     nestedContext.appendEmptyLine();
                     nestedContext.appendRenderable(constructor);
                 }
 
-                for (ExecutableDefinition method: methods()) {
+                for (MethodDefinition method: methods()) {
                     if (!method.residence().getNesting().isStatic()) {
                         nestedContext.appendEmptyLine();
                         nestedContext.appendRenderable(method);

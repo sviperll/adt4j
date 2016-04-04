@@ -71,13 +71,13 @@ public class ObjectDefinitionTest {
 
         Type test1Type = test1.rawType();
         assertTrue(test1Type.isObjectType());
-        ObjectTypeDetails details = test1Type.getObjectDetails();
+        ObjectType details = test1Type.getObjectDetails();
         assertEquals(test1, details.definition());
         assertTrue(details.isRaw());
 
         Type typeArgument = details.typeArguments().get(0);
         assertTrue(typeArgument.isObjectType());
-        ObjectTypeDetails typeArgumentDetails = typeArgument.getObjectDetails();
+        ObjectType typeArgumentDetails = typeArgument.getObjectDetails();
         assertEquals(codeModel.objectType().getObjectDetails().definition(), typeArgumentDetails.definition());
     }
 
@@ -90,14 +90,14 @@ public class ObjectDefinitionTest {
 
         Type test1Type = test1.rawType().getObjectDetails().narrow(Collections.singletonList(stringType));
         assertTrue(test1Type.isObjectType());
-        ObjectTypeDetails details = test1Type.getObjectDetails();
+        ObjectType details = test1Type.getObjectDetails();
         assertEquals(test1, details.definition());
         assertFalse(details.isRaw());
         assertTrue(details.isNarrowed());
 
         Type typeArgument = details.typeArguments().get(0);
         assertTrue(typeArgument.isObjectType());
-        ObjectTypeDetails typeArgumentDetails = typeArgument.getObjectDetails();
+        ObjectType typeArgumentDetails = typeArgument.getObjectDetails();
         assertEquals(stringDefinition, typeArgumentDetails.definition());
     }
 
@@ -107,11 +107,10 @@ public class ObjectDefinitionTest {
         CodeModel codeModel = test1.getCodeModel();
 
         Type test1Type = test1.rawType();
-        List<Type> methods = test1Type.getObjectDetails().methods();
-        for (Type type: methods) {
-            ExecutableTypeDetails executableDetails = type.getExecutableDetails();
-            if (executableDetails.definition().getMethodDetails().name().equals("test2")) {
-                assertEquals(codeModel.objectType().getObjectDetails().definition(), executableDetails.returnType().getObjectDetails().definition());
+        List<MethodType> methods = test1Type.getObjectDetails().methods();
+        for (MethodType method: methods) {
+            if (method.definition().name().equals("test2")) {
+                assertEquals(codeModel.objectType().getObjectDetails().definition(), method.returnType().getObjectDetails().definition());
             }
         }
     }
@@ -124,11 +123,10 @@ public class ObjectDefinitionTest {
         Type stringType = stringDefinition.rawType();
 
         Type test1Type = test1.rawType().getObjectDetails().narrow(Collections.singletonList(stringType));
-        List<Type> methods = test1Type.getObjectDetails().methods();
-        for (Type type: methods) {
-            ExecutableTypeDetails executableDetails = type.getExecutableDetails();
-            if (executableDetails.definition().getMethodDetails().name().equals("test2")) {
-                assertEquals(stringType.getObjectDetails().definition(), executableDetails.returnType().getObjectDetails().definition());
+        List<MethodType> methods = test1Type.getObjectDetails().methods();
+        for (MethodType method: methods) {
+            if (method.definition().name().equals("test2")) {
+                assertEquals(stringType.getObjectDetails().definition(), method.returnType().getObjectDetails().definition());
             }
         }
     }

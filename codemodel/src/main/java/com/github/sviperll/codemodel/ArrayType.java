@@ -28,63 +28,28 @@
  *  EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.github.sviperll.codemodel.render;
-
-import com.github.sviperll.codemodel.ObjectType;
-import com.github.sviperll.codemodel.Type;
-import com.github.sviperll.codemodel.WildcardType;
-import java.util.Iterator;
-import java.util.Locale;
-import javax.annotation.ParametersAreNonnullByDefault;
+package com.github.sviperll.codemodel;
 
 /**
  *
  * @author Victor Nazarov &lt;asviraspossible@gmail.com&gt;
  */
-@ParametersAreNonnullByDefault
-class SimpleRendererContext implements RendererContext {
-    private final LineWriter implementation;
-    private final int identationLevel;
-
-    SimpleRendererContext(LineWriter implementation) {
-        this(implementation, 0);
-    }
-    SimpleRendererContext(LineWriter implementation, int identationLevel) {
-        this.implementation = implementation;
-        this.identationLevel = identationLevel;
-    }
-    @Override
-    public void appendText(String s) {
-        implementation.writeText(identationLevel, s);
-    }
-    @Override
-    public void appendLineBreak() {
-        implementation.writeLineBreak();
+public class ArrayType {
+    private final Type type = Type.array(this);
+    private final Type elementType;
+    ArrayType(Type elementType) {
+        this.elementType = elementType;
     }
 
-    @Override
-    public RendererContext indented() {
-        return new SimpleRendererContext(implementation, identationLevel + 1);
+    public Type elementType() {
+        return elementType;
     }
 
-    @Override
-    public void appendWhiteSpace() {
-        implementation.writeWhiteSpace();
+    ArrayType inEnvironment(TypeEnvironment environment) {
+        return new ArrayType(elementType.inEnvironment(environment));
     }
 
-    @Override
-    public void appendRenderable(Renderable renderable) {
-        Renderer renderer = renderable.createRenderer(this);
-        renderer.render();
-    }
-
-    @Override
-    public void appendQualifiedClassName(String name) {
-        implementation.writeQualifiedTypeName(identationLevel, name);
-    }
-
-    @Override
-    public void appendEmptyLine() {
-        implementation.appendEmptyLine();
+    Type asType() {
+        return type;
     }
 }

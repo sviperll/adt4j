@@ -39,28 +39,43 @@ import java.util.List;
 /**
  *
  * @author Victor Nazarov &lt;asviraspossible@gmail.com&gt;
+ * @param <T>
  */
-public abstract class ExecutableDefinition extends GenericDefinition {
-    ExecutableDefinition() {
+public abstract class ExecutableDefinition<T extends Generic> extends GenericDefinition<T> {
+
+    private final ExecutableDefinitionSubstance definition;
+    ExecutableDefinition(ExecutableDefinitionSubstance definition) {
+        super(definition.typeParameters());
+        this.definition = definition;
     }
-
-    @Override
-    public abstract Type rawType();
-
-    @Override
-    public abstract Type rawType(Type parentInstanceType);
 
     public abstract boolean isConstructor();
 
     public abstract boolean isMethod();
 
-    public abstract MethodDefinitionDetails getMethodDetails();
+    public abstract MethodDefinition getMethodDetails();
 
-    public abstract List<VariableDeclaration> parameters();
+    public final List<VariableDeclaration> parameters() {
+        return definition.parameters();
+    }
 
-    public abstract List<Type> throwsList();
+    public final List<Type> throwsList() {
+        return definition.throwsList();
+    }
 
-    abstract Renderable body();
+    final Renderable body() {
+        return definition.body();
+    }
+
+    @Override
+    public final Residence residence() {
+        return definition.residence();
+    }
+
+    @Override
+    public final CodeModel getCodeModel() {
+        return definition.getCodeModel();
+    }
 
     @Override
     public Renderer createRenderer(final RendererContext context) {
@@ -113,4 +128,5 @@ public abstract class ExecutableDefinition extends GenericDefinition {
             }
         };
     }
+
 }

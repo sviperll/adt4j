@@ -31,16 +31,13 @@
 package com.github.sviperll.codemodel;
 
 import javax.annotation.ParametersAreNonnullByDefault;
-import javax.annotation.Nonnull;
 
 /**
  *
  * @author Victor Nazarov &lt;asviraspossible@gmail.com&gt;
  */
 @ParametersAreNonnullByDefault
-public enum PrimitiveTypeDetails {
-    BYTE, SHORT, INT, LONG,
-    FLOAT, DOUBLE,
-    CHAR,
-    BOOLEAN
+public interface PackageLevelResidence {
+    public abstract boolean isPublic();
+    public abstract Package getPackage();
 }

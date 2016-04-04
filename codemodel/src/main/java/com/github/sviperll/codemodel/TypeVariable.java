@@ -28,63 +28,24 @@
  *  EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.github.sviperll.codemodel.render;
-
-import com.github.sviperll.codemodel.ObjectType;
-import com.github.sviperll.codemodel.Type;
-import com.github.sviperll.codemodel.WildcardType;
-import java.util.Iterator;
-import java.util.Locale;
-import javax.annotation.ParametersAreNonnullByDefault;
+package com.github.sviperll.codemodel;
 
 /**
  *
  * @author Victor Nazarov &lt;asviraspossible@gmail.com&gt;
  */
-@ParametersAreNonnullByDefault
-class SimpleRendererContext implements RendererContext {
-    private final LineWriter implementation;
-    private final int identationLevel;
-
-    SimpleRendererContext(LineWriter implementation) {
-        this(implementation, 0);
-    }
-    SimpleRendererContext(LineWriter implementation, int identationLevel) {
-        this.implementation = implementation;
-        this.identationLevel = identationLevel;
-    }
-    @Override
-    public void appendText(String s) {
-        implementation.writeText(identationLevel, s);
-    }
-    @Override
-    public void appendLineBreak() {
-        implementation.writeLineBreak();
+public class TypeVariable {
+    private final Type type = Type.variable(this);
+    private final String name;
+    TypeVariable(String name) {
+        this.name = name;
     }
 
-    @Override
-    public RendererContext indented() {
-        return new SimpleRendererContext(implementation, identationLevel + 1);
+    public String name() {
+        return name;
     }
 
-    @Override
-    public void appendWhiteSpace() {
-        implementation.writeWhiteSpace();
-    }
-
-    @Override
-    public void appendRenderable(Renderable renderable) {
-        Renderer renderer = renderable.createRenderer(this);
-        renderer.render();
-    }
-
-    @Override
-    public void appendQualifiedClassName(String name) {
-        implementation.writeQualifiedTypeName(identationLevel, name);
-    }
-
-    @Override
-    public void appendEmptyLine() {
-        implementation.appendEmptyLine();
+    public Type asType() {
+        return type;
     }
 }

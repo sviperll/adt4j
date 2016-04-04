@@ -43,19 +43,20 @@ import java.util.List;
  * @author Victor Nazarov &lt;asviraspossible@gmail.com&gt;
  */
 class ReflectionObjectDefinition extends ObjectDefinition {
-    private final ObjectTypeDetails rawTypeDetails = GenericTypeDetails.createRawTypeDetails(new GenericTypeDetails.Factory<ObjectTypeDetails>() {
+    private final Type rawType = GenericType.createRawTypeDetails(new GenericType.Factory<Type>() {
         @Override
-        public ObjectTypeDetails createGenericTypeDetails(GenericTypeDetails.Parametrization implementation) {
-            return new TypeDetails(implementation);
+        public Type createGenericType(GenericType.Parametrization<Type> implementation) {
+            return new TypeDetails(implementation).asType();
         }
     });
     private final CodeModel codeModel;
     private final Residence residence;
     private final Class<?> klass;
     private Collection<ObjectDefinition> innerClasses = null;
-    private Collection<ExecutableDefinition> methods = null;
+    private Collection<MethodDefinition> methods = null;
 
     ReflectionObjectDefinition(CodeModel codeModel, Residence residence, Class<?> klass) {
+        super(null);
         this.codeModel = codeModel;
         this.residence = residence;
         this.klass = klass;
@@ -90,7 +91,7 @@ class ReflectionObjectDefinition extends ObjectDefinition {
     }
 
     @Override
-    public Collection<ExecutableDefinition> methods() {
+    public Collection<MethodDefinition> methods() {
         if (methods == null) {
             methods = new ArrayList<>();
             for (final Method method: klass.getDeclaredMethods()) {
@@ -135,11 +136,11 @@ class ReflectionObjectDefinition extends ObjectDefinition {
 
     @Override
     public Type rawType() {
-        return rawTypeDetails.asType();
+        return rawType;
     }
 
     @Override
-    public Type rawType(Type parentInstanceType) {
+    public Type rawType(GenericType<?, ?> parentInstanceType) {
         throw new UnsupportedOperationException("Not supported yet.");
     }
 
@@ -154,7 +155,7 @@ class ReflectionObjectDefinition extends ObjectDefinition {
     }
 
     @Override
-    public Collection<ExecutableDefinition> constructors() {
+    public Collection<ConstructorDefinition> constructors() {
         throw new UnsupportedOperationException("Not supported yet.");
     }
 
@@ -164,18 +165,13 @@ class ReflectionObjectDefinition extends ObjectDefinition {
     }
 
     @Override
-    public TypeParameters typeParameters() {
-        throw new UnsupportedOperationException("Not supported yet.");
-    }
-
-    @Override
     public boolean isAnonymous() {
         throw new UnsupportedOperationException("Not supported yet.");
     }
 
-    public class TypeDetails extends ObjectTypeDetails {
+    public class TypeDetails extends ObjectType {
         private final Type type = Type.createObjectType(this);
-        TypeDetails(GenericTypeDetails.Parametrization implementation) {
+        TypeDetails(GenericType.Parametrization<Type> implementation) {
             super(implementation);
         }
 
@@ -190,7 +186,7 @@ class ReflectionObjectDefinition extends ObjectDefinition {
         }
 
         @Override
-        public Type capturedEnclosingType() {
+        public GenericType<?, ?> capturedEnclosingType() {
             throw new UnsupportedOperationException("Not supported yet.");
         }
     }
@@ -228,13 +224,13 @@ class ReflectionObjectDefinition extends ObjectDefinition {
         }
     }
 
-    private static class ReflectionMethodDefinition extends ExecutableDefinition {
-        private final ReflectedMethodDefinitionDetails details = new ReflectedMethodDefinitionDetails();
+    private static class ReflectionMethodDefinition extends MethodDefinition {
         private final CodeModel codeModel;
         private final Residence residence;
         private final Method method;
 
         public ReflectionMethodDefinition(CodeModel codeModel, Residence residence, Method method) {
+            super(null);
             this.codeModel = codeModel;
             this.residence = residence;
             this.method = method;
@@ -246,79 +242,43 @@ class ReflectionObjectDefinition extends ObjectDefinition {
         }
 
         @Override
-        public Residence residence() {
-            throw new UnsupportedOperationException("Not supported yet.");
-        }
-
-        @Override
-        public Type rawType() {
-            throw new UnsupportedOperationException("Not supported yet.");
-        }
-
-        @Override
-        public CodeModel getCodeModel() {
-            return codeModel;
-        }
-
-        @Override
-        public Type rawType(Type parentInstanceType) {
-            throw new UnsupportedOperationException("Not supported yet.");
-        }
-
-        @Override
         public boolean isMethod() {
             return true;
         }
 
         @Override
-        public MethodDefinitionDetails getMethodDetails() {
-            return details;
+        public MethodDefinition getMethodDetails() {
+            return this;
         }
 
         @Override
-        public List<VariableDeclaration> parameters() {
+        public boolean isFinal() {
+            return (method.getModifiers() & Modifier.FINAL) != 0;
+        }
+
+        @Override
+        public Type returnType() {
             throw new UnsupportedOperationException("Not supported yet.");
         }
 
         @Override
-        public List<Type> throwsList() {
+        public String name() {
+            return method.getName();
+        }
+
+        @Override
+        public MethodType rawType() {
             throw new UnsupportedOperationException("Not supported yet.");
         }
 
         @Override
-        Renderable body() {
+        public MethodType rawType(GenericType<?, ?> enclosingType) {
             throw new UnsupportedOperationException("Not supported yet.");
         }
 
         @Override
-        public Type internalType() {
+        public MethodType internalType() {
             throw new UnsupportedOperationException("Not supported yet.");
-        }
-
-        @Override
-        public TypeParameters typeParameters() {
-            throw new UnsupportedOperationException("Not supported yet.");
-        }
-
-        private class ReflectedMethodDefinitionDetails extends MethodDefinitionDetails {
-
-            public ReflectedMethodDefinitionDetails() {
-            }
-
-            @Override
-            public boolean isFinal() {
-                return (method.getModifiers() & Modifier.FINAL) != 0;
-            }
-
-            @Override
-            public Type returnType() {
-                throw new UnsupportedOperationException("Not supported yet.");
-            }
-
-            @Override
-            public String name() {
-                return method.getName();
-            }
         }
     }
 }

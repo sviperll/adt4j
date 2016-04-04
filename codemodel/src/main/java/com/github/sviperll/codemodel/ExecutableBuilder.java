@@ -46,23 +46,16 @@ public abstract class ExecutableBuilder extends GenericDefinitionBuilder<Nesting
     private final BlockBuilder body = BlockBuilder.createWithBracesForced(scope.createNested());
     private final List<VariableDeclaration> parameters = new ArrayList<>();
     private final List<Type> throwsList = new ArrayList<>();
-
-    private final TypeContainer typeContainer;
     private final NestingBuilder residence;
 
     ExecutableBuilder(NestingBuilder residence) {
         super(residence);
-        if (residence.residence().getNesting().isStatic()) {
-            typeContainer = new TypeContainer(null);
-        } else {
-            typeContainer = null;
-        }
         this.residence = residence;
         
     }
 
     @Override
-    public abstract ExecutableDefinition definition();
+    public abstract ExecutableDefinition<? extends ExecutableType<?, ?>> definition();
 
     public void addParameter(Type type, String name) throws CodeModelException {
         name = scope.makeIntroducable(name);
@@ -90,18 +83,20 @@ public abstract class ExecutableBuilder extends GenericDefinitionBuilder<Nesting
         return body;
     }
 
-    abstract class BuiltDefinition extends GenericDefinitionBuilder<NestingBuilder>.BuiltExecutableDefinition {
-        @Override
-        public abstract MethodDefinitionDetails getMethodDetails();
+    ExecutableDefinitionSubstance createExecutableDefinitionSubstance() {
+        return new BuiltExecutableDefinition(createTypeParameters());
+    }
 
-        @Override
-        public abstract boolean isConstructor();
+    ExecutableTypeSubstance createExecutableTypeSubstance(GenericType<?, ?> parentInstanceType) {
+        return new BuiltExecutableTypeSubstance();
+    }
 
-        @Override
-        public final boolean isMethod() {
-            return !isConstructor();
+    private class BuiltExecutableDefinition implements ExecutableDefinitionSubstance {
+
+        final TypeParameters typeParameters;
+        BuiltExecutableDefinition(TypeParameters typeParameters) {
+            this.typeParameters = typeParameters;
         }
-
         @Override
         public final List<VariableDeclaration> parameters() {
             return Collections.unmodifiableList(parameters);
@@ -113,27 +108,8 @@ public abstract class ExecutableBuilder extends GenericDefinitionBuilder<Nesting
         }
 
         @Override
-        final Renderable body() {
+        public final Renderable body() {
             return body;
-        }
-
-        @Override
-        public final Type rawType() {
-            if (residence.residence().getNesting().isStatic()) {
-                return typeContainer.rawTypeDetails.asType();
-            } else {
-                throw new UnsupportedOperationException("Parent instance type is required");
-            }
-        }
-
-        @Override
-        public final Type rawType(Type parentInstanceType) {
-            if (residence.residence().getNesting().isStatic()) {
-                throw new UnsupportedOperationException("Type is static memeber, no parent is expected.");
-            } else {
-                TypeContainer typeContainer = new TypeContainer(parentInstanceType.getObjectDetails());
-                return typeContainer.rawTypeDetails.asType();
-            }
         }
 
         @Override
@@ -147,74 +123,21 @@ public abstract class ExecutableBuilder extends GenericDefinitionBuilder<Nesting
         }
 
         @Override
-        public final Type internalType() {
-            Type rawType;
-            if (residence.residence().getNesting().isStatic()) {
-                rawType = rawType();
-            } else {
-                rawType = rawType(residence.residence().getNesting().parent().internalType());
-            }
-            List<Type> internalTypeArguments = typeParameters().asInternalTypeArguments();
-            try {
-                return rawType.getExecutableDetails().narrow(internalTypeArguments);
-            } catch (CodeModelException ex) {
-                throw new RuntimeException("No parameter-argument mismatch is guaranteed to ever happen", ex);
-            }
+        public TypeParameters typeParameters() {
+            return typeParameters;
         }
+
     }
 
-    private class TypeContainer {
-        private final ObjectTypeDetails parentInstanceType;
-        private final ExecutableTypeDetails rawTypeDetails = GenericTypeDetails.createRawTypeDetails(new GenericTypeDetails.Factory<ExecutableTypeDetails>() {
-            @Override
-            public ExecutableTypeDetails createGenericTypeDetails(GenericTypeDetails.Parametrization implementation) {
-                return new BuiltTypeDetails(implementation);
-            }
-        });
-        TypeContainer(ObjectTypeDetails parentInstanceType) {
-            this.parentInstanceType = parentInstanceType;
+    private class BuiltExecutableTypeSubstance implements ExecutableTypeSubstance {
+        @Override
+        public List<VariableDeclaration> parameters() {
+            throw new UnsupportedOperationException("Not supported yet.");
         }
 
-        private class BuiltTypeDetails extends ExecutableTypeDetails {
-            Type type = Type.executable(this);
-
-            BuiltTypeDetails(GenericTypeDetails.Parametrization implementation) {
-                super(implementation);
-            }
-
-            @Override
-            public Type asType() {
-                return type;
-            }
-
-            @Override
-            public ExecutableDefinition definition() {
-                return ExecutableBuilder.this.definition();
-            }
-
-            @Override
-            public List<VariableDeclaration> parameters() {
-                throw new UnsupportedOperationException("Not supported yet.");
-            }
-
-            @Override
-            public List<Type> throwsList() {
-                throw new UnsupportedOperationException("Not supported yet.");
-            }
-
-            @Override
-            public Type returnType() {
-                if (definition().isConstructor())
-                    return parentInstanceType.asType();
-                else {
-                    return definition().getMethodDetails().returnType().inEnvironment(definitionEnvironment());
-                }
-            }
-
-            @Override
-            public Type capturedEnclosingType() {
-                return parentInstanceType == null ? null : parentInstanceType.asType();
-            }
+        @Override
+        public List<Type> throwsList() {
+            throw new UnsupportedOperationException("Not supported yet.");
         }
     }
 

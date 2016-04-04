@@ -43,12 +43,12 @@ import javax.annotation.ParametersAreNonnullByDefault;
  */
 @ParametersAreNonnullByDefault
 public class NamedObjectBuilder<B extends ResidenceBuilder> extends ObjectBuilder<B> {
-    private final BuiltDefinition definition = new BuiltDefinition();
+    private final BuiltDefinition definition = new BuiltDefinition(createTypeParameters());
     private final String name;
     private final List<Type> interfaces = new ArrayList<>();
     private boolean isFinal = false;
     private Type extendsClass = null;
-    private final List<ExecutableDefinition> constructors = new ArrayList<>();
+    private final List<ConstructorDefinition> constructors = new ArrayList<>();
 
     public NamedObjectBuilder(ObjectKind kind, B residence, String name) throws CodeModelException {
         super(kind, residence);
@@ -95,6 +95,9 @@ public class NamedObjectBuilder<B extends ResidenceBuilder> extends ObjectBuilde
     }
 
     private class BuiltDefinition extends ObjectBuilder<B>.BuiltDefinition {
+        BuiltDefinition(TypeParameters typeParameters) {
+            super(typeParameters);
+        }
         @Override
         public String simpleName() {
             return name;
@@ -116,7 +119,7 @@ public class NamedObjectBuilder<B extends ResidenceBuilder> extends ObjectBuilde
         }
 
         @Override
-        public Collection<ExecutableDefinition> constructors() {
+        public Collection<ConstructorDefinition> constructors() {
             return constructors;
         }
 

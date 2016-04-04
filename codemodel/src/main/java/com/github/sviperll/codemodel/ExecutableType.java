@@ -30,22 +30,30 @@
 
 package com.github.sviperll.codemodel;
 
+import java.util.List;
+import javax.annotation.ParametersAreNonnullByDefault;
+import javax.annotation.Nonnull;
+
 /**
  *
  * @author Victor Nazarov &lt;asviraspossible@gmail.com&gt;
+ * @param <T>
+ * @param <D>
  */
-public class TypeVariableDetails {
-    private final Type type = Type.variable(this);
-    private final String name;
-    TypeVariableDetails(String name) {
-        this.name = name;
+@ParametersAreNonnullByDefault
+public abstract class ExecutableType<T extends Generic, D extends GenericDefinition<T>> extends GenericType<T, D> {
+
+    private final ExecutableTypeSubstance substance;
+    ExecutableType(GenericType.Parametrization<T> implementation, ExecutableTypeSubstance substance) {
+        super(implementation);
+        this.substance = substance;
     }
 
-    public String name() {
-        return name;
+    public final List<VariableDeclaration> parameters() {
+        return substance.parameters();
     }
 
-    public Type asType() {
-        return type;
+    public final List<Type> throwsList() {
+        return substance.throwsList();
     }
 }

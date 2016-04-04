@@ -41,16 +41,16 @@ import java.util.Locale;
  */
 public abstract class Residence implements Renderable {
 
-    static Residence packageLevel(final PackageLevelDetails details) {
-        return new PackageLevelResidence(details);
+    static Residence packageLevel(final PackageLevelResidence details) {
+        return new PackageLevelResidenceWrapper(details);
     }
 
     static Residence nested(Nesting details) {
-        return new NestedResidence(details);
+        return new NestedResidenceWrapper(details);
     }
 
-    static Residence local(MethodLocalDetails details) {
-        return new MethodLocalResidence(details);
+    static Residence local(MethodLocalResidence details) {
+        return new MethodLocalResidenceWrapper(details);
     }
 
     private Residence() {
@@ -67,13 +67,13 @@ public abstract class Residence implements Renderable {
         return kind() == Kind.LOCAL;
     }
 
-    public PackageLevelDetails getPackageLevelDetails() {
+    public PackageLevelResidence getPackageLevelDetails() {
         throw new UnsupportedOperationException("Package level residence expected");
     }
     public Nesting getNesting() {
         throw new UnsupportedOperationException("Nested residence expected");
     }
-    public MethodLocalDetails getLocalDetails() {
+    public MethodLocalResidence getLocalDetails() {
         throw new UnsupportedOperationException("Local residence expected");
     }
 
@@ -94,7 +94,7 @@ public abstract class Residence implements Renderable {
      *
      * @return Enclosing definition or null for package-level definitions or static members
      */
-    public GenericDefinition contextDefinition() {
+    public GenericDefinition<?> contextDefinition() {
         if (isPackageLevel()) {
             return null;
         } else if (isNested()) {
@@ -132,11 +132,11 @@ public abstract class Residence implements Renderable {
         PACKAGE_LEVEL, NESTED, LOCAL;
     }
 
-    private static class PackageLevelResidence extends Residence {
+    private static class PackageLevelResidenceWrapper extends Residence {
 
-        private final PackageLevelDetails details;
+        private final PackageLevelResidence details;
 
-        public PackageLevelResidence(PackageLevelDetails details) {
+        public PackageLevelResidenceWrapper(PackageLevelResidence details) {
             this.details = details;
         }
 
@@ -146,16 +146,16 @@ public abstract class Residence implements Renderable {
         }
 
         @Override
-        public PackageLevelDetails getPackageLevelDetails() {
+        public PackageLevelResidence getPackageLevelDetails() {
             return details;
         }
     }
 
-    private static class NestedResidence extends Residence {
+    private static class NestedResidenceWrapper extends Residence {
 
         private final Nesting details;
 
-        public NestedResidence(Nesting details) {
+        public NestedResidenceWrapper(Nesting details) {
             this.details = details;
         }
 
@@ -170,11 +170,11 @@ public abstract class Residence implements Renderable {
         }
     }
 
-    private static class MethodLocalResidence extends Residence {
+    private static class MethodLocalResidenceWrapper extends Residence {
 
-        private final MethodLocalDetails details;
+        private final MethodLocalResidence details;
 
-        public MethodLocalResidence(MethodLocalDetails details) {
+        public MethodLocalResidenceWrapper(MethodLocalResidence details) {
             this.details = details;
         }
 
@@ -184,7 +184,7 @@ public abstract class Residence implements Renderable {
         }
 
         @Override
-        public MethodLocalDetails getLocalDetails() {
+        public MethodLocalResidence getLocalDetails() {
             return details;
         }
 
