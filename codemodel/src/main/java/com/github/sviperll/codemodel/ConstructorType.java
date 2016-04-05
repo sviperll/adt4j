@@ -35,12 +35,13 @@ package com.github.sviperll.codemodel;
  * @author Victor Nazarov &lt;asviraspossible@gmail.com&gt;
  */
 public abstract class ConstructorType extends ExecutableType<ConstructorType, ConstructorDefinition> implements Generic {
-    ConstructorType(GenericType.Implementation<ConstructorType, ConstructorDefinition> implementation, ExecutableTypeSubstance substance) {
-        super(implementation, substance);
+    ConstructorType(ExecutableType.Implementation<ConstructorType, ConstructorDefinition> implementation) {
+        super(implementation);
     }
 
-    ConstructorType inEnvironment(TypeEnvironment environment) {
-        throw new UnsupportedOperationException("Not supported yet.");
+    @Override
+    public final ConstructorType asType() {
+        return this;
     }
 
     @Override

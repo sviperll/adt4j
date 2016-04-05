@@ -58,13 +58,13 @@ public class IntersectionType {
         return type;
     }
 
-    IntersectionType inEnvironment(TypeEnvironment environment) {
-        Collection<Type> inEnvironment = new ArrayList<>(bounds.size());
+    Type substitute(Substitution environment) {
+        Collection<Type> substituted = new ArrayList<>(bounds.size());
         for (Type bound: bounds) {
-            inEnvironment.add(bound.inEnvironment(environment));
+            substituted.add(bound.substitute(environment));
         }
         try {
-            return new IntersectionType(inEnvironment);
+            return new IntersectionType(substituted).asType();
         } catch (CodeModelException ex) {
             throw new RuntimeException("Should never happen because of type-level preservation under substitution", ex);
         }

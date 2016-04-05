@@ -41,7 +41,7 @@ import javax.annotation.ParametersAreNonnullByDefault;
 public class ConstructorBuilder extends ExecutableBuilder {
     private final ConstructorDefinition definition = new BuiltDefinition(createExecutableDefinitionSubstance());
     private final NestingBuilder residence;
-    private final TypeContainer typeContainer;
+    private final ConstructorType rawType;
 
     ConstructorBuilder(NestingBuilder residence) throws CodeModelException {
         super(residence);
@@ -49,15 +49,24 @@ public class ConstructorBuilder extends ExecutableBuilder {
         if (residence.residence().getNesting().isStatic())
             throw new CodeModelException("Constructor can't be static");
         if (residence.residence().getNesting().isStatic()) {
-            typeContainer = new TypeContainer(null);
+            rawType = createRawType(null);
         } else {
-            typeContainer = null;
+            rawType = null;
         }
     }
 
     @Override
     public ConstructorDefinition definition() {
         return definition;
+    }
+
+    private ConstructorType createRawType(GenericType<?, ?> parentInstanceType) {
+        return GenericType.createRawTypeDetails(parentInstanceType, new GenericType.Factory<ConstructorType, ConstructorDefinition>() {
+            @Override
+            public ConstructorType createGenericType(GenericType.Implementation<ConstructorType, ConstructorDefinition> implementation) {
+                return new BuiltTypeDetails(createExecutableTypeImplementation(implementation)).asType();
+            }
+        });
     }
 
     private class BuiltDefinition extends ConstructorDefinition {
@@ -82,19 +91,18 @@ public class ConstructorBuilder extends ExecutableBuilder {
         @Override
         public final ConstructorType rawType() {
             if (residence.residence().getNesting().isStatic()) {
-                return typeContainer.rawType;
+                return rawType;
             } else {
                 throw new UnsupportedOperationException("Parent instance type is required");
             }
         }
 
         @Override
-        public final ConstructorType rawType(GenericType<?, ?> parentInstanceType) {
+        public final ConstructorType rawType(GenericType<?, ?> capturedEnclosingType) {
             if (residence.residence().getNesting().isStatic()) {
                 throw new UnsupportedOperationException("Type is static memeber, no parent is expected.");
             } else {
-                TypeContainer typeContainer = new TypeContainer(parentInstanceType);
-                return typeContainer.rawType;
+                return createRawType(capturedEnclosingType);
             }
         }
 
@@ -115,41 +123,14 @@ public class ConstructorBuilder extends ExecutableBuilder {
         }
     }
 
-    private class TypeContainer {
-        private final GenericType<?, ?> parentInstanceType;
-        private final ExecutableTypeSubstance executableSubstance;
-        private final ConstructorType rawType = GenericType.createRawTypeDetails(new GenericType.Factory<ConstructorType, ConstructorDefinition>() {
-            @Override
-            public ConstructorType createGenericType(GenericType.Implementation<ConstructorType, ConstructorDefinition> implementation) {
-                return new BuiltTypeDetails(implementation, executableSubstance).asType();
-            }
-        });
-        TypeContainer(GenericType<?, ?> parentInstanceType) {
-            this.parentInstanceType = parentInstanceType;
-            this.executableSubstance = createExecutableTypeSubstance(parentInstanceType);
+    private class BuiltTypeDetails extends ConstructorType {
+        BuiltTypeDetails(ExecutableType.Implementation<ConstructorType, ConstructorDefinition> implementation) {
+            super(implementation);
         }
 
-        private class BuiltTypeDetails extends ConstructorType {
-            BuiltTypeDetails(GenericType.Implementation<ConstructorType, ConstructorDefinition> implementation, ExecutableTypeSubstance executableSubstance) {
-                super(implementation, executableSubstance);
-            }
-
-            @Override
-            public ConstructorType asType() {
-                return this;
-            }
-
-            @Override
-            public ConstructorDefinition definition() {
-                return ConstructorBuilder.this.definition();
-            }
-
-            @Override
-            public GenericType<?, ?> capturedEnclosingType() {
-                return parentInstanceType == null ? null : parentInstanceType;
-            }
-
-
+        @Override
+        public ConstructorDefinition definition() {
+            return ConstructorBuilder.this.definition();
         }
     }
 }

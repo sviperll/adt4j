@@ -44,16 +44,16 @@ public class MethodBuilder extends ExecutableBuilder {
     private final NestingBuilder residence;
     private boolean isFinal;
     private Type resultType = Type.voidType();
-    private final TypeContainer typeContainer;
+    private final MethodType rawType;
 
     MethodBuilder(NestingBuilder residence, String name) {
         super(residence);
         this.residence = residence;
         this.name = name;
         if (residence.residence().getNesting().isStatic()) {
-            typeContainer = new TypeContainer(null);
+            rawType = createRawType(null);
         } else {
-            typeContainer = null;
+            rawType = null;
         }
     }
 
@@ -68,6 +68,15 @@ public class MethodBuilder extends ExecutableBuilder {
     @Override
     public MethodDefinition definition() {
         return definition;
+    }
+
+    private MethodType createRawType(GenericType<?, ?> parentInstanceType) {
+        return GenericType.createRawTypeDetails(parentInstanceType, new GenericType.Factory<MethodType, MethodDefinition>() {
+            @Override
+            public MethodType createGenericType(GenericType.Implementation<MethodType, MethodDefinition> implementation) {
+                return new BuiltTypeDetails(createExecutableTypeImplementation(implementation));
+            }
+        });
     }
 
     private class BuiltDefinition extends MethodDefinition {
@@ -108,7 +117,7 @@ public class MethodBuilder extends ExecutableBuilder {
         @Override
         public final MethodType rawType() {
             if (residence.residence().getNesting().isStatic()) {
-                return typeContainer.rawType;
+                return rawType;
             } else {
                 throw new UnsupportedOperationException("Parent instance type is required");
             }
@@ -119,8 +128,7 @@ public class MethodBuilder extends ExecutableBuilder {
             if (residence.residence().getNesting().isStatic()) {
                 throw new UnsupportedOperationException("Type is static memeber, no parent is expected.");
             } else {
-                TypeContainer typeContainer = new TypeContainer(parentInstanceType);
-                return typeContainer.rawType;
+                return createRawType(parentInstanceType);
             }
         }
 
@@ -141,47 +149,19 @@ public class MethodBuilder extends ExecutableBuilder {
         }
     }
 
-    private class TypeContainer {
-        private final GenericType<?, ?> parentInstanceType;
-        private final ExecutableTypeSubstance executableSubstance;
-        private final MethodType rawType = GenericType.createRawTypeDetails(new GenericType.Factory<MethodType, MethodDefinition>() {
-            @Override
-            public MethodType createGenericType(GenericType.Implementation<MethodType, MethodDefinition> parametrization) {
-                return new BuiltTypeDetails(parametrization, executableSubstance);
-            }
-        });
-        TypeContainer(GenericType<?, ?> parentInstanceType) {
-            this.parentInstanceType = parentInstanceType;
-            this.executableSubstance = createExecutableTypeSubstance(parentInstanceType);
+    private class BuiltTypeDetails extends MethodType {
+        BuiltTypeDetails(ExecutableType.Implementation<MethodType, MethodDefinition> implementation) {
+            super(implementation);
         }
 
-        private class BuiltTypeDetails extends MethodType {
-            BuiltTypeDetails(GenericType.Implementation<MethodType, MethodDefinition> implementation, ExecutableTypeSubstance executableSubstance) {
-                super(implementation, executableSubstance);
-            }
+        @Override
+        public MethodDefinition definition() {
+            return MethodBuilder.this.definition();
+        }
 
-            @Override
-            public MethodType asType() {
-                return this;
-            }
-
-            @Override
-            public MethodDefinition definition() {
-                return MethodBuilder.this.definition();
-            }
-
-            @Override
-            public Type returnType() {
-                return definition().returnType().inEnvironment(definitionEnvironment());
-            }
-
-            @Override
-            public GenericType<?, ?> capturedEnclosingType() {
-                return parentInstanceType == null ? null : parentInstanceType;
-            }
-
-
+        @Override
+        public Type returnType() {
+            return definition().returnType().substitute(definitionEnvironment());
         }
     }
-
 }

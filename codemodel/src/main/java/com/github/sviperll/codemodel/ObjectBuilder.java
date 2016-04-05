@@ -51,7 +51,7 @@ public abstract class ObjectBuilder<B extends ResidenceBuilder> extends GenericD
     private final List<ObjectInitializationElement> instanceInitOrdering = new ArrayList<>();
     private final Map<String, ObjectDefinition> innerClasses = new TreeMap<>();
 
-    private final TypeContainer typeContainer;
+    private final Type rawType;
     private final B residence;
     private final ObjectKind kind;
 
@@ -63,9 +63,9 @@ public abstract class ObjectBuilder<B extends ResidenceBuilder> extends GenericD
             throw new CodeModelException("Interface, enum or annotation should always be static when nested in other class");
         }
         if (residence.residence().contextDefinition() == null) {
-            typeContainer = new TypeContainer(null);
+            rawType = createRawType(null);
         } else {
-            typeContainer = null;
+            rawType = null;
         }
         this.residence = residence;
         this.kind = kind;
@@ -128,6 +128,15 @@ public abstract class ObjectBuilder<B extends ResidenceBuilder> extends GenericD
         return result;
     }
 
+    private Type createRawType(GenericType<?, ?> capturedEnclosingType) {
+        return GenericType.createRawTypeDetails(capturedEnclosingType, new GenericType.Factory<Type, ObjectDefinition>() {
+            @Override
+            public Type createGenericType(GenericType.Implementation<Type, ObjectDefinition> implementation) {
+                return new BuiltTypeDetails(implementation).asType();
+            }
+        });
+    }
+
     abstract class BuiltDefinition extends ObjectDefinition {
         BuiltDefinition(TypeParameters typeParameters) {
             super(typeParameters);
@@ -166,19 +175,18 @@ public abstract class ObjectBuilder<B extends ResidenceBuilder> extends GenericD
         @Override
         public final Type rawType() {
             if (residence.residence().contextDefinition() == null) {
-                return typeContainer.rawType;
+                return rawType;
             } else {
                 throw new UnsupportedOperationException("Parent instance type is required");
             }
         }
 
         @Override
-        public final Type rawType(GenericType<?, ?> parentInstanceType) {
+        public final Type rawType(GenericType<?, ?> capturedEnclosingType) {
             if (residence.residence().contextDefinition() == null) {
                 throw new UnsupportedOperationException("Type is static memeber, no parent is expected.");
             } else {
-                TypeContainer typeContainer = new TypeContainer(parentInstanceType);
-                return typeContainer.rawType;
+                return createRawType(capturedEnclosingType);
             }
         }
 
@@ -209,39 +217,20 @@ public abstract class ObjectBuilder<B extends ResidenceBuilder> extends GenericD
         }
     }
 
-    private class TypeContainer {
-        private final GenericType<?, ?> parentInstanceType;
-        private final Type rawType = GenericType.createRawTypeDetails(new GenericType.Factory<Type, ObjectDefinition>() {
-            @Override
-            public Type createGenericType(GenericType.Implementation<Type, ObjectDefinition> implementation) {
-                return new BuiltTypeDetails(implementation).asType();
-            }
-        });
-
-        TypeContainer(GenericType<?, ?> parentInstanceType) {
-            this.parentInstanceType = parentInstanceType;
+    private class BuiltTypeDetails extends ObjectType {
+        private final Type type = Type.createObjectType(this);
+        BuiltTypeDetails(GenericType.Implementation<Type, ObjectDefinition> implementation) {
+            super(implementation);
         }
 
-        private class BuiltTypeDetails extends ObjectType {
-            private final Type type = Type.createObjectType(this);
-            BuiltTypeDetails(GenericType.Implementation<Type, ObjectDefinition> implementation) {
-                super(implementation);
-            }
+        @Override
+        public ObjectDefinition definition() {
+            return ObjectBuilder.this.definition();
+        }
 
-            @Override
-            public ObjectDefinition definition() {
-                return ObjectBuilder.this.definition();
-            }
-
-            @Override
-            public Type asType() {
-                return type;
-            }
-
-            @Override
-            public GenericType<?, ?> capturedEnclosingType() {
-                return parentInstanceType == null ? null : parentInstanceType;
-            }
+        @Override
+        public Type asType() {
+            return type;
         }
     }
 

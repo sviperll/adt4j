@@ -66,9 +66,4 @@ public abstract class ObjectType extends GenericType<Type, ObjectDefinition> {
         }
         return methods;
     }
-
-    ObjectType inEnvironment(TypeEnvironment environment) {
-        throw new UnsupportedOperationException("Not supported yet.");
-    }
-
 }

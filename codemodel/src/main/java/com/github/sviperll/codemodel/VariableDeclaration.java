@@ -72,4 +72,44 @@ public abstract class VariableDeclaration implements Renderable {
             }
         };
     }
+
+    final VariableDeclaration substitute(Substitution environment) {
+        return new VariableDeclarationWithEnvironment(this, environment);
+    }
+
+    private static class VariableDeclarationWithEnvironment extends VariableDeclaration {
+
+        private final VariableDeclaration original;
+        private final Substitution environment;
+
+        private VariableDeclarationWithEnvironment(VariableDeclaration original, Substitution environment) {
+            this.original = original;
+            this.environment = environment;
+        }
+
+        @Override
+        public boolean isFinal() {
+            return original.isFinal();
+        }
+
+        @Override
+        public Type type() {
+            return original.type().substitute(environment);
+        }
+
+        @Override
+        public String name() {
+            return original.name();
+        }
+
+        @Override
+        public boolean isInitialized() {
+            return original.isInitialized();
+        }
+
+        @Override
+        Expression getInitialValue() {
+            return original.getInitialValue();
+        }
+    }
 }

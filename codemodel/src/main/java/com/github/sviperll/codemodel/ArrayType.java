@@ -45,8 +45,8 @@ public class ArrayType {
         return elementType;
     }
 
-    ArrayType inEnvironment(TypeEnvironment environment) {
-        return new ArrayType(elementType.inEnvironment(environment));
+    Type substitute(Substitution environment) {
+        return new ArrayType(elementType.substitute(environment)).asType();
     }
 
     Type asType() {

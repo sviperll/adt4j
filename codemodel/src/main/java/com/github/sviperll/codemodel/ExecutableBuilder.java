@@ -87,8 +87,8 @@ public abstract class ExecutableBuilder extends GenericDefinitionBuilder<Nesting
         return new BuiltExecutableDefinition(createTypeParameters());
     }
 
-    ExecutableTypeSubstance createExecutableTypeSubstance(GenericType<?, ?> parentInstanceType) {
-        return new BuiltExecutableTypeSubstance();
+    <T extends Generic, D extends ExecutableDefinition<T>> ExecutableType.Implementation<T, D> createExecutableTypeImplementation(GenericType.Implementation<T, D> genericTypeImplementation) {
+        return new BuiltExecutableType<>(genericTypeImplementation);
     }
 
     private class BuiltExecutableDefinition implements ExecutableDefinitionSubstance {
@@ -129,15 +129,35 @@ public abstract class ExecutableBuilder extends GenericDefinitionBuilder<Nesting
 
     }
 
-    private class BuiltExecutableTypeSubstance implements ExecutableTypeSubstance {
-        @Override
-        public List<VariableDeclaration> parameters() {
-            throw new UnsupportedOperationException("Not supported yet.");
+    private class BuiltExecutableType<T extends Generic, D extends ExecutableDefinition<T>>
+            implements ExecutableType.Implementation<T, D> {
+
+        private final GenericType.Implementation<T, D> genericTypeImplementation;
+        BuiltExecutableType(GenericType.Implementation<T, D> genericTypeImplementation) {
+            this.genericTypeImplementation = genericTypeImplementation;
         }
 
         @Override
-        public List<Type> throwsList() {
-            throw new UnsupportedOperationException("Not supported yet.");
+        public List<VariableDeclaration> parameters(ExecutableType<T, D> instance) {
+            List<VariableDeclaration> result = new ArrayList<>();
+            for (VariableDeclaration declaration: definition().parameters()) {
+                result.add(declaration.substitute(instance.definitionEnvironment()));
+            }
+            return result;
+        }
+
+        @Override
+        public List<Type> throwsList(ExecutableType<T, D> instance) {
+            List<Type> result = new ArrayList<>();
+            for (Type type: instance.definition().throwsList()) {
+                result.add(type.substitute(instance.definitionEnvironment()));
+            }
+            return result;
+        }
+
+        @Override
+        public GenericType.Implementation<T, D> genericTypeImplementation() {
+            return genericTypeImplementation;
         }
     }
 

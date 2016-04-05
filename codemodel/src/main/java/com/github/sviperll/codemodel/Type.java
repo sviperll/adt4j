@@ -126,7 +126,7 @@ public abstract class Type implements Renderable, Generic {
     private Type() {
     }
 
-    Type inEnvironment(TypeEnvironment environment) {
+    Type substitute(Substitution environment) {
         if (isTypeVariable()) {
             Type replacement = environment.get(getVariableDetails().name());
             if (replacement != null)
@@ -134,13 +134,13 @@ public abstract class Type implements Renderable, Generic {
             else
                 return this;
         } else if (isObjectType()) {
-            return getObjectDetails().inEnvironment(environment).asType();
+            return getObjectDetails().substitute(environment);
         } else if (isArray()) {
-            return getArrayDetails().inEnvironment(environment).asType();
+            return getArrayDetails().substitute(environment);
         } else if (isIntersection()) {
-            return getIntersectionDetails().inEnvironment(environment).asType();
+            return getIntersectionDetails().substitute(environment);
         } else if (isWildcard()) {
-            return getWildcardDetails().inEnvironment(environment).asType();
+            return getWildcardDetails().substitute(environment);
         } else
             return this;
     }

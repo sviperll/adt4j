@@ -52,8 +52,8 @@ public final class WildcardType {
         return bound;
     }
 
-    WildcardType inEnvironment(TypeEnvironment environment) {
-        return new WildcardType(boundKind, bound.inEnvironment(environment));
+    Type substitute(Substitution environment) {
+        return new WildcardType(boundKind, bound.substitute(environment)).asType();
     }
 
     Type asType() {

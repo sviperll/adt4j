@@ -58,7 +58,7 @@ public abstract class GenericDefinition<T extends Generic> implements Settled, R
     }
 
     public abstract T rawType();
-    public abstract T rawType(GenericType<?, ?> enclosingType);
+    public abstract T rawType(GenericType<?, ?> capturedEnclosingType);
 
     /**
      * Type of this definition usable inside definition.

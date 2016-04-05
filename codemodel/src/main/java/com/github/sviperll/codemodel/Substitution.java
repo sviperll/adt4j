@@ -40,42 +40,27 @@ import javax.annotation.ParametersAreNonnullByDefault;
  * @author Victor Nazarov &lt;asviraspossible@gmail.com&gt;
  */
 @ParametersAreNonnullByDefault
-class TypeEnvironment {
-
-    static Builder createBuilder(TypeEnvironment parent) {
-        return new Builder(parent);
-    }
+abstract class Substitution {
+    public static final Substitution EMPTY = new EmptySubstitution();
 
     static Builder createBuilder() {
         return new Builder();
     }
-    private final Map<String, Type> map;
-    private final TypeEnvironment parent;
 
-    private TypeEnvironment(Map<String, Type> map, TypeEnvironment parent) {
-        this.map = map;
-        this.parent = parent;
+    private Substitution() {
     }
 
-    Type get(String name) {
-        Type value = map.get(name);
-        if (value != null || parent == null)
-            return value;
-        else
-            return parent.get(name);
+    abstract Type get(String name);
+
+    final Substitution andThen(Substitution that) {
+        return new AndThenSubstitution(this, that);
     }
 
     static class Builder {
-        private final TypeEnvironment parent;
         private Map<String, Type> map = new TreeMap<>();
         private boolean copyOnWrite = false;
 
-        public Builder() {
-            this(null);
-        }
-
-        private Builder(TypeEnvironment parent) {
-            this.parent = parent;
+        private Builder() {
         }
 
         void put(String name, Type typeArgument) {
@@ -86,10 +71,49 @@ class TypeEnvironment {
             map.put(name, typeArgument);
         }
 
-        TypeEnvironment build() {
+        Substitution build() {
             map = Collections.unmodifiableMap(map);
             copyOnWrite = true;
-            return new TypeEnvironment(map, parent);
+            return new MapSubstitution(map);
+        }
+    }
+
+    private static class MapSubstitution extends Substitution {
+        private final Map<String, Type> map;
+
+        private MapSubstitution(Map<String, Type> map) {
+            this.map = map;
+        }
+        @Override
+        Type get(String name) {
+            return map.get(name);
+        }
+    }
+
+    private static class EmptySubstitution extends Substitution {
+
+        public EmptySubstitution() {
+        }
+
+        @Override
+        Type get(String name) {
+            return null;
+        }
+    }
+    private static class AndThenSubstitution extends Substitution {
+
+        private final Substitution first;
+        private final Substitution second;
+
+        public AndThenSubstitution(Substitution first, Substitution second) {
+            this.first = first;
+            this.second = second;
+        }
+
+        @Override
+        Type get(String name) {
+            Type value = first.get(name);
+            return value != null ? value : second.get(name);
         }
     }
 }
