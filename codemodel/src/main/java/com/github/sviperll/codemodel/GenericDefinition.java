@@ -35,6 +35,7 @@ import com.github.sviperll.codemodel.render.Renderable;
 /**
  *
  * @author Victor Nazarov &lt;asviraspossible@gmail.com&gt;
+ * @param <T>
  */
 public abstract class GenericDefinition<T extends Generic> implements Settled, Renderable, Model {
 

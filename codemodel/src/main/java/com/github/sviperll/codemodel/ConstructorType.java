@@ -35,7 +35,7 @@ package com.github.sviperll.codemodel;
  * @author Victor Nazarov &lt;asviraspossible@gmail.com&gt;
  */
 public abstract class ConstructorType extends ExecutableType<ConstructorType, ConstructorDefinition> implements Generic {
-    ConstructorType(GenericType.Parametrization<ConstructorType> implementation, ExecutableTypeSubstance substance) {
+    ConstructorType(GenericType.Implementation<ConstructorType, ConstructorDefinition> implementation, ExecutableTypeSubstance substance) {
         super(implementation, substance);
     }
 

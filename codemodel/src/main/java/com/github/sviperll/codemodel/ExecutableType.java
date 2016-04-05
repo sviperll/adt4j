@@ -44,7 +44,7 @@ import javax.annotation.Nonnull;
 public abstract class ExecutableType<T extends Generic, D extends GenericDefinition<T>> extends GenericType<T, D> {
 
     private final ExecutableTypeSubstance substance;
-    ExecutableType(GenericType.Parametrization<T> implementation, ExecutableTypeSubstance substance) {
+    ExecutableType(GenericType.Implementation<T, D> implementation, ExecutableTypeSubstance substance) {
         super(implementation);
         this.substance = substance;
     }

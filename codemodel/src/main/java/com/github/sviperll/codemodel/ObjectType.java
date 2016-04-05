@@ -42,7 +42,7 @@ import javax.annotation.ParametersAreNonnullByDefault;
 public abstract class ObjectType extends GenericType<Type, ObjectDefinition> {
     private List<MethodType> methods = null;
 
-    ObjectType(GenericType.Parametrization<Type> implementation) {
+    ObjectType(GenericType.Implementation<Type, ObjectDefinition> implementation) {
         super(implementation);
     }
 

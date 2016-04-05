@@ -118,10 +118,10 @@ public class ConstructorBuilder extends ExecutableBuilder {
     private class TypeContainer {
         private final GenericType<?, ?> parentInstanceType;
         private final ExecutableTypeSubstance executableSubstance;
-        private final ConstructorType rawType = GenericType.createRawTypeDetails(new GenericType.Factory<ConstructorType>() {
+        private final ConstructorType rawType = GenericType.createRawTypeDetails(new GenericType.Factory<ConstructorType, ConstructorDefinition>() {
             @Override
-            public ConstructorType createGenericType(GenericType.Parametrization<ConstructorType> parametrization) {
-                return new BuiltTypeDetails(parametrization, executableSubstance).asType();
+            public ConstructorType createGenericType(GenericType.Implementation<ConstructorType, ConstructorDefinition> implementation) {
+                return new BuiltTypeDetails(implementation, executableSubstance).asType();
             }
         });
         TypeContainer(GenericType<?, ?> parentInstanceType) {
@@ -130,7 +130,7 @@ public class ConstructorBuilder extends ExecutableBuilder {
         }
 
         private class BuiltTypeDetails extends ConstructorType {
-            BuiltTypeDetails(GenericType.Parametrization<ConstructorType> implementation, ExecutableTypeSubstance executableSubstance) {
+            BuiltTypeDetails(GenericType.Implementation<ConstructorType, ConstructorDefinition> implementation, ExecutableTypeSubstance executableSubstance) {
                 super(implementation, executableSubstance);
             }
 

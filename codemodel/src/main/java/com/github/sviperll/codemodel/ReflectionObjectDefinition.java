@@ -43,9 +43,9 @@ import java.util.List;
  * @author Victor Nazarov &lt;asviraspossible@gmail.com&gt;
  */
 class ReflectionObjectDefinition extends ObjectDefinition {
-    private final Type rawType = GenericType.createRawTypeDetails(new GenericType.Factory<Type>() {
+    private final Type rawType = GenericType.createRawTypeDetails(new GenericType.Factory<Type, ObjectDefinition>() {
         @Override
-        public Type createGenericType(GenericType.Parametrization<Type> implementation) {
+        public Type createGenericType(GenericType.Implementation<Type, ObjectDefinition> implementation) {
             return new TypeDetails(implementation).asType();
         }
     });
@@ -171,7 +171,7 @@ class ReflectionObjectDefinition extends ObjectDefinition {
 
     public class TypeDetails extends ObjectType {
         private final Type type = Type.createObjectType(this);
-        TypeDetails(GenericType.Parametrization<Type> implementation) {
+        TypeDetails(GenericType.Implementation<Type, ObjectDefinition> implementation) {
             super(implementation);
         }
 

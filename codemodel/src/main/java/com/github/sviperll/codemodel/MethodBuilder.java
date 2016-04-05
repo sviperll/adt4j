@@ -144,9 +144,9 @@ public class MethodBuilder extends ExecutableBuilder {
     private class TypeContainer {
         private final GenericType<?, ?> parentInstanceType;
         private final ExecutableTypeSubstance executableSubstance;
-        private final MethodType rawType = GenericType.createRawTypeDetails(new GenericType.Factory<MethodType>() {
+        private final MethodType rawType = GenericType.createRawTypeDetails(new GenericType.Factory<MethodType, MethodDefinition>() {
             @Override
-            public MethodType createGenericType(GenericType.Parametrization<MethodType> parametrization) {
+            public MethodType createGenericType(GenericType.Implementation<MethodType, MethodDefinition> parametrization) {
                 return new BuiltTypeDetails(parametrization, executableSubstance);
             }
         });
@@ -156,7 +156,7 @@ public class MethodBuilder extends ExecutableBuilder {
         }
 
         private class BuiltTypeDetails extends MethodType {
-            BuiltTypeDetails(GenericType.Parametrization<MethodType> implementation, ExecutableTypeSubstance executableSubstance) {
+            BuiltTypeDetails(GenericType.Implementation<MethodType, MethodDefinition> implementation, ExecutableTypeSubstance executableSubstance) {
                 super(implementation, executableSubstance);
             }
 

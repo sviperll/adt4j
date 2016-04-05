@@ -39,7 +39,7 @@ import javax.annotation.ParametersAreNonnullByDefault;
  */
 @ParametersAreNonnullByDefault
 public abstract class MethodType extends ExecutableType<MethodType, MethodDefinition> implements Generic {
-    MethodType(GenericType.Parametrization<MethodType> implementation, ExecutableTypeSubstance substance) {
+    MethodType(GenericType.Implementation<MethodType, MethodDefinition> implementation, ExecutableTypeSubstance substance) {
         super(implementation, substance);
     }
 

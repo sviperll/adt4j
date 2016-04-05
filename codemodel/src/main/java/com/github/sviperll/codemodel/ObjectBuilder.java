@@ -211,9 +211,9 @@ public abstract class ObjectBuilder<B extends ResidenceBuilder> extends GenericD
 
     private class TypeContainer {
         private final GenericType<?, ?> parentInstanceType;
-        private final Type rawType = GenericType.createRawTypeDetails(new GenericType.Factory<Type>() {
+        private final Type rawType = GenericType.createRawTypeDetails(new GenericType.Factory<Type, ObjectDefinition>() {
             @Override
-            public Type createGenericType(GenericType.Parametrization<Type> implementation) {
+            public Type createGenericType(GenericType.Implementation<Type, ObjectDefinition> implementation) {
                 return new BuiltTypeDetails(implementation).asType();
             }
         });
@@ -223,8 +223,8 @@ public abstract class ObjectBuilder<B extends ResidenceBuilder> extends GenericD
         }
 
         private class BuiltTypeDetails extends ObjectType {
-            private Type type = Type.createObjectType(this);
-            BuiltTypeDetails(GenericType.Parametrization<Type> implementation) {
+            private final Type type = Type.createObjectType(this);
+            BuiltTypeDetails(GenericType.Implementation<Type, ObjectDefinition> implementation) {
                 super(implementation);
             }
 
