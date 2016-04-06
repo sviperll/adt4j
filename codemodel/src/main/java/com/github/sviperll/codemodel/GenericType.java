@@ -43,11 +43,11 @@ import javax.annotation.Nullable;
  * @param <D>
  */
 public abstract class GenericType<T extends Generic<T>, D extends GenericDefinition<T, D>> {
-    static <T extends Generic<T>, D extends GenericDefinition<T, D>> T createRawType(final TypeFactory<T, D> factory) {
-        return factory.createType(new Raw<>(factory, null));
+    static <T extends Generic<T>, D extends GenericDefinition<T, D>> T createRawType(GenericDefinition<T, D> definition) {
+        return definition.createType(new Raw<>(definition, null));
     }
-    static <T extends Generic<T>, D extends GenericDefinition<T, D>> T createRawTypeDetails(GenericType<?, ?> capturedEnclosingType, final TypeFactory<T, D> factory) {
-        return factory.createType(new Raw<>(factory, capturedEnclosingType));
+    static <T extends Generic<T>, D extends GenericDefinition<T, D>> T createRawType(GenericType<?, ?> capturedEnclosingType, GenericDefinition<T, D> definition) {
+        return definition.createType(new Raw<>(definition, capturedEnclosingType));
     }
 
     private final Implementation<T, D> implementation;
@@ -114,13 +114,10 @@ public abstract class GenericType<T extends Generic<T>, D extends GenericDefinit
         return definitionEnvironment;
     }
 
-    interface TypeFactory<T extends Generic<T>, D extends GenericDefinition<T, D>> {
-        T createType(Implementation<T, D> implementation);
-    }
     static abstract class Implementation<T extends Generic<T>, D extends GenericDefinition<T, D>> {
-        private final TypeFactory<T, D> factory;
-        private Implementation(TypeFactory<T, D> factory) {
-            this.factory = factory;
+        private final GenericDefinition<T, D> definition;
+        private Implementation(GenericDefinition<T, D> definition) {
+            this.definition = definition;
         }
         abstract T narrow(GenericType<T, D> thisGenericType, List<Type> typeArguments) throws CodeModelException;
         abstract T erasure(GenericType<T, D> thisGenericType);
@@ -133,11 +130,11 @@ public abstract class GenericType<T extends Generic<T>, D extends GenericDefinit
             return new SubstitutedArgumentsImplementation<>(factory(), this, nextSubstitution);
         }
 
-        final TypeFactory<T, D> factory() {
-            return factory;
+        final GenericDefinition<T, D> factory() {
+            return definition;
         }
         final T createGenericType(GenericType<T, D> thisGenericType, Implementation<T, D> implementation) {
-            return factory.createType(implementation);
+            return definition.createType(implementation);
         }
     }
     private static class SubstitutedArgumentsImplementation<T extends Generic<T>, D extends GenericDefinition<T, D>>
@@ -146,7 +143,7 @@ public abstract class GenericType<T extends Generic<T>, D extends GenericDefinit
         private final Implementation<T, D> original;
         private final Substitution substitution;
         private List<Type> typeArguments = null;
-        SubstitutedArgumentsImplementation(TypeFactory<T, D> factory, Implementation<T, D> original, Substitution substitution) {
+        SubstitutedArgumentsImplementation(GenericDefinition<T, D> factory, Implementation<T, D> original, Substitution substitution) {
             super(factory);
             this.original = original;
             this.substitution = substitution;
@@ -198,7 +195,7 @@ public abstract class GenericType<T extends Generic<T>, D extends GenericDefinit
         private List<Type> typeArguments = null;
         private final GenericType<?, ?> capturedEnclosingType;
 
-        Raw(TypeFactory<T, D> factory, GenericType<?, ?> capturedEnclosingType) {
+        Raw(GenericDefinition<T, D> factory, GenericType<?, ?> capturedEnclosingType) {
             super(factory);
             this.capturedEnclosingType = capturedEnclosingType;
         }
@@ -257,7 +254,7 @@ public abstract class GenericType<T extends Generic<T>, D extends GenericDefinit
 
         private final GenericType<T, D> erasure;
         private final List<Type> arguments;
-        Narrowed(TypeFactory<T, D> factory, GenericType<T, D> erasure, List<Type> arguments) throws CodeModelException {
+        Narrowed(GenericDefinition<T, D> factory, GenericType<T, D> erasure, List<Type> arguments) throws CodeModelException {
             super(factory);
             if (arguments.isEmpty())
                 throw new CodeModelException("Type arguments shouldn't be empty");

@@ -66,7 +66,7 @@ public abstract class GenericDefinition<T extends Generic<T>, D extends GenericD
     public final T rawType() {
         if (residence().contextDefinition() == null) {
             if (rawType == null)
-                rawType = createRawType(null);
+                rawType = GenericType.createRawType(this);
             return rawType;
         } else {
             throw new UnsupportedOperationException("Parent instance type is required");
@@ -77,7 +77,7 @@ public abstract class GenericDefinition<T extends Generic<T>, D extends GenericD
         if (residence().contextDefinition() == null) {
             throw new UnsupportedOperationException("Type is static memeber, no parent is expected.");
         } else {
-            return createRawType(capturedEnclosingType);
+            return GenericType.createRawType(capturedEnclosingType, this);
         }
     }
 
@@ -99,15 +99,4 @@ public abstract class GenericDefinition<T extends Generic<T>, D extends GenericD
             throw new RuntimeException("No parameter-argument mismatch is guaranteed to ever happen", ex);
         }
     }
-
-
-    private T createRawType(GenericType<?, ?> capturedEnclosingType) {
-        return GenericType.createRawTypeDetails(capturedEnclosingType, new GenericType.TypeFactory<T, D>() {
-            @Override
-            public T createType(GenericType.Implementation<T, D> implementation) {
-                return GenericDefinition.this.createType(implementation);
-            }
-        });
-    }
-
 }
