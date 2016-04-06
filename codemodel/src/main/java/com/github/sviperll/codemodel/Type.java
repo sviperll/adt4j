@@ -44,7 +44,7 @@ import javax.annotation.ParametersAreNonnullByDefault;
  * @author Victor Nazarov &lt;asviraspossible@gmail.com&gt;
  */
 @ParametersAreNonnullByDefault
-public abstract class Type implements Renderable, Generic {
+public abstract class Type implements Renderable, Generic<Type> {
     private static final VoidType VOID = new VoidType();
     private static final Type BYTE = Type.primitive(PrimitiveType.BYTE);
     private static final Type SHORT = Type.primitive(PrimitiveType.SHORT);
@@ -212,11 +212,8 @@ public abstract class Type implements Renderable, Generic {
     }
 
     @Override
-    public GenericType<?, ?> getGenericDetails() {
-        if (isObjectType())
-            return getObjectDetails();
-        else
-            throw new UnsupportedOperationException("Generic type expected");
+    public GenericType<Type, ?> getGenericDetails() {
+        return getObjectDetails();
     }
 
     @Override

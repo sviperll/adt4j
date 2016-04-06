@@ -31,9 +31,6 @@
 package com.github.sviperll.codemodel;
 
 import com.github.sviperll.codemodel.render.Renderable;
-import com.github.sviperll.codemodel.render.Renderer;
-import com.github.sviperll.codemodel.render.RendererContext;
-import java.util.Iterator;
 import java.util.List;
 
 /**
@@ -45,8 +42,8 @@ import java.util.List;
 public abstract class ExecutableDefinition<T extends ExecutableType<T, D>, D extends ExecutableDefinition<T, D>>
         extends GenericDefinition<T, D> {
 
-    private final Implementation implementation;
-    ExecutableDefinition(Implementation implementation) {
+    private final Implementation<T, D> implementation;
+    ExecutableDefinition(Implementation<T, D> implementation) {
         super(implementation.typeParameters());
         this.implementation = implementation;
     }
@@ -85,7 +82,7 @@ public abstract class ExecutableDefinition<T extends ExecutableType<T, D>, D ext
         return implementation.getCodeModel();
     }
 
-    interface Implementation {
+    interface Implementation<T extends ExecutableType<T, D>, D extends ExecutableDefinition<T, D>> {
 
         TypeParameters typeParameters();
 
@@ -98,7 +95,6 @@ public abstract class ExecutableDefinition<T extends ExecutableType<T, D>, D ext
         Residence residence();
 
         CodeModel getCodeModel();
-
     }
 
 }

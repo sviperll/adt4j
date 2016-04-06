@@ -31,15 +31,13 @@
 package com.github.sviperll.codemodel;
 
 import javax.annotation.ParametersAreNonnullByDefault;
-import javax.annotation.Nonnull;
 
 /**
  *
  * @author Victor Nazarov &lt;asviraspossible@gmail.com&gt;
  * @param <T>
- * @param <D>
  */
 @ParametersAreNonnullByDefault
-public interface Generic {
-    GenericType<?, ?> getGenericDetails();
+public interface Generic<T extends Generic<T>> {
+    GenericType<T, ?> getGenericDetails();
 }

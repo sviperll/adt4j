@@ -83,17 +83,18 @@ public abstract class ExecutableBuilder extends GenericDefinitionBuilder<Nesting
         return body;
     }
 
-    ExecutableDefinition.Implementation implementExecutableDefinition() {
-        return new BuiltExecutableDefinition(createTypeParameters());
+    <T extends ExecutableType<T, D>, D extends ExecutableDefinition<T, D>> ExecutableDefinition.Implementation<T, D> implementExecutableDefinition() {
+        return new BuiltExecutableDefinition<>(createTypeParameters());
     }
 
-    <T extends ExecutableType<T, D>, D extends ExecutableDefinition<T, D>> ExecutableType.Implementation<T, D> createExecutableTypeImplementation(GenericType.Implementation<T, D> genericTypeImplementation) {
+    <T extends ExecutableType<T, D>, D extends ExecutableDefinition<T, D>> ExecutableType.Implementation<T, D> implementExecutableType(GenericType.Implementation<T, D> genericTypeImplementation) {
         return new BuiltExecutableType<>(genericTypeImplementation);
     }
 
-    private class BuiltExecutableDefinition implements ExecutableDefinition.Implementation {
+    private class BuiltExecutableDefinition<T extends ExecutableType<T, D>, D extends ExecutableDefinition<T, D>>
+            implements ExecutableDefinition.Implementation<T, D> {
 
-        final TypeParameters typeParameters;
+        private final TypeParameters typeParameters;
         BuiltExecutableDefinition(TypeParameters typeParameters) {
             this.typeParameters = typeParameters;
         }

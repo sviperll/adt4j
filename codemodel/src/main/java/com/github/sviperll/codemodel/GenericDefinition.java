@@ -31,6 +31,7 @@
 package com.github.sviperll.codemodel;
 
 import com.github.sviperll.codemodel.render.Renderable;
+import java.util.List;
 
 /**
  *
@@ -38,13 +39,16 @@ import com.github.sviperll.codemodel.render.Renderable;
  * @param <T>
  * @param <D>
  */
-public abstract class GenericDefinition<T extends Generic, D extends GenericDefinition<T, D>>
+public abstract class GenericDefinition<T extends Generic<T>, D extends GenericDefinition<T, D>>
         implements Settled, Renderable, Model {
 
     private final TypeParameters typeParameters;
+    private T rawType;
     GenericDefinition(TypeParameters typeParameters) {
         this.typeParameters = typeParameters;
     }
+
+    abstract T createType(GenericType.Implementation<T, D> implementation);
 
     public final TypeParameters typeParameters() {
         return typeParameters;
@@ -59,12 +63,51 @@ public abstract class GenericDefinition<T extends Generic, D extends GenericDefi
         }
     }
 
-    public abstract T rawType();
-    public abstract T rawType(GenericType<?, ?> capturedEnclosingType);
+    public final T rawType() {
+        if (residence().contextDefinition() == null) {
+            if (rawType == null)
+                rawType = createRawType(null);
+            return rawType;
+        } else {
+            throw new UnsupportedOperationException("Parent instance type is required");
+        }
+    }
+
+    public final T rawType(GenericType<?, ?> capturedEnclosingType) {
+        if (residence().contextDefinition() == null) {
+            throw new UnsupportedOperationException("Type is static memeber, no parent is expected.");
+        } else {
+            return createRawType(capturedEnclosingType);
+        }
+    }
 
     /**
      * Type of this definition usable inside definition.
      * @return type usable inside it's own definition.
      */
-    public abstract T internalType();
+    public final T internalType() {
+        T internalRawType;
+        if (residence().contextDefinition() == null) {
+            internalRawType = rawType();
+        } else {
+            internalRawType = rawType(residence().contextDefinition().internalType().getGenericDetails());
+        }
+        List<Type> internalTypeArguments = typeParameters().asInternalTypeArguments();
+        try {
+            return internalRawType.getGenericDetails().narrow(internalTypeArguments);
+        } catch (CodeModelException ex) {
+            throw new RuntimeException("No parameter-argument mismatch is guaranteed to ever happen", ex);
+        }
+    }
+
+
+    private T createRawType(GenericType<?, ?> capturedEnclosingType) {
+        return GenericType.createRawTypeDetails(capturedEnclosingType, new GenericType.TypeFactory<T, D>() {
+            @Override
+            public T createType(GenericType.Implementation<T, D> implementation) {
+                return GenericDefinition.this.createType(implementation);
+            }
+        });
+    }
+
 }

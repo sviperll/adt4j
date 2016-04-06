@@ -42,7 +42,7 @@ import javax.annotation.ParametersAreNonnullByDefault;
 @ParametersAreNonnullByDefault
 public abstract class ConstructorDefinition extends ExecutableDefinition<ConstructorType, ConstructorDefinition> {
 
-    ConstructorDefinition(ExecutableDefinition.Implementation implementation) {
+    ConstructorDefinition(ExecutableDefinition.Implementation<ConstructorType, ConstructorDefinition> implementation) {
         super(implementation);
     }
 

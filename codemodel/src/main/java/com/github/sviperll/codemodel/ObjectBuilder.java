@@ -51,7 +51,6 @@ public abstract class ObjectBuilder<B extends ResidenceBuilder> extends GenericD
     private final List<ObjectInitializationElement> instanceInitOrdering = new ArrayList<>();
     private final Map<String, ObjectDefinition> innerClasses = new TreeMap<>();
 
-    private final Type rawType;
     private final B residence;
     private final ObjectKind kind;
 
@@ -61,11 +60,6 @@ public abstract class ObjectBuilder<B extends ResidenceBuilder> extends GenericD
                 && residence.residence().isNested()
                 && !residence.residence().getNesting().isStatic()) {
             throw new CodeModelException("Interface, enum or annotation should always be static when nested in other class");
-        }
-        if (residence.residence().contextDefinition() == null) {
-            rawType = createRawType(null);
-        } else {
-            rawType = null;
         }
         this.residence = residence;
         this.kind = kind;
@@ -128,15 +122,6 @@ public abstract class ObjectBuilder<B extends ResidenceBuilder> extends GenericD
         return result;
     }
 
-    private Type createRawType(GenericType<?, ?> capturedEnclosingType) {
-        return GenericType.createRawTypeDetails(capturedEnclosingType, new GenericType.Factory<Type, ObjectDefinition>() {
-            @Override
-            public Type createGenericType(GenericType.Implementation<Type, ObjectDefinition> implementation) {
-                return new BuiltTypeDetails(implementation).asType();
-            }
-        });
-    }
-
     abstract class BuiltDefinition extends ObjectDefinition {
         BuiltDefinition(TypeParameters typeParameters) {
             super(typeParameters);
@@ -173,40 +158,6 @@ public abstract class ObjectBuilder<B extends ResidenceBuilder> extends GenericD
         }
 
         @Override
-        public final Type rawType() {
-            if (residence.residence().contextDefinition() == null) {
-                return rawType;
-            } else {
-                throw new UnsupportedOperationException("Parent instance type is required");
-            }
-        }
-
-        @Override
-        public final Type rawType(GenericType<?, ?> capturedEnclosingType) {
-            if (residence.residence().contextDefinition() == null) {
-                throw new UnsupportedOperationException("Type is static memeber, no parent is expected.");
-            } else {
-                return createRawType(capturedEnclosingType);
-            }
-        }
-
-        @Override
-        public final Type internalType() {
-            Type rawType;
-            if (residence.residence().contextDefinition() == null) {
-                rawType = rawType();
-            } else {
-                rawType = rawType(residence.residence().contextDefinition().internalType().getGenericDetails());
-            }
-            List<Type> internalTypeArguments = typeParameters().asInternalTypeArguments();
-            try {
-                return rawType.getObjectDetails().narrow(internalTypeArguments);
-            } catch (CodeModelException ex) {
-                throw new RuntimeException("No parameter-argument mismatch is guaranteed to ever happen", ex);
-            }
-        }
-
-        @Override
         final List<ObjectInitializationElement> staticInitializationElements() {
             return staticInitOrdering;
         }
@@ -215,6 +166,12 @@ public abstract class ObjectBuilder<B extends ResidenceBuilder> extends GenericD
         final List<ObjectInitializationElement> instanceInitializationElements() {
             return instanceInitOrdering;
         }
+
+        @Override
+        Type createType(GenericType.Implementation<Type, ObjectDefinition> implementation) {
+            return new BuiltTypeDetails(implementation).asType();
+        }
+
     }
 
     private class BuiltTypeDetails extends ObjectType {

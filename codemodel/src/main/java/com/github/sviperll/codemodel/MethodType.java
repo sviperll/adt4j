@@ -38,7 +38,7 @@ import javax.annotation.ParametersAreNonnullByDefault;
  * @author Victor Nazarov &lt;asviraspossible@gmail.com&gt;
  */
 @ParametersAreNonnullByDefault
-public abstract class MethodType extends ExecutableType<MethodType, MethodDefinition> implements Generic {
+public abstract class MethodType extends ExecutableType<MethodType, MethodDefinition> {
     MethodType(ExecutableType.Implementation<MethodType, MethodDefinition> implementation) {
         super(implementation);
     }
@@ -51,7 +51,7 @@ public abstract class MethodType extends ExecutableType<MethodType, MethodDefini
     }
 
     @Override
-    public GenericType<?, ?> getGenericDetails() {
+    public GenericType<MethodType, ?> getGenericDetails() {
         return this;
     }
 

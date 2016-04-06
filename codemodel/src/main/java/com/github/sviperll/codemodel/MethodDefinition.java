@@ -41,7 +41,7 @@ import javax.annotation.ParametersAreNonnullByDefault;
  */
 @ParametersAreNonnullByDefault
 public abstract class MethodDefinition extends ExecutableDefinition<MethodType, MethodDefinition> {
-    MethodDefinition(ExecutableDefinition.Implementation implementation) {
+    MethodDefinition(ExecutableDefinition.Implementation<MethodType, MethodDefinition> implementation) {
         super(implementation);
     }
 

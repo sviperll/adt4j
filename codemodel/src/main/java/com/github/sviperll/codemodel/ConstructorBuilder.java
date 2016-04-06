@@ -39,20 +39,12 @@ import javax.annotation.ParametersAreNonnullByDefault;
  */
 @ParametersAreNonnullByDefault
 public class ConstructorBuilder extends ExecutableBuilder {
-    private final ConstructorDefinition definition = new BuiltDefinition(implementExecutableDefinition());
-    private final NestingBuilder residence;
-    private final ConstructorType rawType;
+    private final ConstructorDefinition definition = new BuiltDefinition(this.<ConstructorType, ConstructorDefinition>implementExecutableDefinition());
 
     ConstructorBuilder(NestingBuilder residence) throws CodeModelException {
         super(residence);
-        this.residence = residence;
         if (residence.residence().getNesting().isStatic())
             throw new CodeModelException("Constructor can't be static");
-        if (residence.residence().getNesting().isStatic()) {
-            rawType = createRawType(null);
-        } else {
-            rawType = null;
-        }
     }
 
     @Override
@@ -60,52 +52,14 @@ public class ConstructorBuilder extends ExecutableBuilder {
         return definition;
     }
 
-    private ConstructorType createRawType(GenericType<?, ?> parentInstanceType) {
-        return GenericType.createRawTypeDetails(parentInstanceType, new GenericType.Factory<ConstructorType, ConstructorDefinition>() {
-            @Override
-            public ConstructorType createGenericType(GenericType.Implementation<ConstructorType, ConstructorDefinition> implementation) {
-                return new BuiltTypeDetails(createExecutableTypeImplementation(implementation)).asType();
-            }
-        });
-    }
-
     private class BuiltDefinition extends ConstructorDefinition {
-        BuiltDefinition(ExecutableDefinition.Implementation implementation) {
+        BuiltDefinition(ExecutableDefinition.Implementation<ConstructorType, ConstructorDefinition> implementation) {
             super(implementation);
         }
 
         @Override
-        public final ConstructorType rawType() {
-            if (residence.residence().getNesting().isStatic()) {
-                return rawType;
-            } else {
-                throw new UnsupportedOperationException("Parent instance type is required");
-            }
-        }
-
-        @Override
-        public final ConstructorType rawType(GenericType<?, ?> capturedEnclosingType) {
-            if (residence.residence().getNesting().isStatic()) {
-                throw new UnsupportedOperationException("Type is static memeber, no parent is expected.");
-            } else {
-                return createRawType(capturedEnclosingType);
-            }
-        }
-
-        @Override
-        public final ConstructorType internalType() {
-            ConstructorType rawType;
-            if (residence.residence().getNesting().isStatic()) {
-                rawType = rawType();
-            } else {
-                rawType = rawType(residence.residence().getNesting().parent().internalType().getObjectDetails());
-            }
-            List<Type> internalTypeArguments = typeParameters().asInternalTypeArguments();
-            try {
-                return rawType.narrow(internalTypeArguments);
-            } catch (CodeModelException ex) {
-                throw new RuntimeException("No parameter-argument mismatch is guaranteed to ever happen", ex);
-            }
+        ConstructorType createType(GenericType.Implementation<ConstructorType, ConstructorDefinition> implementation) {
+            return new BuiltTypeDetails(implementExecutableType(implementation)).asType();
         }
     }
 

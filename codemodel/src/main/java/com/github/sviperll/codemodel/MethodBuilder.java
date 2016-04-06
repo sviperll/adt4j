@@ -39,22 +39,14 @@ import javax.annotation.ParametersAreNonnullByDefault;
  */
 @ParametersAreNonnullByDefault
 public class MethodBuilder extends ExecutableBuilder {
-    private final MethodDefinition definition = new BuiltDefinition(implementExecutableDefinition());
+    private final MethodDefinition definition = new BuiltDefinition(this.<MethodType, MethodDefinition>implementExecutableDefinition());
     private final String name;
-    private final NestingBuilder residence;
     private boolean isFinal;
     private Type resultType = Type.voidType();
-    private final MethodType rawType;
 
     MethodBuilder(NestingBuilder residence, String name) {
         super(residence);
-        this.residence = residence;
         this.name = name;
-        if (residence.residence().getNesting().isStatic()) {
-            rawType = createRawType(null);
-        } else {
-            rawType = null;
-        }
     }
 
     public void setFinal(boolean isFinal) {
@@ -70,17 +62,8 @@ public class MethodBuilder extends ExecutableBuilder {
         return definition;
     }
 
-    private MethodType createRawType(GenericType<?, ?> parentInstanceType) {
-        return GenericType.createRawTypeDetails(parentInstanceType, new GenericType.Factory<MethodType, MethodDefinition>() {
-            @Override
-            public MethodType createGenericType(GenericType.Implementation<MethodType, MethodDefinition> implementation) {
-                return new BuiltTypeDetails(createExecutableTypeImplementation(implementation));
-            }
-        });
-    }
-
     private class BuiltDefinition extends MethodDefinition {
-        BuiltDefinition(ExecutableDefinition.Implementation implementation) {
+        BuiltDefinition(ExecutableDefinition.Implementation<MethodType, MethodDefinition> implementation) {
             super(implementation);
         }
 
@@ -100,37 +83,8 @@ public class MethodBuilder extends ExecutableBuilder {
         }
 
         @Override
-        public final MethodType rawType() {
-            if (residence.residence().getNesting().isStatic()) {
-                return rawType;
-            } else {
-                throw new UnsupportedOperationException("Parent instance type is required");
-            }
-        }
-
-        @Override
-        public final MethodType rawType(GenericType<?, ?> parentInstanceType) {
-            if (residence.residence().getNesting().isStatic()) {
-                throw new UnsupportedOperationException("Type is static memeber, no parent is expected.");
-            } else {
-                return createRawType(parentInstanceType);
-            }
-        }
-
-        @Override
-        public final MethodType internalType() {
-            MethodType rawType;
-            if (residence.residence().getNesting().isStatic()) {
-                rawType = rawType();
-            } else {
-                rawType = rawType(residence.residence().getNesting().parent().internalType().getObjectDetails());
-            }
-            List<Type> internalTypeArguments = typeParameters().asInternalTypeArguments();
-            try {
-                return rawType.narrow(internalTypeArguments);
-            } catch (CodeModelException ex) {
-                throw new RuntimeException("No parameter-argument mismatch is guaranteed to ever happen", ex);
-            }
+        MethodType createType(GenericType.Implementation<MethodType, MethodDefinition> implementation) {
+            return new BuiltTypeDetails(implementExecutableType(implementation));
         }
     }
 

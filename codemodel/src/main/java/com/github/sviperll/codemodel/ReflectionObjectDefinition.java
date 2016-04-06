@@ -43,12 +43,6 @@ import java.util.List;
  * @author Victor Nazarov &lt;asviraspossible@gmail.com&gt;
  */
 class ReflectionObjectDefinition extends ObjectDefinition {
-    private final Type rawType = GenericType.createRawTypeDetails(null, new GenericType.Factory<Type, ObjectDefinition>() {
-        @Override
-        public Type createGenericType(GenericType.Implementation<Type, ObjectDefinition> implementation) {
-            return new TypeDetails(implementation).asType();
-        }
-    });
     private final CodeModel codeModel;
     private final Residence residence;
     private final Class<?> klass;
@@ -135,16 +129,6 @@ class ReflectionObjectDefinition extends ObjectDefinition {
     }
 
     @Override
-    public Type rawType() {
-        return rawType;
-    }
-
-    @Override
-    public Type rawType(GenericType<?, ?> parentInstanceType) {
-        throw new UnsupportedOperationException("Not supported yet.");
-    }
-
-    @Override
     List<ObjectInitializationElement> staticInitializationElements() {
         return Collections.emptyList();
     }
@@ -160,13 +144,13 @@ class ReflectionObjectDefinition extends ObjectDefinition {
     }
 
     @Override
-    public Type internalType() {
+    public boolean isAnonymous() {
         throw new UnsupportedOperationException("Not supported yet.");
     }
 
     @Override
-    public boolean isAnonymous() {
-        throw new UnsupportedOperationException("Not supported yet.");
+    Type createType(GenericType.Implementation<Type, ObjectDefinition> implementation) {
+        return new TypeDetails(implementation).asType();
     }
 
     public class TypeDetails extends ObjectType {
@@ -247,17 +231,7 @@ class ReflectionObjectDefinition extends ObjectDefinition {
         }
 
         @Override
-        public MethodType rawType() {
-            throw new UnsupportedOperationException("Not supported yet.");
-        }
-
-        @Override
-        public MethodType rawType(GenericType<?, ?> enclosingType) {
-            throw new UnsupportedOperationException("Not supported yet.");
-        }
-
-        @Override
-        public MethodType internalType() {
+        MethodType createType(GenericType.Implementation<MethodType, MethodDefinition> implementation) {
             throw new UnsupportedOperationException("Not supported yet.");
         }
     }
