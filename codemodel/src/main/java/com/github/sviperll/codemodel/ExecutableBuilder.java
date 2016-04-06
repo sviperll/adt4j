@@ -55,7 +55,7 @@ public abstract class ExecutableBuilder extends GenericDefinitionBuilder<Nesting
     }
 
     @Override
-    public abstract ExecutableDefinition<? extends ExecutableType<?, ?>> definition();
+    public abstract ExecutableDefinition<?, ?> definition();
 
     public void addParameter(Type type, String name) throws CodeModelException {
         name = scope.makeIntroducable(name);
@@ -87,7 +87,7 @@ public abstract class ExecutableBuilder extends GenericDefinitionBuilder<Nesting
         return new BuiltExecutableDefinition(createTypeParameters());
     }
 
-    <T extends Generic, D extends ExecutableDefinition<T>> ExecutableType.Implementation<T, D> createExecutableTypeImplementation(GenericType.Implementation<T, D> genericTypeImplementation) {
+    <T extends ExecutableType<T, D>, D extends ExecutableDefinition<T, D>> ExecutableType.Implementation<T, D> createExecutableTypeImplementation(GenericType.Implementation<T, D> genericTypeImplementation) {
         return new BuiltExecutableType<>(genericTypeImplementation);
     }
 
@@ -129,7 +129,7 @@ public abstract class ExecutableBuilder extends GenericDefinitionBuilder<Nesting
 
     }
 
-    private class BuiltExecutableType<T extends Generic, D extends ExecutableDefinition<T>>
+    private class BuiltExecutableType<T extends ExecutableType<T, D>, D extends ExecutableDefinition<T, D>>
             implements ExecutableType.Implementation<T, D> {
 
         private final GenericType.Implementation<T, D> genericTypeImplementation;

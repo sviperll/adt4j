@@ -52,7 +52,7 @@ public abstract class GenericDefinitionBuilder<B extends ResidenceBuilder> imple
         this.residence = residence;
     }
 
-    public abstract GenericDefinition<?> definition();
+    public abstract GenericDefinition<?, ?> definition();
 
     public TypeParameterBuilder typeParameter(String name) throws CodeModelException {
         if (typeParametersMap.containsKey(name)) {

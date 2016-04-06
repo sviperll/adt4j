@@ -43,7 +43,7 @@ import javax.annotation.ParametersAreNonnullByDefault;
  * @author Victor Nazarov &lt;asviraspossible@gmail.com&gt;
  */
 @ParametersAreNonnullByDefault
-public abstract class ObjectDefinition extends GenericDefinition<Type> {
+public abstract class ObjectDefinition extends GenericDefinition<Type, ObjectDefinition> {
 
     ObjectDefinition(TypeParameters typeParameters) {
         super(typeParameters);

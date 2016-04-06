@@ -40,8 +40,10 @@ import java.util.List;
  *
  * @author Victor Nazarov &lt;asviraspossible@gmail.com&gt;
  * @param <T>
+ * @param <D>
  */
-public abstract class ExecutableDefinition<T extends Generic> extends GenericDefinition<T> {
+public abstract class ExecutableDefinition<T extends ExecutableType<T, D>, D extends ExecutableDefinition<T, D>>
+        extends GenericDefinition<T, D> {
 
     private final Implementation implementation;
     ExecutableDefinition(Implementation implementation) {

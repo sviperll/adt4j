@@ -38,5 +38,5 @@ import javax.annotation.ParametersAreNonnullByDefault;
  */
 @ParametersAreNonnullByDefault
 public interface MethodLocalResidence {
-    ExecutableDefinition<Type> parent();
+    ExecutableDefinition<?, ?> parent();
 }

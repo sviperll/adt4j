@@ -94,7 +94,7 @@ public abstract class Residence implements Renderable {
      *
      * @return Enclosing definition or null for package-level definitions or static members
      */
-    public GenericDefinition<?> contextDefinition() {
+    public GenericDefinition<?, ?> contextDefinition() {
         if (isPackageLevel()) {
             return null;
         } else if (isNested()) {

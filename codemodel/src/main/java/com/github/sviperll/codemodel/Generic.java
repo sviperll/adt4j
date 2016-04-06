@@ -36,6 +36,8 @@ import javax.annotation.Nonnull;
 /**
  *
  * @author Victor Nazarov &lt;asviraspossible@gmail.com&gt;
+ * @param <T>
+ * @param <D>
  */
 @ParametersAreNonnullByDefault
 public interface Generic {

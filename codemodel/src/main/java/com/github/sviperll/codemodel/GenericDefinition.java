@@ -36,8 +36,10 @@ import com.github.sviperll.codemodel.render.Renderable;
  *
  * @author Victor Nazarov &lt;asviraspossible@gmail.com&gt;
  * @param <T>
+ * @param <D>
  */
-public abstract class GenericDefinition<T extends Generic> implements Settled, Renderable, Model {
+public abstract class GenericDefinition<T extends Generic, D extends GenericDefinition<T, D>>
+        implements Settled, Renderable, Model {
 
     private final TypeParameters typeParameters;
     GenericDefinition(TypeParameters typeParameters) {
@@ -52,7 +54,7 @@ public abstract class GenericDefinition<T extends Generic> implements Settled, R
         if (!typeParameters.all().isEmpty())
             return true;
         else {
-            GenericDefinition<?> context = residence().contextDefinition();
+            GenericDefinition<?, ?> context = residence().contextDefinition();
             return context != null && context.isGeneric();
         }
     }

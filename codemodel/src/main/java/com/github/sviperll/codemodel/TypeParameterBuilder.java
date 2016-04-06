@@ -40,12 +40,12 @@ import java.util.List;
  */
 public class TypeParameterBuilder {
     private final BuiltTypeParameter declaration = new BuiltTypeParameter();
-    private final GenericDefinition<?> declaredIn;
+    private final GenericDefinition<?, ?> declaredIn;
     private final String name;
     private final List<Type> bounds = new ArrayList<>();
     private Type effectiveBound;
 
-    TypeParameterBuilder(GenericDefinition<?> declaredIn, String name) {
+    TypeParameterBuilder(GenericDefinition<?, ?> declaredIn, String name) {
         this.declaredIn = declaredIn;
         this.name = name;
         effectiveBound = declaredIn.getCodeModel().objectType();
@@ -93,7 +93,7 @@ public class TypeParameterBuilder {
         }
 
         @Override
-        public GenericDefinition<?> declaredIn() {
+        public GenericDefinition<?, ?> declaredIn() {
             return declaredIn;
         }
     }

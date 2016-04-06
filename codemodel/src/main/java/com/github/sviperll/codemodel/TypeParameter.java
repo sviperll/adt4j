@@ -48,7 +48,7 @@ public abstract class TypeParameter {
      */
     public abstract Type bound();
 
-    public abstract GenericDefinition<?> declaredIn();
+    public abstract GenericDefinition<?, ?> declaredIn();
 
     final Type lowerRawBound() throws CodeModelException {
         TypeParameters environment = declaredIn().typeParameters().preventCycle(name());

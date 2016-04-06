@@ -40,7 +40,7 @@ import javax.annotation.ParametersAreNonnullByDefault;
  * @author Victor Nazarov &lt;asviraspossible@gmail.com&gt;
  */
 @ParametersAreNonnullByDefault
-public abstract class MethodDefinition extends ExecutableDefinition<MethodType> {
+public abstract class MethodDefinition extends ExecutableDefinition<MethodType, MethodDefinition> {
     MethodDefinition(ExecutableDefinition.Implementation implementation) {
         super(implementation);
     }

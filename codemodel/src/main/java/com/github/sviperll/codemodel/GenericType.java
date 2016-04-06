@@ -42,11 +42,11 @@ import javax.annotation.Nullable;
  * @param <T>
  * @param <D>
  */
-public abstract class GenericType<T extends Generic, D extends GenericDefinition<T>> {
-    static <T extends Generic, D extends GenericDefinition<T>> T createRawType(final Factory<T, D> factory) {
+public abstract class GenericType<T extends Generic, D extends GenericDefinition<T, D>> {
+    static <T extends Generic, D extends GenericDefinition<T, D>> T createRawType(final Factory<T, D> factory) {
         return factory.createGenericType(new Raw<>(factory, null));
     }
-    static <T extends Generic, D extends GenericDefinition<T>> T createRawTypeDetails(GenericType<?, ?> capturedEnclosingType, final Factory<T, D> factory) {
+    static <T extends Generic, D extends GenericDefinition<T, D>> T createRawTypeDetails(GenericType<?, ?> capturedEnclosingType, final Factory<T, D> factory) {
         return factory.createGenericType(new Raw<>(factory, capturedEnclosingType));
     }
 
@@ -114,10 +114,10 @@ public abstract class GenericType<T extends Generic, D extends GenericDefinition
         return definitionEnvironment;
     }
 
-    interface Factory<T extends Generic, D extends GenericDefinition<T>> {
+    interface Factory<T extends Generic, D extends GenericDefinition<T, D>> {
         T createGenericType(Implementation<T, D> implementation);
     }
-    static abstract class Implementation<T extends Generic, D extends GenericDefinition<T>> {
+    static abstract class Implementation<T extends Generic, D extends GenericDefinition<T, D>> {
         private final Factory<T, D> factory;
         private Implementation(Factory<T, D> factory) {
             this.factory = factory;
@@ -140,7 +140,7 @@ public abstract class GenericType<T extends Generic, D extends GenericDefinition
             return factory.createGenericType(implementation);
         }
     }
-    private static class SubstitutedArgumentsImplementation<T extends Generic, D extends GenericDefinition<T>>
+    private static class SubstitutedArgumentsImplementation<T extends Generic, D extends GenericDefinition<T, D>>
             extends Implementation<T, D> {
 
         private final Implementation<T, D> original;
@@ -194,7 +194,7 @@ public abstract class GenericType<T extends Generic, D extends GenericDefinition
             return new SubstitutedArgumentsImplementation<>(factory(), original, substitution.andThen(nextSubstitution));
         }
     }
-    private static class Raw<T extends Generic, D extends GenericDefinition<T>> extends Implementation<T, D> {
+    private static class Raw<T extends Generic, D extends GenericDefinition<T, D>> extends Implementation<T, D> {
         private List<Type> typeArguments = null;
         private final GenericType<?, ?> capturedEnclosingType;
 
@@ -253,7 +253,7 @@ public abstract class GenericType<T extends Generic, D extends GenericDefinition
         }
     }
 
-    private static class Narrowed<T extends Generic, D extends GenericDefinition<T>> extends Implementation<T, D> {
+    private static class Narrowed<T extends Generic, D extends GenericDefinition<T, D>> extends Implementation<T, D> {
 
         private final GenericType<T, D> erasure;
         private final List<Type> arguments;

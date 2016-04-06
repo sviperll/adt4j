@@ -40,8 +40,9 @@ import javax.annotation.ParametersAreNonnullByDefault;
  * @param <D>
  */
 @ParametersAreNonnullByDefault
-public abstract class ExecutableType<T extends Generic, D extends ExecutableDefinition<T>>
-        extends GenericType<T, D> {
+public abstract class ExecutableType<T extends ExecutableType<T, D>, D extends ExecutableDefinition<T, D>>
+        extends GenericType<T, D>
+        implements Generic {
 
     private final Implementation<T, D> implementation;
     ExecutableType(Implementation<T, D> implementation) {
@@ -57,7 +58,7 @@ public abstract class ExecutableType<T extends Generic, D extends ExecutableDefi
         return implementation.throwsList(this);
     }
 
-    interface Implementation<T extends Generic, D extends ExecutableDefinition<T>> {
+    interface Implementation<T extends ExecutableType<T, D>, D extends ExecutableDefinition<T, D>> {
         GenericType.Implementation<T, D> genericTypeImplementation();
 
         List<VariableDeclaration> parameters(ExecutableType<T, D> thisType);
