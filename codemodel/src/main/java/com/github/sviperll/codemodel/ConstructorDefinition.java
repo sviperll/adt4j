@@ -30,8 +30,10 @@
 
 package com.github.sviperll.codemodel;
 
+import com.github.sviperll.codemodel.render.Renderer;
+import com.github.sviperll.codemodel.render.RendererContext;
+import java.util.Iterator;
 import javax.annotation.ParametersAreNonnullByDefault;
-import javax.annotation.Nonnull;
 
 /**
  *
@@ -40,7 +42,51 @@ import javax.annotation.Nonnull;
 @ParametersAreNonnullByDefault
 public abstract class ConstructorDefinition extends ExecutableDefinition<ConstructorType> {
 
-    ConstructorDefinition(ExecutableDefinitionSubstance executable) {
-        super(executable);
+    ConstructorDefinition(ExecutableDefinition.Implementation implementation) {
+        super(implementation);
     }
+
+    @Override
+    public Renderer createRenderer(final RendererContext context) {
+        return new Renderer() {
+            @Override
+            public void render() {
+                context.appendRenderable(residence());
+                context.appendWhiteSpace();
+                context.appendWhiteSpace();
+                context.appendRenderable(typeParameters());
+                context.appendWhiteSpace();
+                context.appendText(residence().getNesting().parent().simpleName());
+                context.appendText("(");
+                Iterator<VariableDeclaration> parameters = parameters().iterator();
+                if (parameters.hasNext()) {
+                    VariableDeclaration parameter = parameters.next();
+                    context.appendRenderable(parameter);
+                    while (parameters.hasNext()) {
+                        context.appendText(", ");
+                        parameter = parameters.next();
+                        context.appendRenderable(parameter);
+                    }
+                }
+                context.appendText(")");
+                Iterator<Type> throwsExceptions = throwsList().iterator();
+                if (throwsExceptions.hasNext()) {
+                    Type exceptionType = throwsExceptions.next();
+                    context.appendWhiteSpace();
+                    context.appendText("throws");
+                    context.appendWhiteSpace();
+                    context.appendRenderable(exceptionType);
+                    while (throwsExceptions.hasNext()) {
+                        exceptionType = throwsExceptions.next();
+                        context.appendText(", ");
+                        context.appendRenderable(exceptionType);
+                    }
+                }
+                context.appendWhiteSpace();
+                context.appendRenderable(body());
+                context.appendLineBreak();
+            }
+        };
+    }
+
 }

@@ -76,6 +76,20 @@ public class Expression implements Renderable {
         }));
     }
 
+    public static final Expression nullExpression() {
+        return new Expression(TOP.createRenderable(new PrecedenceAwareRenderable() {
+            @Override
+            public Renderer createPrecedenceAwareRenderer(final PrecedenceAwareRendererContext context) {
+                return new Renderer() {
+                    @Override
+                    public void render() {
+                        context.appendText("null");
+                    }
+                };
+            }
+        }));
+    }
+
     public static final Expression literal(final int i) {
         return new Expression(TOP.createRenderable(new PrecedenceAwareRenderable() {
             @Override

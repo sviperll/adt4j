@@ -232,21 +232,6 @@ class ReflectionObjectDefinition extends ObjectDefinition {
         }
 
         @Override
-        public boolean isConstructor() {
-            return false;
-        }
-
-        @Override
-        public boolean isMethod() {
-            return true;
-        }
-
-        @Override
-        public MethodDefinition getMethodDetails() {
-            return this;
-        }
-
-        @Override
         public boolean isFinal() {
             return (method.getModifiers() & Modifier.FINAL) != 0;
         }

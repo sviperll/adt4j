@@ -58,6 +58,10 @@ public class ObjectDefinitionTest {
             "    public T test2(T param1) {\n" +
             "        return field2;\n" +
             "    }\n" +
+            "\n" +
+            "    public com.github.sviperll.codemodel.test.Test1<T> test3(T param1) {\n" +
+            "        return null;\n" +
+            "    }\n" +
             "}\n";
         StringBuilder builder = new StringBuilder();
         RendererContexts.createInstance(builder).appendRenderable(test1);
@@ -110,7 +114,10 @@ public class ObjectDefinitionTest {
         List<MethodType> methods = test1Type.getObjectDetails().methods();
         for (MethodType method: methods) {
             if (method.definition().name().equals("test2")) {
-                assertEquals(codeModel.objectType().getObjectDetails().definition(), method.returnType().getObjectDetails().definition());
+                assertTrue(codeModel.objectType().getObjectDetails().sameDefinition(method.returnType()));
+            }
+            if (method.definition().name().equals("test3")) {
+                assertTrue(codeModel.objectType().getObjectDetails().sameDefinition(method.returnType().getObjectDetails().typeArguments().get(0)));
             }
         }
     }
@@ -126,7 +133,10 @@ public class ObjectDefinitionTest {
         List<MethodType> methods = test1Type.getObjectDetails().methods();
         for (MethodType method: methods) {
             if (method.definition().name().equals("test2")) {
-                assertEquals(stringType.getObjectDetails().definition(), method.returnType().getObjectDetails().definition());
+                assertTrue(stringType.getObjectDetails().sameDefinition(method.returnType()));
+            }
+            if (method.definition().name().equals("test3")) {
+                assertTrue(stringType.getObjectDetails().sameDefinition(method.returnType().getObjectDetails().typeArguments().get(0)));
             }
         }
     }
@@ -138,20 +148,31 @@ public class ObjectDefinitionTest {
         Package pkg = codeModel.getPackage("com.github.sviperll.codemodel.test");
         ObjectBuilder<PackageLevelBuilder> test1 = pkg.createClass(ObjectKind.CLASS, "Test1");
         test1.typeParameter("T");
+
         FieldBuilder field1 = test1.field(Type.intType(), "field1");
         field1.residence().setAccessLevel(MemberAccess.PRIVATE);
+
         FieldBuilder field2 = test1.field(Type.variable("T"), "field2");
         field2.residence().setAccessLevel(MemberAccess.PROTECTED);
+
         MethodBuilder method = test1.method("test");
         method.residence().setAccessLevel(MemberAccess.PUBLIC);
         method.resultType(Type.intType());
         method.addParameter(Type.intType(), "param1");
         method.body().returnStatement(Expression.variable("param1").plus(Expression.variable("field1")));
+
         MethodBuilder method2 = test1.method("test2");
         method2.residence().setAccessLevel(MemberAccess.PUBLIC);
         method2.resultType(Type.variable("T"));
         method2.addParameter(Type.variable("T"), "param1");
         method2.body().returnStatement(Expression.variable("field2"));
+
+        MethodBuilder method3 = test1.method("test3");
+        method3.residence().setAccessLevel(MemberAccess.PUBLIC);
+        method3.resultType(test1.definition().internalType());
+        method3.addParameter(Type.variable("T"), "param1");
+        method3.body().returnStatement(Expression.nullExpression());
+
         return test1.definition();
     }
 }

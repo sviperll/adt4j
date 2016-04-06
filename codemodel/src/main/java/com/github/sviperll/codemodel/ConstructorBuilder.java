@@ -39,7 +39,7 @@ import javax.annotation.ParametersAreNonnullByDefault;
  */
 @ParametersAreNonnullByDefault
 public class ConstructorBuilder extends ExecutableBuilder {
-    private final ConstructorDefinition definition = new BuiltDefinition(createExecutableDefinitionSubstance());
+    private final ConstructorDefinition definition = new BuiltDefinition(implementExecutableDefinition());
     private final NestingBuilder residence;
     private final ConstructorType rawType;
 
@@ -70,24 +70,10 @@ public class ConstructorBuilder extends ExecutableBuilder {
     }
 
     private class BuiltDefinition extends ConstructorDefinition {
-        BuiltDefinition(ExecutableDefinitionSubstance executable) {
-            super(executable);
+        BuiltDefinition(ExecutableDefinition.Implementation implementation) {
+            super(implementation);
         }
 
-        @Override
-        public MethodDefinition getMethodDetails() {
-            throw new UnsupportedOperationException("Method expected!");
-        }
-
-        @Override
-        public boolean isConstructor() {
-            return true;
-        }
-
-        @Override
-        public boolean isMethod() {
-            return false;
-        }
         @Override
         public final ConstructorType rawType() {
             if (residence.residence().getNesting().isStatic()) {

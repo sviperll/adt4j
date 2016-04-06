@@ -39,7 +39,7 @@ import javax.annotation.ParametersAreNonnullByDefault;
  */
 @ParametersAreNonnullByDefault
 public class MethodBuilder extends ExecutableBuilder {
-    private final MethodDefinition definition = new BuiltDefinition(createExecutableDefinitionSubstance());
+    private final MethodDefinition definition = new BuiltDefinition(implementExecutableDefinition());
     private final String name;
     private final NestingBuilder residence;
     private boolean isFinal;
@@ -80,13 +80,8 @@ public class MethodBuilder extends ExecutableBuilder {
     }
 
     private class BuiltDefinition extends MethodDefinition {
-        BuiltDefinition(ExecutableDefinitionSubstance executableDefinition) {
-            super(executableDefinition);
-        }
-
-        @Override
-        public boolean isConstructor() {
-            return false;
+        BuiltDefinition(ExecutableDefinition.Implementation implementation) {
+            super(implementation);
         }
 
         @Override
@@ -102,16 +97,6 @@ public class MethodBuilder extends ExecutableBuilder {
         @Override
         public Type returnType() {
             return resultType;
-        }
-
-        @Override
-        public boolean isMethod() {
-            return true;
-        }
-
-        @Override
-        public MethodDefinition getMethodDetails() {
-            return this;
         }
 
         @Override

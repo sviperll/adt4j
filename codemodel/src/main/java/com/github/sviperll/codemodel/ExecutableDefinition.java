@@ -43,90 +43,60 @@ import java.util.List;
  */
 public abstract class ExecutableDefinition<T extends Generic> extends GenericDefinition<T> {
 
-    private final ExecutableDefinitionSubstance definition;
-    ExecutableDefinition(ExecutableDefinitionSubstance definition) {
-        super(definition.typeParameters());
-        this.definition = definition;
+    private final Implementation implementation;
+    ExecutableDefinition(Implementation implementation) {
+        super(implementation.typeParameters());
+        this.implementation = implementation;
     }
 
-    public abstract boolean isConstructor();
-
-    public abstract boolean isMethod();
-
-    public abstract MethodDefinition getMethodDetails();
-
     public final List<VariableDeclaration> parameters() {
-        return definition.parameters();
+        return implementation.parameters();
     }
 
     public final List<Type> throwsList() {
-        return definition.throwsList();
+        return implementation.throwsList();
     }
 
     final Renderable body() {
-        return definition.body();
+        return implementation.body();
     }
 
     @Override
     public final Residence residence() {
-        return definition.residence();
+        return implementation.residence();
+    }
+
+    public boolean isStatic(){
+        return residence().getNesting().isStatic();
+    }
+
+    public MemberAccess accessLevel(){
+        return residence().getNesting().accessLevel();
+    }
+
+    public ObjectDefinition parent(){
+        return residence().getNesting().parent();
     }
 
     @Override
     public final CodeModel getCodeModel() {
-        return definition.getCodeModel();
+        return implementation.getCodeModel();
     }
 
-    @Override
-    public Renderer createRenderer(final RendererContext context) {
-        return new Renderer() {
-            @Override
-            public void render() {
-                context.appendRenderable(residence());
-                context.appendWhiteSpace();
-                if (!isConstructor() && getMethodDetails().isFinal()) {
-                    context.appendText("final");
-                }
-                context.appendWhiteSpace();
-                context.appendRenderable(typeParameters());
-                context.appendWhiteSpace();
-                if (!isConstructor()) {
-                    context.appendRenderable(getMethodDetails().returnType());
-                    context.appendWhiteSpace();
-                    context.appendText(getMethodDetails().name());
-                } else {
-                    context.appendText(residence().getNesting().parent().simpleName());
-                }
-                context.appendText("(");
-                Iterator<VariableDeclaration> parameters = parameters().iterator();
-                if (parameters.hasNext()) {
-                    VariableDeclaration parameter = parameters.next();
-                    context.appendRenderable(parameter);
-                    while (parameters.hasNext()) {
-                        context.appendText(", ");
-                        parameter = parameters.next();
-                        context.appendRenderable(parameter);
-                    }
-                }
-                context.appendText(")");
-                Iterator<Type> throwsExceptions = throwsList().iterator();
-                if (throwsExceptions.hasNext()) {
-                    Type exceptionType = throwsExceptions.next();
-                    context.appendWhiteSpace();
-                    context.appendText("throws");
-                    context.appendWhiteSpace();
-                    context.appendRenderable(exceptionType);
-                    while (throwsExceptions.hasNext()) {
-                        exceptionType = throwsExceptions.next();
-                        context.appendText(", ");
-                        context.appendRenderable(exceptionType);
-                    }
-                }
-                context.appendWhiteSpace();
-                context.appendRenderable(body());
-                context.appendLineBreak();
-            }
-        };
+    interface Implementation {
+
+        TypeParameters typeParameters();
+
+        List<VariableDeclaration> parameters();
+
+        List<Type> throwsList();
+
+        Renderable body();
+
+        Residence residence();
+
+        CodeModel getCodeModel();
+
     }
 
 }

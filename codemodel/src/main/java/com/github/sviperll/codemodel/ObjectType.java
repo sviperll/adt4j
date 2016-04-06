@@ -31,6 +31,7 @@
 package com.github.sviperll.codemodel;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import javax.annotation.ParametersAreNonnullByDefault;
 
@@ -41,6 +42,7 @@ import javax.annotation.ParametersAreNonnullByDefault;
 @ParametersAreNonnullByDefault
 public abstract class ObjectType extends GenericType<Type, ObjectDefinition> {
     private List<MethodType> methods = null;
+    private List<ConstructorType> constructors = null;
 
     ObjectType(GenericType.Implementation<Type, ObjectDefinition> implementation) {
         super(implementation);
@@ -57,13 +59,32 @@ public abstract class ObjectType extends GenericType<Type, ObjectDefinition> {
         throw new UnsupportedOperationException("Not supported yet.");
     }
 
+    public boolean sameDefinition(Type that) {
+        return definition() == that.getObjectDetails().definition();
+    }
+
     public final List<MethodType> methods() {
         if (methods == null) {
             methods = new ArrayList<>(definition().methods().size());
             for (final MethodDefinition definition: definition().methods()) {
-                methods.add(definition.rawType(this));
+                if (definition.isStatic())
+                    methods.add(definition.rawType());
+                else
+                    methods.add(definition.rawType(this));
             }
+            methods = Collections.unmodifiableList(methods);
         }
         return methods;
+    }
+
+    public final List<ConstructorType> constructors() {
+        if (constructors == null) {
+            constructors = new ArrayList<>(definition().constructors().size());
+            for (final ConstructorDefinition definition: definition().constructors()) {
+                constructors.add(definition.rawType(this));
+            }
+            constructors = Collections.unmodifiableList(constructors);
+        }
+        return constructors;
     }
 }

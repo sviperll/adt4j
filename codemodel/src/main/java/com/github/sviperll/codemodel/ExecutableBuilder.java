@@ -83,7 +83,7 @@ public abstract class ExecutableBuilder extends GenericDefinitionBuilder<Nesting
         return body;
     }
 
-    ExecutableDefinitionSubstance createExecutableDefinitionSubstance() {
+    ExecutableDefinition.Implementation implementExecutableDefinition() {
         return new BuiltExecutableDefinition(createTypeParameters());
     }
 
@@ -91,7 +91,7 @@ public abstract class ExecutableBuilder extends GenericDefinitionBuilder<Nesting
         return new BuiltExecutableType<>(genericTypeImplementation);
     }
 
-    private class BuiltExecutableDefinition implements ExecutableDefinitionSubstance {
+    private class BuiltExecutableDefinition implements ExecutableDefinition.Implementation {
 
         final TypeParameters typeParameters;
         BuiltExecutableDefinition(TypeParameters typeParameters) {
