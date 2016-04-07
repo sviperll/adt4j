@@ -168,7 +168,7 @@ public abstract class ExecutableBuilder extends GenericDefinitionBuilder<Nesting
         private final Type type;
         private final String name;
 
-        public Parameter(boolean isFinal, Type type, String name) throws CodeModelException {
+        Parameter(boolean isFinal, Type type, String name) throws CodeModelException {
             if (type.isVoid())
                 throw new CodeModelException("void is not allowed here");
             this.isFinal = isFinal;

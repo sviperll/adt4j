@@ -30,7 +30,6 @@
 
 package com.github.sviperll.codemodel;
 
-import com.github.sviperll.codemodel.render.Renderable;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
@@ -175,7 +174,7 @@ class ReflectionObjectDefinition extends ObjectDefinition {
         private final int modifiers;
         private final ObjectDefinition parent;
 
-        public ReflectedNesting(int modifiers, ObjectDefinition parent) {
+        ReflectedNesting(int modifiers, ObjectDefinition parent) {
             this.modifiers = modifiers;
             this.parent = parent;
         }
@@ -208,7 +207,7 @@ class ReflectionObjectDefinition extends ObjectDefinition {
         private final Residence residence;
         private final Method method;
 
-        public ReflectionMethodDefinition(CodeModel codeModel, Residence residence, Method method) {
+        ReflectionMethodDefinition(CodeModel codeModel, Residence residence, Method method) {
             super(null);
             this.codeModel = codeModel;
             this.residence = residence;

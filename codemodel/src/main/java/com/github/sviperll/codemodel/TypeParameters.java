@@ -33,11 +33,9 @@ package com.github.sviperll.codemodel;
 import com.github.sviperll.codemodel.render.Renderable;
 import com.github.sviperll.codemodel.render.Renderer;
 import com.github.sviperll.codemodel.render.RendererContext;
-import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import javax.annotation.ParametersAreNonnullByDefault;
-import javax.annotation.Nonnull;
 
 /**
  *
@@ -87,7 +85,7 @@ public abstract class TypeParameters implements Renderable {
         private final TypeParameters parameters;
         private final String name;
 
-        public PreventCycleTypeParameters(TypeParameters parent, String name) {
+        PreventCycleTypeParameters(TypeParameters parent, String name) {
             this.parameters = parent;
             this.name = name;
         }

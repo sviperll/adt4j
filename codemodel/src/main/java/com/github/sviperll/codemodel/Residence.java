@@ -136,7 +136,7 @@ public abstract class Residence implements Renderable {
 
         private final PackageLevelResidence details;
 
-        public PackageLevelResidenceWrapper(PackageLevelResidence details) {
+        PackageLevelResidenceWrapper(PackageLevelResidence details) {
             this.details = details;
         }
 
@@ -155,7 +155,7 @@ public abstract class Residence implements Renderable {
 
         private final Nesting details;
 
-        public NestedResidenceWrapper(Nesting details) {
+        NestedResidenceWrapper(Nesting details) {
             this.details = details;
         }
 
@@ -174,7 +174,7 @@ public abstract class Residence implements Renderable {
 
         private final MethodLocalResidence details;
 
-        public MethodLocalResidenceWrapper(MethodLocalResidence details) {
+        MethodLocalResidenceWrapper(MethodLocalResidence details) {
             this.details = details;
         }
 

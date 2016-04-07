@@ -30,7 +30,6 @@
 
 package com.github.sviperll.codemodel.expression;
 
-import com.github.sviperll.codemodel.Expression;
 import com.github.sviperll.codemodel.render.Renderer;
 
 /**

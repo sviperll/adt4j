@@ -30,11 +30,6 @@
 
 package com.github.sviperll.codemodel.render;
 
-import com.github.sviperll.codemodel.ObjectType;
-import com.github.sviperll.codemodel.Type;
-import com.github.sviperll.codemodel.WildcardType;
-import java.util.Iterator;
-import java.util.Locale;
 import javax.annotation.ParametersAreNonnullByDefault;
 
 /**

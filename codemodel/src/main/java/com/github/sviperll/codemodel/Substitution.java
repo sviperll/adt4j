@@ -92,7 +92,7 @@ abstract class Substitution {
 
     private static class EmptySubstitution extends Substitution {
 
-        public EmptySubstitution() {
+        EmptySubstitution() {
         }
 
         @Override
@@ -105,7 +105,7 @@ abstract class Substitution {
         private final Substitution first;
         private final Substitution second;
 
-        public AndThenSubstitution(Substitution first, Substitution second) {
+        AndThenSubstitution(Substitution first, Substitution second) {
             this.first = first;
             this.second = second;
         }
