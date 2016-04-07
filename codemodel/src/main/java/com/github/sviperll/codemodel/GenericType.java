@@ -46,7 +46,7 @@ public abstract class GenericType<T extends Generic<T>, D extends GenericDefinit
     static <T extends Generic<T>, D extends GenericDefinition<T, D>> T createRawType(GenericDefinition<T, D> definition) {
         return definition.createType(new Raw<>(definition, null));
     }
-    static <T extends Generic<T>, D extends GenericDefinition<T, D>> T createRawType(GenericType<?, ?> capturedEnclosingType, GenericDefinition<T, D> definition) {
+    static <T extends Generic<T>, D extends GenericDefinition<T, D>> T createRawType(GenericDefinition<T, D> definition, GenericType<?, ?> capturedEnclosingType) {
         return definition.createType(new Raw<>(definition, capturedEnclosingType));
     }
 

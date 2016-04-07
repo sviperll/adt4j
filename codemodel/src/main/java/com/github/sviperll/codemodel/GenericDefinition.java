@@ -77,7 +77,7 @@ public abstract class GenericDefinition<T extends Generic<T>, D extends GenericD
         if (residence().contextDefinition() == null) {
             throw new UnsupportedOperationException("Type is static memeber, no parent is expected.");
         } else {
-            return GenericType.createRawType(capturedEnclosingType, this);
+            return GenericType.createRawType(this, capturedEnclosingType);
         }
     }
 
