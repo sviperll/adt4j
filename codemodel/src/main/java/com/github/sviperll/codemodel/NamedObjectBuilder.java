@@ -43,7 +43,6 @@ import javax.annotation.ParametersAreNonnullByDefault;
  */
 @ParametersAreNonnullByDefault
 public class NamedObjectBuilder<B extends ResidenceBuilder> extends ObjectBuilder<B> {
-    private final BuiltDefinition definition = new BuiltDefinition(createTypeParameters());
     private final String name;
     private final List<Type> interfaces = new ArrayList<>();
     private boolean isFinal = false;
@@ -54,6 +53,7 @@ public class NamedObjectBuilder<B extends ResidenceBuilder> extends ObjectBuilde
         super(kind, residence);
         this.name = name;
     }
+
     public void setFinal(boolean value) {
         this.isFinal = value;
     }
@@ -83,21 +83,23 @@ public class NamedObjectBuilder<B extends ResidenceBuilder> extends ObjectBuilde
     }
 
     public ConstructorBuilder addConstructor() throws CodeModelException {
-        NestingBuilder methodResidence = new NestingBuilder(false, definition);
+        NestingBuilder methodResidence = new NestingBuilder(false, definition());
         ConstructorBuilder result = new ConstructorBuilder(methodResidence);
         constructors.add(result.definition());
         return result;
     }
 
     @Override
-    public ObjectDefinition definition() {
-        return definition;
+    ObjectDefinition createDefinition(TypeParameters typeParameters) {
+        return new BuiltDefinition(typeParameters);
     }
 
     private class BuiltDefinition extends ObjectBuilder<B>.BuiltDefinition {
+
         BuiltDefinition(TypeParameters typeParameters) {
             super(typeParameters);
         }
+
         @Override
         public String simpleName() {
             return name;

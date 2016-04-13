@@ -30,8 +30,13 @@
 
 package com.github.sviperll.codemodel;
 
+import com.github.sviperll.codemodel.render.Renderable;
+import com.github.sviperll.codemodel.render.Renderer;
+import com.github.sviperll.codemodel.render.RendererContext;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
+import java.lang.reflect.Parameter;
+import java.lang.reflect.TypeVariable;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -41,18 +46,21 @@ import java.util.List;
  *
  * @author Victor Nazarov &lt;asviraspossible@gmail.com&gt;
  */
-class ReflectionObjectDefinition extends ObjectDefinition {
+class ReflectionObjectDefinition<T> extends ObjectDefinition {
     private final CodeModel codeModel;
     private final Residence residence;
-    private final Class<?> klass;
+    private final Class<T> klass;
     private Collection<ObjectDefinition> innerClasses = null;
     private Collection<MethodDefinition> methods = null;
+    private final TypeParameters typeParameters;
+    private List<Type> implementsInterfaces = null;
+    private Type extendsClass = null;
 
-    ReflectionObjectDefinition(CodeModel codeModel, Residence residence, Class<?> klass) {
-        super(null);
+    ReflectionObjectDefinition(CodeModel codeModel, Residence residence, Class<T> klass) {
         this.codeModel = codeModel;
         this.residence = residence;
         this.klass = klass;
+        typeParameters = new ReflectedTypeParameters<>(this, klass.getTypeParameters());
     }
 
     @Override
@@ -75,12 +83,25 @@ class ReflectionObjectDefinition extends ObjectDefinition {
 
     @Override
     public Type extendsClass() {
-        throw new UnsupportedOperationException("Not supported yet.");
+        if (extendsClass == null) {
+            if (this == codeModel.objectType().getObjectDetails().definition())
+                extendsClass = codeModel.objectType();
+            else
+                extendsClass = codeModel.readReflectedType(klass.getGenericSuperclass());
+        }
+        return extendsClass;
     }
 
     @Override
     public List<Type> implementsInterfaces() {
-        throw new UnsupportedOperationException("Not supported yet.");
+        if (implementsInterfaces == null) {
+            implementsInterfaces = new ArrayList<>();
+            for (java.lang.reflect.Type reflectedInterface: klass.getGenericInterfaces()) {
+                implementsInterfaces.add(codeModel.readReflectedType(reflectedInterface));
+            }
+            implementsInterfaces = Collections.unmodifiableList(implementsInterfaces);
+        }
+        return implementsInterfaces;
     }
 
     @Override
@@ -89,7 +110,8 @@ class ReflectionObjectDefinition extends ObjectDefinition {
             methods = new ArrayList<>();
             for (final Method method: klass.getDeclaredMethods()) {
                 Residence methodResidence = Residence.nested(new ReflectedNesting(method.getModifiers(), this));
-                methods.add(new ReflectionMethodDefinition(codeModel, methodResidence, method));
+                ReflectedExecutableDefinitionImplementation executable = new ReflectedExecutableDefinitionImplementation(codeModel, methodResidence, method);
+                methods.add(new ReflectedMethodDefinition(codeModel, executable, method));
             }
         }
         return methods;
@@ -101,7 +123,7 @@ class ReflectionObjectDefinition extends ObjectDefinition {
             innerClasses = new ArrayList<>();
             for (final Class<?> innerClass: klass.getDeclaredClasses()) {
                 Residence innerClassResidence = Residence.nested(new ReflectedNesting(innerClass.getModifiers(), this));
-                innerClasses.add(new ReflectionObjectDefinition(codeModel, innerClassResidence, innerClass));
+                innerClasses.add(new ReflectionObjectDefinition<>(codeModel, innerClassResidence, innerClass));
             }
         }
         return innerClasses;
@@ -144,28 +166,87 @@ class ReflectionObjectDefinition extends ObjectDefinition {
 
     @Override
     public boolean isAnonymous() {
-        throw new UnsupportedOperationException("Not supported yet.");
+        return false;
     }
 
     @Override
-    Type createType(GenericType.Implementation<Type, ObjectDefinition> implementation) {
-        return new TypeDetails(implementation).asType();
+    public TypeParameters typeParameters() {
+        return typeParameters;
     }
 
-    public class TypeDetails extends ObjectType {
-        private final Type type = Type.createObjectType(this);
-        TypeDetails(GenericType.Implementation<Type, ObjectDefinition> implementation) {
-            super(implementation);
+    private static class ReflectedTypeParameters<T extends java.lang.reflect.GenericDeclaration>
+            extends TypeParameters {
+        private List<TypeParameter> allTypeParameters = null;
+        private final GenericDefinition<?, ?> definition;
+        private final TypeVariable<T>[] reflectedTypeParameters;
+
+        public ReflectedTypeParameters(GenericDefinition<?, ?> definition, TypeVariable<T>[] reflectedTypeParameters) {
+            this.definition = definition;
+            this.reflectedTypeParameters = reflectedTypeParameters;
         }
 
         @Override
-        public ObjectDefinition definition() {
-            return ReflectionObjectDefinition.this;
+        public List<TypeParameter> all() {
+            if (allTypeParameters == null) {
+                allTypeParameters = new ArrayList<>();
+                for (final TypeVariable<T> reflectedTypeParameter: reflectedTypeParameters) {
+                    TypeParameter parameter = new ReflectedTypeParameter<>(definition, reflectedTypeParameter);
+                    allTypeParameters.add(parameter);
+                }
+                allTypeParameters = Collections.unmodifiableList(allTypeParameters);
+            }
+            return allTypeParameters;
         }
 
         @Override
-        public Type asType() {
-            return type;
+        public Residence residence() {
+            return definition.residence();
+        }
+    }
+
+    private static class ReflectedTypeParameter<T extends java.lang.reflect.GenericDeclaration>
+            extends TypeParameter {
+
+        private final GenericDefinition<?, ?> declaredIn;
+
+        private final TypeVariable<T> reflectedTypeParameter;
+
+        public ReflectedTypeParameter(GenericDefinition<?, ?> declaredIn, TypeVariable<T> reflectedTypeParameter) {
+            this.declaredIn = declaredIn;
+            this.reflectedTypeParameter = reflectedTypeParameter;
+        }
+        private Type bound = null;
+
+        @Override
+        public String name() {
+            return reflectedTypeParameter.getName();
+        }
+
+        @Override
+        public Type bound() {
+            if (bound == null) {
+                java.lang.reflect.Type[] reflectedBounds = reflectedTypeParameter.getBounds();
+                if (reflectedBounds.length == 1)
+                    bound = declaredIn.getCodeModel().readReflectedType(reflectedBounds[0]);
+                else {
+                    List<Type> bounds = new ArrayList<>();
+                    for (java.lang.reflect.Type reflectedBound: reflectedBounds) {
+                        Type partialBound = declaredIn.getCodeModel().readReflectedType(reflectedBound);
+                        bounds.add(partialBound);
+                    }
+                    try {
+                        bound = new IntersectionType(bounds).asType();
+                    } catch (CodeModelException ex) {
+                        throw new RuntimeException("Reflected bounds shouldn't cause validation errors", ex);
+                    }
+                }
+            }
+            return bound;
+        }
+
+        @Override
+        public GenericDefinition<?, ?> declaredIn() {
+            return declaredIn;
         }
     }
 
@@ -202,15 +283,14 @@ class ReflectionObjectDefinition extends ObjectDefinition {
         }
     }
 
-    private static class ReflectionMethodDefinition extends MethodDefinition {
+    private static class ReflectedMethodDefinition extends MethodDefinition {
         private final CodeModel codeModel;
-        private final Residence residence;
         private final Method method;
+        private Type returnType = null;
 
-        ReflectionMethodDefinition(CodeModel codeModel, Residence residence, Method method) {
-            super(null);
+        ReflectedMethodDefinition(CodeModel codeModel, ReflectedExecutableDefinitionImplementation executable, Method method) {
+            super(executable);
             this.codeModel = codeModel;
-            this.residence = residence;
             this.method = method;
         }
 
@@ -221,17 +301,138 @@ class ReflectionObjectDefinition extends ObjectDefinition {
 
         @Override
         public Type returnType() {
-            throw new UnsupportedOperationException("Not supported yet.");
+            if (returnType == null) {
+                returnType = codeModel.readReflectedType(method.getGenericReturnType());
+            }
+            return returnType;
         }
 
         @Override
         public String name() {
             return method.getName();
         }
+    }
+    private static class ReflectedExecutableDefinitionImplementation implements ExecutableDefinition.Implementation<MethodType, MethodDefinition> {
+
+        private static final Renderable body = new RenderableUnaccessibleCode();
+        private final CodeModel codeModel;
+        private final Residence residence;
+        private final Method method;
+        private List<VariableDeclaration> parameters = null;
+        private List<Type> throwsList = null;
+
+        private ReflectedExecutableDefinitionImplementation(CodeModel codeModel, Residence residence, Method method) {
+            this.codeModel = codeModel;
+            this.residence = residence;
+            this.method = method;
+        }
 
         @Override
-        MethodType createType(GenericType.Implementation<MethodType, MethodDefinition> implementation) {
-            throw new UnsupportedOperationException("Not supported yet.");
+        public TypeParameters typeParameters(ExecutableDefinition<MethodType, MethodDefinition> definition) {
+            return new ReflectedTypeParameters<>(definition, method.getTypeParameters());
+        }
+
+        @Override
+        public List<VariableDeclaration> parameters() {
+            if (parameters == null) {
+                parameters = new ArrayList<>();
+                Parameter[] reflectedParameters = method.getParameters();
+                for (Parameter parameter: reflectedParameters) {
+                    parameters.add(new ReflectedParameter(codeModel, parameter));
+                }
+                parameters = Collections.unmodifiableList(parameters);
+            }
+            return parameters;
+        }
+
+        @Override
+        public List<Type> throwsList() {
+            if (throwsList == null) {
+                throwsList = new ArrayList<>();
+                for (Class<?> exceptionType: method.getExceptionTypes()) {
+                    throwsList.add(codeModel.reference(exceptionType.getName()).rawType());
+                }
+                throwsList = Collections.unmodifiableList(throwsList);
+            }
+            return throwsList;
+        }
+
+        @Override
+        public Renderable body() {
+            return body;
+        }
+
+        @Override
+        public Residence residence() {
+            return residence;
+        }
+
+        @Override
+        public CodeModel getCodeModel() {
+            return codeModel;
+        }
+
+    }
+
+    private static class ReflectedParameter extends VariableDeclaration {
+
+        private final CodeModel codeModel;
+        private final Parameter parameter;
+        private Type type = null;
+
+        public ReflectedParameter(CodeModel codeModel, Parameter parameter) {
+            this.codeModel = codeModel;
+            this.parameter = parameter;
+        }
+
+        @Override
+        public boolean isFinal() {
+            return false;
+        }
+
+        @Override
+        public Type type() {
+            if (type == null) {
+                type = codeModel.readReflectedType(parameter.getParameterizedType());
+            }
+            return type;
+        }
+
+        @Override
+        public String name() {
+            return parameter.getName();
+        }
+
+        @Override
+        public boolean isInitialized() {
+            return false;
+        }
+
+        @Override
+        Expression getInitialValue() {
+            throw new UnsupportedOperationException();
+        }
+    }
+
+    private static class RenderableUnaccessibleCode implements Renderable {
+
+        public RenderableUnaccessibleCode() {
+        }
+
+        @Override
+        public Renderer createRenderer(final RendererContext context) {
+            return new Renderer() {
+                @Override
+                public void render() {
+                    context.appendText("{");
+                    context.appendLineBreak();
+                    context.indented().appendText("// Inaccessible code");
+                    context.appendLineBreak();
+                    context.indented().appendText("throw new java.lang.UnsupportedOperationException(\"Attempt to execute inaccessible code\");");
+                    context.appendLineBreak();
+                    context.appendText("}");
+                }
+            };
         }
     }
 }

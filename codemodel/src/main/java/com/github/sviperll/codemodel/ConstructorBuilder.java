@@ -37,9 +37,7 @@ import javax.annotation.ParametersAreNonnullByDefault;
  * @author Victor Nazarov &lt;asviraspossible@gmail.com&gt;
  */
 @ParametersAreNonnullByDefault
-public class ConstructorBuilder extends ExecutableBuilder {
-    private final ConstructorDefinition definition = new BuiltDefinition(this.<ConstructorType, ConstructorDefinition>implementExecutableDefinition());
-
+public class ConstructorBuilder extends ExecutableBuilder<ConstructorType, ConstructorDefinition> {
     ConstructorBuilder(NestingBuilder residence) throws CodeModelException {
         super(residence);
         if (residence.residence().getNesting().isStatic())
@@ -47,29 +45,14 @@ public class ConstructorBuilder extends ExecutableBuilder {
     }
 
     @Override
-    public ConstructorDefinition definition() {
-        return definition;
+    ConstructorDefinition createDefinition(ExecutableDefinition.Implementation<ConstructorType, ConstructorDefinition> implementation) {
+        return new BuiltDefinition(implementation);
     }
 
-    private class BuiltDefinition extends ConstructorDefinition {
+    private static class BuiltDefinition extends ConstructorDefinition {
         BuiltDefinition(ExecutableDefinition.Implementation<ConstructorType, ConstructorDefinition> implementation) {
             super(implementation);
         }
-
-        @Override
-        ConstructorType createType(GenericType.Implementation<ConstructorType, ConstructorDefinition> implementation) {
-            return new BuiltTypeDetails(implementExecutableType(implementation)).asType();
-        }
     }
 
-    private class BuiltTypeDetails extends ConstructorType {
-        BuiltTypeDetails(ExecutableType.Implementation<ConstructorType, ConstructorDefinition> implementation) {
-            super(implementation);
-        }
-
-        @Override
-        public ConstructorDefinition definition() {
-            return ConstructorBuilder.this.definition();
-        }
-    }
 }

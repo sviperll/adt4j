@@ -40,11 +40,13 @@ import javax.annotation.ParametersAreNonnullByDefault;
  *
  * @author Victor Nazarov &lt;asviraspossible@gmail.com&gt;
  * @param <B>
+ * @param <T>
+ * @param <D>
  */
 @ParametersAreNonnullByDefault
-public abstract class GenericDefinitionBuilder<B extends ResidenceBuilder> implements SettledBuilder<B>, Model {
+public abstract class GenericDefinitionBuilder<B extends ResidenceBuilder, T extends Generic<T>, D extends GenericDefinition<T, D>>
+        implements SettledBuilder<B>, Model {
     private final List<TypeParameter> typeParameters = new ArrayList<>();
-    private final List<Type> typeParametersAsInternalTypeArguments = new ArrayList<>();
     private final Map<String, TypeParameter> typeParametersMap = new TreeMap<>();
     private final B residence;
 
@@ -52,7 +54,11 @@ public abstract class GenericDefinitionBuilder<B extends ResidenceBuilder> imple
         this.residence = residence;
     }
 
-    public abstract GenericDefinition<?, ?> definition();
+    public final D definition() {
+        return createDefinition(new BuiltTypeParameters());
+    }
+
+    abstract D createDefinition(TypeParameters typeParameters);
 
     public TypeParameterBuilder typeParameter(String name) throws CodeModelException {
         if (typeParametersMap.containsKey(name)) {
@@ -61,7 +67,6 @@ public abstract class GenericDefinitionBuilder<B extends ResidenceBuilder> imple
         TypeParameterBuilder result = new TypeParameterBuilder(definition(), name);
         typeParametersMap.put(name, result.declaration());
         typeParameters.add(result.declaration());
-        typeParametersAsInternalTypeArguments.add(Type.variable(name));
         return result;
     }
 
@@ -73,10 +78,6 @@ public abstract class GenericDefinitionBuilder<B extends ResidenceBuilder> imple
     @Override
     final public CodeModel getCodeModel() {
         return residence.getCodeModel();
-    }
-
-    TypeParameters createTypeParameters() {
-        return new BuiltTypeParameters();
     }
 
     private class BuiltTypeParameters extends TypeParameters {
@@ -101,8 +102,8 @@ public abstract class GenericDefinitionBuilder<B extends ResidenceBuilder> imple
         }
 
         @Override
-        final List<Type> asInternalTypeArguments() {
-            return typeParametersAsInternalTypeArguments;
+        public Residence residence() {
+            return residence.residence();
         }
     }
 }

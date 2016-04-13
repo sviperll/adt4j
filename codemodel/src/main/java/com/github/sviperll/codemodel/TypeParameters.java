@@ -33,8 +33,12 @@ package com.github.sviperll.codemodel;
 import com.github.sviperll.codemodel.render.Renderable;
 import com.github.sviperll.codemodel.render.Renderer;
 import com.github.sviperll.codemodel.render.RendererContext;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
+import java.util.TreeMap;
 import javax.annotation.ParametersAreNonnullByDefault;
 
 /**
@@ -42,15 +46,46 @@ import javax.annotation.ParametersAreNonnullByDefault;
  * @author Victor Nazarov &lt;asviraspossible@gmail.com&gt;
  */
 @ParametersAreNonnullByDefault
-public abstract class TypeParameters implements Renderable {
+public abstract class TypeParameters implements Renderable, Settled {
+    private Map<String, TypeParameter> map = null;
+    private List<Type> asInternalTypeArguments = null;
     TypeParameters() {
     }
 
     public abstract List<TypeParameter> all();
 
-    public abstract TypeParameter get(String name);
+    public TypeParameter get(String name) {
+        if (map == null) {
+            List<TypeParameter> all = all();
+            map = new TreeMap<>();
+            for (TypeParameter typeParameter: all) {
+                map.put(typeParameter.name(), typeParameter);
+            }
+            map = Collections.unmodifiableMap(map);
+        }
+        TypeParameter result = map.get(name);
+        if (result != null)
+            return result;
+        else {
+            if (residence().contextDefinition() == null)
+                return null;
+            else {
+                return residence().contextDefinition().typeParameters().get(name);
+            }
+        }
+    }
 
-    abstract List<Type> asInternalTypeArguments();
+    final List<Type> asInternalTypeArguments() {
+        if (asInternalTypeArguments == null) {
+            asInternalTypeArguments = new ArrayList<>();
+            List<TypeParameter> all = all();
+            for (TypeParameter typeParameter: all) {
+                asInternalTypeArguments.add(Type.variable(typeParameter.name()));
+            }
+            asInternalTypeArguments = Collections.unmodifiableList(asInternalTypeArguments);
+        }
+        return asInternalTypeArguments;
+    }
 
     final TypeParameters preventCycle(String name) {
         return new PreventCycleTypeParameters(this, name);
@@ -109,8 +144,8 @@ public abstract class TypeParameters implements Renderable {
         }
 
         @Override
-        List<Type> asInternalTypeArguments() {
-            return parameters.asInternalTypeArguments();
+        public Residence residence() {
+            return parameters.residence();
         }
     }
 

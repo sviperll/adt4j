@@ -47,6 +47,11 @@ public abstract class ConstructorDefinition extends ExecutableDefinition<Constru
     }
 
     @Override
+    final ConstructorType createType(ExecutableType.Implementation<ConstructorType, ConstructorDefinition> implementation) {
+        return new DefinedType(implementation);
+    }
+
+    @Override
     public Renderer createRenderer(final RendererContext context) {
         return new Renderer() {
             @Override
@@ -87,6 +92,17 @@ public abstract class ConstructorDefinition extends ExecutableDefinition<Constru
                 context.appendLineBreak();
             }
         };
+    }
+
+    private class DefinedType extends ConstructorType {
+        DefinedType(ExecutableType.Implementation<ConstructorType, ConstructorDefinition> implementation) {
+            super(implementation);
+        }
+
+        @Override
+        public ConstructorDefinition definition() {
+            return ConstructorDefinition.this;
+        }
     }
 
 }

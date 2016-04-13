@@ -44,7 +44,7 @@ import javax.annotation.ParametersAreNonnullByDefault;
  * @param <B>
  */
 @ParametersAreNonnullByDefault
-public abstract class ObjectBuilder<B extends ResidenceBuilder> extends GenericDefinitionBuilder<B> {
+public abstract class ObjectBuilder<B extends ResidenceBuilder> extends GenericDefinitionBuilder<B, Type, ObjectDefinition> {
     private final List<MethodDefinition> methods = new ArrayList<>();
     private final Map<String, FieldDeclaration> fields = new TreeMap<>();
     private final List<ObjectInitializationElement> staticInitOrdering = new ArrayList<>();
@@ -64,9 +64,6 @@ public abstract class ObjectBuilder<B extends ResidenceBuilder> extends GenericD
         this.residence = residence;
         this.kind = kind;
     }
-
-    @Override
-    public abstract ObjectDefinition definition();
 
     public FieldBuilder staticField(Type type, String name) throws CodeModelException {
         if (fields.containsKey(name)) {
@@ -123,8 +120,15 @@ public abstract class ObjectBuilder<B extends ResidenceBuilder> extends GenericD
     }
 
     abstract class BuiltDefinition extends ObjectDefinition {
+        private final TypeParameters typeParameters;
+
         BuiltDefinition(TypeParameters typeParameters) {
-            super(typeParameters);
+            this.typeParameters = typeParameters;
+        }
+
+        @Override
+        public final TypeParameters typeParameters() {
+            return typeParameters;
         }
 
         @Override
@@ -167,28 +171,6 @@ public abstract class ObjectBuilder<B extends ResidenceBuilder> extends GenericD
             return instanceInitOrdering;
         }
 
-        @Override
-        Type createType(GenericType.Implementation<Type, ObjectDefinition> implementation) {
-            return new BuiltTypeDetails(implementation).asType();
-        }
 
     }
-
-    private class BuiltTypeDetails extends ObjectType {
-        private final Type type = Type.createObjectType(this);
-        BuiltTypeDetails(GenericType.Implementation<Type, ObjectDefinition> implementation) {
-            super(implementation);
-        }
-
-        @Override
-        public ObjectDefinition definition() {
-            return ObjectBuilder.this.definition();
-        }
-
-        @Override
-        public Type asType() {
-            return type;
-        }
-    }
-
 }

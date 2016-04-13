@@ -41,5 +41,11 @@ public enum PrimitiveType {
     BYTE, SHORT, INT, LONG,
     FLOAT, DOUBLE,
     CHAR,
-    BOOLEAN
+    BOOLEAN;
+
+    private final Type type = Type.primitive(this);
+
+    public Type asType() {
+        return type;
+    }
 }

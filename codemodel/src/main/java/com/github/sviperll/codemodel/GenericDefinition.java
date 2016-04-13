@@ -42,20 +42,15 @@ import java.util.List;
 public abstract class GenericDefinition<T extends Generic<T>, D extends GenericDefinition<T, D>>
         implements Settled, Renderable, Model {
 
-    private final TypeParameters typeParameters;
     private T rawType;
-    GenericDefinition(TypeParameters typeParameters) {
-        this.typeParameters = typeParameters;
+    GenericDefinition() {
     }
 
+    public abstract TypeParameters typeParameters();
     abstract T createType(GenericType.Implementation<T, D> implementation);
 
-    public final TypeParameters typeParameters() {
-        return typeParameters;
-    }
-
     public final boolean isGeneric() {
-        if (!typeParameters.all().isEmpty())
+        if (!typeParameters().all().isEmpty())
             return true;
         else {
             GenericDefinition<?, ?> context = residence().contextDefinition();

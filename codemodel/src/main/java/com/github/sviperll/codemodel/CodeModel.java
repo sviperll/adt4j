@@ -30,6 +30,13 @@
 
 package com.github.sviperll.codemodel;
 
+import java.lang.reflect.GenericArrayType;
+import java.lang.reflect.ParameterizedType;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Locale;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.annotation.ParametersAreNonnullByDefault;
 
 /**
@@ -90,6 +97,53 @@ public final class CodeModel {
 
     boolean includesLoadableClasses() {
         return includesLoadableClasses;
+    }
+
+    Type readReflectedType(java.lang.reflect.Type genericReflectedType) {
+        if (genericReflectedType instanceof ParameterizedType) {
+            ParameterizedType reflectedType = (ParameterizedType)genericReflectedType;
+            Type rawType = readReflectedType(reflectedType.getRawType());
+            List<Type> arguments = new ArrayList<>();
+            for (java.lang.reflect.Type reflectedArgumentType: reflectedType.getActualTypeArguments()) {
+                arguments.add(readReflectedType(reflectedArgumentType));
+            }
+            try {
+                return rawType.getObjectDetails().narrow(arguments);
+            } catch (CodeModelException ex) {
+                throw new RuntimeException("Reflection should never provide invalid type-arguments", ex);
+            }
+        } else if (genericReflectedType instanceof GenericArrayType) {
+            GenericArrayType reflectedType = (GenericArrayType)genericReflectedType;
+            Type componentType = readReflectedType(reflectedType.getGenericComponentType());
+            return Type.arrayOf(componentType);
+        } else if (genericReflectedType instanceof java.lang.reflect.WildcardType) {
+            java.lang.reflect.WildcardType reflectedType = (java.lang.reflect.WildcardType)genericReflectedType;
+            java.lang.reflect.Type[] reflectedLowerBounds = reflectedType.getLowerBounds();
+            if (reflectedLowerBounds.length != 0) {
+                Type bound = readReflectedType(reflectedLowerBounds[0]);
+                return Type.wildcardSuper(bound);
+            } else {
+                java.lang.reflect.Type[] reflectedUpperBounds = reflectedType.getUpperBounds();
+                Type bound = readReflectedType(reflectedUpperBounds[0]);
+                return Type.wildcardExtends(bound);
+            }
+        } else if (genericReflectedType instanceof java.lang.reflect.TypeVariable) {
+            java.lang.reflect.TypeVariable<?> reflectedType = (java.lang.reflect.TypeVariable<?>)genericReflectedType;
+            return Type.variable(reflectedType.getName());
+        } else if (genericReflectedType instanceof Class) {
+            Class<?> reflectedType = (Class<?>)genericReflectedType;
+            if (reflectedType.isPrimitive()) {
+                String name = reflectedType.getName();
+                if (name.equals("void"))
+                    return Type.voidType();
+                else
+                    return PrimitiveType.valueOf(name.toUpperCase(Locale.US)).asType();
+            } else if (reflectedType.isArray()) {
+                return Type.arrayOf(readReflectedType(reflectedType.getComponentType()));
+            } else
+                return reference(reflectedType.getName()).rawType();
+        } else
+            throw new UnsupportedOperationException("Can't read " + genericReflectedType);
     }
 
     public static class Builder {

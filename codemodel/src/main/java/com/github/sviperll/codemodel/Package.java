@@ -167,6 +167,6 @@ public final class Package implements Model {
                 return Package.this;
             }
         });
-        return new ReflectionObjectDefinition(codeModel, residence, klass);
+        return new ReflectionObjectDefinition<>(codeModel, residence, klass);
     }
 }

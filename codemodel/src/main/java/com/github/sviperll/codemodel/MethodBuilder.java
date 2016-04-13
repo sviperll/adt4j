@@ -37,8 +37,7 @@ import javax.annotation.ParametersAreNonnullByDefault;
  * @author Victor Nazarov &lt;asviraspossible@gmail.com&gt;
  */
 @ParametersAreNonnullByDefault
-public class MethodBuilder extends ExecutableBuilder {
-    private final MethodDefinition definition = new BuiltDefinition(this.<MethodType, MethodDefinition>implementExecutableDefinition());
+public class MethodBuilder extends ExecutableBuilder<MethodType, MethodDefinition> {
     private final String name;
     private boolean isFinal;
     private Type resultType = Type.voidType();
@@ -57,8 +56,8 @@ public class MethodBuilder extends ExecutableBuilder {
     }
 
     @Override
-    public MethodDefinition definition() {
-        return definition;
+    MethodDefinition createDefinition(ExecutableDefinition.Implementation<MethodType, MethodDefinition> implementation) {
+        return new BuiltDefinition(implementation);
     }
 
     private class BuiltDefinition extends MethodDefinition {
@@ -81,25 +80,5 @@ public class MethodBuilder extends ExecutableBuilder {
             return resultType;
         }
 
-        @Override
-        MethodType createType(GenericType.Implementation<MethodType, MethodDefinition> implementation) {
-            return new BuiltTypeDetails(implementExecutableType(implementation));
-        }
-    }
-
-    private class BuiltTypeDetails extends MethodType {
-        BuiltTypeDetails(ExecutableType.Implementation<MethodType, MethodDefinition> implementation) {
-            super(implementation);
-        }
-
-        @Override
-        public MethodDefinition definition() {
-            return MethodBuilder.this.definition();
-        }
-
-        @Override
-        public Type returnType() {
-            return definition().returnType().substitute(definitionEnvironment());
-        }
     }
 }

@@ -45,10 +45,8 @@ import javax.annotation.ParametersAreNonnullByDefault;
 @ParametersAreNonnullByDefault
 public abstract class ObjectDefinition extends GenericDefinition<Type, ObjectDefinition> {
 
-    ObjectDefinition(TypeParameters typeParameters) {
-        super(typeParameters);
+    ObjectDefinition() {
     }
-
 
     public abstract boolean isFinal();
 
@@ -78,6 +76,11 @@ public abstract class ObjectDefinition extends GenericDefinition<Type, ObjectDef
         return residence().getPackage().qualifiedName() + "." + simpleName();
     }
 
+    @Override
+    final Type createType(GenericType.Implementation<Type, ObjectDefinition> implementation) {
+        return new DefinedType(implementation).asType();
+    }
+
     public final boolean extendsOrImplements(ObjectDefinition objectDefinition) {
         if (this.extendsClass().getObjectDetails().definition() == objectDefinition
                 || this.extendsClass().getObjectDetails().definition().extendsOrImplements(objectDefinition))
@@ -92,7 +95,7 @@ public abstract class ObjectDefinition extends GenericDefinition<Type, ObjectDef
         }
     }
 
-    ObjectDefinition reference(String relativelyQualifiedName) {
+    final ObjectDefinition reference(String relativelyQualifiedName) {
         int index = relativelyQualifiedName.indexOf('.');
         if (index == 0)
             throw new IllegalArgumentException(relativelyQualifiedName + " illegal name");
@@ -190,4 +193,23 @@ public abstract class ObjectDefinition extends GenericDefinition<Type, ObjectDef
             }
         };
     }
+
+    private class DefinedType extends ObjectType {
+        private final Type type = Type.createObjectType(this);
+        DefinedType(GenericType.Implementation<Type, ObjectDefinition> implementation) {
+            super(implementation);
+        }
+
+        @Override
+        public ObjectDefinition definition() {
+            return ObjectDefinition.this;
+        }
+
+        @Override
+        public Type asType() {
+            return type;
+        }
+    }
+
+
 }

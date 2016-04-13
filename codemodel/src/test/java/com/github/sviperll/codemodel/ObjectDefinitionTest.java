@@ -40,6 +40,15 @@ import static org.junit.Assert.*;
  * @author Victor Nazarov &lt;asviraspossible@gmail.com&gt;
  */
 public class ObjectDefinitionTest {
+    @Test
+    public void smokeReflectedObjectShouldBePrintable() throws CodeModelException {
+        CodeModel.Builder builder = CodeModel.createBuilder();
+        builder.includeLoadableClasses();
+        CodeModel codeModel = builder.build();
+        StringBuilder builder1 = new StringBuilder();
+        RendererContexts.createInstance(builder1).appendRenderable(codeModel.objectType().getObjectDetails().definition());
+        System.out.println(builder1.toString());
+    }
     /**
      * Test of isFinal method, of class ObjectDefinition.
      */

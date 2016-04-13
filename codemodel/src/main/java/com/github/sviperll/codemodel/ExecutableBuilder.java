@@ -39,9 +39,11 @@ import javax.annotation.ParametersAreNonnullByDefault;
 /**
  *
  * @author Victor Nazarov &lt;asviraspossible@gmail.com&gt;
+ * @param <T>
+ * @param <D>
  */
 @ParametersAreNonnullByDefault
-public abstract class ExecutableBuilder extends GenericDefinitionBuilder<NestingBuilder> {
+public abstract class ExecutableBuilder<T extends ExecutableType<T, D>, D extends ExecutableDefinition<T, D>> extends GenericDefinitionBuilder<NestingBuilder, T, D> {
     private final VariableScope scope = VariableScope.createTopLevel();
     private final BlockBuilder body = BlockBuilder.createWithBracesForced(scope.createNested());
     private final List<VariableDeclaration> parameters = new ArrayList<>();
@@ -54,8 +56,12 @@ public abstract class ExecutableBuilder extends GenericDefinitionBuilder<Nesting
         
     }
 
+    abstract D createDefinition(ExecutableDefinition.Implementation<T, D> implementation);
+
     @Override
-    public abstract ExecutableDefinition<?, ?> definition();
+    final D createDefinition(TypeParameters typeParameters) {
+        return createDefinition(new BuiltExecutableDefinition(typeParameters));
+    }
 
     public void addParameter(Type type, String name) throws CodeModelException {
         name = scope.makeIntroducable(name);
@@ -83,16 +89,7 @@ public abstract class ExecutableBuilder extends GenericDefinitionBuilder<Nesting
         return body;
     }
 
-    <T extends ExecutableType<T, D>, D extends ExecutableDefinition<T, D>> ExecutableDefinition.Implementation<T, D> implementExecutableDefinition() {
-        return new BuiltExecutableDefinition<>(createTypeParameters());
-    }
-
-    <T extends ExecutableType<T, D>, D extends ExecutableDefinition<T, D>> ExecutableType.Implementation<T, D> implementExecutableType(GenericType.Implementation<T, D> genericTypeImplementation) {
-        return new BuiltExecutableType<>(genericTypeImplementation);
-    }
-
-    private class BuiltExecutableDefinition<T extends ExecutableType<T, D>, D extends ExecutableDefinition<T, D>>
-            implements ExecutableDefinition.Implementation<T, D> {
+    private class BuiltExecutableDefinition implements ExecutableDefinition.Implementation<T, D> {
 
         private final TypeParameters typeParameters;
         BuiltExecutableDefinition(TypeParameters typeParameters) {
@@ -124,42 +121,10 @@ public abstract class ExecutableBuilder extends GenericDefinitionBuilder<Nesting
         }
 
         @Override
-        public TypeParameters typeParameters() {
+        public TypeParameters typeParameters(ExecutableDefinition<T, D> thisDefinition) {
             return typeParameters;
         }
 
-    }
-
-    private class BuiltExecutableType<T extends ExecutableType<T, D>, D extends ExecutableDefinition<T, D>>
-            implements ExecutableType.Implementation<T, D> {
-
-        private final GenericType.Implementation<T, D> genericTypeImplementation;
-        BuiltExecutableType(GenericType.Implementation<T, D> genericTypeImplementation) {
-            this.genericTypeImplementation = genericTypeImplementation;
-        }
-
-        @Override
-        public List<VariableDeclaration> parameters(ExecutableType<T, D> instance) {
-            List<VariableDeclaration> result = new ArrayList<>();
-            for (VariableDeclaration declaration: definition().parameters()) {
-                result.add(declaration.substitute(instance.definitionEnvironment()));
-            }
-            return result;
-        }
-
-        @Override
-        public List<Type> throwsList(ExecutableType<T, D> instance) {
-            List<Type> result = new ArrayList<>();
-            for (Type type: instance.definition().throwsList()) {
-                result.add(type.substitute(instance.definitionEnvironment()));
-            }
-            return result;
-        }
-
-        @Override
-        public GenericType.Implementation<T, D> genericTypeImplementation() {
-            return genericTypeImplementation;
-        }
     }
 
     private static class Parameter extends VariableDeclaration {

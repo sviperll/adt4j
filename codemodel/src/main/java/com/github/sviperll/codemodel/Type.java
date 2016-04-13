@@ -46,14 +46,14 @@ import javax.annotation.ParametersAreNonnullByDefault;
 @ParametersAreNonnullByDefault
 public abstract class Type implements Renderable, Generic<Type> {
     private static final VoidType VOID = new VoidType();
-    private static final Type BYTE = Type.primitive(PrimitiveType.BYTE);
-    private static final Type SHORT = Type.primitive(PrimitiveType.SHORT);
-    private static final Type INT = Type.primitive(PrimitiveType.INT);
-    private static final Type LONG = Type.primitive(PrimitiveType.LONG);
-    private static final Type FLOAT = Type.primitive(PrimitiveType.FLOAT);
-    private static final Type DOUBLE = Type.primitive(PrimitiveType.DOUBLE);
-    private static final Type CHAR = Type.primitive(PrimitiveType.CHAR);
-    private static final Type BOOLEAN = Type.primitive(PrimitiveType.BOOLEAN);
+    private static final Type BYTE = PrimitiveType.BYTE.asType();
+    private static final Type SHORT = PrimitiveType.SHORT.asType();
+    private static final Type INT = PrimitiveType.INT.asType();
+    private static final Type LONG = PrimitiveType.LONG.asType();
+    private static final Type FLOAT = PrimitiveType.FLOAT.asType();
+    private static final Type DOUBLE = PrimitiveType.DOUBLE.asType();
+    private static final Type CHAR = PrimitiveType.CHAR.asType();
+    private static final Type BOOLEAN = PrimitiveType.BOOLEAN.asType();
 
     public static Type variable(String name) {
         return variable(new TypeVariable(name));
@@ -119,8 +119,20 @@ public abstract class Type implements Renderable, Generic<Type> {
         return new WildcardTypeWrapper(details);
     }
 
-    private static Type primitive(final PrimitiveType details) {
+    static Type primitive(final PrimitiveType details) {
         return new PrimitiveTypeWrapper(details);
+    }
+
+    public static Type arrayOf(Type componentType) {
+        return new ArrayType(componentType).asType();
+    }
+
+    public static Type wildcardExtends(Type bound) {
+        return new WildcardType(WildcardType.BoundKind.EXTENDS, bound).asType();
+    }
+
+    public static Type wildcardSuper(Type bound) {
+        return new WildcardType(WildcardType.BoundKind.SUPER, bound).asType();
     }
 
     private Type() {
@@ -204,7 +216,7 @@ public abstract class Type implements Renderable, Generic<Type> {
     }
 
     public boolean containsWildcards() {
-        throw new UnsupportedOperationException("Not implemented yet");
+        throw new UnsupportedOperationException("Not supported yet");
     }
 
     public Collection<Type> asListOfIntersectedTypes() {

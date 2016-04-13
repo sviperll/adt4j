@@ -50,6 +50,11 @@ public abstract class MethodDefinition extends ExecutableDefinition<MethodType, 
     public abstract String name();
 
     @Override
+    final MethodType createType(ExecutableType.Implementation<MethodType, MethodDefinition> implementation) {
+        return new DefinedType(implementation);
+    }
+
+    @Override
     public Renderer createRenderer(final RendererContext context) {
         return new Renderer() {
             @Override
@@ -97,5 +102,20 @@ public abstract class MethodDefinition extends ExecutableDefinition<MethodType, 
         };
     }
 
+    private class DefinedType extends MethodType {
+        DefinedType(ExecutableType.Implementation<MethodType, MethodDefinition> implementation) {
+            super(implementation);
+        }
+
+        @Override
+        public MethodDefinition definition() {
+            return MethodDefinition.this;
+        }
+
+        @Override
+        public Type returnType() {
+            return definition().returnType().substitute(definitionEnvironment());
+        }
+    }
 
 }
