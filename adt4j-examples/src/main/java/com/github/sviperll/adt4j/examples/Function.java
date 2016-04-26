@@ -30,8 +30,5 @@
 package com.github.sviperll.adt4j.examples;
 
 public interface Function<T, U> {
-    static <T> Function<T, T> id() {
-        return (T argument) -> argument;
-    }
     U apply(T argument);
 }
