@@ -426,7 +426,7 @@ public class FinalValueClassModel {
                 if (isError) {
                     constructorMethod.body()._throw(JExpr._new(types._UnsupportedOperationException));
                 } else {
-                    AbstractJClass usedCaseClassType = caseClasses.get(usedInterfaceMethod.name()).narrow(constructorMethod.typeParams());
+                    AbstractJClass usedCaseClassType = Source.narrowType(caseClasses.get(usedInterfaceMethod.name()), constructorMethod.typeParams());
                     if (!usedInterfaceMethod.params().isEmpty() || usedInterfaceMethod.hasVarArgs()) {
                         boolean hasNullChecks = false;
                         for (VariableDeclaration param1: usedInterfaceMethod.params()) {
@@ -747,7 +747,7 @@ public class FinalValueClassModel {
 
                 for (JMethod interfaceMethod1: environment.visitorDefinition().methodDefinitions()) {
                     JDefinedClass caseClass = caseClasses.get(interfaceMethod1.name());
-                    AbstractJClass usedCaseClassType = caseClass.narrow(caseClass.typeParams());
+                    AbstractJClass usedCaseClassType = Source.narrowType(caseClass, caseClass.typeParams());
                     VariableNameSource ccUpdaterNameSource = new VariableNameSource();
                     JMethod caseClassUpdaterMethod = caseClass.method(JMod.PUBLIC | JMod.FINAL, usedAcceptingInterfaceType, updaterName);
                     Source.annotateNonnull(caseClassUpdaterMethod);

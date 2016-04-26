@@ -36,6 +36,7 @@ import com.github.sviperll.adt4j.model.config.VariableDeclaration;
 import com.github.sviperll.adt4j.model.config.VisitorDefinition.MethodUsage;
 import com.github.sviperll.adt4j.model.util.GenerationProcess;
 import com.github.sviperll.adt4j.model.util.GenerationResult;
+import com.github.sviperll.adt4j.model.util.Source;
 import com.github.sviperll.adt4j.model.util.Types;
 import com.helger.jcodemodel.AbstractJClass;
 import com.helger.jcodemodel.AbstractJType;
@@ -254,7 +255,7 @@ public class ValueClassConfiguration {
 
     public GenerationResult<Map<String, FieldConfiguration>> getGettersConfigutation(JDefinedClass valueClass, Types types) {
         GenerationProcess generation = new GenerationProcess();
-        AbstractJClass usedValueClassType = valueClass.narrow(valueClass.typeParams());
+        AbstractJClass usedValueClassType = Source.narrowType(valueClass, valueClass.typeParams());
         Map<String, FieldConfiguration> gettersMap = new TreeMap<>();
         FieldReader reader = new FieldReader(gettersMap);
         VisitorDefinition.VisitorUsage narrowed = visitorDefinition.narrowed(usedValueClassType, visitorDefinition.getResultTypeParameter(), types._RuntimeException);
@@ -272,7 +273,7 @@ public class ValueClassConfiguration {
 
     public GenerationResult<Map<String, FieldConfiguration>> getUpdatersConfiguration(JDefinedClass valueClass, Types types) {
         GenerationProcess generation = new GenerationProcess();
-        AbstractJClass usedValueClassType = valueClass.narrow(valueClass.typeParams());
+        AbstractJClass usedValueClassType = Source.narrowType(valueClass, valueClass.typeParams());
         Map<String, FieldConfiguration> updatersMap = new TreeMap<>();
         FieldReader reader = new FieldReader(updatersMap);
         VisitorDefinition.VisitorUsage narrowed = visitorDefinition.narrowed(usedValueClassType, visitorDefinition.getResultTypeParameter(), types._RuntimeException);

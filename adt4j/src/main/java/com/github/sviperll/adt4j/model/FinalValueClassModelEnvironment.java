@@ -36,6 +36,7 @@ import com.github.sviperll.adt4j.model.config.FloatCustomization;
 import com.github.sviperll.adt4j.model.config.ValueClassConfiguration;
 import com.github.sviperll.adt4j.model.config.VisitorDefinition;
 import com.github.sviperll.adt4j.model.config.VisitorDefinition.VisitorUsage;
+import com.github.sviperll.adt4j.model.util.Source;
 import com.helger.jcodemodel.AbstractJClass;
 import com.helger.jcodemodel.AbstractJType;
 import com.helger.jcodemodel.EClassType;
@@ -90,7 +91,7 @@ public class FinalValueClassModelEnvironment {
     }
 
     AbstractJClass acceptingInterfaceTypeInsideValueClass() {
-        return acceptingInterface.narrow(valueClass.typeParams());
+        return Source.narrowType(acceptingInterface, valueClass.typeParams());
     }
 
     MemberAccess factoryMethodAccessLevel() {
@@ -106,7 +107,7 @@ public class FinalValueClassModelEnvironment {
     }
 
     AbstractJClass wrappedValueClassType(AbstractJClass[] typeParams) {
-        return configuration.wrapValueClass(valueClass).narrow(typeParams);
+        return Source.narrowType(configuration.wrapValueClass(valueClass), typeParams);
     }
 
     VisitorUsage visitor(AbstractJClass selfType, AbstractJClass resultType, @Nullable AbstractJClass exceptionType) {
@@ -130,7 +131,7 @@ public class FinalValueClassModelEnvironment {
     }
 
     AbstractJClass acceptingInterfaceType(AbstractJClass[] typeParams) {
-        return acceptingInterface.narrow(typeParams);
+        return Source.narrowType(acceptingInterface, typeParams);
     }
 
     String acceptMethodName() {
@@ -150,7 +151,7 @@ public class FinalValueClassModelEnvironment {
     }
 
     AbstractJClass unwrappedValueClassTypeInsideValueClass() {
-        return valueClass.narrow(valueClass.typeParams());
+        return Source.narrowType(valueClass, valueClass.typeParams());
     }
 
     MemberAccess acceptMethodAccessLevel() {
@@ -158,11 +159,11 @@ public class FinalValueClassModelEnvironment {
     }
 
     AbstractJClass wrappedValueClassTypeInsideValueClass() {
-        return configuration.wrapValueClass(valueClass).narrow(valueClass.typeParams());
+        return Source.narrowType(configuration.wrapValueClass(valueClass), valueClass.typeParams());
     }
 
     AbstractJClass unwrappedValueClassType(AbstractJClass[] typeParams) {
-        return valueClass.narrow(typeParams);
+        return Source.narrowType(valueClass, typeParams);
     }
 
     String valueClassQualifiedName() {

@@ -31,10 +31,12 @@ package com.github.sviperll.adt4j.model.util;
 
 import com.github.sviperll.adt4j.MemberAccess;
 import com.github.sviperll.adt4j.model.config.VariableDeclaration;
+import com.github.sviperll.adt4j.model.config.VisitorDefinition;
 import com.helger.jcodemodel.AbstractJClass;
 import com.helger.jcodemodel.AbstractJType;
 import com.helger.jcodemodel.IJAnnotatable;
 import com.helger.jcodemodel.JAnnotationUse;
+import com.helger.jcodemodel.JDefinedClass;
 import com.helger.jcodemodel.JMod;
 import com.helger.jcodemodel.JNarrowedClass;
 import com.helger.jcodemodel.JTypeVar;
@@ -119,36 +121,6 @@ public class Source {
         }
     }
 
-    public static AbstractJType covariantOn(AbstractJType type, JTypeVar typeVariable) {
-        if (type == typeVariable)
-            return typeVariable;
-        else if (!(type instanceof AbstractJClass)) {
-            return type;
-        } else {
-            if (type instanceof JTypeWildcard) {
-                JTypeWildcard wildcard = (JTypeWildcard)type;
-                AbstractJClass bound = (AbstractJClass)covariantOn(wildcard.bound(), typeVariable);
-                return bound.wildcard(wildcard.boundMode());
-            } else {
-                AbstractJClass narrowedType = (AbstractJClass)type;
-                if (narrowedType.getTypeParameters().isEmpty()) {
-                    return narrowedType;
-                } else {
-                    AbstractJClass result = narrowedType.erasure();
-                    for (AbstractJClass originalTypeArgument: narrowedType.getTypeParameters()) {
-                        AbstractJType covariantTypeArgument = covariantOn(originalTypeArgument, typeVariable);
-                        if (covariantTypeArgument instanceof JNarrowedClass) {
-                            AbstractJClass typeArgument = (JNarrowedClass)covariantTypeArgument;
-                            covariantTypeArgument = typeArgument.wildcard();
-                        }
-                        result = result.narrow(covariantTypeArgument);
-                    }
-                    return result;
-                }
-            }
-        }
-    }
-
     public static boolean isNullable(JVar param) {
         return getNullability(param).result();
     }
@@ -216,6 +188,10 @@ public class Source {
         } catch (ClassNotFoundException ex) {
             // Skip if no JSR-305 implementation present
         }
+    }
+
+    public static AbstractJClass narrowType(AbstractJClass type, AbstractJClass[] typeParams) {
+        return typeParams.length == 0 ? type : type.narrow(typeParams);
     }
 
     private Source() {
