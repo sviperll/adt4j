@@ -44,7 +44,7 @@ import javax.annotation.ParametersAreNonnullByDefault;
  * @param <D>
  */
 @ParametersAreNonnullByDefault
-public abstract class GenericDefinitionBuilder<B extends ResidenceBuilder, T extends Generic<T>, D extends GenericDefinition<T, D>>
+public abstract class GenericDefinitionBuilder<B extends ResidenceBuilder, T extends GenericType<T, D>, D extends GenericDefinition<T, D>>
         implements SettledBuilder<B>, Model {
     private final List<TypeParameter> typeParameters = new ArrayList<>();
     private final Map<String, TypeParameter> typeParametersMap = new TreeMap<>();

@@ -44,9 +44,9 @@ public class FieldBuilder implements SettledBuilder<NestingBuilder> {
     private boolean isInitialized = false;
     private Expression initializer = null;
 
-    FieldBuilder(NestingBuilder residence, Type type, String name) throws CodeModelException {
-        if (type.isVoid())
-            throw new CodeModelException("void is not allowed here");
+    FieldBuilder(NestingBuilder residence, Type type, String name) {
+        if (!(type.isArray() || type.isObjectType() || type.isPrimitive() || type.isTypeVariable()))
+            throw new IllegalArgumentException(type.kind() + " is not allowed here");
         this.residence = residence;
         this.type = type;
         this.name = name;

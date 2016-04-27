@@ -39,7 +39,7 @@ import java.util.List;
  * @param <T>
  * @param <D>
  */
-public abstract class GenericDefinition<T extends Generic<T>, D extends GenericDefinition<T, D>>
+public abstract class GenericDefinition<T extends GenericType<T, D>, D extends GenericDefinition<T, D>>
         implements Settled, Renderable, Model {
 
     private T rawType;
@@ -59,12 +59,12 @@ public abstract class GenericDefinition<T extends Generic<T>, D extends GenericD
     }
 
     public final T rawType() {
-        if (residence().contextDefinition() == null) {
+        if (residence().contextDefinition() != null) {
+            throw new UnsupportedOperationException("Parent instance type is required");
+        } else {
             if (rawType == null)
                 rawType = GenericType.createRawType(this);
             return rawType;
-        } else {
-            throw new UnsupportedOperationException("Parent instance type is required");
         }
     }
 
@@ -81,17 +81,14 @@ public abstract class GenericDefinition<T extends Generic<T>, D extends GenericD
      * @return type usable inside it's own definition.
      */
     public final T internalType() {
+        GenericDefinition<?, ?> contextDefinition = residence().contextDefinition();
         T internalRawType;
-        if (residence().contextDefinition() == null) {
+        if (contextDefinition == null) {
             internalRawType = rawType();
         } else {
-            internalRawType = rawType(residence().contextDefinition().internalType().getGenericDetails());
+            internalRawType = rawType(contextDefinition.internalType());
         }
         List<Type> internalTypeArguments = typeParameters().asInternalTypeArguments();
-        try {
-            return internalRawType.getGenericDetails().narrow(internalTypeArguments);
-        } catch (CodeModelException ex) {
-            throw new RuntimeException("No parameter-argument mismatch is guaranteed to ever happen", ex);
-        }
+        return internalRawType.narrow(internalTypeArguments);
     }
 }

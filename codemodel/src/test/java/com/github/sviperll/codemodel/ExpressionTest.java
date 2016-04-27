@@ -59,7 +59,6 @@ public class ExpressionTest {
     @Test
     public void instanceofTest() throws CodeModelException {
         CodeModel.Builder builder = CodeModel.createBuilder();
-        builder.includeLoadableClasses();
         CodeModel codeModel = builder.build();
         Expression expression = literal("aaa").instanceofOp(codeModel.objectType());
         assertEquals("\"aaa\" instanceof java.lang.Object", renderExpression(expression));

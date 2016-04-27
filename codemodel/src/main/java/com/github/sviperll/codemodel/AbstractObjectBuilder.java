@@ -44,7 +44,7 @@ import javax.annotation.ParametersAreNonnullByDefault;
  * @param <B>
  */
 @ParametersAreNonnullByDefault
-public abstract class ObjectBuilder<B extends ResidenceBuilder> extends GenericDefinitionBuilder<B, Type, ObjectDefinition> {
+public abstract class AbstractObjectBuilder<B extends ResidenceBuilder> extends GenericDefinitionBuilder<B, ObjectType, ObjectDefinition> {
     private final List<MethodDefinition> methods = new ArrayList<>();
     private final Map<String, FieldDeclaration> fields = new TreeMap<>();
     private final List<ObjectInitializationElement> staticInitOrdering = new ArrayList<>();
@@ -54,7 +54,7 @@ public abstract class ObjectBuilder<B extends ResidenceBuilder> extends GenericD
     private final B residence;
     private final ObjectKind kind;
 
-    ObjectBuilder(ObjectKind kind, B residence) throws CodeModelException {
+    AbstractObjectBuilder(ObjectKind kind, B residence) throws CodeModelException {
         super(residence);
         if ((kind == ObjectKind.INTERFACE || kind == ObjectKind.ENUM || kind == ObjectKind.ANNOTATION)
                 && residence.residence().isNested()
@@ -87,20 +87,20 @@ public abstract class ObjectBuilder<B extends ResidenceBuilder> extends GenericD
         return result;
     }
 
-    public NamedObjectBuilder<NestingBuilder> staticNestedClass(ObjectKind kind, String name) throws CodeModelException {
+    public ClassBuilder<NestingBuilder> staticNestedClass(String name) throws CodeModelException {
         if (innerClasses.containsKey(name))
             throw new CodeModelException(definition().qualifiedName() + "." + name + " already defined");
         NestingBuilder classResidence = new NestingBuilder(true, definition());
-        NamedObjectBuilder<NestingBuilder> result = new NamedObjectBuilder<>(kind, classResidence, name);
+        ClassBuilder<NestingBuilder> result = new ClassBuilder<>(classResidence, name);
         innerClasses.put(name, result.definition());
         return result;
     }
 
-    public NamedObjectBuilder<NestingBuilder> innerClass(ObjectKind kind, String name) throws CodeModelException {
+    public ClassBuilder<NestingBuilder> innerClass(String name) throws CodeModelException {
         if (innerClasses.containsKey(name))
             throw new CodeModelException(definition().qualifiedName() + "." + name + " already defined");
         NestingBuilder classResidence = new NestingBuilder(false, definition());
-        NamedObjectBuilder<NestingBuilder> result = new NamedObjectBuilder<>(kind, classResidence, name);
+        ClassBuilder<NestingBuilder> result = new ClassBuilder<>(classResidence, name);
         innerClasses.put(name, result.definition());
         return result;
     }

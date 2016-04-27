@@ -68,11 +68,11 @@ public final class Package implements Model {
         return parent;
     }
 
-    public NamedObjectBuilder<PackageLevelBuilder> createClass(ObjectKind kind, String className) throws CodeModelException {
+    public ClassBuilder<PackageLevelBuilder> createClass(String className) throws CodeModelException {
         if (reference(className) != null)
             throw new CodeModelException(packageAsNamePrefix() + className + " already defined");
         PackageLevelBuilder membershipBuilder = new PackageLevelBuilder(this);
-        NamedObjectBuilder<PackageLevelBuilder> result = new NamedObjectBuilder<>(kind, membershipBuilder, className);
+        ClassBuilder<PackageLevelBuilder> result = new ClassBuilder<>(membershipBuilder, className);
         classes.put(className, result.definition());
         return result;
     }
@@ -85,17 +85,15 @@ public final class Package implements Model {
         String simpleName = !needsToGoDeeper ? relativelyQualifiedName : relativelyQualifiedName.substring(0, index);
         ObjectDefinition result = classes.get(simpleName);
         if (result == null) {
-            if (codeModel.includesLoadableClasses()) {
+            try {
+                Class<?> klass = Class.forName(packageAsNamePrefix() + simpleName);
                 try {
-                    Class<?> klass = Class.forName(packageAsNamePrefix() + simpleName);
-                    try {
-                        result = createObjectDefinitionForClass(klass);
-                    } catch (CodeModelException ex) {
-                        throw new RuntimeException("Should never happen");
-                    }
-                    classes.put(simpleName, result);
-                } catch (ClassNotFoundException ex) {
+                    result = createObjectDefinitionForClass(klass);
+                } catch (CodeModelException ex) {
+                    throw new RuntimeException("Should never happen");
                 }
+                classes.put(simpleName, result);
+            } catch (ClassNotFoundException ex) {
             }
         }
         if (!needsToGoDeeper) {

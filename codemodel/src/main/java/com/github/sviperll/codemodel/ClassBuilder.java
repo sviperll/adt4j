@@ -42,15 +42,15 @@ import javax.annotation.ParametersAreNonnullByDefault;
  * @param <B>
  */
 @ParametersAreNonnullByDefault
-public class NamedObjectBuilder<B extends ResidenceBuilder> extends ObjectBuilder<B> {
+public class ClassBuilder<B extends ResidenceBuilder> extends AbstractObjectBuilder<B> {
     private final String name;
-    private final List<Type> interfaces = new ArrayList<>();
+    private final List<ObjectType> interfaces = new ArrayList<>();
     private boolean isFinal = false;
-    private Type extendsClass = null;
+    private ObjectType extendsClass = null;
     private final List<ConstructorDefinition> constructors = new ArrayList<>();
 
-    public NamedObjectBuilder(ObjectKind kind, B residence, String name) throws CodeModelException {
-        super(kind, residence);
+    public ClassBuilder(B residence, String name) throws CodeModelException {
+        super(ObjectKind.CLASS, residence);
         this.name = name;
     }
 
@@ -58,24 +58,20 @@ public class NamedObjectBuilder<B extends ResidenceBuilder> extends ObjectBuilde
         this.isFinal = value;
     }
 
-    public void extendsClass(Type type) throws CodeModelException {
+    public void extendsClass(ObjectType type) throws CodeModelException {
         if (this.extendsClass != null)
              throw new CodeModelException("Already extended");
-        if (!type.isObjectType())
-            throw new CodeModelException("Object type expected");
-        if (!type.getObjectDetails().definition().kind().isClass())
+        if (!type.definition().kind().isClass())
              throw new CodeModelException("Only classes can be extended");
-        if (!type.getObjectDetails().definition().isFinal())
+        if (!type.definition().isFinal())
             throw new CodeModelException("Trying to extend final class");
         if (type.containsWildcards())
              throw new CodeModelException("Wildcards are not allowed in extends clause");
         this.extendsClass = type;
     }
 
-    public void implementsInterface(Type type) throws CodeModelException {
-        if (!type.isObjectType())
-            throw new CodeModelException("Object type expected");
-        if (!type.getObjectDetails().definition().kind().isInterface())
+    public void implementsInterface(ObjectType type) throws CodeModelException {
+        if (!type.definition().kind().isInterface())
             throw new CodeModelException("Only interfaces can be implemented");
         if (type.containsWildcards())
              throw new CodeModelException("Wildcards are not allowed in implemenents clause");
@@ -94,7 +90,7 @@ public class NamedObjectBuilder<B extends ResidenceBuilder> extends ObjectBuilde
         return new BuiltDefinition(typeParameters);
     }
 
-    private class BuiltDefinition extends ObjectBuilder<B>.BuiltDefinition {
+    private class BuiltDefinition extends AbstractObjectBuilder<B>.BuiltDefinition {
 
         BuiltDefinition(TypeParameters typeParameters) {
             super(typeParameters);
@@ -111,12 +107,12 @@ public class NamedObjectBuilder<B extends ResidenceBuilder> extends ObjectBuilde
         }
 
         @Override
-        public Type extendsClass() {
+        public ObjectType extendsClass() {
             return extendsClass != null ? extendsClass : getCodeModel().objectType();
         }
 
         @Override
-        public List<Type> implementsInterfaces() {
+        public List<ObjectType> implementsInterfaces() {
             return Collections.unmodifiableList(interfaces);
         }
 

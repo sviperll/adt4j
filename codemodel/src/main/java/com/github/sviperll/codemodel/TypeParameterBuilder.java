@@ -42,42 +42,39 @@ public class TypeParameterBuilder {
     private final BuiltTypeParameter declaration = new BuiltTypeParameter();
     private final GenericDefinition<?, ?> declaredIn;
     private final String name;
-    private final List<Type> bounds = new ArrayList<>();
+    private final List<ObjectType> bounds = new ArrayList<>();
     private Type effectiveBound;
 
     TypeParameterBuilder(GenericDefinition<?, ?> declaredIn, String name) {
         this.declaredIn = declaredIn;
         this.name = name;
-        effectiveBound = declaredIn.getCodeModel().objectType();
+        effectiveBound = declaredIn.getCodeModel().objectType().asType();
     }
 
     TypeParameter declaration() {
         return declaration;
     }
 
-    void addAllBounds(Collection<? extends Type> bounds) throws CodeModelException {
+    public void addAllBounds(Collection<? extends Type> bounds) {
         for (Type type: bounds) {
             addBound(type);
         }
     }
-    void addBound(Type bound) throws CodeModelException {
-        if (bound.isPrimitive())
-            throw new CodeModelException("Primitive type can't be used as type-variable bound");
-        if (bound.isArray())
-            throw new CodeModelException("Array type can't be used as type-variable bound");
-        if (bound.isWildcard())
-            throw new CodeModelException("Wildcard type can't be used as type-variable bound");
-        if (bounds.size() == 1 && bounds.get(0).isTypeVariable()
-                || !bounds.isEmpty() && bound.isTypeVariable())
-            throw new CodeModelException("Mixing type-variables with other bounds is not allowed");
-        if (!bound.isIntersection()) {
-            if (bounds.isEmpty())
-                effectiveBound = bound;
-            else if (bounds.size() == 1)
-                effectiveBound = Type.intersection(bounds);
-            bounds.add(bound);
+    public void addBound(Type bound) {
+        if (!(bound.canBeTypeVariableBound()))
+            throw new IllegalArgumentException(bound.kind() + " can't be used as type-variable");
+        if (effectiveBound != null && (effectiveBound.isTypeVariable() || bound.isTypeVariable()))
+            throw new IllegalArgumentException("Mixing type-variables with other bounds is not allowed");
+        if (bound.isIntersection()) {
+            addAllBounds(bound.toListOfIntersectedTypes());
         } else {
-            addAllBounds(bound.asListOfIntersectedTypes());
+            if (bound.isObjectType())
+                bounds.add(bound.getObjectDetails());
+            if (effectiveBound == null) {
+                effectiveBound = bound;
+            } else {
+                effectiveBound = Type.intersection(bounds).asType();
+            }
         }
     }
     private class BuiltTypeParameter extends TypeParameter {

@@ -67,10 +67,11 @@ public abstract class TypeParameters implements Renderable, Settled {
         if (result != null)
             return result;
         else {
-            if (residence().contextDefinition() == null)
+            GenericDefinition<?, ?> contextDefinition = residence().contextDefinition();
+            if (contextDefinition == null)
                 return null;
             else {
-                return residence().contextDefinition().typeParameters().get(name);
+                return contextDefinition.typeParameters().get(name);
             }
         }
     }
@@ -80,7 +81,7 @@ public abstract class TypeParameters implements Renderable, Settled {
             asInternalTypeArguments = new ArrayList<>();
             List<TypeParameter> all = all();
             for (TypeParameter typeParameter: all) {
-                asInternalTypeArguments.add(Type.variable(typeParameter.name()));
+                asInternalTypeArguments.add(Type.variable(typeParameter.name()).asType());
             }
             asInternalTypeArguments = Collections.unmodifiableList(asInternalTypeArguments);
         }

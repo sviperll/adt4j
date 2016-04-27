@@ -33,10 +33,10 @@ package com.github.sviperll.codemodel;
 import com.github.sviperll.codemodel.render.Renderable;
 import com.github.sviperll.codemodel.render.Renderer;
 import com.github.sviperll.codemodel.render.RendererContext;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.Iterator;
-import java.util.Locale;
+import java.util.List;
 import javax.annotation.ParametersAreNonnullByDefault;
 
 /**
@@ -44,7 +44,7 @@ import javax.annotation.ParametersAreNonnullByDefault;
  * @author Victor Nazarov &lt;asviraspossible@gmail.com&gt;
  */
 @ParametersAreNonnullByDefault
-public abstract class Type implements Renderable, Generic<Type> {
+public abstract class Type implements Renderable {
     private static final VoidType VOID = new VoidType();
     private static final Type BYTE = PrimitiveType.BYTE.asType();
     private static final Type SHORT = PrimitiveType.SHORT.asType();
@@ -55,8 +55,8 @@ public abstract class Type implements Renderable, Generic<Type> {
     private static final Type CHAR = PrimitiveType.CHAR.asType();
     private static final Type BOOLEAN = PrimitiveType.BOOLEAN.asType();
 
-    public static Type variable(String name) {
-        return variable(new TypeVariable(name));
+    public static TypeVariable variable(String name) {
+        return new TypeVariable(name);
     }
 
     public static Type voidType() {
@@ -95,44 +95,44 @@ public abstract class Type implements Renderable, Generic<Type> {
         return BOOLEAN;
     }
 
-    public static Type intersection(Collection<Type> bounds) throws CodeModelException {
-        return intersection(new IntersectionType(bounds));
+    public static IntersectionType intersection(Collection<ObjectType> bounds) {
+        return new IntersectionType(bounds);
     }
 
-    static Type variable(TypeVariable details) {
+    static Type wrapVariableType(TypeVariable details) {
         return new TypeVariableWrapper(details);
     }
 
-    static Type intersection(IntersectionType details) {
+    static Type wrapIntersectionType(IntersectionType details) {
         return new IntersectionTypeWrapper(details);
     }
 
-    static Type createObjectType(ObjectType typeDetails) {
+    static Type wrapObjectType(ObjectType typeDetails) {
         return new ObjectTypeWrapper(typeDetails);
     }
 
-    static Type array(ArrayType details) {
+    static Type wrapArrayType(ArrayType details) {
         return new ArrayTypeWrapper(details);
     }
 
-    static Type wildcard(WildcardType details) {
+    static Type wrapWildcardType(WildcardType details) {
         return new WildcardTypeWrapper(details);
     }
 
-    static Type primitive(final PrimitiveType details) {
+    static Type wrapPrimitiveType(final PrimitiveType details) {
         return new PrimitiveTypeWrapper(details);
     }
 
-    public static Type arrayOf(Type componentType) {
-        return new ArrayType(componentType).asType();
+    public static ArrayType arrayOf(Type componentType) {
+        return new ArrayType(componentType);
     }
 
-    public static Type wildcardExtends(Type bound) {
-        return new WildcardType(WildcardType.BoundKind.EXTENDS, bound).asType();
+    public static WildcardType wildcardExtends(Type bound) {
+        return new WildcardType(WildcardType.BoundKind.EXTENDS, bound);
     }
 
-    public static Type wildcardSuper(Type bound) {
-        return new WildcardType(WildcardType.BoundKind.SUPER, bound).asType();
+    public static WildcardType wildcardSuper(Type bound) {
+        return new WildcardType(WildcardType.BoundKind.SUPER, bound);
     }
 
     private Type() {
@@ -146,7 +146,7 @@ public abstract class Type implements Renderable, Generic<Type> {
             else
                 return this;
         } else if (isObjectType()) {
-            return getObjectDetails().substitute(environment);
+            return getObjectDetails().substitute(environment).asType();
         } else if (isArray()) {
             return getArrayDetails().substitute(environment);
         } else if (isIntersection()) {
@@ -187,6 +187,22 @@ public abstract class Type implements Renderable, Generic<Type> {
         return kind() == Kind.INTERSECTION;
     }
 
+    public final boolean canBeTypeArgument() {
+        return isArray() || isWildcard() || isObjectType() || isTypeVariable();
+    }
+
+    public final boolean canBeMethodResult() {
+        return isArray() || isObjectType() || isPrimitive() || isTypeVariable() || isVoid();
+    }
+
+    public final boolean canBeDeclaredVariableType() {
+        return isArray() || isObjectType() || isPrimitive() || isTypeVariable();
+    }
+
+    public final boolean canBeTypeVariableBound() {
+        return isIntersection() || isObjectType() || isTypeVariable();
+    }
+
     public ObjectType getObjectDetails() {
         throw new UnsupportedOperationException("Object type expected");
     }
@@ -219,13 +235,15 @@ public abstract class Type implements Renderable, Generic<Type> {
         throw new UnsupportedOperationException("Not supported yet");
     }
 
-    public Collection<Type> asListOfIntersectedTypes() {
-        return isIntersection() ? getIntersectionDetails().intersectedTypes() : Collections.singletonList(this);
-    }
-
-    @Override
-    public GenericType<Type, ?> getGenericDetails() {
-        return getObjectDetails();
+    public Collection<Type> toListOfIntersectedTypes() {
+        if (!isIntersection())
+            return Collections.singletonList(this);
+        else {
+            List<Type> result = new ArrayList<>();
+            for (ObjectType type: getIntersectionDetails().intersectedTypes())
+                result.add(type.asType());
+            return Collections.unmodifiableList(result);
+        }
     }
 
     @Override
@@ -234,47 +252,19 @@ public abstract class Type implements Renderable, Generic<Type> {
             @Override
             public void render() {
                 if (isArray()) {
-                    context.appendRenderable(getArrayDetails().elementType());
-                    context.appendText("[]");
+                    context.appendRenderable(getArrayDetails());
                 } else if (isIntersection()) {
-                    Iterator<Type> iterator = getIntersectionDetails().intersectedTypes().iterator();
-                    if (iterator.hasNext()) {
-                        context.appendRenderable(iterator.next());
-                        while (iterator.hasNext()) {
-                            context.appendText(" & ");
-                            context.appendRenderable(iterator.next());
-                        }
-                    }
+                    context.appendRenderable(getIntersectionDetails());
                 } else if (isVoid()) {
                     context.appendText("void");
                 } else if (isPrimitive()) {
-                    context.appendText(getPrimitiveDetails().name().toLowerCase(Locale.US));
+                    context.appendRenderable(getPrimitiveDetails());
                 } else if (isTypeVariable()) {
-                    context.appendText(getVariableDetails().name());
+                    context.appendRenderable(getVariableDetails());
                 } else if (isWildcard()) {
-                    WildcardType wildcard = getWildcardDetails();
-                    context.appendText("?");
-                    context.appendWhiteSpace();
-                    context.appendText(wildcard.boundKind().name().toLowerCase(Locale.US));
-                    context.appendWhiteSpace();
-                    context.appendRenderable(wildcard.bound());
+                    context.appendRenderable(getWildcardDetails());
                 } else if (isObjectType()) {
-                    ObjectType objectType = getObjectDetails();
-                    if (objectType.isRaw())
-                        context.appendQualifiedClassName(objectType.definition().qualifiedName());
-                    else {
-                        context.appendRenderable(objectType.erasure());
-                        Iterator<Type> iterator = objectType.typeArguments().iterator();
-                        if (iterator.hasNext()) {
-                            context.appendText("<");
-                            context.appendRenderable(iterator.next());
-                            while (iterator.hasNext()) {
-                                context.appendText(", ");
-                                context.appendRenderable(iterator.next());
-                            }
-                            context.appendText(">");
-                        }
-                    }
+                    context.appendRenderable(getObjectDetails());
                 }
             }
         };

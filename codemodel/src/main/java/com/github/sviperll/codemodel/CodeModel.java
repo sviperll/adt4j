@@ -35,8 +35,6 @@ import java.lang.reflect.ParameterizedType;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import javax.annotation.ParametersAreNonnullByDefault;
 
 /**
@@ -55,29 +53,17 @@ public final class CodeModel {
         return new Builder();
     }
 
-    private final boolean includesLoadableClasses;
     private final Package defaultPackage = Package.createTopLevelPackage(this);
-    private Type objectType = null;
+    private ObjectType objectType = null;
 
-    private CodeModel(boolean includesLoadableClasses) {
-        this.includesLoadableClasses = includesLoadableClasses;
+    private CodeModel() {
     }
 
-    public Type objectType() {
+    public ObjectType objectType() {
         if (objectType == null) {
             objectType = reference(Object.class.getName()).rawType();
             if (objectType == null) {
-                try {
-                    Package pkg = getPackage("java.lang");
-                    NamedObjectBuilder<PackageLevelBuilder> builder = pkg.createClass(ObjectKind.CLASS, "Object");
-                    objectType = builder.definition().rawType();
-                    builder.residence().setPublic(true);
-                    MethodBuilder equals = builder.method("equals");
-                    equals.resultType(Type.booleanType());
-                    equals.addParameter(objectType, "that");
-                } catch (CodeModelException ex) {
-                    throw new RuntimeException("Should never happen");
-                }
+                throw new RuntimeException("java.lang.Object is not loadable class!");
             }
         }
         return objectType;
@@ -87,49 +73,41 @@ public final class CodeModel {
         return defaultPackage.getChildPackageBySuffix(qualifiedName);
     }
 
-    public ObjectBuilder<PackageLevelBuilder> createDefaultPackageClass(ObjectKind kind, String name) throws CodeModelException {
-        return defaultPackage.createClass(kind, name);
+    public ClassBuilder<PackageLevelBuilder> createDefaultPackageClass(String name) throws CodeModelException {
+        return defaultPackage.createClass(name);
     }
 
     public ObjectDefinition reference(String qualifiedName) {
         return defaultPackage.reference(qualifiedName);
     }
 
-    boolean includesLoadableClasses() {
-        return includesLoadableClasses;
-    }
-
     Type readReflectedType(java.lang.reflect.Type genericReflectedType) {
         if (genericReflectedType instanceof ParameterizedType) {
             ParameterizedType reflectedType = (ParameterizedType)genericReflectedType;
-            Type rawType = readReflectedType(reflectedType.getRawType());
+            ObjectType rawType = readReflectedType(reflectedType.getRawType()).getObjectDetails();
             List<Type> arguments = new ArrayList<>();
             for (java.lang.reflect.Type reflectedArgumentType: reflectedType.getActualTypeArguments()) {
                 arguments.add(readReflectedType(reflectedArgumentType));
             }
-            try {
-                return rawType.getObjectDetails().narrow(arguments);
-            } catch (CodeModelException ex) {
-                throw new RuntimeException("Reflection should never provide invalid type-arguments", ex);
-            }
+            return rawType.narrow(arguments).asType();
         } else if (genericReflectedType instanceof GenericArrayType) {
             GenericArrayType reflectedType = (GenericArrayType)genericReflectedType;
             Type componentType = readReflectedType(reflectedType.getGenericComponentType());
-            return Type.arrayOf(componentType);
+            return Type.arrayOf(componentType).asType();
         } else if (genericReflectedType instanceof java.lang.reflect.WildcardType) {
             java.lang.reflect.WildcardType reflectedType = (java.lang.reflect.WildcardType)genericReflectedType;
             java.lang.reflect.Type[] reflectedLowerBounds = reflectedType.getLowerBounds();
             if (reflectedLowerBounds.length != 0) {
                 Type bound = readReflectedType(reflectedLowerBounds[0]);
-                return Type.wildcardSuper(bound);
+                return Type.wildcardSuper(bound).asType();
             } else {
                 java.lang.reflect.Type[] reflectedUpperBounds = reflectedType.getUpperBounds();
                 Type bound = readReflectedType(reflectedUpperBounds[0]);
-                return Type.wildcardExtends(bound);
+                return Type.wildcardExtends(bound).asType();
             }
         } else if (genericReflectedType instanceof java.lang.reflect.TypeVariable) {
             java.lang.reflect.TypeVariable<?> reflectedType = (java.lang.reflect.TypeVariable<?>)genericReflectedType;
-            return Type.variable(reflectedType.getName());
+            return Type.variable(reflectedType.getName()).asType();
         } else if (genericReflectedType instanceof Class) {
             Class<?> reflectedType = (Class<?>)genericReflectedType;
             if (reflectedType.isPrimitive()) {
@@ -139,26 +117,18 @@ public final class CodeModel {
                 else
                     return PrimitiveType.valueOf(name.toUpperCase(Locale.US)).asType();
             } else if (reflectedType.isArray()) {
-                return Type.arrayOf(readReflectedType(reflectedType.getComponentType()));
+                return Type.arrayOf(readReflectedType(reflectedType.getComponentType())).asType();
             } else
-                return reference(reflectedType.getName()).rawType();
+                return reference(reflectedType.getName()).rawType().asType();
         } else
             throw new UnsupportedOperationException("Can't read " + genericReflectedType);
     }
 
     public static class Builder {
-        private boolean includesLoadableClasses = true;
-
         public Builder() {
         }
-        public void includeLoadableClasses() {
-            includesLoadableClasses = true;
-        }
-        public void doNotIncludeLoadableClasses() {
-            includesLoadableClasses = false;
-        }
         public CodeModel build() {
-            return new CodeModel(includesLoadableClasses);
+            return new CodeModel();
         }
     }
 

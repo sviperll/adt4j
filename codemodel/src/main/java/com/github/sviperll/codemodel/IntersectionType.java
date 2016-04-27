@@ -30,28 +30,27 @@
 
 package com.github.sviperll.codemodel;
 
+import com.github.sviperll.codemodel.render.Renderable;
+import com.github.sviperll.codemodel.render.Renderer;
+import com.github.sviperll.codemodel.render.RendererContext;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Iterator;
 
 /**
  *
  * @author Victor Nazarov &lt;asviraspossible@gmail.com&gt;
  */
-public class IntersectionType {
+public class IntersectionType implements Renderable {
 
-    private final Type type = Type.intersection(this);
-    private final Collection<Type> bounds;
+    private final Type type = Type.wrapIntersectionType(this);
+    private final Collection<ObjectType> bounds;
 
-    IntersectionType(Collection<Type> bounds) throws CodeModelException {
-        for (Type bound: bounds) {
-            if (!bound.isObjectType())
-                throw new CodeModelException("Intersection type can be built from object types only: " + type.kind() + " found: " + type);
-        }
+    IntersectionType(Collection<ObjectType> bounds) {
         this.bounds = bounds;
     }
 
-
-    public Collection<Type> intersectedTypes() {
+    public Collection<ObjectType> intersectedTypes() {
         return bounds;
     }
     public Type asType() {
@@ -59,14 +58,29 @@ public class IntersectionType {
     }
 
     Type substitute(Substitution environment) {
-        Collection<Type> substituted = new ArrayList<>(bounds.size());
-        for (Type bound: bounds) {
+        Collection<ObjectType> substituted = new ArrayList<>(bounds.size());
+        for (ObjectType bound: bounds) {
             substituted.add(bound.substitute(environment));
         }
-        try {
-            return new IntersectionType(substituted).asType();
-        } catch (CodeModelException ex) {
-            throw new RuntimeException("Should never happen because of type-level preservation under substitution", ex);
-        }
+        return new IntersectionType(substituted).asType();
     }
+
+    @Override
+    public Renderer createRenderer(final RendererContext context) {
+        return new Renderer() {
+            @Override
+            public void render() {
+                Iterator<ObjectType> iterator = intersectedTypes().iterator();
+                if (iterator.hasNext()) {
+                    context.appendRenderable(iterator.next());
+                    while (iterator.hasNext()) {
+                        context.appendText(" & ");
+                        context.appendRenderable(iterator.next());
+                    }
+                }
+            }
+        };
+    }
+
+
 }

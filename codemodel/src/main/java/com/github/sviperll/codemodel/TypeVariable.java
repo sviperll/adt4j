@@ -30,12 +30,16 @@
 
 package com.github.sviperll.codemodel;
 
+import com.github.sviperll.codemodel.render.Renderable;
+import com.github.sviperll.codemodel.render.Renderer;
+import com.github.sviperll.codemodel.render.RendererContext;
+
 /**
  *
  * @author Victor Nazarov &lt;asviraspossible@gmail.com&gt;
  */
-public class TypeVariable {
-    private final Type type = Type.variable(this);
+public class TypeVariable implements Renderable {
+    private final Type type = Type.wrapVariableType(this);
     private final String name;
     TypeVariable(String name) {
         this.name = name;
@@ -47,5 +51,15 @@ public class TypeVariable {
 
     public Type asType() {
         return type;
+    }
+
+    @Override
+    public Renderer createRenderer(final RendererContext context) {
+        return new Renderer() {
+            @Override
+            public void render() {
+                context.appendText(name());
+            }
+        };
     }
 }

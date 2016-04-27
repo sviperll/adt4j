@@ -40,11 +40,11 @@ public abstract class TypeParameter {
     public abstract String name();
 
     /**
-     * Return bound or bounds of this type-variable as single type.
+     * Return bound or bounds of this type-wrapVariableType as single type.
      *
-     * If there are several bounds then intersection type is returned.
+     * If there are several bounds then wrapIntersectionType type is returned.
      * 
-     * @return bound or bounds of this type-variable as single type.
+     * @return bound or bounds of this type-wrapVariableType as single type.
      */
     public abstract Type bound();
 
@@ -57,7 +57,7 @@ public abstract class TypeParameter {
             return environment.get(bound.getVariableDetails().name()).lowerRawBound();
         } else {
             ObjectType lower = null;
-            for (Type type: bound.asListOfIntersectedTypes()) {
+            for (Type type: bound.toListOfIntersectedTypes()) {
                 ObjectType object = type.getObjectDetails();
                 if (lower == null || lower.definition().extendsOrImplements(object.definition()))
                     lower = object;

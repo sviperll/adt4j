@@ -30,6 +30,10 @@
 
 package com.github.sviperll.codemodel;
 
+import com.github.sviperll.codemodel.render.Renderable;
+import com.github.sviperll.codemodel.render.Renderer;
+import com.github.sviperll.codemodel.render.RendererContext;
+import java.util.Locale;
 import javax.annotation.ParametersAreNonnullByDefault;
 
 /**
@@ -37,15 +41,25 @@ import javax.annotation.ParametersAreNonnullByDefault;
  * @author Victor Nazarov &lt;asviraspossible@gmail.com&gt;
  */
 @ParametersAreNonnullByDefault
-public enum PrimitiveType {
+public enum PrimitiveType implements Renderable {
     BYTE, SHORT, INT, LONG,
     FLOAT, DOUBLE,
     CHAR,
     BOOLEAN;
 
-    private final Type type = Type.primitive(this);
+    private final Type type = Type.wrapPrimitiveType(this);
 
     public Type asType() {
         return type;
+    }
+
+    @Override
+    public Renderer createRenderer(final RendererContext context) {
+        return new Renderer() {
+            @Override
+            public void render() {
+                context.appendText(name().toLowerCase(Locale.US));
+            }
+        };
     }
 }

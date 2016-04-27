@@ -41,8 +41,7 @@ import javax.annotation.ParametersAreNonnullByDefault;
  */
 @ParametersAreNonnullByDefault
 public abstract class ExecutableType<T extends ExecutableType<T, D>, D extends ExecutableDefinition<T, D>>
-        extends GenericType<T, D>
-        implements Generic<T> {
+        extends GenericType<T, D> {
 
     private final Implementation<T, D> implementation;
     ExecutableType(Implementation<T, D> implementation) {

@@ -30,16 +30,23 @@
 
 package com.github.sviperll.codemodel;
 
+import com.github.sviperll.codemodel.render.Renderable;
+import com.github.sviperll.codemodel.render.Renderer;
+import com.github.sviperll.codemodel.render.RendererContext;
+import java.util.Locale;
+
 /**
  *
  * @author Victor Nazarov &lt;asviraspossible@gmail.com&gt;
  */
-public final class WildcardType {
+public final class WildcardType implements Renderable {
 
-    private final Type type = Type.wildcard(this);
+    private final Type type = Type.wrapWildcardType(this);
     private final BoundKind boundKind;
     private final Type bound;
     WildcardType(BoundKind boundKind, Type bound) {
+        if (!bound.canBeTypeVariableBound())
+            throw new IllegalArgumentException(bound.kind() + " can't be wildcard bound");
         this.boundKind = boundKind;
         this.bound = bound;
     }
@@ -56,8 +63,22 @@ public final class WildcardType {
         return new WildcardType(boundKind, bound.substitute(environment)).asType();
     }
 
-    Type asType() {
+    public Type asType() {
         return type;
+    }
+
+    @Override
+    public Renderer createRenderer(final RendererContext context) {
+        return new Renderer() {
+            @Override
+            public void render() {
+                context.appendText("?");
+                context.appendWhiteSpace();
+                context.appendText(boundKind().name().toLowerCase(Locale.US));
+                context.appendWhiteSpace();
+                context.appendRenderable(bound());
+            }
+        };
     }
 
     public enum BoundKind {

@@ -30,8 +30,13 @@
 
 package com.github.sviperll.codemodel;
 
+import com.github.sviperll.codemodel.render.Renderable;
+import com.github.sviperll.codemodel.render.Renderer;
+import com.github.sviperll.codemodel.render.RendererContext;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
+import java.util.Iterator;
 import java.util.List;
 import javax.annotation.ParametersAreNonnullByDefault;
 
@@ -40,27 +45,41 @@ import javax.annotation.ParametersAreNonnullByDefault;
  * @author Victor Nazarov &lt;asviraspossible@gmail.com&gt;
  */
 @ParametersAreNonnullByDefault
-public abstract class ObjectType extends GenericType<Type, ObjectDefinition> {
+public abstract class ObjectType extends GenericType<ObjectType, ObjectDefinition> implements Renderable {
+    private final Type type = Type.wrapObjectType(this);
     private List<MethodType> methods = null;
     private List<ConstructorType> constructors = null;
 
-    ObjectType(GenericType.Implementation<Type, ObjectDefinition> implementation) {
+    ObjectType(GenericType.Implementation<ObjectType, ObjectDefinition> implementation) {
         super(implementation);
     }
 
     @Override
     public abstract ObjectDefinition definition();
 
-    public Expression instanceofOp(Expression expression) throws CodeModelException {
-        return expression.instanceofOp(this.asType());
+    @Override
+    public final ObjectType asSpecificType() {
+        return this;
     }
 
-    boolean containsWildcards() {
+    public final Type asType() {
+        return type;
+    }
+
+    public final IntersectionType intersection(ObjectType that) {
+        return new IntersectionType(Arrays.asList(this, that));
+    }
+
+    public final Expression instanceofOp(Expression expression) throws CodeModelException {
+        return expression.instanceofOp(this);
+    }
+
+    final boolean containsWildcards() {
         throw new UnsupportedOperationException("Not supported yet.");
     }
 
-    public boolean sameDefinition(Type that) {
-        return definition() == that.getObjectDetails().definition();
+    public final boolean sameDefinition(ObjectType that) {
+        return definition() == that.definition();
     }
 
     public final List<MethodType> methods() {
@@ -86,5 +105,29 @@ public abstract class ObjectType extends GenericType<Type, ObjectDefinition> {
             constructors = Collections.unmodifiableList(constructors);
         }
         return constructors;
+    }
+
+    @Override
+    public Renderer createRenderer(final RendererContext context) {
+        return new Renderer() {
+            @Override
+            public void render() {
+                if (isRaw())
+                    context.appendQualifiedClassName(definition().qualifiedName());
+                else {
+                    context.appendRenderable(erasure());
+                    Iterator<Type> iterator = typeArguments().iterator();
+                    if (iterator.hasNext()) {
+                        context.appendText("<");
+                        context.appendRenderable(iterator.next());
+                        while (iterator.hasNext()) {
+                            context.appendText(", ");
+                            context.appendRenderable(iterator.next());
+                        }
+                        context.appendText(">");
+                    }
+                }
+            }
+        };
     }
 }

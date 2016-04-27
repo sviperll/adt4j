@@ -53,8 +53,8 @@ class ReflectionObjectDefinition<T> extends ObjectDefinition {
     private Collection<ObjectDefinition> innerClasses = null;
     private Collection<MethodDefinition> methods = null;
     private final TypeParameters typeParameters;
-    private List<Type> implementsInterfaces = null;
-    private Type extendsClass = null;
+    private List<ObjectType> implementsInterfaces = null;
+    private ObjectType extendsClass = null;
 
     ReflectionObjectDefinition(CodeModel codeModel, Residence residence, Class<T> klass) {
         this.codeModel = codeModel;
@@ -82,22 +82,21 @@ class ReflectionObjectDefinition<T> extends ObjectDefinition {
     }
 
     @Override
-    public Type extendsClass() {
+    public ObjectType extendsClass() {
+        if (this == codeModel.objectType().definition())
+            throw new UnsupportedOperationException("java.lang.Object super class is undefined");
         if (extendsClass == null) {
-            if (this == codeModel.objectType().getObjectDetails().definition())
-                extendsClass = codeModel.objectType();
-            else
-                extendsClass = codeModel.readReflectedType(klass.getGenericSuperclass());
+            extendsClass = codeModel.readReflectedType(klass.getGenericSuperclass()).getObjectDetails();
         }
         return extendsClass;
     }
 
     @Override
-    public List<Type> implementsInterfaces() {
+    public List<ObjectType> implementsInterfaces() {
         if (implementsInterfaces == null) {
             implementsInterfaces = new ArrayList<>();
             for (java.lang.reflect.Type reflectedInterface: klass.getGenericInterfaces()) {
-                implementsInterfaces.add(codeModel.readReflectedType(reflectedInterface));
+                implementsInterfaces.add(codeModel.readReflectedType(reflectedInterface).getObjectDetails());
             }
             implementsInterfaces = Collections.unmodifiableList(implementsInterfaces);
         }
@@ -229,16 +228,12 @@ class ReflectionObjectDefinition<T> extends ObjectDefinition {
                 if (reflectedBounds.length == 1)
                     bound = declaredIn.getCodeModel().readReflectedType(reflectedBounds[0]);
                 else {
-                    List<Type> bounds = new ArrayList<>();
+                    List<ObjectType> bounds = new ArrayList<>();
                     for (java.lang.reflect.Type reflectedBound: reflectedBounds) {
-                        Type partialBound = declaredIn.getCodeModel().readReflectedType(reflectedBound);
+                        ObjectType partialBound = declaredIn.getCodeModel().readReflectedType(reflectedBound).getObjectDetails();
                         bounds.add(partialBound);
                     }
-                    try {
-                        bound = new IntersectionType(bounds).asType();
-                    } catch (CodeModelException ex) {
-                        throw new RuntimeException("Reflected bounds shouldn't cause validation errors", ex);
-                    }
+                    bound = new IntersectionType(bounds).asType();
                 }
             }
             return bound;
@@ -349,8 +344,8 @@ class ReflectionObjectDefinition<T> extends ObjectDefinition {
         public List<Type> throwsList() {
             if (throwsList == null) {
                 throwsList = new ArrayList<>();
-                for (Class<?> exceptionType: method.getExceptionTypes()) {
-                    throwsList.add(codeModel.reference(exceptionType.getName()).rawType());
+                for (java.lang.reflect.Type exceptionType: method.getGenericExceptionTypes()) {
+                    throwsList.add(codeModel.readReflectedType(exceptionType));
                 }
                 throwsList = Collections.unmodifiableList(throwsList);
             }

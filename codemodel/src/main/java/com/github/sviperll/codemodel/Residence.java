@@ -34,6 +34,7 @@ import com.github.sviperll.codemodel.render.Renderable;
 import com.github.sviperll.codemodel.render.Renderer;
 import com.github.sviperll.codemodel.render.RendererContext;
 import java.util.Locale;
+import javax.annotation.Nullable;
 
 /**
  *
@@ -94,6 +95,7 @@ public abstract class Residence implements Renderable {
      *
      * @return Enclosing definition or null for package-level definitions or static members
      */
+    @Nullable
     public GenericDefinition<?, ?> contextDefinition() {
         if (isPackageLevel()) {
             return null;

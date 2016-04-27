@@ -206,8 +206,8 @@ public class Expression implements Renderable {
     public Expression le(Expression that) {
         return new Expression(RELATIONAL.createLeftAssociativeRenderable(this.renderable, "<=", that.renderable));
     }
-    public Expression instanceofOp(final Type type) throws CodeModelException {
-        if (!type.isObjectType() || !type.getObjectDetails().isRaw())
+    public Expression instanceofOp(final ObjectType type) throws CodeModelException {
+        if (!type.isRaw())
             throw new CodeModelException("Only raw object types allowed here");
         return new Expression(RELATIONAL.createRenderable(new PrecedenceAwareRenderable() {
             @Override

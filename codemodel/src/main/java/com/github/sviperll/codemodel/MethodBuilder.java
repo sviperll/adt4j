@@ -52,6 +52,8 @@ public class MethodBuilder extends ExecutableBuilder<MethodType, MethodDefinitio
     }
 
     public void resultType(Type resultType) {
+        if (!resultType.canBeMethodResult())
+            throw new IllegalArgumentException(resultType.kind() + " is not allowed here");
         this.resultType = resultType;
     }
 

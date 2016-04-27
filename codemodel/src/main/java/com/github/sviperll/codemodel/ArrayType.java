@@ -30,12 +30,16 @@
 
 package com.github.sviperll.codemodel;
 
+import com.github.sviperll.codemodel.render.Renderable;
+import com.github.sviperll.codemodel.render.Renderer;
+import com.github.sviperll.codemodel.render.RendererContext;
+
 /**
  *
  * @author Victor Nazarov &lt;asviraspossible@gmail.com&gt;
  */
-public class ArrayType {
-    private final Type type = Type.array(this);
+public class ArrayType implements Renderable {
+    private final Type type = Type.wrapArrayType(this);
     private final Type elementType;
     ArrayType(Type elementType) {
         this.elementType = elementType;
@@ -49,7 +53,19 @@ public class ArrayType {
         return new ArrayType(elementType.substitute(environment)).asType();
     }
 
-    Type asType() {
+    public Type asType() {
         return type;
     }
+
+    @Override
+    public Renderer createRenderer(final RendererContext context) {
+        return new Renderer() {
+            @Override
+            public void render() {
+                context.appendRenderable(elementType());
+                context.appendText("[]");
+            }
+        };
+    }
+
 }

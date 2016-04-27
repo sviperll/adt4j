@@ -43,7 +43,7 @@ import javax.annotation.ParametersAreNonnullByDefault;
  * @author Victor Nazarov &lt;asviraspossible@gmail.com&gt;
  */
 @ParametersAreNonnullByDefault
-public abstract class ObjectDefinition extends GenericDefinition<Type, ObjectDefinition> {
+public abstract class ObjectDefinition extends GenericDefinition<ObjectType, ObjectDefinition> {
 
     ObjectDefinition() {
     }
@@ -52,9 +52,9 @@ public abstract class ObjectDefinition extends GenericDefinition<Type, ObjectDef
 
     public abstract ObjectKind kind();
 
-    public abstract Type extendsClass();
+    public abstract ObjectType extendsClass();
 
-    public abstract List<Type> implementsInterfaces();
+    public abstract List<ObjectType> implementsInterfaces();
 
     public abstract Collection<ConstructorDefinition> constructors();
 
@@ -76,19 +76,23 @@ public abstract class ObjectDefinition extends GenericDefinition<Type, ObjectDef
         return residence().getPackage().qualifiedName() + "." + simpleName();
     }
 
+    public final boolean isJavaLangObject() {
+        return this == getCodeModel().objectType().definition();
+    }
+
     @Override
-    final Type createType(GenericType.Implementation<Type, ObjectDefinition> implementation) {
-        return new DefinedType(implementation).asType();
+    final ObjectType createType(GenericType.Implementation<ObjectType, ObjectDefinition> implementation) {
+        return new DefinedType(implementation);
     }
 
     public final boolean extendsOrImplements(ObjectDefinition objectDefinition) {
-        if (this.extendsClass().getObjectDetails().definition() == objectDefinition
-                || this.extendsClass().getObjectDetails().definition().extendsOrImplements(objectDefinition))
+        if (this.extendsClass().definition() == objectDefinition
+                || this.extendsClass().definition().extendsOrImplements(objectDefinition))
             return true;
         else {
-            for (Type implementedInterface: implementsInterfaces()) {
-                if (implementedInterface.getObjectDetails().definition() == objectDefinition
-                        || implementedInterface.getObjectDetails().definition().extendsOrImplements(objectDefinition))
+            for (ObjectType implementedInterface: implementsInterfaces()) {
+                if (implementedInterface.definition() == objectDefinition
+                        || implementedInterface.definition().extendsOrImplements(objectDefinition))
                     return true;
             }
             return false;
@@ -129,12 +133,14 @@ public abstract class ObjectDefinition extends GenericDefinition<Type, ObjectDef
                 context.appendWhiteSpace();
                 context.appendText(simpleName());
                 context.appendRenderable(typeParameters());
-                context.appendText(" extends ");
-                context.appendRenderable(extendsClass());
-                Iterator<Type> interfaces = implementsInterfaces().iterator();
+                if (!isJavaLangObject()) {
+                    context.appendText(" extends ");
+                    context.appendRenderable(extendsClass());
+                }
+                Iterator<ObjectType> interfaces = implementsInterfaces().iterator();
                 if (interfaces.hasNext()) {
                     context.appendText(" implements ");
-                    Type implementedInterface = interfaces.next();
+                    ObjectType implementedInterface = interfaces.next();
                     context.appendRenderable(implementedInterface);
                     while (interfaces.hasNext()) {
                         context.appendText(", ");
@@ -191,12 +197,12 @@ public abstract class ObjectDefinition extends GenericDefinition<Type, ObjectDef
                 context.appendText("}");
                 context.appendLineBreak();
             }
+
         };
     }
 
     private class DefinedType extends ObjectType {
-        private final Type type = Type.createObjectType(this);
-        DefinedType(GenericType.Implementation<Type, ObjectDefinition> implementation) {
+        DefinedType(GenericType.Implementation<ObjectType, ObjectDefinition> implementation) {
             super(implementation);
         }
 
@@ -205,10 +211,6 @@ public abstract class ObjectDefinition extends GenericDefinition<Type, ObjectDef
             return ObjectDefinition.this;
         }
 
-        @Override
-        public Type asType() {
-            return type;
-        }
     }
 
 

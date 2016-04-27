@@ -77,12 +77,14 @@ public abstract class ExecutableBuilder<T extends ExecutableType<T, D>, D extend
         parameters.add(parameter);
     }
 
-    public void throwsException(Type type) throws CodeModelException {
-        if (!type.isObjectType())
-            throw new CodeModelException("Only object type can be an exception");
-        if (type.getObjectDetails().definition().isGeneric())
+    public void throwsException(ObjectType type) throws CodeModelException {
+        if (type.definition().isGeneric())
             throw new CodeModelException("Generic class can't be used as throwable exception");
-        throwsList.add(type);
+        throwsList.add(type.asType());
+    }
+
+    public void throwsException(TypeVariable typeVariable) throws CodeModelException {
+        throwsList.add(typeVariable.asType());
     }
 
     public BlockBuilder body() {
@@ -134,8 +136,8 @@ public abstract class ExecutableBuilder<T extends ExecutableType<T, D>, D extend
         private final String name;
 
         Parameter(boolean isFinal, Type type, String name) throws CodeModelException {
-            if (type.isVoid())
-                throw new CodeModelException("void is not allowed here");
+            if (!(type.isArray() || type.isObjectType() || type.isPrimitive() || type.isTypeVariable()))
+                throw new CodeModelException(type.kind() + " is not allowed here");
             this.isFinal = isFinal;
             this.type = type;
             this.name = name;

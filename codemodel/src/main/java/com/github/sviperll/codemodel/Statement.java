@@ -67,6 +67,8 @@ abstract class Statement {
         private final Expression initializer;
 
         StatementVariableDeclaration(boolean isFinal, Type type, String name, Expression initializer) {
+            if (!(type.canBeDeclaredVariableType()))
+                throw new IllegalArgumentException(type.kind() + " is not allowed here");
             this.isFinal = isFinal;
             this.type = type;
             this.name = name;

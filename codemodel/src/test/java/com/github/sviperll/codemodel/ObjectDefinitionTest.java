@@ -43,10 +43,9 @@ public class ObjectDefinitionTest {
     @Test
     public void smokeReflectedObjectShouldBePrintable() throws CodeModelException {
         CodeModel.Builder builder = CodeModel.createBuilder();
-        builder.includeLoadableClasses();
         CodeModel codeModel = builder.build();
         StringBuilder builder1 = new StringBuilder();
-        RendererContexts.createInstance(builder1).appendRenderable(codeModel.objectType().getObjectDetails().definition());
+        RendererContexts.createInstance(builder1).appendRenderable(codeModel.objectType().definition());
         System.out.println(builder1.toString());
     }
     /**
@@ -82,16 +81,14 @@ public class ObjectDefinitionTest {
         ObjectDefinition test1 = buildClass();
         CodeModel codeModel = test1.getCodeModel();
 
-        Type test1Type = test1.rawType();
-        assertTrue(test1Type.isObjectType());
-        ObjectType details = test1Type.getObjectDetails();
-        assertEquals(test1, details.definition());
-        assertTrue(details.isRaw());
+        ObjectType test1Type = test1.rawType();
+        assertEquals(test1, test1Type.definition());
+        assertTrue(test1Type.isRaw());
 
-        Type typeArgument = details.typeArguments().get(0);
+        Type typeArgument = test1Type.typeArguments().get(0);
         assertTrue(typeArgument.isObjectType());
         ObjectType typeArgumentDetails = typeArgument.getObjectDetails();
-        assertEquals(codeModel.objectType().getObjectDetails().definition(), typeArgumentDetails.definition());
+        assertEquals(codeModel.objectType().definition(), typeArgumentDetails.definition());
     }
 
     @Test
@@ -99,16 +96,14 @@ public class ObjectDefinitionTest {
         ObjectDefinition test1 = buildClass();
         CodeModel codeModel = test1.getCodeModel();
         ObjectDefinition stringDefinition = codeModel.reference(String.class.getName());
-        Type stringType = stringDefinition.rawType();
+        ObjectType stringType = stringDefinition.rawType();
 
-        Type test1Type = test1.rawType().getObjectDetails().narrow(Collections.singletonList(stringType));
-        assertTrue(test1Type.isObjectType());
-        ObjectType details = test1Type.getObjectDetails();
-        assertEquals(test1, details.definition());
-        assertFalse(details.isRaw());
-        assertTrue(details.isNarrowed());
+        ObjectType test1Type = test1.rawType().narrow(Collections.singletonList(stringType.asType()));
+        assertEquals(test1, test1Type.definition());
+        assertFalse(test1Type.isRaw());
+        assertTrue(test1Type.isNarrowed());
 
-        Type typeArgument = details.typeArguments().get(0);
+        Type typeArgument = test1Type.typeArguments().get(0);
         assertTrue(typeArgument.isObjectType());
         ObjectType typeArgumentDetails = typeArgument.getObjectDetails();
         assertEquals(stringDefinition, typeArgumentDetails.definition());
@@ -119,14 +114,14 @@ public class ObjectDefinitionTest {
         ObjectDefinition test1 = buildClass();
         CodeModel codeModel = test1.getCodeModel();
 
-        Type test1Type = test1.rawType();
-        List<MethodType> methods = test1Type.getObjectDetails().methods();
+        ObjectType test1Type = test1.rawType();
+        List<MethodType> methods = test1Type.methods();
         for (MethodType method: methods) {
             if (method.definition().name().equals("test2")) {
-                assertTrue(codeModel.objectType().getObjectDetails().sameDefinition(method.returnType()));
+                assertTrue(codeModel.objectType().sameDefinition(method.returnType().getObjectDetails()));
             }
             if (method.definition().name().equals("test3")) {
-                assertTrue(codeModel.objectType().getObjectDetails().sameDefinition(method.returnType().getObjectDetails().typeArguments().get(0)));
+                assertTrue(codeModel.objectType().sameDefinition(method.returnType().getObjectDetails().typeArguments().get(0).getObjectDetails()));
             }
         }
     }
@@ -136,32 +131,31 @@ public class ObjectDefinitionTest {
         ObjectDefinition test1 = buildClass();
         CodeModel codeModel = test1.getCodeModel();
         ObjectDefinition stringDefinition = codeModel.reference(String.class.getName());
-        Type stringType = stringDefinition.rawType();
+        ObjectType stringType = stringDefinition.rawType();
 
-        Type test1Type = test1.rawType().getObjectDetails().narrow(Collections.singletonList(stringType));
-        List<MethodType> methods = test1Type.getObjectDetails().methods();
+        ObjectType test1Type = test1.rawType().narrow(Collections.singletonList(stringType.asType()));
+        List<MethodType> methods = test1Type.methods();
         for (MethodType method: methods) {
             if (method.definition().name().equals("test2")) {
-                assertTrue(stringType.getObjectDetails().sameDefinition(method.returnType()));
+                assertTrue(stringType.sameDefinition(method.returnType().getObjectDetails()));
             }
             if (method.definition().name().equals("test3")) {
-                assertTrue(stringType.getObjectDetails().sameDefinition(method.returnType().getObjectDetails().typeArguments().get(0)));
+                assertTrue(stringType.sameDefinition(method.returnType().getObjectDetails().typeArguments().get(0).getObjectDetails()));
             }
         }
     }
 
     private ObjectDefinition buildClass() throws CodeModelException {
         CodeModel.Builder builder = CodeModel.createBuilder();
-        builder.includeLoadableClasses();
         CodeModel codeModel = builder.build();
         Package pkg = codeModel.getPackage("com.github.sviperll.codemodel.test");
-        ObjectBuilder<PackageLevelBuilder> test1 = pkg.createClass(ObjectKind.CLASS, "Test1");
+        ClassBuilder<PackageLevelBuilder> test1 = pkg.createClass("Test1");
         test1.typeParameter("T");
 
         FieldBuilder field1 = test1.field(Type.intType(), "field1");
         field1.residence().setAccessLevel(MemberAccess.PRIVATE);
 
-        FieldBuilder field2 = test1.field(Type.variable("T"), "field2");
+        FieldBuilder field2 = test1.field(Type.variable("T").asType(), "field2");
         field2.residence().setAccessLevel(MemberAccess.PROTECTED);
 
         MethodBuilder method = test1.method("test");
@@ -172,14 +166,14 @@ public class ObjectDefinitionTest {
 
         MethodBuilder method2 = test1.method("test2");
         method2.residence().setAccessLevel(MemberAccess.PUBLIC);
-        method2.resultType(Type.variable("T"));
-        method2.addParameter(Type.variable("T"), "param1");
+        method2.resultType(Type.variable("T").asType());
+        method2.addParameter(Type.variable("T").asType(), "param1");
         method2.body().returnStatement(Expression.variable("field2"));
 
         MethodBuilder method3 = test1.method("test3");
         method3.residence().setAccessLevel(MemberAccess.PUBLIC);
-        method3.resultType(test1.definition().internalType());
-        method3.addParameter(Type.variable("T"), "param1");
+        method3.resultType(test1.definition().internalType().asType());
+        method3.addParameter(Type.variable("T").asType(), "param1");
         method3.body().returnStatement(Expression.nullExpression());
 
         return test1.definition();
