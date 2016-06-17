@@ -30,39 +30,38 @@
 
 package com.github.sviperll.codemodel;
 
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
 import javax.annotation.ParametersAreNonnullByDefault;
+import javax.annotation.Nonnull;
 
 /**
  *
  * @author Victor Nazarov &lt;asviraspossible@gmail.com&gt;
- * @param <B>
  */
-@ParametersAreNonnullByDefault
-public class ClassBuilder<B extends ResidenceBuilder> extends AbstractClassBuilder<B> {
-    private boolean isFinal = false;
+abstract class NamedObjectBuilder<B extends ResidenceBuilder> extends ObjectBuilder<B> {
+    private final String name;
 
-    public ClassBuilder(B residence, String name) {
-        super(ObjectKind.CLASS, residence, name);
+    NamedObjectBuilder(ObjectKind kind, B residence, String name) {
+        super(kind, residence);
+        this.name = name;
     }
-
-    public void setFinal(boolean value) {
-        this.isFinal = value;
-    }
-
-    @Override
-    ObjectDefinition createDefinition(TypeParameters typeParameters) {
-        return new BuiltDefinition(typeParameters);
-    }
-
-    private class BuiltDefinition extends AbstractClassBuilder<B>.BuiltDefinition {
+    abstract class BuiltDefinition extends ObjectBuilder<B>.BuiltDefinition {
 
         BuiltDefinition(TypeParameters typeParameters) {
             super(typeParameters);
         }
 
         @Override
-        public boolean isFinal() {
-            return isFinal;
+        public final String simpleName() {
+            return name;
+        }
+
+        @Override
+        public final boolean isAnonymous() {
+            return false;
         }
     }
+
 }

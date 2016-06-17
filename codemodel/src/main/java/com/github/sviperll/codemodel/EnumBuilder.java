@@ -31,6 +31,7 @@
 package com.github.sviperll.codemodel;
 
 import javax.annotation.ParametersAreNonnullByDefault;
+import javax.annotation.Nonnull;
 
 /**
  *
@@ -38,31 +39,26 @@ import javax.annotation.ParametersAreNonnullByDefault;
  * @param <B>
  */
 @ParametersAreNonnullByDefault
-public class ClassBuilder<B extends ResidenceBuilder> extends AbstractClassBuilder<B> {
-    private boolean isFinal = false;
-
-    public ClassBuilder(B residence, String name) {
+public class EnumBuilder<B extends ResidenceBuilder> extends AbstractClassBuilder<B> {
+    public EnumBuilder(B residence, String name) {
         super(ObjectKind.CLASS, residence, name);
     }
 
-    public void setFinal(boolean value) {
-        this.isFinal = value;
-    }
-
+    @Nonnull
     @Override
     ObjectDefinition createDefinition(TypeParameters typeParameters) {
         return new BuiltDefinition(typeParameters);
     }
 
     private class BuiltDefinition extends AbstractClassBuilder<B>.BuiltDefinition {
-
         BuiltDefinition(TypeParameters typeParameters) {
             super(typeParameters);
         }
 
         @Override
         public boolean isFinal() {
-            return isFinal;
+            return true;
         }
     }
+
 }

@@ -44,7 +44,7 @@ import javax.annotation.ParametersAreNonnullByDefault;
  * @param <B>
  */
 @ParametersAreNonnullByDefault
-public abstract class AbstractObjectBuilder<B extends ResidenceBuilder> extends GenericDefinitionBuilder<B, ObjectType, ObjectDefinition> {
+abstract class ObjectBuilder<B extends ResidenceBuilder> extends GenericDefinitionBuilder<B, ObjectType, ObjectDefinition> {
     private final List<MethodDefinition> methods = new ArrayList<>();
     private final Map<String, FieldDeclaration> fields = new TreeMap<>();
     private final List<ObjectInitializationElement> staticInitOrdering = new ArrayList<>();
@@ -54,7 +54,7 @@ public abstract class AbstractObjectBuilder<B extends ResidenceBuilder> extends 
     private final B residence;
     private final ObjectKind kind;
 
-    AbstractObjectBuilder(ObjectKind kind, B residence) {
+    ObjectBuilder(ObjectKind kind, B residence) {
         super(residence);
         if ((kind == ObjectKind.INTERFACE || kind == ObjectKind.ENUM || kind == ObjectKind.ANNOTATION)
                 && residence.residence().isNested()
@@ -113,6 +113,17 @@ public abstract class AbstractObjectBuilder<B extends ResidenceBuilder> extends 
         innerClasses.put(name, result.definition());
         return result;
     }
+
+    /*
+    public EnumBuilder<NestingBuilder> nestedEnum(String name) throws CodeModelException {
+        if (innerClasses.containsKey(name))
+            throw new CodeModelException(definition().qualifiedName() + "." + name + " already defined");
+        NestingBuilder classResidence = new NestingBuilder(true, definition());
+        EnumBuilder<NestingBuilder> result = new EnumBuilder<>(classResidence, name);
+        innerClasses.put(name, result.definition());
+        return result;
+    }
+    */
 
     public MethodBuilder method(String name) throws CodeModelException {
         NestingBuilder methodResidence = new NestingBuilder(false, definition());
