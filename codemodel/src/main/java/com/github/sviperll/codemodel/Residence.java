@@ -113,18 +113,19 @@ public abstract class Residence implements Renderable {
         return new Renderer() {
             @Override
             public void render() {
-                if (isPackageLevel()) {
+                if (isLocal()) {
+                    // Render nothing
+                } else if (isPackageLevel()) {
                     if (getPackageLevelDetails().isPublic())
                         context.appendText("public");
-                } else {
+                } else if (isNested()) {
                     Nesting nesting = getNesting();
-                    MemberAccess accessLevel = nesting.accessLevel();
-                    if (accessLevel != MemberAccess.PACKAGE)
-                        context.appendText(accessLevel.name().toLowerCase(Locale.US));
+                    context.appendRenderable(nesting.accessLevel());
                     context.appendWhiteSpace();
-                    if (nesting.isStatic())
+                    if (nesting.isStatic() && !nesting.parent().kind().isInterface())
                         context.appendText("static");
-                }
+                } else
+                    throw new IllegalStateException("Rendering unsupported residence " + kind());
             }
 
         };

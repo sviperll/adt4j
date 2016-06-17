@@ -54,12 +54,12 @@ public abstract class AbstractObjectBuilder<B extends ResidenceBuilder> extends 
     private final B residence;
     private final ObjectKind kind;
 
-    AbstractObjectBuilder(ObjectKind kind, B residence) throws CodeModelException {
+    AbstractObjectBuilder(ObjectKind kind, B residence) {
         super(residence);
         if ((kind == ObjectKind.INTERFACE || kind == ObjectKind.ENUM || kind == ObjectKind.ANNOTATION)
                 && residence.residence().isNested()
                 && !residence.residence().getNesting().isStatic()) {
-            throw new CodeModelException("Interface, enum or annotation should always be static when nested in other class");
+            throw new IllegalArgumentException("Interface, enum or annotation should always be static when nested in other class");
         }
         this.residence = residence;
         this.kind = kind;
@@ -76,7 +76,7 @@ public abstract class AbstractObjectBuilder<B extends ResidenceBuilder> extends 
         return result;
     }
 
-    public FieldBuilder field(Type type, String name) throws CodeModelException {
+    FieldBuilder field(Type type, String name) throws CodeModelException {
         if (fields.containsKey(name)) {
             throw new CodeModelException(definition().qualifiedName() + "." + name + " already defined");
         }
@@ -96,11 +96,20 @@ public abstract class AbstractObjectBuilder<B extends ResidenceBuilder> extends 
         return result;
     }
 
-    public ClassBuilder<NestingBuilder> innerClass(String name) throws CodeModelException {
+    ClassBuilder<NestingBuilder> innerClass(String name) throws CodeModelException {
         if (innerClasses.containsKey(name))
             throw new CodeModelException(definition().qualifiedName() + "." + name + " already defined");
         NestingBuilder classResidence = new NestingBuilder(false, definition());
         ClassBuilder<NestingBuilder> result = new ClassBuilder<>(classResidence, name);
+        innerClasses.put(name, result.definition());
+        return result;
+    }
+
+    public InterfaceBuilder<NestingBuilder> nestedInterface(String name) throws CodeModelException {
+        if (innerClasses.containsKey(name))
+            throw new CodeModelException(definition().qualifiedName() + "." + name + " already defined");
+        NestingBuilder classResidence = new NestingBuilder(true, definition());
+        InterfaceBuilder<NestingBuilder> result = new InterfaceBuilder<>(classResidence, name);
         innerClasses.put(name, result.definition());
         return result;
     }

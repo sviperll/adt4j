@@ -35,7 +35,6 @@ import com.github.sviperll.codemodel.render.RendererContext;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Locale;
 import javax.annotation.ParametersAreNonnullByDefault;
 
 /**
@@ -118,34 +117,43 @@ public abstract class ObjectDefinition extends GenericDefinition<ObjectType, Obj
 
     @Override
     public final Renderer createRenderer(final RendererContext context) {
+        if (isJavaLangObject())
+            throw new IllegalStateException("java.lang.Object class definition is not renderable");
         return new Renderer() {
             @Override
             public void render() {
-                context.appendRenderable(residence());
+                if (!kind().implicitlyStatic() || !residence().isNested())
+                    context.appendRenderable(residence());
+                else {
+                    Nesting nesting = residence().getNesting();
+                    context.appendRenderable(nesting.accessLevel());
+                }
                 context.appendWhiteSpace();
-                if (isFinal())
+                if (!kind().implicitlyFinal() && isFinal())
                     context.appendText("final");
                 context.appendWhiteSpace();
-                if (kind() == ObjectKind.ANNOTATION)
-                    context.appendText("@interface");
-                else
-                    context.appendText(kind().name().toLowerCase(Locale.US));
+                context.appendRenderable(kind());
                 context.appendWhiteSpace();
                 context.appendText(simpleName());
                 context.appendRenderable(typeParameters());
-                if (!isJavaLangObject()) {
+                if (kind().extendsSomeClass() && !extendsClass().isJavaLangObject()) {
                     context.appendText(" extends ");
                     context.appendRenderable(extendsClass());
                 }
-                Iterator<ObjectType> interfaces = implementsInterfaces().iterator();
-                if (interfaces.hasNext()) {
-                    context.appendText(" implements ");
-                    ObjectType implementedInterface = interfaces.next();
-                    context.appendRenderable(implementedInterface);
-                    while (interfaces.hasNext()) {
-                        context.appendText(", ");
-                        implementedInterface = interfaces.next();
+                if (kind().implementsSomeInterfaces()) {
+                    Iterator<ObjectType> interfaces = implementsInterfaces().iterator();
+                    if (interfaces.hasNext()) {
+                        if (kind().isInterface())
+                            context.appendText(" extends ");
+                        else
+                            context.appendText(" implements ");
+                        ObjectType implementedInterface = interfaces.next();
                         context.appendRenderable(implementedInterface);
+                        while (interfaces.hasNext()) {
+                            context.appendText(", ");
+                            implementedInterface = interfaces.next();
+                            context.appendRenderable(implementedInterface);
+                        }
                     }
                 }
                 context.appendWhiteSpace();

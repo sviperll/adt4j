@@ -77,6 +77,15 @@ public final class Package implements Model {
         return result;
     }
 
+    public InterfaceBuilder<PackageLevelBuilder> createInterface(String className) throws CodeModelException {
+        if (reference(className) != null)
+            throw new CodeModelException(packageAsNamePrefix() + className + " already defined");
+        PackageLevelBuilder membershipBuilder = new PackageLevelBuilder(this);
+        InterfaceBuilder<PackageLevelBuilder> result = new InterfaceBuilder<>(membershipBuilder, className);
+        classes.put(className, result.definition());
+        return result;
+    }
+
     ObjectDefinition reference(String relativelyQualifiedName) {
         int index = relativelyQualifiedName.indexOf('.');
         if (index == 0)

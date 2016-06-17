@@ -29,11 +29,27 @@
  */
 package com.github.sviperll.codemodel;
 
+import com.github.sviperll.codemodel.render.Renderable;
+import com.github.sviperll.codemodel.render.Renderer;
+import com.github.sviperll.codemodel.render.RendererContext;
+import java.util.Locale;
+
 /**
  * Denotes access level to class' members: methods, fields and inner-classes
  * 
  * @author Victor Nazarov &lt;asviraspossible@gmail.com&gt;
  */
-public enum MemberAccess {
+public enum MemberAccess implements Renderable {
     PRIVATE, PACKAGE, PROTECTED, PUBLIC;
+
+    @Override
+    public Renderer createRenderer(final RendererContext context) {
+        return new Renderer() {
+            @Override
+            public void render() {
+                if (MemberAccess.this != PACKAGE)
+                    context.appendText(name().toLowerCase(Locale.US));
+            }
+        };
+    }
 }

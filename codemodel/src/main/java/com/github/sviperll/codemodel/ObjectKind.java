@@ -30,6 +30,10 @@
 
 package com.github.sviperll.codemodel;
 
+import com.github.sviperll.codemodel.render.Renderable;
+import com.github.sviperll.codemodel.render.Renderer;
+import com.github.sviperll.codemodel.render.RendererContext;
+import java.util.Locale;
 import javax.annotation.ParametersAreNonnullByDefault;
 
 /**
@@ -37,7 +41,7 @@ import javax.annotation.ParametersAreNonnullByDefault;
  * @author Victor Nazarov &lt;asviraspossible@gmail.com&gt;
  */
 @ParametersAreNonnullByDefault
-public enum ObjectKind {
+public enum ObjectKind implements Renderable {
     CLASS, INTERFACE, ANNOTATION, ENUM;
 
     public boolean isClass() {
@@ -51,5 +55,34 @@ public enum ObjectKind {
     }
     public boolean isEnum() {
         return this == ENUM;
+    }
+
+    @Override
+    public Renderer createRenderer(final RendererContext context) {
+        return new Renderer() {
+            @Override
+            public void render() {
+                if (ObjectKind.this == ANNOTATION)
+                    context.appendText("@interface");
+                else
+                    context.appendText(name().toLowerCase(Locale.US));
+            }
+        };
+    }
+
+    public boolean implicitlyFinal() {
+        return isEnum() || isAnnotation();
+    }
+
+    public boolean implicitlyStatic() {
+        return isEnum() || isAnnotation();
+    }
+
+    public boolean extendsSomeClass() {
+        return isClass() || isEnum();
+    }
+
+    boolean implementsSomeInterfaces() {
+        return !isAnnotation();
     }
 }

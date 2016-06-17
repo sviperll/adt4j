@@ -35,6 +35,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import javax.annotation.ParametersAreNonnullByDefault;
+import javax.annotation.Nonnull;
 
 /**
  *
@@ -42,57 +43,22 @@ import javax.annotation.ParametersAreNonnullByDefault;
  * @param <B>
  */
 @ParametersAreNonnullByDefault
-public class ClassBuilder<B extends ResidenceBuilder> extends AbstractObjectBuilder<B> {
+public class InterfaceBuilder<B extends ResidenceBuilder> extends AbstractObjectBuilder<B> {
+
     private final String name;
     private final List<ObjectType> interfaces = new ArrayList<>();
-    private boolean isFinal = false;
-    private ObjectType extendsClass = null;
-    private final List<ConstructorDefinition> constructors = new ArrayList<>();
 
-    public ClassBuilder(B residence, String name) {
+    public InterfaceBuilder(B residence, String name) {
         super(ObjectKind.CLASS, residence);
         this.name = name;
     }
 
-    public void setFinal(boolean value) {
-        this.isFinal = value;
-    }
-
-    public void extendsClass(ObjectType type) throws CodeModelException {
-        if (this.extendsClass != null)
-             throw new CodeModelException("Already extended");
-        if (!type.definition().kind().isClass())
-             throw new CodeModelException("Only classes can be extended");
-        if (!type.definition().isFinal())
-            throw new CodeModelException("Trying to extend final class");
-        if (type.containsWildcards())
-             throw new CodeModelException("Wildcards are not allowed in extends clause");
-        this.extendsClass = type;
-    }
-
-    public void implementsInterface(ObjectType type) throws CodeModelException {
+    public void extendsInterface(ObjectType type) throws CodeModelException {
         if (!type.definition().kind().isInterface())
             throw new CodeModelException("Only interfaces can be implemented");
         if (type.containsWildcards())
              throw new CodeModelException("Wildcards are not allowed in implemenents clause");
         interfaces.add(type);
-    }
-
-    public ConstructorBuilder addConstructor() throws CodeModelException {
-        NestingBuilder methodResidence = new NestingBuilder(false, definition());
-        ConstructorBuilder result = new ConstructorBuilder(methodResidence);
-        constructors.add(result.definition());
-        return result;
-    }
-
-    @Override
-    public FieldBuilder field(Type type, String name) throws CodeModelException {
-        return super.field(type, name);
-    }
-
-    @Override
-    public ClassBuilder<NestingBuilder> innerClass(String name) throws CodeModelException {
-        return super.innerClass(name);
     }
 
     @Override
@@ -113,12 +79,12 @@ public class ClassBuilder<B extends ResidenceBuilder> extends AbstractObjectBuil
 
         @Override
         public boolean isFinal() {
-            return isFinal;
+            return false;
         }
 
         @Override
         public ObjectType extendsClass() {
-            return extendsClass != null ? extendsClass : getCodeModel().objectType();
+            return getCodeModel().objectType();
         }
 
         @Override
@@ -128,7 +94,7 @@ public class ClassBuilder<B extends ResidenceBuilder> extends AbstractObjectBuil
 
         @Override
         public Collection<ConstructorDefinition> constructors() {
-            return constructors;
+            return Collections.emptyList();
         }
 
         @Override
@@ -136,4 +102,5 @@ public class ClassBuilder<B extends ResidenceBuilder> extends AbstractObjectBuil
             return false;
         }
     }
+
 }

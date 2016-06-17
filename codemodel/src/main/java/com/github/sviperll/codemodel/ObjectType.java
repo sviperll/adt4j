@@ -107,6 +107,10 @@ public abstract class ObjectType extends GenericType<ObjectType, ObjectDefinitio
         return constructors;
     }
 
+    public boolean isJavaLangObject() {
+        return definition().isJavaLangObject();
+    }
+
     @Override
     public Renderer createRenderer(final RendererContext context) {
         return new Renderer() {
@@ -130,4 +134,5 @@ public abstract class ObjectType extends GenericType<ObjectType, ObjectDefinitio
             }
         };
     }
+
 }

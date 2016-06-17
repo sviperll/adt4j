@@ -45,9 +45,10 @@ public class ObjectDefinitionTest {
         CodeModel.Builder builder = CodeModel.createBuilder();
         CodeModel codeModel = builder.build();
         StringBuilder builder1 = new StringBuilder();
-        RendererContexts.createInstance(builder1).appendRenderable(codeModel.objectType().definition());
+        RendererContexts.createInstance(builder1).appendRenderable(codeModel.reference(String.class.getName()));
         System.out.println(builder1.toString());
     }
+
     /**
      * Test of isFinal method, of class ObjectDefinition.
      */
@@ -55,7 +56,7 @@ public class ObjectDefinitionTest {
     public void smokePrettyPrinting() throws CodeModelException {
         ObjectDefinition test1 = buildClass();
         String result =
-            "class Test1<T extends java.lang.Object> extends java.lang.Object {\n" +
+            "class Test1<T extends java.lang.Object> {\n" +
             "    private int field1;\n" +
             "    protected T field2;\n" +
             "\n" +

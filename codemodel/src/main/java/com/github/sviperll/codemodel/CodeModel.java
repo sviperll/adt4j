@@ -73,8 +73,8 @@ public final class CodeModel {
         return defaultPackage.getChildPackageBySuffix(qualifiedName);
     }
 
-    public ClassBuilder<PackageLevelBuilder> createDefaultPackageClass(String name) throws CodeModelException {
-        return defaultPackage.createClass(name);
+    public Package defaultPackage() {
+        return defaultPackage;
     }
 
     public ObjectDefinition reference(String qualifiedName) {
