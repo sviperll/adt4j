@@ -34,7 +34,9 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import javax.annotation.ParametersAreNonnullByDefault;
 
 /**
  *
@@ -42,10 +44,13 @@ import javax.annotation.Nullable;
  * @param <T>
  * @param <D>
  */
+@ParametersAreNonnullByDefault
 public abstract class GenericType<T extends GenericType<T, D>, D extends GenericDefinition<T, D>> {
+    @Nonnull
     static <T extends GenericType<T, D>, D extends GenericDefinition<T, D>> T createRawType(GenericDefinition<T, D> definition) {
         return definition.createType(new Raw<>(definition, null));
     }
+    @Nonnull
     static <T extends GenericType<T, D>, D extends GenericDefinition<T, D>> T createRawType(GenericDefinition<T, D> definition, GenericType<?, ?> capturedEnclosingType) {
         return definition.createType(new Raw<>(definition, capturedEnclosingType));
     }
@@ -56,8 +61,10 @@ public abstract class GenericType<T extends GenericType<T, D>, D extends Generic
         this.implementation = implementation;
     }
 
+    @Nonnull
     public abstract D definition();
 
+    @Nonnull
     public final T erasure() {
         return implementation.erasure(this);
     }
@@ -70,33 +77,52 @@ public abstract class GenericType<T extends GenericType<T, D>, D extends Generic
         return implementation.isRaw();
     }
 
+    /**
+     * Narrowed type for given raw-type.
+     * Throws UnsupportedOperationException when applied to already narrowed type. Use with raw-types only.
+     * @see GenericType#isNarrowed()
+     * @see GenericType#isRaw()
+     * @throws UnsupportedOperationException
+     * @param typeArguments
+     * @return Narrowed type for this raw-type.
+     */
+    @Nonnull
     public final T narrow(List<Type> typeArguments) {
         return implementation.narrow(this, typeArguments);
     }
 
+    @Nonnull
     public final List<Type> typeArguments() {
         return implementation.typeArguments(this);
     }
 
+    @Nonnull
     public abstract T asSpecificType();
+
+    public final boolean hasCapturedEnclosingType() {
+        return implementation.hasCapturedEnclosingType();
+    }
 
     /**
      * Type of enclosing definition that defines a context for current type.
-     *
-     * @return Type of enclosing definition or null for types with package-level or static member definitions.
+     * Throws UnsupportedOperationException when there is no captured enclosing type.
+     * @see GenericType#hasCapturedEnclosingType()
+     * @throws UnsupportedOperationException
+     * @return Type of enclosing definition
      */
-    @Nullable
-    public final GenericType<?, ?> capturedEnclosingType() {
-        return implementation.capturedEnclosingType();
+    @Nonnull
+    public final GenericType<?, ?> getCapturedEnclosingType() {
+        return implementation.getCapturedEnclosingType();
     }
 
+    @Nonnull
     final T substitute(Substitution substitution) {
         return implementation.createGenericType(this, implementation.substitute(substitution));
     }
 
+    @Nonnull
     final Substitution definitionEnvironment() {
         if (definitionEnvironment == null) {
-            GenericType<?, ?> enclosingType = capturedEnclosingType();
             Substitution.Builder builder;
             builder = Substitution.createBuilder();
             D definition = definition();
@@ -108,7 +134,7 @@ public abstract class GenericType<T extends GenericType<T, D>, D extends Generic
                 builder.put(typeParameter.name(), typeArgument);
             }
             Substitution result = builder.build();
-            result = enclosingType == null ? result : result.andThen(enclosingType.definitionEnvironment());
+            result = !hasCapturedEnclosingType() ? result : result.andThen(getCapturedEnclosingType().definitionEnvironment());
             definitionEnvironment = result;
         }
         return definitionEnvironment;
@@ -119,20 +145,51 @@ public abstract class GenericType<T extends GenericType<T, D>, D extends Generic
         private Implementation(GenericDefinition<T, D> definition) {
             this.definition = definition;
         }
+
+        /**
+         * Narrowed type for given raw-type.
+         * Throws UnsupportedOperationException when applied to already narrowed type. Use with raw-types only.
+         * @see Implementation#isNarrowed()
+         * @see Implementation#isRaw()
+         * @throws UnsupportedOperationException
+         * @param thisGenericType raw-type to narrow
+         * @param typeArguments
+         * @return Narrowed type for given raw-type.
+         */
+        @Nonnull
         abstract T narrow(GenericType<T, D> thisGenericType, List<Type> typeArguments);
+
+        @Nonnull
         abstract T erasure(GenericType<T, D> thisGenericType);
         abstract boolean isRaw();
         abstract boolean isNarrowed();
-        abstract List<Type> typeArguments(GenericType<T, D> thisGenericType);
-        abstract GenericType<?, ?> capturedEnclosingType();
 
+        @Nonnull
+        abstract List<Type> typeArguments(GenericType<T, D> thisGenericType);
+
+        /**
+         * Type of enclosing definition that defines a context for current type.
+         * Throws UnsupportedOperationException when there is no captured enclosing type.
+         * @see Implementation#hasCapturedEnclosingType()
+         * @throws UnsupportedOperationException
+         * @return Type of enclosing definition
+         */
+        @Nonnull
+        abstract GenericType<?, ?> getCapturedEnclosingType();
+
+        abstract boolean hasCapturedEnclosingType();
+
+        @Nonnull
         Implementation<T, D> substitute(Substitution nextSubstitution) {
             return new SubstitutedArgumentsImplementation<>(definition(), this, nextSubstitution);
         }
 
+        @Nonnull
         final GenericDefinition<T, D> definition() {
             return definition;
         }
+
+        @Nonnull
         final T createGenericType(GenericType<T, D> thisGenericType, Implementation<T, D> implementation) {
             return definition.createType(implementation);
         }
@@ -182,8 +239,13 @@ public abstract class GenericType<T extends GenericType<T, D>, D extends Generic
         }
 
         @Override
-        GenericType<?, ?> capturedEnclosingType() {
-            return original.capturedEnclosingType();
+        boolean hasCapturedEnclosingType() {
+            return original.hasCapturedEnclosingType();
+        }
+
+        @Override
+        GenericType<?, ?> getCapturedEnclosingType() {
+            return original.getCapturedEnclosingType();
         }
 
         @Override
@@ -195,7 +257,7 @@ public abstract class GenericType<T extends GenericType<T, D>, D extends Generic
         private List<Type> typeArguments = null;
         private final GenericType<?, ?> capturedEnclosingType;
 
-        Raw(GenericDefinition<T, D> factory, GenericType<?, ?> capturedEnclosingType) {
+        Raw(GenericDefinition<T, D> factory, @Nullable GenericType<?, ?> capturedEnclosingType) {
             super(factory);
             this.capturedEnclosingType = capturedEnclosingType;
         }
@@ -248,8 +310,16 @@ public abstract class GenericType<T extends GenericType<T, D>, D extends Generic
         }
 
         @Override
-        GenericType<?, ?> capturedEnclosingType() {
-            return capturedEnclosingType;
+        boolean hasCapturedEnclosingType() {
+            return capturedEnclosingType != null;
+        }
+
+        @Override
+        GenericType<?, ?> getCapturedEnclosingType() {
+            if (capturedEnclosingType == null)
+                throw new UnsupportedOperationException("No captured enclosing type. See ");
+            else
+                return capturedEnclosingType;
         }
     }
 
@@ -295,8 +365,13 @@ public abstract class GenericType<T extends GenericType<T, D>, D extends Generic
         }
 
         @Override
-        GenericType<?, ?> capturedEnclosingType() {
-            return erasure.capturedEnclosingType();
+        boolean hasCapturedEnclosingType() {
+            return erasure.hasCapturedEnclosingType();
+        }
+
+        @Override
+        GenericType<?, ?> getCapturedEnclosingType() {
+            return erasure.getCapturedEnclosingType();
         }
     }
 }

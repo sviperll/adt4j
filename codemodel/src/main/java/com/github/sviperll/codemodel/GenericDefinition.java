@@ -32,6 +32,7 @@ package com.github.sviperll.codemodel;
 
 import com.github.sviperll.codemodel.render.Renderable;
 import java.util.List;
+import javax.annotation.Nonnull;
 
 /**
  *
@@ -46,20 +47,30 @@ public abstract class GenericDefinition<T extends GenericType<T, D>, D extends G
     GenericDefinition() {
     }
 
+    @Nonnull
     public abstract TypeParameters typeParameters();
+
+    @Nonnull
     abstract T createType(GenericType.Implementation<T, D> implementation);
 
     public final boolean isGeneric() {
         if (!typeParameters().all().isEmpty())
             return true;
         else {
-            GenericDefinition<?, ?> context = residence().contextDefinition();
-            return context != null && context.isGeneric();
+            return residence().hasContextDefintion() && residence().getContextDefinition().isGeneric();
         }
     }
 
+    /**
+     * Raw type defined by this definition.
+     * Throws UnsupportedOperationException if used for definitions that require context: inner classes.
+     * @see Residence#hasContextDefintion()
+     * @throws UnsupportedOperationException
+     * @return Raw type defined by this definition.
+     */
+    @Nonnull
     public final T rawType() {
-        if (residence().contextDefinition() != null) {
+        if (residence().hasContextDefintion()) {
             throw new UnsupportedOperationException("Parent instance type is required");
         } else {
             if (rawType == null)
@@ -68,8 +79,17 @@ public abstract class GenericDefinition<T extends GenericType<T, D>, D extends G
         }
     }
 
+    /**
+     * Raw type defined by this definition.
+     * @param capturedEnclosingType type of enclosing definition that is required to form a type of inner class.
+     * Throws UnsupportedOperationException if this definition doesn't use any context: is static or top-level.
+     * @see Residence#hasContextDefintion()
+     * @throws UnsupportedOperationException
+     * @return Raw type defined by this definition.
+     */
+    @Nonnull
     public final T rawType(GenericType<?, ?> capturedEnclosingType) {
-        if (residence().contextDefinition() == null) {
+        if (!residence().hasContextDefintion()) {
             throw new UnsupportedOperationException("Type is static memeber, no parent is expected.");
         } else {
             return GenericType.createRawType(this, capturedEnclosingType);
@@ -80,13 +100,13 @@ public abstract class GenericDefinition<T extends GenericType<T, D>, D extends G
      * Type of this definition usable inside definition.
      * @return type usable inside it's own definition.
      */
+    @Nonnull
     public final T internalType() {
-        GenericDefinition<?, ?> contextDefinition = residence().contextDefinition();
         T internalRawType;
-        if (contextDefinition == null) {
+        if (!residence().hasContextDefintion()) {
             internalRawType = rawType();
         } else {
-            internalRawType = rawType(contextDefinition.internalType());
+            internalRawType = rawType(residence().getContextDefinition().internalType());
         }
         List<Type> internalTypeArguments = typeParameters().asInternalTypeArguments();
         return internalRawType.narrow(internalTypeArguments);

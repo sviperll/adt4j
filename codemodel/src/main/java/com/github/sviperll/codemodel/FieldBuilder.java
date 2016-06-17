@@ -30,10 +30,15 @@
 
 package com.github.sviperll.codemodel;
 
+import com.github.sviperll.codemodel.render.Renderable;
+import javax.annotation.Nonnull;
+import javax.annotation.ParametersAreNonnullByDefault;
+
 /**
  *
  * @author Victor Nazarov &lt;asviraspossible@gmail.com&gt;
  */
+@ParametersAreNonnullByDefault
 public class FieldBuilder implements SettledBuilder<NestingBuilder> {
 
     private final FieldDeclaration declaration = new BuiltFieldDeclaration();
@@ -57,6 +62,7 @@ public class FieldBuilder implements SettledBuilder<NestingBuilder> {
         return residence;
     }
 
+    @Nonnull
     public FieldDeclaration declaration() {
         return declaration;
     }
@@ -99,9 +105,9 @@ public class FieldBuilder implements SettledBuilder<NestingBuilder> {
         }
 
         @Override
-        Expression getInitialValue() {
+        Renderable getInitialValue() {
             if (!isInitialized)
-                throw new IllegalStateException("Field is not initialized");
+                throw new UnsupportedOperationException("Field is not initialized. Use isInitialized method for check");
             else
                 return initializer;
         }

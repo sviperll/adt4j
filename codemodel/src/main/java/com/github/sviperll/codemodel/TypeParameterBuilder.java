@@ -33,11 +33,14 @@ package com.github.sviperll.codemodel;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import javax.annotation.Nonnull;
+import javax.annotation.ParametersAreNonnullByDefault;
 
 /**
  *
  * @author Victor Nazarov &lt;asviraspossible@gmail.com&gt;
  */
+@ParametersAreNonnullByDefault
 public class TypeParameterBuilder {
     private final BuiltTypeParameter declaration = new BuiltTypeParameter();
     private final GenericDefinition<?, ?> declaredIn;
@@ -51,6 +54,7 @@ public class TypeParameterBuilder {
         effectiveBound = declaredIn.getCodeModel().objectType().asType();
     }
 
+    @Nonnull
     TypeParameter declaration() {
         return declaration;
     }

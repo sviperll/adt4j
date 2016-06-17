@@ -67,7 +67,7 @@ public class Precedence {
         private final String op;
         private final PrecedenceRenderable right;
 
-        public LeftAssociativeExpressionRenderable(PrecedenceRenderable left, String op, PrecedenceRenderable right) {
+        LeftAssociativeExpressionRenderable(PrecedenceRenderable left, String op, PrecedenceRenderable right) {
             this.left = left;
             this.op = op;
             this.right = right;
@@ -95,7 +95,7 @@ public class Precedence {
         private final String op;
         private final PrecedenceRenderable right;
 
-        public RightAssociativeExpressionRenderable(PrecedenceRenderable left, String op, PrecedenceRenderable right) {
+        RightAssociativeExpressionRenderable(PrecedenceRenderable left, String op, PrecedenceRenderable right) {
             this.left = left;
             this.op = op;
             this.right = right;

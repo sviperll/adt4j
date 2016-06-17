@@ -34,6 +34,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
+import javax.annotation.Nonnull;
 import javax.annotation.ParametersAreNonnullByDefault;
 
 /**
@@ -54,12 +55,15 @@ public abstract class GenericDefinitionBuilder<B extends ResidenceBuilder, T ext
         this.residence = residence;
     }
 
+    @Nonnull
     public final D definition() {
         return createDefinition(new BuiltTypeParameters());
     }
 
+    @Nonnull
     abstract D createDefinition(TypeParameters typeParameters);
 
+    @Nonnull
     public TypeParameterBuilder typeParameter(String name) throws CodeModelException {
         if (typeParametersMap.containsKey(name)) {
             throw new CodeModelException(name + " type-parameter already defined");
@@ -71,12 +75,12 @@ public abstract class GenericDefinitionBuilder<B extends ResidenceBuilder, T ext
     }
 
     @Override
-    final public B residence() {
+    public final B residence() {
         return residence;
     }
 
     @Override
-    final public CodeModel getCodeModel() {
+    public final CodeModel getCodeModel() {
         return residence.getCodeModel();
     }
 
@@ -93,16 +97,16 @@ public abstract class GenericDefinitionBuilder<B extends ResidenceBuilder, T ext
             if (result != null)
                 return result;
             else {
-                if (residence.residence().contextDefinition() == null)
+                if (!residence.residence().hasContextDefintion())
                     return null;
                 else {
-                    return residence.residence().contextDefinition().typeParameters().get(name);
+                    return residence.residence().getContextDefinition().typeParameters().get(name);
                 }
             }
         }
 
         @Override
-        public Residence residence() {
+        public final Residence residence() {
             return residence.residence();
         }
     }

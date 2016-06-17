@@ -31,6 +31,7 @@
 package com.github.sviperll.codemodel;
 
 import java.util.List;
+import javax.annotation.Nonnull;
 import javax.annotation.ParametersAreNonnullByDefault;
 
 /**
@@ -49,19 +50,24 @@ public abstract class ExecutableType<T extends ExecutableType<T, D>, D extends E
         this.implementation = implementation;
     }
 
+    @Nonnull
     public final List<VariableDeclaration> parameters() {
         return implementation.parameters(this);
     }
 
+    @Nonnull
     public final List<Type> throwsList() {
         return implementation.throwsList(this);
     }
 
     interface Implementation<T extends ExecutableType<T, D>, D extends ExecutableDefinition<T, D>> {
+        @Nonnull
         GenericType.Implementation<T, D> genericTypeImplementation();
 
+        @Nonnull
         List<VariableDeclaration> parameters(ExecutableType<T, D> thisType);
 
+        @Nonnull
         List<Type> throwsList(ExecutableType<T, D> thisType);
     }
 }

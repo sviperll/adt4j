@@ -45,7 +45,7 @@ public class ObjectDefinitionTest {
         CodeModel.Builder builder = CodeModel.createBuilder();
         CodeModel codeModel = builder.build();
         StringBuilder builder1 = new StringBuilder();
-        RendererContexts.createInstance(builder1).appendRenderable(codeModel.reference(String.class.getName()));
+        RendererContexts.createInstance(builder1).appendRenderable(codeModel.getReference(String.class.getName()));
         System.out.println(builder1.toString());
     }
 
@@ -96,7 +96,7 @@ public class ObjectDefinitionTest {
     public void smokeNarrowedTypes() throws CodeModelException {
         ObjectDefinition test1 = buildClass();
         CodeModel codeModel = test1.getCodeModel();
-        ObjectDefinition stringDefinition = codeModel.reference(String.class.getName());
+        ObjectDefinition stringDefinition = codeModel.getReference(String.class.getName());
         ObjectType stringType = stringDefinition.rawType();
 
         ObjectType test1Type = test1.rawType().narrow(Collections.singletonList(stringType.asType()));
@@ -131,7 +131,7 @@ public class ObjectDefinitionTest {
     public void smokeNarrowedMethodTypes() throws CodeModelException {
         ObjectDefinition test1 = buildClass();
         CodeModel codeModel = test1.getCodeModel();
-        ObjectDefinition stringDefinition = codeModel.reference(String.class.getName());
+        ObjectDefinition stringDefinition = codeModel.getReference(String.class.getName());
         ObjectType stringType = stringDefinition.rawType();
 
         ObjectType test1Type = test1.rawType().narrow(Collections.singletonList(stringType.asType()));

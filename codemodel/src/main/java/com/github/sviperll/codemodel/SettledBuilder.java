@@ -30,6 +30,7 @@
 
 package com.github.sviperll.codemodel;
 
+import javax.annotation.Nonnull;
 import javax.annotation.ParametersAreNonnullByDefault;
 
 /**
@@ -39,5 +40,6 @@ import javax.annotation.ParametersAreNonnullByDefault;
  */
 @ParametersAreNonnullByDefault
 public interface SettledBuilder<B extends ResidenceBuilder> {
+    @Nonnull
     B residence();
 }

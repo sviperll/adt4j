@@ -36,6 +36,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
+import javax.annotation.Nonnull;
 import javax.annotation.ParametersAreNonnullByDefault;
 
 /**
@@ -65,6 +66,7 @@ abstract class ObjectBuilder<B extends ResidenceBuilder> extends GenericDefiniti
         this.kind = kind;
     }
 
+    @Nonnull
     public FieldBuilder staticField(Type type, String name) throws CodeModelException {
         if (fields.containsKey(name)) {
             throw new CodeModelException(definition().qualifiedName() + "." + name + " already defined");
@@ -76,7 +78,9 @@ abstract class ObjectBuilder<B extends ResidenceBuilder> extends GenericDefiniti
         return result;
     }
 
-    FieldBuilder field(Type type, String name) throws CodeModelException {
+    // Should be exposed as public by ClassBuilder and EnumBuilder subclasses that want to allow nonstatic field definition
+    @Nonnull
+    protected FieldBuilder field(Type type, String name) throws CodeModelException {
         if (fields.containsKey(name)) {
             throw new CodeModelException(definition().qualifiedName() + "." + name + " already defined");
         }
@@ -87,6 +91,7 @@ abstract class ObjectBuilder<B extends ResidenceBuilder> extends GenericDefiniti
         return result;
     }
 
+    @Nonnull
     public ClassBuilder<NestingBuilder> staticNestedClass(String name) throws CodeModelException {
         if (innerClasses.containsKey(name))
             throw new CodeModelException(definition().qualifiedName() + "." + name + " already defined");
@@ -96,7 +101,9 @@ abstract class ObjectBuilder<B extends ResidenceBuilder> extends GenericDefiniti
         return result;
     }
 
-    ClassBuilder<NestingBuilder> innerClass(String name) throws CodeModelException {
+    // Should be exposed as public by ClassBuilder and EnumBuilder subclasses that want to allow nonstatic field definition
+    @Nonnull
+    protected ClassBuilder<NestingBuilder> innerClass(String name) throws CodeModelException {
         if (innerClasses.containsKey(name))
             throw new CodeModelException(definition().qualifiedName() + "." + name + " already defined");
         NestingBuilder classResidence = new NestingBuilder(false, definition());
@@ -105,6 +112,7 @@ abstract class ObjectBuilder<B extends ResidenceBuilder> extends GenericDefiniti
         return result;
     }
 
+    @Nonnull
     public InterfaceBuilder<NestingBuilder> nestedInterface(String name) throws CodeModelException {
         if (innerClasses.containsKey(name))
             throw new CodeModelException(definition().qualifiedName() + "." + name + " already defined");
@@ -125,6 +133,7 @@ abstract class ObjectBuilder<B extends ResidenceBuilder> extends GenericDefiniti
     }
     */
 
+    @Nonnull
     public MethodBuilder method(String name) throws CodeModelException {
         NestingBuilder methodResidence = new NestingBuilder(false, definition());
         MethodBuilder result = new MethodBuilder(methodResidence, name);
@@ -132,6 +141,7 @@ abstract class ObjectBuilder<B extends ResidenceBuilder> extends GenericDefiniti
         return result;
     }
 
+    @Nonnull
     public MethodBuilder staticMethod(String name) throws CodeModelException {
         NestingBuilder methodResidence = new NestingBuilder(true, definition());
         MethodBuilder result = new MethodBuilder(methodResidence, name);

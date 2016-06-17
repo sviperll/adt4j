@@ -34,6 +34,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
+import javax.annotation.Nonnull;
 import javax.annotation.ParametersAreNonnullByDefault;
 
 /**
@@ -66,6 +67,7 @@ class VariableScope {
         variables.add(name);
     }
 
+    @Nonnull
     String makeIntroducable(String name) {
         if (!name.endsWith("%")) {
             return name;
@@ -82,6 +84,7 @@ class VariableScope {
         }
     }
 
+    @Nonnull
     VariableScope createNested() {
         VariableScope result = new VariableScope(this);
         childScopes.add(result);

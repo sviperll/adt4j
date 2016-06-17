@@ -32,6 +32,7 @@ package com.github.sviperll.codemodel;
 
 import com.github.sviperll.codemodel.render.RendererContext;
 import com.github.sviperll.codemodel.render.Renderer;
+import javax.annotation.Nonnull;
 import javax.annotation.ParametersAreNonnullByDefault;
 
 /**
@@ -51,14 +52,17 @@ public class IfBuilder {
         this.condition = condition;
     }
 
+    @Nonnull
     public BlockBuilder thenBlock() {
         return thenBlock;
     }
 
+    @Nonnull
     public BlockBuilder elseBlock() {
         return elseBlock;
     }
 
+    @Nonnull
     Statement statement() {
         return new Statement() {
             @Override

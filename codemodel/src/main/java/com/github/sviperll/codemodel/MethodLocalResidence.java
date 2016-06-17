@@ -30,6 +30,7 @@
 
 package com.github.sviperll.codemodel;
 
+import javax.annotation.Nonnull;
 import javax.annotation.ParametersAreNonnullByDefault;
 
 /**
@@ -38,5 +39,6 @@ import javax.annotation.ParametersAreNonnullByDefault;
  */
 @ParametersAreNonnullByDefault
 public interface MethodLocalResidence {
+    @Nonnull
     ExecutableDefinition<?, ?> parent();
 }

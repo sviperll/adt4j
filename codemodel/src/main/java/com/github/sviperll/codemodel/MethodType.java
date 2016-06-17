@@ -30,6 +30,7 @@
 
 package com.github.sviperll.codemodel;
 
+import javax.annotation.Nonnull;
 import javax.annotation.ParametersAreNonnullByDefault;
 
 /**
@@ -42,6 +43,7 @@ public abstract class MethodType extends ExecutableType<MethodType, MethodDefini
         super(implementation);
     }
 
+    @Nonnull
     public abstract Type returnType();
 
     @Override

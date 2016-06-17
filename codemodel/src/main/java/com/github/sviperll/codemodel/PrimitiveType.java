@@ -34,6 +34,7 @@ import com.github.sviperll.codemodel.render.Renderable;
 import com.github.sviperll.codemodel.render.Renderer;
 import com.github.sviperll.codemodel.render.RendererContext;
 import java.util.Locale;
+import javax.annotation.Nonnull;
 import javax.annotation.ParametersAreNonnullByDefault;
 
 /**
@@ -49,6 +50,7 @@ public enum PrimitiveType implements Renderable {
 
     private final Type type = Type.wrapPrimitiveType(this);
 
+    @Nonnull
     public Type asType() {
         return type;
     }

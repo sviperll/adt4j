@@ -34,6 +34,7 @@ import com.github.sviperll.codemodel.render.Renderable;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import javax.annotation.Nonnull;
 import javax.annotation.ParametersAreNonnullByDefault;
 
 /**
@@ -56,6 +57,7 @@ public abstract class ExecutableBuilder<T extends ExecutableType<T, D>, D extend
         
     }
 
+    @Nonnull
     abstract D createDefinition(ExecutableDefinition.Implementation<T, D> implementation);
 
     @Override
@@ -87,6 +89,7 @@ public abstract class ExecutableBuilder<T extends ExecutableType<T, D>, D extend
         throwsList.add(typeVariable.asType());
     }
 
+    @Nonnull
     public BlockBuilder body() {
         return body;
     }
@@ -164,7 +167,7 @@ public abstract class ExecutableBuilder<T extends ExecutableType<T, D>, D extend
         }
 
         @Override
-        Expression getInitialValue() {
+        Renderable getInitialValue() {
             throw new UnsupportedOperationException();
         }
     }

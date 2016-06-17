@@ -30,14 +30,18 @@
 
 package com.github.sviperll.codemodel;
 
+import javax.annotation.Nonnull;
+
 /**
  *
  * @author Victor Nazarov &lt;asviraspossible@gmail.com&gt;
  */
 public interface Nesting {
+    @Nonnull
     MemberAccess accessLevel();
 
     boolean isStatic();
 
+    @Nonnull
     ObjectDefinition parent();
 }

@@ -82,7 +82,7 @@ public enum ObjectKind implements Renderable {
         return isClass() || isEnum();
     }
 
-    boolean implementsSomeInterfaces() {
+    public boolean implementsSomeInterfaces() {
         return !isAnnotation();
     }
 }

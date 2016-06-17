@@ -31,7 +31,6 @@
 package com.github.sviperll.codemodel;
 
 import javax.annotation.ParametersAreNonnullByDefault;
-import javax.annotation.Nonnull;
 
 /**
  *
@@ -44,7 +43,6 @@ public class EnumBuilder<B extends ResidenceBuilder> extends AbstractClassBuilde
         super(ObjectKind.CLASS, residence, name);
     }
 
-    @Nonnull
     @Override
     ObjectDefinition createDefinition(TypeParameters typeParameters) {
         return new BuiltDefinition(typeParameters);

@@ -38,6 +38,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
+import javax.annotation.Nonnull;
 import javax.annotation.ParametersAreNonnullByDefault;
 
 /**
@@ -62,14 +63,17 @@ public abstract class ObjectType extends GenericType<ObjectType, ObjectDefinitio
         return this;
     }
 
+    @Nonnull
     public final Type asType() {
         return type;
     }
 
+    @Nonnull
     public final IntersectionType intersection(ObjectType that) {
         return new IntersectionType(Arrays.asList(this, that));
     }
 
+    @Nonnull
     public final Expression instanceofOp(Expression expression) throws CodeModelException {
         return expression.instanceofOp(this);
     }
@@ -82,6 +86,7 @@ public abstract class ObjectType extends GenericType<ObjectType, ObjectDefinitio
         return definition() == that.definition();
     }
 
+    @Nonnull
     public final List<MethodType> methods() {
         if (methods == null) {
             methods = new ArrayList<>(definition().methods().size());
@@ -96,6 +101,7 @@ public abstract class ObjectType extends GenericType<ObjectType, ObjectDefinitio
         return methods;
     }
 
+    @Nonnull
     public final List<ConstructorType> constructors() {
         if (constructors == null) {
             constructors = new ArrayList<>(definition().constructors().size());

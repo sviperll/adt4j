@@ -34,6 +34,8 @@ import java.lang.reflect.Modifier;
 import java.util.Map;
 import java.util.TreeMap;
 import java.util.logging.Logger;
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;
 
 /**
@@ -64,12 +66,27 @@ public final class Package implements Model {
         this.parent = parent;
     }
 
+    /** This package's parent.
+     * Throws UnsupportedOperationException for root/default package
+     * @see Package#isRootPackage() 
+     * @throws UnsupportedOperationException
+     * @return This package's parent.
+     */
+    @Nonnull
     public Package getParent() {
         return parent;
     }
 
+    /** Is it root/default package.
+     * @return Is it root/default package.
+     */
+    public boolean isRootPackage() {
+        return parent == null;
+    }
+
+    @Nonnull
     public ClassBuilder<PackageLevelBuilder> createClass(String className) throws CodeModelException {
-        if (reference(className) != null)
+        if (getReference(className) != null)
             throw new CodeModelException(packageAsNamePrefix() + className + " already defined");
         PackageLevelBuilder membershipBuilder = new PackageLevelBuilder(this);
         ClassBuilder<PackageLevelBuilder> result = new ClassBuilder<>(membershipBuilder, className);
@@ -77,8 +94,9 @@ public final class Package implements Model {
         return result;
     }
 
+    @Nonnull
     public InterfaceBuilder<PackageLevelBuilder> createInterface(String className) throws CodeModelException {
-        if (reference(className) != null)
+        if (getReference(className) != null)
             throw new CodeModelException(packageAsNamePrefix() + className + " already defined");
         PackageLevelBuilder membershipBuilder = new PackageLevelBuilder(this);
         InterfaceBuilder<PackageLevelBuilder> result = new InterfaceBuilder<>(membershipBuilder, className);
@@ -86,7 +104,8 @@ public final class Package implements Model {
         return result;
     }
 
-    ObjectDefinition reference(String relativelyQualifiedName) {
+    @Nullable
+    ObjectDefinition getReference(String relativelyQualifiedName) {
         int index = relativelyQualifiedName.indexOf('.');
         if (index == 0)
             throw new IllegalArgumentException(packageAsNamePrefix() + relativelyQualifiedName + " illegal name");
@@ -110,22 +129,24 @@ public final class Package implements Model {
         } else {
             String childRelativeName = relativelyQualifiedName.substring(simpleName.length() + 1);
             if (result != null) {
-                return result.reference(childRelativeName);
+                return result.getReference(childRelativeName);
             } else {
                 Package childPackage = packages.get(simpleName);
                 if (childPackage == null) {
                     childPackage = new Package(codeModel, packageAsNamePrefix() + simpleName, this);
                     packages.put(simpleName, childPackage);
                 }
-                return childPackage.reference(childRelativeName);
+                return childPackage.getReference(childRelativeName);
             }
         }
     }
 
+    @Nonnull
     String qualifiedName() {
         return name;
     }
 
+    @Nonnull
     private String packageAsNamePrefix() {
         return name.isEmpty() ? "" : name + ".";
     }
@@ -135,6 +156,7 @@ public final class Package implements Model {
         return codeModel;
     }
 
+    @Nonnull
     Package getChildPackageBySuffix(String suffix) throws CodeModelException {
         int index = suffix.indexOf('.');
         if (index == 0)
@@ -155,6 +177,7 @@ public final class Package implements Model {
             return childPackage.getChildPackageBySuffix(suffix.substring(index + 1));
     }
 
+    @Nonnull
     private ObjectDefinition createObjectDefinitionForClass(final Class<?> klass) throws CodeModelException {
         assert klass.getEnclosingClass() == null;
         assert klass.getPackage().getName().equals(name);

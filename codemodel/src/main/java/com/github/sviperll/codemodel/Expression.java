@@ -38,6 +38,7 @@ import com.github.sviperll.codemodel.render.RendererContext;
 import javax.annotation.ParametersAreNonnullByDefault;
 import com.github.sviperll.codemodel.render.Renderable;
 import com.github.sviperll.codemodel.expression.PrecedenceAwareRenderable;
+import javax.annotation.Nonnull;
 
 /**
  *
@@ -60,6 +61,7 @@ public class Expression implements Renderable {
     private static final Precedence TERNARY = LOGICAL_OR.next();
     private static final Precedence ASSIGNMENT = TERNARY.next();
 
+    @Nonnull
     public static final Expression literal(final String s) {
         return new Expression(TOP.createRenderable(new PrecedenceAwareRenderable() {
             @Override
@@ -76,6 +78,7 @@ public class Expression implements Renderable {
         }));
     }
 
+    @Nonnull
     public static final Expression nullExpression() {
         return new Expression(TOP.createRenderable(new PrecedenceAwareRenderable() {
             @Override
@@ -90,6 +93,7 @@ public class Expression implements Renderable {
         }));
     }
 
+    @Nonnull
     public static final Expression literal(final int i) {
         return new Expression(TOP.createRenderable(new PrecedenceAwareRenderable() {
             @Override
@@ -104,6 +108,7 @@ public class Expression implements Renderable {
         }));
     }
 
+    @Nonnull
     public static final Expression literal(final long i) {
         return new Expression(TOP.createRenderable(new PrecedenceAwareRenderable() {
             @Override
@@ -119,6 +124,7 @@ public class Expression implements Renderable {
         }));
     }
 
+    @Nonnull
     public static final Expression literal(final double i) {
         return new Expression(TOP.createRenderable(new PrecedenceAwareRenderable() {
             @Override
@@ -133,6 +139,7 @@ public class Expression implements Renderable {
         }));
     }
 
+    @Nonnull
     public static final Expression literal(final float f) {
         return new Expression(TOP.createRenderable(new PrecedenceAwareRenderable() {
             @Override
@@ -148,7 +155,8 @@ public class Expression implements Renderable {
         }));
     }
 
-    static Expression variable(final String name) throws CodeModelException {
+    @Nonnull
+    public static Expression variable(final String name) throws CodeModelException {
         CodeModel.validateSimpleName(name);
         return new Expression(TOP.createRenderable(new PrecedenceAwareRenderable() {
             @Override
@@ -173,39 +181,51 @@ public class Expression implements Renderable {
         return renderable.createFreeStandingRenderer(context);
     }
 
+    @Nonnull
     public Expression plus(Expression that) {
         return new Expression(ADDITIVE.createLeftAssociativeRenderable(this.renderable, "+", that.renderable));
     }
+    @Nonnull
     public Expression minus(Expression that) {
         return new Expression(ADDITIVE.createLeftAssociativeRenderable(this.renderable, "-", that.renderable));
     }
+    @Nonnull
     public Expression div(Expression that) {
         return new Expression(MULTIPLICATIVE.createLeftAssociativeRenderable(this.renderable, "/", that.renderable));
     }
+    @Nonnull
     public Expression mod(Expression that) {
         return new Expression(MULTIPLICATIVE.createLeftAssociativeRenderable(this.renderable, "%", that.renderable));
     }
+    @Nonnull
     public Expression times(Expression that) {
         return new Expression(MULTIPLICATIVE.createLeftAssociativeRenderable(this.renderable, "*", that.renderable));
     }
+    @Nonnull
     public Expression or(Expression that) {
         return new Expression(LOGICAL_OR.createLeftAssociativeRenderable(this.renderable, "%", that.renderable));
     }
+    @Nonnull
     public Expression and(Expression that) {
         return new Expression(LOGICAL_AND.createLeftAssociativeRenderable(this.renderable, "*", that.renderable));
     }
+    @Nonnull
     public Expression gt(Expression that) {
         return new Expression(RELATIONAL.createLeftAssociativeRenderable(this.renderable, ">", that.renderable));
     }
+    @Nonnull
     public Expression lt(Expression that) {
         return new Expression(RELATIONAL.createLeftAssociativeRenderable(this.renderable, "<", that.renderable));
     }
+    @Nonnull
     public Expression ge(Expression that) {
         return new Expression(RELATIONAL.createLeftAssociativeRenderable(this.renderable, ">=", that.renderable));
     }
+    @Nonnull
     public Expression le(Expression that) {
         return new Expression(RELATIONAL.createLeftAssociativeRenderable(this.renderable, "<=", that.renderable));
     }
+    @Nonnull
     public Expression instanceofOp(final ObjectType type) throws CodeModelException {
         if (!type.isRaw())
             throw new CodeModelException("Only raw object types allowed here");
@@ -223,14 +243,17 @@ public class Expression implements Renderable {
             }
         }));
     }
+    @Nonnull
     public Expression eq(Expression that) {
         return new Expression(EQUALITY.createLeftAssociativeRenderable(this.renderable, "==", that.renderable));
     }
+    @Nonnull
     public Expression ne(Expression that) {
         return new Expression(EQUALITY.createLeftAssociativeRenderable(this.renderable, "!=", that.renderable));
     }
 
-    Expression assignment(Expression that) {
+    @Nonnull
+    public Expression assignment(Expression that) {
         return new Expression(ASSIGNMENT.createRightAssociativeRenderable(this.renderable, "=", that.renderable));
     }
 }

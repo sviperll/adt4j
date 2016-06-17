@@ -27,18 +27,7 @@
  *  (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
  *  EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
+@ParametersAreNonnullByDefault
 package com.github.sviperll.codemodel;
 
-import javax.annotation.Nonnull;
 import javax.annotation.ParametersAreNonnullByDefault;
-
-/**
- *
- * @author Victor Nazarov &lt;asviraspossible@gmail.com&gt;
- */
-@ParametersAreNonnullByDefault
-public interface Model {
-    @Nonnull
-    CodeModel getCodeModel();
-}

@@ -30,18 +30,21 @@
 
 package com.github.sviperll.codemodel;
 
+import javax.annotation.Nonnull;
+
 /**
  *
  * @author Victor Nazarov &lt;asviraspossible@gmail.com&gt;
  */
 @SuppressWarnings("serial")
- class RuntimeCodeModelException extends RuntimeException {
+class RuntimeCodeModelException extends RuntimeException {
 
-    public RuntimeCodeModelException(CodeModelException ex) {
+    RuntimeCodeModelException(CodeModelException ex) {
         super(ex);
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public CodeModelException getCause() {
         return (CodeModelException)super.getCause();
     }

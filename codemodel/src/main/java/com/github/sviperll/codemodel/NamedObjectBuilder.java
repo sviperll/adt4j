@@ -30,16 +30,13 @@
 
 package com.github.sviperll.codemodel;
 
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
 import javax.annotation.ParametersAreNonnullByDefault;
-import javax.annotation.Nonnull;
 
 /**
  *
  * @author Victor Nazarov &lt;asviraspossible@gmail.com&gt;
  */
+@ParametersAreNonnullByDefault
 abstract class NamedObjectBuilder<B extends ResidenceBuilder> extends ObjectBuilder<B> {
     private final String name;
 
@@ -47,8 +44,8 @@ abstract class NamedObjectBuilder<B extends ResidenceBuilder> extends ObjectBuil
         super(kind, residence);
         this.name = name;
     }
-    abstract class BuiltDefinition extends ObjectBuilder<B>.BuiltDefinition {
 
+    abstract class BuiltDefinition extends ObjectBuilder<B>.BuiltDefinition {
         BuiltDefinition(TypeParameters typeParameters) {
             super(typeParameters);
         }

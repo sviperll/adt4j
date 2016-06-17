@@ -30,10 +30,13 @@
 
 package com.github.sviperll.codemodel;
 
+import javax.annotation.ParametersAreNonnullByDefault;
+
 /**
  *
  * @author Victor Nazarov &lt;asviraspossible@gmail.com&gt;
  */
+@ParametersAreNonnullByDefault
 public abstract class ConstructorType extends ExecutableType<ConstructorType, ConstructorDefinition> {
     ConstructorType(ExecutableType.Implementation<ConstructorType, ConstructorDefinition> implementation) {
         super(implementation);

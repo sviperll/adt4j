@@ -30,6 +30,7 @@
 
 package com.github.sviperll.codemodel;
 
+import javax.annotation.Nonnull;
 import javax.annotation.ParametersAreNonnullByDefault;
 
 /**
@@ -39,5 +40,7 @@ import javax.annotation.ParametersAreNonnullByDefault;
 @ParametersAreNonnullByDefault
 public interface PackageLevelResidence {
     public abstract boolean isPublic();
+
+    @Nonnull
     public abstract Package getPackage();
 }

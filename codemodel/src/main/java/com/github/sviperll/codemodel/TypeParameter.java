@@ -30,31 +30,49 @@
 
 package com.github.sviperll.codemodel;
 
+import java.text.MessageFormat;
+import javax.annotation.Nonnull;
+import javax.annotation.ParametersAreNonnullByDefault;
+
 /**
  *
  * @author Victor Nazarov &lt;asviraspossible@gmail.com&gt;
  */
+@ParametersAreNonnullByDefault
 public abstract class TypeParameter {
     TypeParameter() {
     }
+
+    @Nonnull
     public abstract String name();
 
     /**
      * Return bound or bounds of this type-wrapVariableType as single type.
      *
-     * If there are several bounds then wrapIntersectionType type is returned.
+     * If there are several bounds then IntersectionType type is returned.
      * 
-     * @return bound or bounds of this type-wrapVariableType as single type.
+     * @return bound or bounds of this type-variable as single type.
      */
+    @Nonnull
     public abstract Type bound();
 
+    @Nonnull
     public abstract GenericDefinition<?, ?> declaredIn();
 
+    @Nonnull
     final Type lowerRawBound() throws CodeModelException {
         TypeParameters environment = declaredIn().typeParameters().preventCycle(name());
         Type bound = bound();
         if (bound.isTypeVariable()) {
-            return environment.get(bound.getVariableDetails().name()).lowerRawBound();
+            TypeParameter typeParameter = environment.get(bound.getVariableDetails().name());
+            if (typeParameter != null)
+                return typeParameter.lowerRawBound();
+            else
+                throw new IllegalStateException(
+                        MessageFormat.format(
+                                "Type parameter {0} is bound by unknown type-variable: {1}",
+                                name(),
+                                bound.getVariableDetails().name()));
         } else {
             ObjectType lower = null;
             for (Type type: bound.toListOfIntersectedTypes()) {

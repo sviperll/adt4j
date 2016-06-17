@@ -36,11 +36,14 @@ import com.github.sviperll.codemodel.render.RendererContext;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
+import javax.annotation.Nonnull;
+import javax.annotation.ParametersAreNonnullByDefault;
 
 /**
  *
  * @author Victor Nazarov &lt;asviraspossible@gmail.com&gt;
  */
+@ParametersAreNonnullByDefault
 public class IntersectionType implements Renderable {
 
     private final Type type = Type.wrapIntersectionType(this);
@@ -50,13 +53,17 @@ public class IntersectionType implements Renderable {
         this.bounds = bounds;
     }
 
+    @Nonnull
     public Collection<ObjectType> intersectedTypes() {
         return bounds;
     }
+
+    @Nonnull
     public Type asType() {
         return type;
     }
 
+    @Nonnull
     Type substitute(Substitution environment) {
         Collection<ObjectType> substituted = new ArrayList<>(bounds.size());
         for (ObjectType bound: bounds) {

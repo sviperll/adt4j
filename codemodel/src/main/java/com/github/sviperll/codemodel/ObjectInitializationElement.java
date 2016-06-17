@@ -33,11 +33,13 @@ package com.github.sviperll.codemodel;
 import com.github.sviperll.codemodel.render.Renderable;
 import com.github.sviperll.codemodel.render.Renderer;
 import com.github.sviperll.codemodel.render.RendererContext;
+import javax.annotation.ParametersAreNonnullByDefault;
 
 /**
  *
  * @author Victor Nazarov &lt;asviraspossible@gmail.com&gt;
  */
+@ParametersAreNonnullByDefault
 class ObjectInitializationElement implements Renderable {
 
     private final ObjectInitializationElement.Kind kind;

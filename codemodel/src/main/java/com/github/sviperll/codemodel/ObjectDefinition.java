@@ -35,6 +35,8 @@ import com.github.sviperll.codemodel.render.RendererContext;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;
 
 /**
@@ -49,28 +51,46 @@ public abstract class ObjectDefinition extends GenericDefinition<ObjectType, Obj
 
     public abstract boolean isFinal();
 
+    @Nonnull
     public abstract ObjectKind kind();
 
+    @Nonnull
     public abstract ObjectType extendsClass();
 
+    @Nonnull
     public abstract List<ObjectType> implementsInterfaces();
 
+    @Nonnull
     public abstract Collection<ConstructorDefinition> constructors();
 
+    @Nonnull
     public abstract Collection<MethodDefinition> methods();
 
+    @Nonnull
     public abstract Collection<ObjectDefinition> innerClasses();
 
+    @Nonnull
     public abstract Collection<FieldDeclaration> fields();
 
+    /**
+     * Class' simple name.
+     * Throws UnsupportedOperationException for anonymous classes.
+     * @see ObjectDefinition#isAnonymous()
+     * @throws UnsupportedOperationException
+     * @return class' simple name
+     */
+    @Nonnull
     public abstract String simpleName();
 
     public abstract boolean isAnonymous();
 
+    @Nonnull
     abstract List<ObjectInitializationElement> staticInitializationElements();
 
+    @Nonnull
     abstract List<ObjectInitializationElement> instanceInitializationElements();
 
+    @Nonnull
     public final String qualifiedName() {
         return residence().getPackage().qualifiedName() + "." + simpleName();
     }
@@ -98,7 +118,8 @@ public abstract class ObjectDefinition extends GenericDefinition<ObjectType, Obj
         }
     }
 
-    final ObjectDefinition reference(String relativelyQualifiedName) {
+    @Nullable
+    final ObjectDefinition getReference(String relativelyQualifiedName) {
         int index = relativelyQualifiedName.indexOf('.');
         if (index == 0)
             throw new IllegalArgumentException(relativelyQualifiedName + " illegal name");
@@ -109,7 +130,7 @@ public abstract class ObjectDefinition extends GenericDefinition<ObjectType, Obj
                 if (!needsToGoDeeper)
                     return innerClass;
                 else
-                    return innerClass.reference(relativelyQualifiedName.substring(simpleName.length() + 1));
+                    return innerClass.getReference(relativelyQualifiedName.substring(simpleName.length() + 1));
             }
         }
         return null;

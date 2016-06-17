@@ -33,6 +33,7 @@ package com.github.sviperll.codemodel;
 import com.github.sviperll.codemodel.render.Renderer;
 import com.github.sviperll.codemodel.render.RendererContext;
 import java.util.Iterator;
+import javax.annotation.Nonnull;
 import javax.annotation.ParametersAreNonnullByDefault;
 
 /**
@@ -46,7 +47,11 @@ public abstract class MethodDefinition extends ExecutableDefinition<MethodType, 
     }
 
     public abstract boolean isFinal();
+
+    @Nonnull
     public abstract Type returnType();
+
+    @Nonnull
     public abstract String name();
 
     @Override

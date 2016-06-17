@@ -33,11 +33,14 @@ package com.github.sviperll.codemodel;
 import com.github.sviperll.codemodel.render.Renderable;
 import com.github.sviperll.codemodel.render.Renderer;
 import com.github.sviperll.codemodel.render.RendererContext;
+import javax.annotation.Nonnull;
+import javax.annotation.ParametersAreNonnullByDefault;
 
 /**
  *
  * @author Victor Nazarov &lt;asviraspossible@gmail.com&gt;
  */
+@ParametersAreNonnullByDefault
 public class ArrayType implements Renderable {
     private final Type type = Type.wrapArrayType(this);
     private final Type elementType;
@@ -45,14 +48,17 @@ public class ArrayType implements Renderable {
         this.elementType = elementType;
     }
 
+    @Nonnull
     public Type elementType() {
         return elementType;
     }
 
+    @Nonnull
     Type substitute(Substitution environment) {
         return new ArrayType(elementType.substitute(environment)).asType();
     }
 
+    @Nonnull
     public Type asType() {
         return type;
     }

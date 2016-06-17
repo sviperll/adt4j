@@ -33,6 +33,7 @@ package com.github.sviperll.codemodel;
 import com.github.sviperll.codemodel.render.Renderable;
 import com.github.sviperll.codemodel.render.Renderer;
 import com.github.sviperll.codemodel.render.RendererContext;
+import javax.annotation.Nonnull;
 import javax.annotation.ParametersAreNonnullByDefault;
 
 /**
@@ -46,13 +47,23 @@ public abstract class VariableDeclaration implements Renderable {
 
     public abstract boolean isFinal();
 
+    @Nonnull
     public abstract Type type();
 
+    @Nonnull
     public abstract String name();
 
     public abstract boolean isInitialized();
 
-    abstract Expression getInitialValue();
+    /**
+     * Variable initialization value.
+     * Throws UnsupportedOperationException for uninitialized fields
+     * @throws UnsupportedOperationException
+     * @see VariableDeclaration#isInitialized()
+     * @return Variable initialization value.
+     */
+    @Nonnull
+    abstract Renderable getInitialValue();
 
     @Override
     public Renderer createRenderer(final RendererContext context) {
@@ -73,6 +84,7 @@ public abstract class VariableDeclaration implements Renderable {
         };
     }
 
+    @Nonnull
     final VariableDeclaration substitute(Substitution environment) {
         return new VariableDeclarationWithEnvironment(this, environment);
     }
@@ -108,7 +120,7 @@ public abstract class VariableDeclaration implements Renderable {
         }
 
         @Override
-        Expression getInitialValue() {
+        Renderable getInitialValue() {
             return original.getInitialValue();
         }
     }

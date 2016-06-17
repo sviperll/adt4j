@@ -35,7 +35,6 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import javax.annotation.ParametersAreNonnullByDefault;
-import javax.annotation.Nonnull;
 
 /**
  *
@@ -85,13 +84,11 @@ abstract class AbstractClassBuilder<B extends ResidenceBuilder> extends NamedObj
         return result;
     }
 
-    @Nonnull
     @Override
     public FieldBuilder field(Type type, String name) throws CodeModelException {
         return super.field(type, name);
     }
 
-    @Nonnull
     @Override
     public ClassBuilder<NestingBuilder> innerClass(String name) throws CodeModelException {
         return super.innerClass(name);
@@ -103,19 +100,16 @@ abstract class AbstractClassBuilder<B extends ResidenceBuilder> extends NamedObj
             super(typeParameters);
         }
 
-        @Nonnull
         @Override
         final public ObjectType extendsClass() {
             return extendsClass != null ? extendsClass : getCodeModel().objectType();
         }
 
-        @Nonnull
         @Override
         final public List<ObjectType> implementsInterfaces() {
             return Collections.unmodifiableList(interfaces);
         }
 
-        @Nonnull
         @Override
         final public Collection<ConstructorDefinition> constructors() {
             return Collections.unmodifiableList(constructors);

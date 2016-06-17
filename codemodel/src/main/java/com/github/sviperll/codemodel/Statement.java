@@ -30,17 +30,23 @@
 
 package com.github.sviperll.codemodel;
 
+import com.github.sviperll.codemodel.render.Renderable;
 import com.github.sviperll.codemodel.render.RendererContext;
 import com.github.sviperll.codemodel.render.Renderer;
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
+import javax.annotation.ParametersAreNonnullByDefault;
 
 /**
  *
  * @author Victor Nazarov &lt;asviraspossible@gmail.com&gt;
  */
+@ParametersAreNonnullByDefault
 abstract class Statement {
     Statement() {
     }
 
+    @Nonnull
     abstract Renderer createStatementRenderer(RendererContext context);
 
     static abstract class Simple extends Statement {
@@ -66,7 +72,7 @@ abstract class Statement {
         private final String name;
         private final Expression initializer;
 
-        StatementVariableDeclaration(boolean isFinal, Type type, String name, Expression initializer) {
+        StatementVariableDeclaration(boolean isFinal, Type type, String name, @Nullable Expression initializer) {
             if (!(type.canBeDeclaredVariableType()))
                 throw new IllegalArgumentException(type.kind() + " is not allowed here");
             this.isFinal = isFinal;
@@ -84,6 +90,7 @@ abstract class Statement {
             return declaration.createRenderer(context);
         }
 
+        @Nonnull
         VariableDeclaration declaration() {
             return declaration;
         }
@@ -111,9 +118,9 @@ abstract class Statement {
             }
 
             @Override
-            Expression getInitialValue() {
+            Renderable getInitialValue() {
                 if (initializer == null)
-                    throw new IllegalStateException("Variable is not initialized.");
+                    throw new UnsupportedOperationException("Variable is not initialized. Use isInitialized method for check.");
                 else
                     return initializer;
             }

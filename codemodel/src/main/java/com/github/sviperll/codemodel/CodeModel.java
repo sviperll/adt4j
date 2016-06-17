@@ -35,6 +35,8 @@ import java.lang.reflect.ParameterizedType;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;
 
 /**
@@ -59,28 +61,35 @@ public final class CodeModel {
     private CodeModel() {
     }
 
+    @Nonnull
     public ObjectType objectType() {
         if (objectType == null) {
-            objectType = reference(Object.class.getName()).rawType();
-            if (objectType == null) {
+            ObjectDefinition javaLangObjectDefinition = getReference(Object.class.getName());
+            if (javaLangObjectDefinition == null) {
                 throw new RuntimeException("java.lang.Object is not loadable class!");
+            } else {
+                objectType = javaLangObjectDefinition.rawType();
             }
         }
         return objectType;
     }
 
+    @Nonnull
     public Package getPackage(String qualifiedName) throws CodeModelException {
         return defaultPackage.getChildPackageBySuffix(qualifiedName);
     }
 
+    @Nonnull
     public Package defaultPackage() {
         return defaultPackage;
     }
 
-    public ObjectDefinition reference(String qualifiedName) {
-        return defaultPackage.reference(qualifiedName);
+    @Nullable
+    public ObjectDefinition getReference(String qualifiedName) {
+        return defaultPackage.getReference(qualifiedName);
     }
 
+    @Nonnull
     Type readReflectedType(java.lang.reflect.Type genericReflectedType) {
         if (genericReflectedType instanceof ParameterizedType) {
             ParameterizedType reflectedType = (ParameterizedType)genericReflectedType;
@@ -118,8 +127,13 @@ public final class CodeModel {
                     return PrimitiveType.valueOf(name.toUpperCase(Locale.US)).asType();
             } else if (reflectedType.isArray()) {
                 return Type.arrayOf(readReflectedType(reflectedType.getComponentType())).asType();
-            } else
-                return reference(reflectedType.getName()).rawType().asType();
+            } else {
+                ObjectDefinition definition = getReference(reflectedType.getName());
+                if (definition == null)
+                    throw new IllegalStateException("java.lang.reflect.Type references unexisting type: " + reflectedType.getName());
+                else
+                    return definition.rawType().asType();
+            }
         } else
             throw new UnsupportedOperationException("Can't read " + genericReflectedType);
     }
@@ -127,6 +141,8 @@ public final class CodeModel {
     public static class Builder {
         public Builder() {
         }
+
+        @Nonnull
         public CodeModel build() {
             return new CodeModel();
         }

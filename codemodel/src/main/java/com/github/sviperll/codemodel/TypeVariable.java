@@ -33,11 +33,14 @@ package com.github.sviperll.codemodel;
 import com.github.sviperll.codemodel.render.Renderable;
 import com.github.sviperll.codemodel.render.Renderer;
 import com.github.sviperll.codemodel.render.RendererContext;
+import javax.annotation.Nonnull;
+import javax.annotation.ParametersAreNonnullByDefault;
 
 /**
  *
  * @author Victor Nazarov &lt;asviraspossible@gmail.com&gt;
  */
+@ParametersAreNonnullByDefault
 public class TypeVariable implements Renderable {
     private final Type type = Type.wrapVariableType(this);
     private final String name;
@@ -45,10 +48,12 @@ public class TypeVariable implements Renderable {
         this.name = name;
     }
 
+    @Nonnull
     public String name() {
         return name;
     }
 
+    @Nonnull
     public Type asType() {
         return type;
     }

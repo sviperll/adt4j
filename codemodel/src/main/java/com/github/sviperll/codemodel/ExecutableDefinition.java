@@ -33,6 +33,8 @@ package com.github.sviperll.codemodel;
 import com.github.sviperll.codemodel.render.Renderable;
 import java.util.ArrayList;
 import java.util.List;
+import javax.annotation.Nonnull;
+import javax.annotation.ParametersAreNonnullByDefault;
 
 /**
  *
@@ -40,6 +42,7 @@ import java.util.List;
  * @param <T>
  * @param <D>
  */
+@ParametersAreNonnullByDefault
 public abstract class ExecutableDefinition<T extends ExecutableType<T, D>, D extends ExecutableDefinition<T, D>>
         extends GenericDefinition<T, D> {
 
@@ -48,6 +51,7 @@ public abstract class ExecutableDefinition<T extends ExecutableType<T, D>, D ext
         this.implementation = implementation;
     }
 
+    @Nonnull
     abstract T createType(ExecutableType.Implementation<T, D> implementation);
 
     @Override
@@ -55,14 +59,17 @@ public abstract class ExecutableDefinition<T extends ExecutableType<T, D>, D ext
         return implementation.typeParameters(this);
     }
 
+    @Nonnull
     public final List<VariableDeclaration> parameters() {
         return implementation.parameters();
     }
 
+    @Nonnull
     public final List<Type> throwsList() {
         return implementation.throwsList();
     }
 
+    @Nonnull
     final Renderable body() {
         return implementation.body();
     }
@@ -76,10 +83,12 @@ public abstract class ExecutableDefinition<T extends ExecutableType<T, D>, D ext
         return residence().getNesting().isStatic();
     }
 
+    @Nonnull
     public MemberAccess accessLevel(){
         return residence().getNesting().accessLevel();
     }
 
+    @Nonnull
     public ObjectDefinition parent(){
         return residence().getNesting().parent();
     }
@@ -96,16 +105,22 @@ public abstract class ExecutableDefinition<T extends ExecutableType<T, D>, D ext
 
     interface Implementation<T extends ExecutableType<T, D>, D extends ExecutableDefinition<T, D>> {
 
+        @Nonnull
         TypeParameters typeParameters(ExecutableDefinition<T, D> thisDefinition);
 
+        @Nonnull
         List<VariableDeclaration> parameters();
 
+        @Nonnull
         List<Type> throwsList();
 
+        @Nonnull
         Renderable body();
 
+        @Nonnull
         Residence residence();
 
+        @Nonnull
         CodeModel getCodeModel();
     }
 

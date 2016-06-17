@@ -36,6 +36,7 @@ import com.github.sviperll.codemodel.render.Renderer;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import javax.annotation.Nonnull;
 import javax.annotation.ParametersAreNonnullByDefault;
 
 /**
@@ -66,6 +67,7 @@ public class BlockBuilder implements Renderable {
         return createBlockRenderer(context, false);
     }
 
+    @Nonnull
     Renderable withBraces() {
         return new Renderable() {
             @Override
@@ -75,6 +77,7 @@ public class BlockBuilder implements Renderable {
         };
     }
 
+    @Nonnull
     private Renderer createBlockRenderer(final RendererContext context, final boolean forceBraces) {
         return new Renderer() {
             @Override
@@ -111,6 +114,7 @@ public class BlockBuilder implements Renderable {
         };
     }
 
+    @Nonnull
     public VariableDeclaration variable(final Type type, String nameOrTemplate) throws CodeModelException {
         final String name = scope.makeIntroducable(nameOrTemplate);
         scope.introduce(name);
@@ -119,6 +123,7 @@ public class BlockBuilder implements Renderable {
         return statement.declaration();
     }
 
+    @Nonnull
     public VariableDeclaration variable(final Type type, String nameOrTemplate, final Expression initializer) throws CodeModelException {
         final String name = scope.makeIntroducable(nameOrTemplate);
         scope.introduce(name);
@@ -127,6 +132,7 @@ public class BlockBuilder implements Renderable {
         return statement.declaration();
     }
 
+    @Nonnull
     public VariableDeclaration finalVariable(final Type type, String nameOrTemplate) throws CodeModelException {
         final String name = scope.makeIntroducable(nameOrTemplate);
         scope.introduce(name);
@@ -135,6 +141,7 @@ public class BlockBuilder implements Renderable {
         return statement.declaration();
     }
 
+    @Nonnull
     public VariableDeclaration finalVariable(final Type type, String nameOrTemplate, final Expression initializer) throws CodeModelException {
         final String name = scope.makeIntroducable(nameOrTemplate);
         scope.introduce(name);
@@ -159,6 +166,7 @@ public class BlockBuilder implements Renderable {
         expression(lvalue.assignment(expression));
     }
 
+    @Nonnull
     public IfBuilder ifStatement(final Expression condition) throws CodeModelException {
         VariableScope thenScope = scope.createNested();
         VariableScope elseScope = scope.createNested();
@@ -168,8 +176,9 @@ public class BlockBuilder implements Renderable {
         return result;
     }
 
+    @Nonnull
     public ForBuilder forLoop() {
-        throw new UnsupportedOperationException();
+        return new ForBuilder();
     }
 
     boolean isEmpty() {
@@ -180,6 +189,7 @@ public class BlockBuilder implements Renderable {
         return ifStatement != null && statements.size() == 1;
     }
 
+    @Nonnull
     IfBuilder getSingleIfStatement() {
         if (!isSingleIf())
             throw new IllegalStateException("Block is not single if statement");

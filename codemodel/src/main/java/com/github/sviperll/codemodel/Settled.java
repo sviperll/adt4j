@@ -30,12 +30,15 @@
 
 package com.github.sviperll.codemodel;
 
+import javax.annotation.Nonnull;
+
 /**
  *
  * @author Victor Nazarov &lt;asviraspossible@gmail.com&gt;
  */
 public interface Settled {
 
+    @Nonnull
     Residence residence();
 
 }

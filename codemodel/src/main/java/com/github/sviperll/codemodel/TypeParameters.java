@@ -39,6 +39,8 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;
 
 /**
@@ -52,8 +54,10 @@ public abstract class TypeParameters implements Renderable, Settled {
     TypeParameters() {
     }
 
+    @Nonnull
     public abstract List<TypeParameter> all();
 
+    @Nullable
     public TypeParameter get(String name) {
         if (map == null) {
             List<TypeParameter> all = all();
@@ -67,15 +71,15 @@ public abstract class TypeParameters implements Renderable, Settled {
         if (result != null)
             return result;
         else {
-            GenericDefinition<?, ?> contextDefinition = residence().contextDefinition();
-            if (contextDefinition == null)
+            if (!residence().hasContextDefintion())
                 return null;
             else {
-                return contextDefinition.typeParameters().get(name);
+                return residence().getContextDefinition().typeParameters().get(name);
             }
         }
     }
 
+    @Nonnull
     final List<Type> asInternalTypeArguments() {
         if (asInternalTypeArguments == null) {
             asInternalTypeArguments = new ArrayList<>();
@@ -88,6 +92,7 @@ public abstract class TypeParameters implements Renderable, Settled {
         return asInternalTypeArguments;
     }
 
+    @Nonnull
     final TypeParameters preventCycle(String name) {
         return new PreventCycleTypeParameters(this, name);
     }

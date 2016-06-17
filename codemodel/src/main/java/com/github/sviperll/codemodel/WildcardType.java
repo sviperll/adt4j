@@ -34,11 +34,14 @@ import com.github.sviperll.codemodel.render.Renderable;
 import com.github.sviperll.codemodel.render.Renderer;
 import com.github.sviperll.codemodel.render.RendererContext;
 import java.util.Locale;
+import javax.annotation.Nonnull;
+import javax.annotation.ParametersAreNonnullByDefault;
 
 /**
  *
  * @author Victor Nazarov &lt;asviraspossible@gmail.com&gt;
  */
+@ParametersAreNonnullByDefault
 public final class WildcardType implements Renderable {
 
     private final Type type = Type.wrapWildcardType(this);
@@ -51,18 +54,22 @@ public final class WildcardType implements Renderable {
         this.bound = bound;
     }
 
+    @Nonnull
     public BoundKind boundKind() {
         return boundKind;
     }
 
+    @Nonnull
     public Type bound() {
         return bound;
     }
 
+    @Nonnull
     Type substitute(Substitution environment) {
         return new WildcardType(boundKind, bound.substitute(environment)).asType();
     }
 
+    @Nonnull
     public Type asType() {
         return type;
     }

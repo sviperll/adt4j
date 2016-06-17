@@ -33,6 +33,8 @@ package com.github.sviperll.codemodel;
 import java.util.Collections;
 import java.util.Map;
 import java.util.TreeMap;
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;
 
 /**
@@ -43,6 +45,7 @@ import javax.annotation.ParametersAreNonnullByDefault;
 abstract class Substitution {
     public static final Substitution EMPTY = new EmptySubstitution();
 
+    @Nonnull
     static Builder createBuilder() {
         return new Builder();
     }
@@ -50,8 +53,10 @@ abstract class Substitution {
     private Substitution() {
     }
 
+    @Nullable
     abstract Type get(String name);
 
+    @Nonnull
     final Substitution andThen(Substitution that) {
         return new AndThenSubstitution(this, that);
     }
@@ -71,6 +76,7 @@ abstract class Substitution {
             map.put(name, typeArgument);
         }
 
+        @Nonnull
         Substitution build() {
             map = Collections.unmodifiableMap(map);
             copyOnWrite = true;

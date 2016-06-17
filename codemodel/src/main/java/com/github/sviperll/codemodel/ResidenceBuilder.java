@@ -30,10 +30,15 @@
 
 package com.github.sviperll.codemodel;
 
+import javax.annotation.Nonnull;
+import javax.annotation.ParametersAreNonnullByDefault;
+
 /**
  *
  * @author Victor Nazarov &lt;asviraspossible@gmail.com&gt;
  */
+@ParametersAreNonnullByDefault
 public interface ResidenceBuilder extends Model {
+    @Nonnull
     public abstract Residence residence();
 }

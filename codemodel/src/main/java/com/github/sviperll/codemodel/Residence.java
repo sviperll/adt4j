@@ -33,8 +33,7 @@ package com.github.sviperll.codemodel;
 import com.github.sviperll.codemodel.render.Renderable;
 import com.github.sviperll.codemodel.render.Renderer;
 import com.github.sviperll.codemodel.render.RendererContext;
-import java.util.Locale;
-import javax.annotation.Nullable;
+import javax.annotation.Nonnull;
 
 /**
  *
@@ -42,14 +41,17 @@ import javax.annotation.Nullable;
  */
 public abstract class Residence implements Renderable {
 
+    @Nonnull
     static Residence packageLevel(final PackageLevelResidence details) {
         return new PackageLevelResidenceWrapper(details);
     }
 
+    @Nonnull
     static Residence nested(Nesting details) {
         return new NestedResidenceWrapper(details);
     }
 
+    @Nonnull
     static Residence local(MethodLocalResidence details) {
         return new MethodLocalResidenceWrapper(details);
     }
@@ -57,7 +59,9 @@ public abstract class Residence implements Renderable {
     private Residence() {
     }
 
+    @Nonnull
     public abstract Kind kind();
+
     public final boolean isPackageLevel() {
         return kind() == Kind.PACKAGE_LEVEL;
     }
@@ -68,16 +72,43 @@ public abstract class Residence implements Renderable {
         return kind() == Kind.LOCAL;
     }
 
+    /**
+     * Details about package top-level definitions.
+     * Throws UnsupportedOperationException for other than top-level definitions.
+     * @see Residence#isPackageLevel()
+     * @throws UnsupportedOperationException
+     * @return Details about package top-level definitions.
+     */
+    @Nonnull
     public PackageLevelResidence getPackageLevelDetails() {
-        throw new UnsupportedOperationException("Package level residence expected");
-    }
-    public Nesting getNesting() {
-        throw new UnsupportedOperationException("Nested residence expected");
-    }
-    public MethodLocalResidence getLocalDetails() {
-        throw new UnsupportedOperationException("Local residence expected");
+        throw new UnsupportedOperationException("Package level residence expected. Use isPackageLevel method for check.");
     }
 
+    /**
+     * Details about nested definitions.
+     * Throws UnsupportedOperationException for other than nested definitions (i. e. top-level and method local).
+     * @see Residence#isNested()
+     * @throws UnsupportedOperationException
+     * @return Details about nested definitions..
+     */
+    @Nonnull
+    public Nesting getNesting() {
+        throw new UnsupportedOperationException("Nested residence expected. Use isNested method for check.");
+    }
+
+    /**
+     * Details about method-local definitions.
+     * Throws UnsupportedOperationException for other than method-local definitions (i. e. top-level and nested).
+     * @see Residence#isLocal()
+     * @throws UnsupportedOperationException
+     * @return Details about method-local definitions.
+     */
+    @Nonnull
+    public MethodLocalResidence getLocalDetails() {
+        throw new UnsupportedOperationException("Local residence expected. Use isLocal method for check.");
+    }
+
+    @Nonnull
     public Package getPackage() {
         if (isPackageLevel()) {
             return getPackageLevelDetails().getPackage();
@@ -90,22 +121,25 @@ public abstract class Residence implements Renderable {
         }
     }
 
+    public boolean hasContextDefintion() {
+        return isLocal() || (isNested() && !getNesting().isStatic());
+    }
+
     /**
      * Enclosing definition that provide effective context for current definition.
-     *
-     * @return Enclosing definition or null for package-level definitions or static members
+     * Throws UnsupportedOperationException for top-level and static residence.
+     * @see Residence#hasContextDefintion()
+     * @throws UnsupportedOperationException
+     * @return Enclosing definition
      */
-    @Nullable
-    public GenericDefinition<?, ?> contextDefinition() {
-        if (isPackageLevel()) {
-            return null;
-        } else if (isNested()) {
-            return getNesting().isStatic() ? null : getNesting().parent();
-        } else if (isNested()) {
+    @Nonnull
+    public GenericDefinition<?, ?> getContextDefinition() {
+        if (isNested() && !getNesting().isStatic())
+            return getNesting().parent();
+        else if (isLocal())
             return getLocalDetails().parent();
-        } else {
-            throw new UnsupportedOperationException("Unsupported residence: " + kind());
-        }
+        else
+            throw new UnsupportedOperationException("No enclosing context here. Use hasContextDefintion method for check.");
     }
 
     @Override

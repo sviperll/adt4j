@@ -179,7 +179,7 @@ class ReflectionObjectDefinition<T> extends ObjectDefinition {
         private final GenericDefinition<?, ?> definition;
         private final TypeVariable<T>[] reflectedTypeParameters;
 
-        public ReflectedTypeParameters(GenericDefinition<?, ?> definition, TypeVariable<T>[] reflectedTypeParameters) {
+        ReflectedTypeParameters(GenericDefinition<?, ?> definition, TypeVariable<T>[] reflectedTypeParameters) {
             this.definition = definition;
             this.reflectedTypeParameters = reflectedTypeParameters;
         }
@@ -207,14 +207,14 @@ class ReflectionObjectDefinition<T> extends ObjectDefinition {
             extends TypeParameter {
 
         private final GenericDefinition<?, ?> declaredIn;
-
         private final TypeVariable<T> reflectedTypeParameter;
 
-        public ReflectedTypeParameter(GenericDefinition<?, ?> declaredIn, TypeVariable<T> reflectedTypeParameter) {
+        private Type bound = null;
+
+        ReflectedTypeParameter(GenericDefinition<?, ?> declaredIn, TypeVariable<T> reflectedTypeParameter) {
             this.declaredIn = declaredIn;
             this.reflectedTypeParameter = reflectedTypeParameter;
         }
-        private Type bound = null;
 
         @Override
         public String name() {
@@ -375,7 +375,7 @@ class ReflectionObjectDefinition<T> extends ObjectDefinition {
         private final Parameter parameter;
         private Type type = null;
 
-        public ReflectedParameter(CodeModel codeModel, Parameter parameter) {
+        ReflectedParameter(CodeModel codeModel, Parameter parameter) {
             this.codeModel = codeModel;
             this.parameter = parameter;
         }
@@ -404,30 +404,39 @@ class ReflectionObjectDefinition<T> extends ObjectDefinition {
         }
 
         @Override
-        Expression getInitialValue() {
+        Renderable getInitialValue() {
             throw new UnsupportedOperationException();
         }
     }
 
     private static class RenderableUnaccessibleCode implements Renderable {
 
-        public RenderableUnaccessibleCode() {
+        RenderableUnaccessibleCode() {
         }
 
         @Override
         public Renderer createRenderer(final RendererContext context) {
-            return new Renderer() {
-                @Override
-                public void render() {
-                    context.appendText("{");
-                    context.appendLineBreak();
-                    context.indented().appendText("// Inaccessible code");
-                    context.appendLineBreak();
-                    context.indented().appendText("throw new java.lang.UnsupportedOperationException(\"Attempt to execute inaccessible code\");");
-                    context.appendLineBreak();
-                    context.appendText("}");
-                }
-            };
+            return new UnaccessibleCodeRenderer(context);
+        }
+
+        private static class UnaccessibleCodeRenderer implements Renderer {
+
+            private final RendererContext context;
+
+            UnaccessibleCodeRenderer(RendererContext context) {
+                this.context = context;
+            }
+
+            @Override
+            public void render() {
+                context.appendText("{");
+                context.appendLineBreak();
+                context.indented().appendText("// Inaccessible code");
+                context.appendLineBreak();
+                context.indented().appendText("throw new java.lang.UnsupportedOperationException(\"Attempt to execute inaccessible code\");");
+                context.appendLineBreak();
+                context.appendText("}");
+            }
         }
     }
 }
