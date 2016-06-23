@@ -61,7 +61,7 @@ public abstract class ConstructorDefinition extends ExecutableDefinition<Constru
                 context.appendWhiteSpace();
                 context.appendRenderable(typeParameters());
                 context.appendWhiteSpace();
-                context.appendText(residence().getNesting().parent().simpleName());
+                context.appendText(residence().getNesting().parent().simpleTypeName());
                 context.appendText("(");
                 Iterator<VariableDeclaration> parameters = parameters().iterator();
                 if (parameters.hasNext()) {

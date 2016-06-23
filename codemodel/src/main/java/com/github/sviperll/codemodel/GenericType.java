@@ -97,7 +97,7 @@ public abstract class GenericType<T extends GenericType<T, D>, D extends Generic
     }
 
     @Nonnull
-    public abstract T asSpecificType();
+    abstract T asSpecificType();
 
     public final boolean hasCapturedEnclosingType() {
         return implementation.hasCapturedEnclosingType();

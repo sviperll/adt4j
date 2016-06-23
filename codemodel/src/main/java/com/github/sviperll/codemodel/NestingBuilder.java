@@ -65,7 +65,7 @@ public final class NestingBuilder implements ResidenceBuilder {
         return parent.getCodeModel();
     }
 
-    private class BuiltClassMembership implements Nesting {
+    private class BuiltClassMembership extends Nesting {
         @Override
         public MemberAccess accessLevel() {
             return accessLevel;

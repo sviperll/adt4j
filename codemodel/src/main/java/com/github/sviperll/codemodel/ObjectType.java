@@ -59,7 +59,7 @@ public abstract class ObjectType extends GenericType<ObjectType, ObjectDefinitio
     public abstract ObjectDefinition definition();
 
     @Override
-    public final ObjectType asSpecificType() {
+    final ObjectType asSpecificType() {
         return this;
     }
 
@@ -123,7 +123,7 @@ public abstract class ObjectType extends GenericType<ObjectType, ObjectDefinitio
             @Override
             public void render() {
                 if (isRaw())
-                    context.appendQualifiedClassName(definition().qualifiedName());
+                    context.appendQualifiedClassName(definition().qualifiedTypeName());
                 else {
                     context.appendRenderable(erasure());
                     Iterator<Type> iterator = typeArguments().iterator();

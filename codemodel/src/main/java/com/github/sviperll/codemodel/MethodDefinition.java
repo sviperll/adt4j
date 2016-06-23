@@ -48,6 +48,8 @@ public abstract class MethodDefinition extends ExecutableDefinition<MethodType, 
 
     public abstract boolean isFinal();
 
+    public abstract boolean isAbstract();
+
     @Nonnull
     public abstract Type returnType();
 
@@ -68,6 +70,12 @@ public abstract class MethodDefinition extends ExecutableDefinition<MethodType, 
                 context.appendWhiteSpace();
                 if (isFinal()) {
                     context.appendText("final");
+                }
+                context.appendWhiteSpace();
+                if (isAbstract() && !(parent().kind().isInterface() || parent().kind().isAnnotation())) {
+                    context.appendText("abstract");
+                } else if (!isAbstract() && (parent().kind().isInterface() || parent().kind().isAnnotation())) {
+                    context.appendText("default");
                 }
                 context.appendWhiteSpace();
                 context.appendRenderable(typeParameters());
@@ -100,8 +108,12 @@ public abstract class MethodDefinition extends ExecutableDefinition<MethodType, 
                         context.appendRenderable(exceptionType);
                     }
                 }
-                context.appendWhiteSpace();
-                context.appendRenderable(body());
+                if (isAbstract())
+                    context.appendText(";");
+                else {
+                    context.appendWhiteSpace();
+                    context.appendRenderable(body());
+                }
                 context.appendLineBreak();
             }
         };

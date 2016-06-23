@@ -47,7 +47,7 @@ public abstract class MethodType extends ExecutableType<MethodType, MethodDefini
     public abstract Type returnType();
 
     @Override
-    public final MethodType asSpecificType() {
+    final MethodType asSpecificType() {
         return this;
     }
 }

@@ -30,6 +30,10 @@
 
 package com.github.sviperll.codemodel;
 
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
 import javax.annotation.ParametersAreNonnullByDefault;
 
 /**
@@ -39,8 +43,31 @@ import javax.annotation.ParametersAreNonnullByDefault;
  */
 @ParametersAreNonnullByDefault
 public class EnumBuilder<B extends ResidenceBuilder> extends AbstractClassBuilder<B> {
+    private static final NoOpConsumer NO_OP_CONSUMER = new NoOpConsumer();
+    private final List<EnumConstant> constants = new ArrayList<>();
     public EnumBuilder(B residence, String name) {
-        super(ObjectKind.CLASS, residence, name);
+        super(ObjectKind.ENUM, residence, name);
+    }
+
+    public void constant(final String name, final List<Expression> constructorArguments, Consumer<EnumConstantBuilder> customization) throws CodeModelException {
+        NestingBuilder nestingBuilder = new NestingBuilder(false, definition());
+        nestingBuilder.setAccessLevel(MemberAccess.PRIVATE);
+        EnumConstantBuilder builder = new EnumConstantBuilder(name, constructorArguments, nestingBuilder);
+        customization.accept(builder);
+        EnumConstant constant = builder.enumConstant();
+        constants.add(constant);
+    }
+
+    public void constant(final String name, final List<Expression> constructorArguments) throws CodeModelException {
+        constant(name, constructorArguments, NO_OP_CONSUMER);
+    }
+
+    public void constant(final String name, Consumer<EnumConstantBuilder> customization) throws CodeModelException {
+        constant(name, Collections.<Expression>emptyList(), customization);
+    }
+
+    public void constant(String name) throws CodeModelException {
+        constant(name, Collections.<Expression>emptyList());
     }
 
     @Override
@@ -57,6 +84,25 @@ public class EnumBuilder<B extends ResidenceBuilder> extends AbstractClassBuilde
         public boolean isFinal() {
             return true;
         }
+
+        @Override
+        public ObjectType extendsClass() {
+            return getCodeModel().objectType();
+        }
+
+        @Override
+        public Collection<EnumConstant> enumConstants() {
+            return Collections.unmodifiableList(constants);
+        }
     }
 
+    private static class NoOpConsumer implements Consumer<EnumConstantBuilder> {
+
+        public NoOpConsumer() {
+        }
+
+        @Override
+        public void accept(EnumConstantBuilder value) {
+        }
+    }
 }

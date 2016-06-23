@@ -134,7 +134,7 @@ class ReflectionObjectDefinition<T> extends ObjectDefinition {
     }
 
     @Override
-    public String simpleName() {
+    public String simpleTypeName() {
         return klass.getSimpleName();
     }
 
@@ -160,6 +160,11 @@ class ReflectionObjectDefinition<T> extends ObjectDefinition {
 
     @Override
     public Collection<ConstructorDefinition> constructors() {
+        throw new UnsupportedOperationException("Not supported yet.");
+    }
+
+    @Override
+    public Collection<EnumConstant> enumConstants() {
         throw new UnsupportedOperationException("Not supported yet.");
     }
 
@@ -245,7 +250,7 @@ class ReflectionObjectDefinition<T> extends ObjectDefinition {
         }
     }
 
-    private static class ReflectedNesting implements Nesting {
+    private static class ReflectedNesting extends Nesting {
 
         private final int modifiers;
         private final ObjectDefinition parent;
@@ -291,7 +296,7 @@ class ReflectionObjectDefinition<T> extends ObjectDefinition {
 
         @Override
         public boolean isFinal() {
-            return (method.getModifiers() & Modifier.FINAL) != 0;
+            return Modifier.isFinal(method.getModifiers());
         }
 
         @Override
@@ -305,6 +310,11 @@ class ReflectionObjectDefinition<T> extends ObjectDefinition {
         @Override
         public String name() {
             return method.getName();
+        }
+
+        @Override
+        public boolean isAbstract() {
+            return Modifier.isAbstract(method.getModifiers());
         }
     }
     private static class ReflectedExecutableDefinitionImplementation implements ExecutableDefinition.Implementation<MethodType, MethodDefinition> {

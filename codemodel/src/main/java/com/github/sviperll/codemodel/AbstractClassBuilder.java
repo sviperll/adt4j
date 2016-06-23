@@ -44,27 +44,50 @@ import javax.annotation.ParametersAreNonnullByDefault;
 @ParametersAreNonnullByDefault
 abstract class AbstractClassBuilder<B extends ResidenceBuilder> extends NamedObjectBuilder<B> {
     private final List<ObjectType> interfaces = new ArrayList<>();
-    private ObjectType extendsClass = null;
     private final List<ConstructorDefinition> constructors = new ArrayList<>();
 
     AbstractClassBuilder(ObjectKind kind, B residence, String name) {
         super(kind, residence, name);
     }
 
-    public void extendsClass(ObjectType type) throws CodeModelException {
-        if (this.extendsClass != null) {
-            throw new CodeModelException("Already extended");
-        }
-        if (!type.definition().kind().isClass()) {
-            throw new CodeModelException("Only classes can be extended");
-        }
-        if (!type.definition().isFinal()) {
-            throw new CodeModelException("Trying to extend final class");
-        }
-        if (type.containsWildcards()) {
-            throw new CodeModelException("Wildcards are not allowed in extends clause");
-        }
-        this.extendsClass = type;
+    @Override
+    public FieldBuilder field(Type type, String name) throws CodeModelException {
+        return super.field(type, name);
+    }
+
+    @Override
+    public FieldBuilder staticField(Type type, String name) throws CodeModelException {
+        return super.staticField(type, name);
+    }
+
+    @Override
+    public ClassBuilder<NestingBuilder> innerClass(String name) throws CodeModelException {
+        return super.innerClass(name);
+    }
+
+    @Override
+    public ClassBuilder<NestingBuilder> staticNestedClass(String name) throws CodeModelException {
+        return super.staticNestedClass(name);
+    }
+
+    @Override
+    public InterfaceBuilder<NestingBuilder> nestedInterface(String name) throws CodeModelException {
+        return super.nestedInterface(name);
+    }
+
+    @Override
+    public EnumBuilder<NestingBuilder> nestedEnum(String name) throws CodeModelException {
+        return super.nestedEnum(name);
+    }
+
+    @Override
+    public MethodBuilder method(String name) throws CodeModelException {
+        return super.method(name);
+    }
+
+    @Override
+    public MethodBuilder staticMethod(String name) throws CodeModelException {
+        return super.staticMethod(name);
     }
 
     public void implementsInterface(ObjectType type) throws CodeModelException {
@@ -84,25 +107,10 @@ abstract class AbstractClassBuilder<B extends ResidenceBuilder> extends NamedObj
         return result;
     }
 
-    @Override
-    public FieldBuilder field(Type type, String name) throws CodeModelException {
-        return super.field(type, name);
-    }
-
-    @Override
-    public ClassBuilder<NestingBuilder> innerClass(String name) throws CodeModelException {
-        return super.innerClass(name);
-    }
-
     abstract class BuiltDefinition extends NamedObjectBuilder<B>.BuiltDefinition {
 
         BuiltDefinition(TypeParameters typeParameters) {
             super(typeParameters);
-        }
-
-        @Override
-        final public ObjectType extendsClass() {
-            return extendsClass != null ? extendsClass : getCodeModel().objectType();
         }
 
         @Override

@@ -30,18 +30,59 @@
 
 package com.github.sviperll.codemodel;
 
+import com.github.sviperll.codemodel.render.Renderable;
+import com.github.sviperll.codemodel.render.Renderer;
+import com.github.sviperll.codemodel.render.RendererContext;
 import javax.annotation.Nonnull;
 
 /**
  *
  * @author Victor Nazarov &lt;asviraspossible@gmail.com&gt;
  */
-public interface Nesting {
-    @Nonnull
-    MemberAccess accessLevel();
+public abstract class Nesting implements Renderable {
+    private final RenderableNesting defaultRenderable = new RenderableNesting(false);
+    private final RenderableNesting implicitlyStaticRenderable = new RenderableNesting(true);
+    Nesting() {
+    }
 
-    boolean isStatic();
+    @Nonnull
+    public abstract MemberAccess accessLevel();
+
+    public abstract boolean isStatic();
 
     @Nonnull
-    ObjectDefinition parent();
+    public abstract ObjectDefinition parent();
+
+    @Override
+    public Renderer createRenderer(final RendererContext context) {
+        return defaultRenderable.createRenderer(context);
+    }
+
+    Renderable forObjectKind(ObjectKind kind) {
+        if (kind.implicitlyStatic())
+            return implicitlyStaticRenderable;
+        else
+            return defaultRenderable;
+    }
+
+    class RenderableNesting implements Renderable {
+        private final boolean implicitlyStatic;
+
+        RenderableNesting(boolean implicitlyStatic) {
+            this.implicitlyStatic = implicitlyStatic;
+        }
+
+        @Override
+        public Renderer createRenderer(final RendererContext context) {
+            return new Renderer() {
+                @Override
+                public void render() {
+                    context.appendRenderable(accessLevel());
+                    context.appendWhiteSpace();
+                    if (isStatic() && !implicitlyStatic)
+                        context.appendText("static");
+                }
+            };
+        }
+    }
 }

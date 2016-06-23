@@ -61,6 +61,9 @@ public abstract class ObjectDefinition extends GenericDefinition<ObjectType, Obj
     public abstract List<ObjectType> implementsInterfaces();
 
     @Nonnull
+    public abstract Collection<EnumConstant> enumConstants();
+
+    @Nonnull
     public abstract Collection<ConstructorDefinition> constructors();
 
     @Nonnull
@@ -80,7 +83,7 @@ public abstract class ObjectDefinition extends GenericDefinition<ObjectType, Obj
      * @return class' simple name
      */
     @Nonnull
-    public abstract String simpleName();
+    public abstract String simpleTypeName();
 
     public abstract boolean isAnonymous();
 
@@ -91,8 +94,8 @@ public abstract class ObjectDefinition extends GenericDefinition<ObjectType, Obj
     abstract List<ObjectInitializationElement> instanceInitializationElements();
 
     @Nonnull
-    public final String qualifiedName() {
-        return residence().getPackage().qualifiedName() + "." + simpleName();
+    public final String qualifiedTypeName() {
+        return residence().getPackage().qualifiedName() + "." + simpleTypeName();
     }
 
     public final boolean isJavaLangObject() {
@@ -126,7 +129,7 @@ public abstract class ObjectDefinition extends GenericDefinition<ObjectType, Obj
         boolean needsToGoDeeper = index >= 0;
         String simpleName = !needsToGoDeeper ? relativelyQualifiedName : relativelyQualifiedName.substring(0, index);
         for (ObjectDefinition innerClass: innerClasses()) {
-            if (innerClass.simpleName().equals(simpleName)) {
+            if (innerClass.simpleTypeName().equals(simpleName)) {
                 if (!needsToGoDeeper)
                     return innerClass;
                 else
@@ -143,44 +146,52 @@ public abstract class ObjectDefinition extends GenericDefinition<ObjectType, Obj
         return new Renderer() {
             @Override
             public void render() {
-                if (!kind().implicitlyStatic() || !residence().isNested())
-                    context.appendRenderable(residence());
-                else {
-                    Nesting nesting = residence().getNesting();
-                    context.appendRenderable(nesting.accessLevel());
-                }
-                context.appendWhiteSpace();
-                if (!kind().implicitlyFinal() && isFinal())
-                    context.appendText("final");
-                context.appendWhiteSpace();
-                context.appendRenderable(kind());
-                context.appendWhiteSpace();
-                context.appendText(simpleName());
-                context.appendRenderable(typeParameters());
-                if (kind().extendsSomeClass() && !extendsClass().isJavaLangObject()) {
-                    context.appendText(" extends ");
-                    context.appendRenderable(extendsClass());
-                }
-                if (kind().implementsSomeInterfaces()) {
-                    Iterator<ObjectType> interfaces = implementsInterfaces().iterator();
-                    if (interfaces.hasNext()) {
-                        if (kind().isInterface())
-                            context.appendText(" extends ");
-                        else
-                            context.appendText(" implements ");
-                        ObjectType implementedInterface = interfaces.next();
-                        context.appendRenderable(implementedInterface);
-                        while (interfaces.hasNext()) {
-                            context.appendText(", ");
-                            implementedInterface = interfaces.next();
+                if (!isAnonymous()) {
+                    context.appendRenderable(residence().forObjectKind(kind()));
+                    context.appendWhiteSpace();
+                    if (!kind().implicitlyFinal() && isFinal())
+                        context.appendText("final");
+                    context.appendWhiteSpace();
+                    context.appendRenderable(kind());
+                    context.appendWhiteSpace();
+                    context.appendText(simpleTypeName());
+                    context.appendRenderable(typeParameters());
+                    if (kind().extendsSomeClass() && !extendsClass().isJavaLangObject()) {
+                        context.appendText(" extends ");
+                        context.appendRenderable(extendsClass());
+                    }
+                    if (kind().implementsSomeInterfaces()) {
+                        Iterator<ObjectType> interfaces = implementsInterfaces().iterator();
+                        if (interfaces.hasNext()) {
+                            if (kind().isInterface())
+                                context.appendText(" extends ");
+                            else
+                                context.appendText(" implements ");
+                            ObjectType implementedInterface = interfaces.next();
                             context.appendRenderable(implementedInterface);
+                            while (interfaces.hasNext()) {
+                                context.appendText(", ");
+                                implementedInterface = interfaces.next();
+                                context.appendRenderable(implementedInterface);
+                            }
                         }
                     }
+                    context.appendWhiteSpace();
                 }
-                context.appendWhiteSpace();
                 context.appendText("{");
                 context.appendLineBreak();
                 RendererContext nestedContext = context.indented();
+
+                if (kind().isEnum()) {
+                    Iterator<EnumConstant> iterator = enumConstants().iterator();
+                    nestedContext.appendRenderable(iterator.next().definition());
+                    while (iterator.hasNext()) {
+                        nestedContext.appendText(", ");
+                        nestedContext.appendRenderable(iterator.next().definition());
+                    }
+                    nestedContext.appendText(";");
+                    nestedContext.appendLineBreak();
+                }
 
                 for (ObjectInitializationElement element: staticInitializationElements()) {
                     nestedContext.appendRenderable(element);
@@ -197,9 +208,11 @@ public abstract class ObjectDefinition extends GenericDefinition<ObjectType, Obj
                     nestedContext.appendRenderable(element);
                 }
 
-                for (ConstructorDefinition constructor: constructors()) {
-                    nestedContext.appendEmptyLine();
-                    nestedContext.appendRenderable(constructor);
+                if (kind().hasConstructors()) {
+                    for (ConstructorDefinition constructor: constructors()) {
+                        nestedContext.appendEmptyLine();
+                        nestedContext.appendRenderable(constructor);
+                    }
                 }
 
                 for (MethodDefinition method: methods()) {
@@ -224,7 +237,6 @@ public abstract class ObjectDefinition extends GenericDefinition<ObjectType, Obj
                 }
 
                 context.appendText("}");
-                context.appendLineBreak();
             }
 
         };

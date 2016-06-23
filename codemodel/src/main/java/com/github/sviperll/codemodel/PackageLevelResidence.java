@@ -30,6 +30,9 @@
 
 package com.github.sviperll.codemodel;
 
+import com.github.sviperll.codemodel.render.Renderable;
+import com.github.sviperll.codemodel.render.Renderer;
+import com.github.sviperll.codemodel.render.RendererContext;
 import javax.annotation.Nonnull;
 import javax.annotation.ParametersAreNonnullByDefault;
 
@@ -38,9 +41,27 @@ import javax.annotation.ParametersAreNonnullByDefault;
  * @author Victor Nazarov &lt;asviraspossible@gmail.com&gt;
  */
 @ParametersAreNonnullByDefault
-public interface PackageLevelResidence {
+public abstract class PackageLevelResidence implements Renderable {
+    PackageLevelResidence() {
+    }
+
     public abstract boolean isPublic();
 
     @Nonnull
     public abstract Package getPackage();
+
+    @Override
+    public Renderer createRenderer(final RendererContext context) {
+        return new Renderer() {
+            @Override
+            public void render() {
+                if (isPublic())
+                    context.appendText("public");
+            }
+        };
+    }
+
+    Renderable forObjectKind(ObjectKind kind) {
+        return this;
+    }
 }

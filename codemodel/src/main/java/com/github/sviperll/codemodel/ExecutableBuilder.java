@@ -57,12 +57,22 @@ public abstract class ExecutableBuilder<T extends ExecutableType<T, D>, D extend
         
     }
 
+    @Override
+    public final D definition() {
+        return super.definition();
+    }
+
     @Nonnull
     abstract D createDefinition(ExecutableDefinition.Implementation<T, D> implementation);
 
     @Override
     final D createDefinition(TypeParameters typeParameters) {
         return createDefinition(new BuiltExecutableDefinition(typeParameters));
+    }
+
+    @Override
+    public TypeParameterBuilder typeParameter(String name) throws CodeModelException {
+        return super.typeParameter(name);
     }
 
     public void addParameter(Type type, String name) throws CodeModelException {

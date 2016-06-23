@@ -47,7 +47,44 @@ public class InterfaceBuilder<B extends ResidenceBuilder> extends NamedObjectBui
     private final List<ObjectType> interfaces = new ArrayList<>();
 
     public InterfaceBuilder(B residence, String name) {
-        super(ObjectKind.CLASS, residence, name);
+        super(ObjectKind.INTERFACE, residence, name);
+    }
+
+    @Override
+    public TypeParameterBuilder typeParameter(String name) throws CodeModelException {
+        return super.typeParameter(name);
+    }
+
+    @Override
+    public FieldBuilder staticField(Type type, String name) throws CodeModelException {
+        return super.staticField(type, name);
+    }
+
+    @Override
+    public ClassBuilder<NestingBuilder> staticNestedClass(String name) throws CodeModelException {
+        return super.staticNestedClass(name);
+    }
+
+    @Override
+    public InterfaceBuilder<NestingBuilder> nestedInterface(String name) throws CodeModelException {
+        return super.nestedInterface(name);
+    }
+
+    @Override
+    public EnumBuilder<NestingBuilder> nestedEnum(String name) throws CodeModelException {
+        return super.nestedEnum(name);
+    }
+
+    @Override
+    public MethodBuilder staticMethod(String name) throws CodeModelException {
+        return super.staticMethod(name);
+    }
+
+    @Override
+    public MethodBuilder method(String name) throws CodeModelException {
+        MethodBuilder method = super.method(name);
+        method.setAbstract(true);
+        return method;
     }
 
     public void extendsInterface(ObjectType type) throws CodeModelException {
@@ -86,8 +123,14 @@ public class InterfaceBuilder<B extends ResidenceBuilder> extends NamedObjectBui
 
         @Override
         public Collection<ConstructorDefinition> constructors() {
-            return Collections.emptyList();
+            throw new UnsupportedOperationException("Constructors are listed for class definitions only. Use kind() method to check for object kind.");
         }
+
+        @Override
+        public Collection<EnumConstant> enumConstants() {
+            throw new UnsupportedOperationException("Enum constants are listed for enum definitions only. Use kind() method to check for object kind.");
+        }
+
     }
 
 }

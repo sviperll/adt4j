@@ -40,6 +40,7 @@ import javax.annotation.ParametersAreNonnullByDefault;
 public class MethodBuilder extends ExecutableBuilder<MethodType, MethodDefinition> {
     private final String name;
     private boolean isFinal;
+    private boolean isAbstract;
     private Type resultType = Type.voidType();
 
     MethodBuilder(NestingBuilder residence, String name) {
@@ -49,6 +50,12 @@ public class MethodBuilder extends ExecutableBuilder<MethodType, MethodDefinitio
 
     public void setFinal(boolean isFinal) {
         this.isFinal = isFinal;
+        isAbstract = isAbstract && !isFinal;
+    }
+
+    public void setAbstract(boolean isAbstract) {
+        this.isAbstract = isAbstract;
+        isFinal = isFinal && !isAbstract;
     }
 
     public void resultType(Type resultType) {
@@ -80,6 +87,11 @@ public class MethodBuilder extends ExecutableBuilder<MethodType, MethodDefinitio
         @Override
         public Type returnType() {
             return resultType;
+        }
+
+        @Override
+        public boolean isAbstract() {
+            return isAbstract;
         }
 
     }

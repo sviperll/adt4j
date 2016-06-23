@@ -143,26 +143,26 @@ public abstract class Residence implements Renderable {
     }
 
     @Override
-    public Renderer createRenderer(final RendererContext context) {
-        return new Renderer() {
-            @Override
-            public void render() {
-                if (isLocal()) {
-                    // Render nothing
-                } else if (isPackageLevel()) {
-                    if (getPackageLevelDetails().isPublic())
-                        context.appendText("public");
-                } else if (isNested()) {
-                    Nesting nesting = getNesting();
-                    context.appendRenderable(nesting.accessLevel());
-                    context.appendWhiteSpace();
-                    if (nesting.isStatic() && !nesting.parent().kind().isInterface())
-                        context.appendText("static");
-                } else
-                    throw new IllegalStateException("Rendering unsupported residence " + kind());
-            }
+    public Renderer createRenderer(RendererContext context) {
+        if (isLocal()) {
+            return getLocalDetails().createRenderer(context);
+        } else if (isPackageLevel()) {
+            return getPackageLevelDetails().createRenderer(context);
+        } else if (isNested()) {
+            return getNesting().createRenderer(context);
+        } else
+            throw new IllegalStateException("Rendering unsupported residence " + kind());
+    }
 
-        };
+    Renderable forObjectKind(ObjectKind kind) {
+        if (isLocal()) {
+            return getLocalDetails().forObjectKind(kind);
+        } else if (isPackageLevel()) {
+            return getPackageLevelDetails().forObjectKind(kind);
+        } else if (isNested()) {
+            return getNesting().forObjectKind(kind);
+        } else
+            throw new IllegalStateException("Rendering unsupported residence " + kind());
     }
 
     public enum Kind {

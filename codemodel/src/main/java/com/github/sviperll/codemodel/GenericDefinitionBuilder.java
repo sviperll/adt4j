@@ -50,21 +50,24 @@ public abstract class GenericDefinitionBuilder<B extends ResidenceBuilder, T ext
     private final List<TypeParameter> typeParameters = new ArrayList<>();
     private final Map<String, TypeParameter> typeParametersMap = new TreeMap<>();
     private final B residence;
+    private D definition = null;
 
     GenericDefinitionBuilder(B residence) {
         this.residence = residence;
     }
 
     @Nonnull
-    public final D definition() {
-        return createDefinition(new BuiltTypeParameters());
+    protected D definition() {
+        if (definition == null)
+            definition = createDefinition(new BuiltTypeParameters());
+        return definition;
     }
 
     @Nonnull
     abstract D createDefinition(TypeParameters typeParameters);
 
     @Nonnull
-    public TypeParameterBuilder typeParameter(String name) throws CodeModelException {
+    protected TypeParameterBuilder typeParameter(String name) throws CodeModelException {
         if (typeParametersMap.containsKey(name)) {
             throw new CodeModelException(name + " type-parameter already defined");
         }

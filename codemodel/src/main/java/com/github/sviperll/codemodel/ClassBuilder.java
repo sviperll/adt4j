@@ -30,6 +30,7 @@
 
 package com.github.sviperll.codemodel;
 
+import java.util.Collection;
 import javax.annotation.ParametersAreNonnullByDefault;
 
 /**
@@ -39,14 +40,36 @@ import javax.annotation.ParametersAreNonnullByDefault;
  */
 @ParametersAreNonnullByDefault
 public class ClassBuilder<B extends ResidenceBuilder> extends AbstractClassBuilder<B> {
+    private ObjectType extendsClass = null;
     private boolean isFinal = false;
 
     public ClassBuilder(B residence, String name) {
         super(ObjectKind.CLASS, residence, name);
     }
 
+    @Override
+    public TypeParameterBuilder typeParameter(String name) throws CodeModelException {
+        return super.typeParameter(name);
+    }
+
     public void setFinal(boolean value) {
         this.isFinal = value;
+    }
+
+    public void extendsClass(ObjectType type) throws CodeModelException {
+        if (this.extendsClass != null) {
+            throw new CodeModelException("Already extended");
+        }
+        if (!type.definition().kind().isClass()) {
+            throw new CodeModelException("Only classes can be extended");
+        }
+        if (!type.definition().isFinal()) {
+            throw new CodeModelException("Trying to extend final class");
+        }
+        if (type.containsWildcards()) {
+            throw new CodeModelException("Wildcards are not allowed in extends clause");
+        }
+        this.extendsClass = type;
     }
 
     @Override
@@ -61,8 +84,19 @@ public class ClassBuilder<B extends ResidenceBuilder> extends AbstractClassBuild
         }
 
         @Override
+        final public ObjectType extendsClass() {
+            return extendsClass != null ? extendsClass : getCodeModel().objectType();
+        }
+
+        @Override
         public boolean isFinal() {
             return isFinal;
         }
+
+        @Override
+        public Collection<EnumConstant> enumConstants() {
+            throw new UnsupportedOperationException("Enum constants are listed for enum definitions only. Use kind() method to check for object kind.");
+        }
+
     }
 }

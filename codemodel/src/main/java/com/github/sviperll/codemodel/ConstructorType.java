@@ -43,7 +43,7 @@ public abstract class ConstructorType extends ExecutableType<ConstructorType, Co
     }
 
     @Override
-    public final ConstructorType asSpecificType() {
+    final ConstructorType asSpecificType() {
         return this;
     }
 }

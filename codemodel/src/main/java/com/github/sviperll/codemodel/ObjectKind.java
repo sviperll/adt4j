@@ -42,7 +42,7 @@ import javax.annotation.ParametersAreNonnullByDefault;
  */
 @ParametersAreNonnullByDefault
 public enum ObjectKind implements Renderable {
-    CLASS, INTERFACE, ANNOTATION, ENUM;
+    CLASS, INTERFACE, ANNOTATION, ENUM, ENUM_CONSTANT;
 
     public boolean isClass() {
         return this == CLASS;
@@ -55,6 +55,9 @@ public enum ObjectKind implements Renderable {
     }
     public boolean isEnum() {
         return this == ENUM;
+    }
+    public boolean isEnumConstant() {
+        return this == ENUM_CONSTANT;
     }
 
     @Override
@@ -71,11 +74,11 @@ public enum ObjectKind implements Renderable {
     }
 
     public boolean implicitlyFinal() {
-        return isEnum() || isAnnotation();
+        return isEnum() || isAnnotation() || isEnumConstant();
     }
 
     public boolean implicitlyStatic() {
-        return isEnum() || isAnnotation();
+        return isEnum() || isAnnotation() || isInterface() || isEnumConstant();
     }
 
     public boolean extendsSomeClass() {
@@ -83,6 +86,10 @@ public enum ObjectKind implements Renderable {
     }
 
     public boolean implementsSomeInterfaces() {
-        return !isAnnotation();
+        return !(isAnnotation() || isEnumConstant());
+    }
+
+    boolean hasConstructors() {
+        return isClass() || isEnum();
     }
 }

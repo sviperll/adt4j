@@ -37,39 +37,6 @@ import javax.annotation.ParametersAreNonnullByDefault;
  * @author Victor Nazarov &lt;asviraspossible@gmail.com&gt;
  */
 @ParametersAreNonnullByDefault
-public class PackageLevelBuilder implements ResidenceBuilder {
-    private final Package pkg;
-    private final BuiltMembership residence = new BuiltMembership();
-    private boolean isPublic = false;
-
-    PackageLevelBuilder(Package pkg) {
-        this.pkg = pkg;
-    }
-
-    public void setPublic(boolean value) {
-        this.isPublic = value;
-    }
-
-    @Override
-    public Residence residence() {
-        return Residence.packageLevel(residence);
-    }
-
-    @Override
-    public CodeModel getCodeModel() {
-        return pkg.getCodeModel();
-    }
-
-    private class BuiltMembership extends PackageLevelResidence {
-
-        @Override
-        public boolean isPublic() {
-            return isPublic;
-        }
-
-        @Override
-        public Package getPackage() {
-            return pkg;
-        }
-    }
+public interface Consumer<T> {
+    void accept(T value);
 }

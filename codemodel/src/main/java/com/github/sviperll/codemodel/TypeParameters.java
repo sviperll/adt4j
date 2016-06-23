@@ -107,14 +107,20 @@ public abstract class TypeParameters implements Renderable, Settled {
                     context.appendText("<");
                     TypeParameter typeParameter = typeParameters.next();
                     context.appendText(typeParameter.name());
-                    context.appendText(" extends ");
-                    context.appendRenderable(typeParameter.bound());
+                    if (!(typeParameter.bound().isObjectType()
+                            && typeParameter.bound().getObjectDetails().isJavaLangObject())) {
+                        context.appendText(" extends ");
+                        context.appendRenderable(typeParameter.bound());
+                    }
                     while (typeParameters.hasNext()) {
                         context.appendText(", ");
                         typeParameter = typeParameters.next();
                         context.appendText(typeParameter.name());
-                        context.appendText(" extends ");
-                        context.appendRenderable(typeParameter.bound());
+                        if (!(typeParameter.bound().isObjectType()
+                                && typeParameter.bound().getObjectDetails().isJavaLangObject())) {
+                            context.appendText(" extends ");
+                            context.appendRenderable(typeParameter.bound());
+                        }
                     }
                     context.appendText(">");
                 }

@@ -67,9 +67,9 @@ abstract class ObjectBuilder<B extends ResidenceBuilder> extends GenericDefiniti
     }
 
     @Nonnull
-    public FieldBuilder staticField(Type type, String name) throws CodeModelException {
+    protected FieldBuilder staticField(Type type, String name) throws CodeModelException {
         if (fields.containsKey(name)) {
-            throw new CodeModelException(definition().qualifiedName() + "." + name + " already defined");
+            throw new CodeModelException(definition().qualifiedTypeName() + "." + name + " already defined");
         }
         NestingBuilder membership = new NestingBuilder(true, definition());
         FieldBuilder result = new FieldBuilder(membership, type, name);
@@ -82,7 +82,7 @@ abstract class ObjectBuilder<B extends ResidenceBuilder> extends GenericDefiniti
     @Nonnull
     protected FieldBuilder field(Type type, String name) throws CodeModelException {
         if (fields.containsKey(name)) {
-            throw new CodeModelException(definition().qualifiedName() + "." + name + " already defined");
+            throw new CodeModelException(definition().qualifiedTypeName() + "." + name + " already defined");
         }
         NestingBuilder membership = new NestingBuilder(false, definition());
         FieldBuilder result = new FieldBuilder(membership, type, name);
@@ -92,9 +92,9 @@ abstract class ObjectBuilder<B extends ResidenceBuilder> extends GenericDefiniti
     }
 
     @Nonnull
-    public ClassBuilder<NestingBuilder> staticNestedClass(String name) throws CodeModelException {
+    protected ClassBuilder<NestingBuilder> staticNestedClass(String name) throws CodeModelException {
         if (innerClasses.containsKey(name))
-            throw new CodeModelException(definition().qualifiedName() + "." + name + " already defined");
+            throw new CodeModelException(definition().qualifiedTypeName() + "." + name + " already defined");
         NestingBuilder classResidence = new NestingBuilder(true, definition());
         ClassBuilder<NestingBuilder> result = new ClassBuilder<>(classResidence, name);
         innerClasses.put(name, result.definition());
@@ -105,7 +105,7 @@ abstract class ObjectBuilder<B extends ResidenceBuilder> extends GenericDefiniti
     @Nonnull
     protected ClassBuilder<NestingBuilder> innerClass(String name) throws CodeModelException {
         if (innerClasses.containsKey(name))
-            throw new CodeModelException(definition().qualifiedName() + "." + name + " already defined");
+            throw new CodeModelException(definition().qualifiedTypeName() + "." + name + " already defined");
         NestingBuilder classResidence = new NestingBuilder(false, definition());
         ClassBuilder<NestingBuilder> result = new ClassBuilder<>(classResidence, name);
         innerClasses.put(name, result.definition());
@@ -113,28 +113,27 @@ abstract class ObjectBuilder<B extends ResidenceBuilder> extends GenericDefiniti
     }
 
     @Nonnull
-    public InterfaceBuilder<NestingBuilder> nestedInterface(String name) throws CodeModelException {
+    protected InterfaceBuilder<NestingBuilder> nestedInterface(String name) throws CodeModelException {
         if (innerClasses.containsKey(name))
-            throw new CodeModelException(definition().qualifiedName() + "." + name + " already defined");
+            throw new CodeModelException(definition().qualifiedTypeName() + "." + name + " already defined");
         NestingBuilder classResidence = new NestingBuilder(true, definition());
         InterfaceBuilder<NestingBuilder> result = new InterfaceBuilder<>(classResidence, name);
         innerClasses.put(name, result.definition());
         return result;
     }
 
-    /*
-    public EnumBuilder<NestingBuilder> nestedEnum(String name) throws CodeModelException {
+    @Nonnull
+    protected EnumBuilder<NestingBuilder> nestedEnum(String name) throws CodeModelException {
         if (innerClasses.containsKey(name))
-            throw new CodeModelException(definition().qualifiedName() + "." + name + " already defined");
+            throw new CodeModelException(definition().qualifiedTypeName() + "." + name + " already defined");
         NestingBuilder classResidence = new NestingBuilder(true, definition());
         EnumBuilder<NestingBuilder> result = new EnumBuilder<>(classResidence, name);
         innerClasses.put(name, result.definition());
         return result;
     }
-    */
 
     @Nonnull
-    public MethodBuilder method(String name) throws CodeModelException {
+    protected MethodBuilder method(String name) throws CodeModelException {
         NestingBuilder methodResidence = new NestingBuilder(false, definition());
         MethodBuilder result = new MethodBuilder(methodResidence, name);
         methods.add(result.definition());
@@ -142,7 +141,7 @@ abstract class ObjectBuilder<B extends ResidenceBuilder> extends GenericDefiniti
     }
 
     @Nonnull
-    public MethodBuilder staticMethod(String name) throws CodeModelException {
+    protected MethodBuilder staticMethod(String name) throws CodeModelException {
         NestingBuilder methodResidence = new NestingBuilder(true, definition());
         MethodBuilder result = new MethodBuilder(methodResidence, name);
         methods.add(result.definition());

@@ -104,6 +104,16 @@ public final class Package implements Model {
         return result;
     }
 
+    @Nonnull
+    public EnumBuilder<PackageLevelBuilder> createEnum(String className) throws CodeModelException {
+        if (getReference(className) != null)
+            throw new CodeModelException(packageAsNamePrefix() + className + " already defined");
+        PackageLevelBuilder membershipBuilder = new PackageLevelBuilder(this);
+        EnumBuilder<PackageLevelBuilder> result = new EnumBuilder<>(membershipBuilder, className);
+        classes.put(className, result.definition());
+        return result;
+    }
+
     @Nullable
     ObjectDefinition getReference(String relativelyQualifiedName) {
         int index = relativelyQualifiedName.indexOf('.');

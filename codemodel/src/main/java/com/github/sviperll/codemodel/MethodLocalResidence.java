@@ -30,6 +30,9 @@
 
 package com.github.sviperll.codemodel;
 
+import com.github.sviperll.codemodel.render.Renderable;
+import com.github.sviperll.codemodel.render.Renderer;
+import com.github.sviperll.codemodel.render.RendererContext;
 import javax.annotation.Nonnull;
 import javax.annotation.ParametersAreNonnullByDefault;
 
@@ -38,7 +41,30 @@ import javax.annotation.ParametersAreNonnullByDefault;
  * @author Victor Nazarov &lt;asviraspossible@gmail.com&gt;
  */
 @ParametersAreNonnullByDefault
-public interface MethodLocalResidence {
+public abstract class MethodLocalResidence implements Renderable {
+    private static final NoOpRenderer NO_OP_RENDERER = new NoOpRenderer();
+    MethodLocalResidence() {
+    }
+
     @Nonnull
-    ExecutableDefinition<?, ?> parent();
+    public abstract ExecutableDefinition<?, ?> parent();
+
+    @Override
+    public Renderer createRenderer(RendererContext context) {
+        return NO_OP_RENDERER;
+    }
+
+    Renderable forObjectKind(ObjectKind kind) {
+        return this;
+    }
+
+    private static class NoOpRenderer implements Renderer {
+
+        public NoOpRenderer() {
+        }
+
+        @Override
+        public void render() {
+        }
+    }
 }

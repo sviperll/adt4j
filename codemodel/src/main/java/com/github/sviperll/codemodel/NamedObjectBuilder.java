@@ -45,13 +45,18 @@ abstract class NamedObjectBuilder<B extends ResidenceBuilder> extends ObjectBuil
         this.name = name;
     }
 
+    @Override
+    public final ObjectDefinition definition() {
+        return super.definition();
+    }
+
     abstract class BuiltDefinition extends ObjectBuilder<B>.BuiltDefinition {
         BuiltDefinition(TypeParameters typeParameters) {
             super(typeParameters);
         }
 
         @Override
-        public final String simpleName() {
+        public final String simpleTypeName() {
             return name;
         }
 

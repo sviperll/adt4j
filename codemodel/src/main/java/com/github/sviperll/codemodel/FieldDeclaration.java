@@ -59,6 +59,7 @@ public abstract class FieldDeclaration extends VariableDeclaration implements Se
             @Override
             public void render() {
                 context.appendRenderable(residence());
+                context.appendWhiteSpace();
                 simpleRenderer.render();
                 context.appendText(";");
                 context.appendLineBreak();

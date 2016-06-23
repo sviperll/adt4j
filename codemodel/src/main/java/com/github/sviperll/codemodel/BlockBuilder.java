@@ -200,7 +200,7 @@ public class BlockBuilder implements Renderable {
         return braces || statements.size() > 1;
     }
 
-    void returnStatement(final Expression result) {
+    public void returnStatement(final Expression result) {
         statements.add(new Statement.Simple() {
             @Override
             Renderer createSimpleStatementRenderer(final RendererContext context) {

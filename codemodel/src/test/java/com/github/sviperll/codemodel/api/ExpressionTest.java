@@ -27,8 +27,11 @@
  *  (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
  *  EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package com.github.sviperll.codemodel;
+package com.github.sviperll.codemodel.api;
 
+import com.github.sviperll.codemodel.CodeModel;
+import com.github.sviperll.codemodel.CodeModelException;
+import com.github.sviperll.codemodel.Expression;
 import com.github.sviperll.codemodel.render.RendererContexts;
 import org.junit.Test;
 import static org.junit.Assert.*;
