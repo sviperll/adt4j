@@ -51,6 +51,9 @@ public abstract class GenericDefinition<T extends GenericType<T, D>, D extends G
     public abstract TypeParameters typeParameters();
 
     @Nonnull
+    abstract D fromGenericDefinition();
+
+    @Nonnull
     abstract T createType(GenericType.Implementation<T, D> implementation);
 
     public final boolean isGeneric() {
@@ -74,7 +77,7 @@ public abstract class GenericDefinition<T extends GenericType<T, D>, D extends G
             throw new UnsupportedOperationException("Parent instance type is required");
         } else {
             if (rawType == null)
-                rawType = GenericType.createRawType(this);
+                rawType = GenericType.createRawType(fromGenericDefinition());
             return rawType;
         }
     }
@@ -92,7 +95,7 @@ public abstract class GenericDefinition<T extends GenericType<T, D>, D extends G
         if (!residence().hasContextDefintion()) {
             throw new UnsupportedOperationException("Type is static memeber, no parent is expected.");
         } else {
-            return GenericType.createRawType(this, capturedEnclosingType);
+            return GenericType.createRawType(fromGenericDefinition(), capturedEnclosingType);
         }
     }
 
@@ -108,7 +111,7 @@ public abstract class GenericDefinition<T extends GenericType<T, D>, D extends G
         } else {
             internalRawType = rawType(residence().getContextDefinition().internalType());
         }
-        List<Type> internalTypeArguments = typeParameters().asInternalTypeArguments();
+        List<? extends Type> internalTypeArguments = typeParameters().asInternalTypeArguments();
         return internalRawType.narrow(internalTypeArguments);
     }
 }

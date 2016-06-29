@@ -51,21 +51,18 @@ public abstract class ExecutableDefinition<T extends ExecutableType<T, D>, D ext
         this.implementation = implementation;
     }
 
-    @Nonnull
-    abstract T createType(ExecutableType.Implementation<T, D> implementation);
-
     @Override
     public final TypeParameters typeParameters() {
         return implementation.typeParameters(this);
     }
 
     @Nonnull
-    public final List<VariableDeclaration> parameters() {
+    public final List<? extends VariableDeclaration> parameters() {
         return implementation.parameters();
     }
 
     @Nonnull
-    public final List<Type> throwsList() {
+    public final List<? extends Type> throwsList() {
         return implementation.throwsList();
     }
 
@@ -98,21 +95,16 @@ public abstract class ExecutableDefinition<T extends ExecutableType<T, D>, D ext
         return implementation.getCodeModel();
     }
 
-    @Override
-    final T createType(GenericType.Implementation<T, D> implementation) {
-        return createType(new DefinedType(implementation));
-    }
-
     interface Implementation<T extends ExecutableType<T, D>, D extends ExecutableDefinition<T, D>> {
 
         @Nonnull
         TypeParameters typeParameters(ExecutableDefinition<T, D> thisDefinition);
 
         @Nonnull
-        List<VariableDeclaration> parameters();
+        List<? extends VariableDeclaration> parameters();
 
         @Nonnull
-        List<Type> throwsList();
+        List<? extends Type> throwsList();
 
         @Nonnull
         Renderable body();
@@ -123,37 +115,4 @@ public abstract class ExecutableDefinition<T extends ExecutableType<T, D>, D ext
         @Nonnull
         CodeModel getCodeModel();
     }
-
-    private class DefinedType implements ExecutableType.Implementation<T, D> {
-
-        private final GenericType.Implementation<T, D> genericTypeImplementation;
-        DefinedType(GenericType.Implementation<T, D> genericTypeImplementation) {
-            this.genericTypeImplementation = genericTypeImplementation;
-        }
-
-        @Override
-        public List<VariableDeclaration> parameters(ExecutableType<T, D> instance) {
-            List<VariableDeclaration> result = new ArrayList<>();
-            for (VariableDeclaration declaration: instance.definition().parameters()) {
-                result.add(declaration.substitute(instance.definitionEnvironment()));
-            }
-            return result;
-        }
-
-        @Override
-        public List<Type> throwsList(ExecutableType<T, D> instance) {
-            List<Type> result = new ArrayList<>();
-            for (Type type: instance.definition().throwsList()) {
-                result.add(type.substitute(instance.definitionEnvironment()));
-            }
-            return result;
-        }
-
-        @Override
-        public GenericType.Implementation<T, D> genericTypeImplementation() {
-            return genericTypeImplementation;
-        }
-    }
-
-
 }

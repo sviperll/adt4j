@@ -35,6 +35,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;
 
 /**
@@ -46,7 +47,7 @@ import javax.annotation.ParametersAreNonnullByDefault;
  */
 @ParametersAreNonnullByDefault
 public abstract class GenericDefinitionBuilder<B extends ResidenceBuilder, T extends GenericType<T, D>, D extends GenericDefinition<T, D>>
-        implements SettledBuilder<B>, Model {
+        implements Model {
     private final List<TypeParameter> typeParameters = new ArrayList<>();
     private final Map<String, TypeParameter> typeParametersMap = new TreeMap<>();
     private final B residence;
@@ -77,8 +78,8 @@ public abstract class GenericDefinitionBuilder<B extends ResidenceBuilder, T ext
         return result;
     }
 
-    @Override
-    public final B residence() {
+    @Nonnull
+    protected B residence() {
         return residence;
     }
 
@@ -90,20 +91,20 @@ public abstract class GenericDefinitionBuilder<B extends ResidenceBuilder, T ext
     private class BuiltTypeParameters extends TypeParameters {
 
         @Override
-        public final List<TypeParameter> all() {
+        public final List<? extends TypeParameter> all() {
             return typeParameters;
         }
 
         @Override
-        public final TypeParameter get(String name) {
+        public final TypeParameter getOrDefault(String name, @Nullable TypeParameter defaultValue) {
             TypeParameter result = typeParametersMap.get(name);
             if (result != null)
                 return result;
             else {
                 if (!residence.residence().hasContextDefintion())
-                    return null;
+                    return defaultValue;
                 else {
-                    return residence.residence().getContextDefinition().typeParameters().get(name);
+                    return residence.residence().getContextDefinition().typeParameters().getOrDefault(name, defaultValue);
                 }
             }
         }

@@ -49,7 +49,7 @@ public class EnumBuilder<B extends ResidenceBuilder> extends AbstractClassBuilde
         super(ObjectKind.ENUM, residence, name);
     }
 
-    public void constant(final String name, final List<Expression> constructorArguments, Consumer<EnumConstantBuilder> customization) throws CodeModelException {
+    public void constant(final String name, final List<? extends Expression> constructorArguments, Consumer<EnumConstantBuilder> customization) throws CodeModelException {
         NestingBuilder nestingBuilder = new NestingBuilder(false, definition());
         nestingBuilder.setAccessLevel(MemberAccess.PRIVATE);
         EnumConstantBuilder builder = new EnumConstantBuilder(name, constructorArguments, nestingBuilder);
@@ -58,7 +58,7 @@ public class EnumBuilder<B extends ResidenceBuilder> extends AbstractClassBuilde
         constants.add(constant);
     }
 
-    public void constant(final String name, final List<Expression> constructorArguments) throws CodeModelException {
+    public void constant(final String name, final List<? extends Expression> constructorArguments) throws CodeModelException {
         constant(name, constructorArguments, NO_OP_CONSUMER);
     }
 
@@ -91,7 +91,7 @@ public class EnumBuilder<B extends ResidenceBuilder> extends AbstractClassBuilde
         }
 
         @Override
-        public Collection<EnumConstant> enumConstants() {
+        public List<? extends EnumConstant> enumConstants() {
             return Collections.unmodifiableList(constants);
         }
     }

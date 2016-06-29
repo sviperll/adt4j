@@ -39,7 +39,7 @@ import javax.annotation.ParametersAreNonnullByDefault;
  * @author Victor Nazarov &lt;asviraspossible@gmail.com&gt;
  */
 @ParametersAreNonnullByDefault
-public class FieldBuilder implements SettledBuilder<NestingBuilder> {
+public class FieldBuilder {
 
     private final FieldDeclaration declaration = new BuiltFieldDeclaration();
     private final NestingBuilder residence;
@@ -57,9 +57,8 @@ public class FieldBuilder implements SettledBuilder<NestingBuilder> {
         this.name = name;
     }
 
-    @Override
-    public NestingBuilder residence() {
-        return residence;
+    public void setAccessLevel(MemberAccess accessLevel) {
+        residence.setAccessLevel(accessLevel);
     }
 
     @Nonnull

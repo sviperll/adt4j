@@ -30,7 +30,9 @@
 
 package com.github.sviperll.codemodel;
 
-import javax.annotation.Nonnull;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 import javax.annotation.ParametersAreNonnullByDefault;
 
 /**
@@ -38,16 +40,31 @@ import javax.annotation.ParametersAreNonnullByDefault;
  * @author Victor Nazarov &lt;asviraspossible@gmail.com&gt;
  */
 @ParametersAreNonnullByDefault
-public abstract class MethodType extends ExecutableType<MethodType, MethodDefinition> {
+public class MethodType extends ExecutableType<MethodType, MethodDefinition> {
+    private Type returnType = null;
+    private MethodSignature signature = null;
+
     MethodType(ExecutableType.Implementation<MethodType, MethodDefinition> implementation) {
         super(implementation);
     }
 
-    @Nonnull
-    public abstract Type returnType();
-
-    @Override
-    final MethodType asSpecificType() {
-        return this;
+    public final Type returnType() {
+        if (returnType == null) {
+            returnType = definition().returnType().substitute(definitionEnvironment());
+        }
+        return returnType;
+    }
+    public final String name() {
+        return definition().name();
+    }
+    public final MethodSignature signature() {
+        if (signature == null) {
+            List<Type> parameterTypes = new ArrayList<>();
+            for (VariableDeclaration declaration: parameters()) {
+                parameterTypes.add(declaration.type().substitute(definitionEnvironment()));
+            }
+            signature = new MethodSignature(name(), Collections.unmodifiableList(parameterTypes));
+        }
+        return signature;
     }
 }

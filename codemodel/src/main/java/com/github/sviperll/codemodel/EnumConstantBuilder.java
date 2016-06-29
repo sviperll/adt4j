@@ -49,7 +49,7 @@ public class EnumConstantBuilder extends ObjectBuilder<NestingBuilder> {
     private final String name;
     private final List<Expression> constructorArguments;
     private EnumConstant constant = null;
-    EnumConstantBuilder(String name, List<Expression> constructorArguments, NestingBuilder nesting) {
+    EnumConstantBuilder(String name, List<? extends Expression> constructorArguments, NestingBuilder nesting) {
         super(ObjectKind.ENUM_CONSTANT, nesting);
         this.name = name;
         this.constructorArguments = Collections.unmodifiableList(new ArrayList<>(constructorArguments));
@@ -86,9 +86,9 @@ public class EnumConstantBuilder extends ObjectBuilder<NestingBuilder> {
     private static class BuiltConstant extends EnumConstant {
         private final ObjectDefinition enumDefinition;
         private final String name;
-        private final List<Expression> constructorArguments;
+        private final List<? extends Expression> constructorArguments;
         private final ObjectDefinition members;
-        BuiltConstant(ObjectDefinition enumDefinition, String name, List<Expression> constructorArguments, ObjectDefinition members) {
+        BuiltConstant(ObjectDefinition enumDefinition, String name, List<? extends Expression> constructorArguments, ObjectDefinition members) {
             this.enumDefinition = enumDefinition;
             this.name = name;
             this.constructorArguments = constructorArguments;
@@ -115,7 +115,7 @@ public class EnumConstantBuilder extends ObjectBuilder<NestingBuilder> {
                         @Override
                         public void render() {
                             context.appendText(name);
-                            Iterator<Expression> iterator = constructorArguments.iterator();
+                            Iterator<? extends Expression> iterator = constructorArguments.iterator();
                             if (iterator.hasNext()) {
                                 context.appendText("(");
                                 context.appendRenderable(iterator.next());
@@ -153,12 +153,12 @@ public class EnumConstantBuilder extends ObjectBuilder<NestingBuilder> {
         }
 
         @Override
-        public List<ObjectType> implementsInterfaces() {
+        public List<? extends ObjectType> implementsInterfaces() {
             return Collections.<ObjectType>emptyList();
         }
 
         @Override
-        public Collection<ConstructorDefinition> constructors() {
+        public List<? extends ConstructorDefinition> constructors() {
             throw new UnsupportedOperationException("Constructors are listed for class definitions only. Use kind() method to check for object kind.");
         }
 
@@ -173,7 +173,7 @@ public class EnumConstantBuilder extends ObjectBuilder<NestingBuilder> {
         }
 
         @Override
-        public Collection<EnumConstant> enumConstants() {
+        public List<? extends EnumConstant> enumConstants() {
             throw new UnsupportedOperationException("Enum constants are listed for enum definitions only. Use kind() method to check for object kind.");
         }
     }

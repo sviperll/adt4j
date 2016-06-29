@@ -55,12 +55,12 @@ public abstract class TypeParameters implements Renderable, Settled {
     }
 
     @Nonnull
-    public abstract List<TypeParameter> all();
+    public abstract List<? extends TypeParameter> all();
 
     @Nullable
-    public TypeParameter get(String name) {
+    public TypeParameter getOrDefault(String name, @Nullable TypeParameter defaultValue) {
         if (map == null) {
-            List<TypeParameter> all = all();
+            List<? extends TypeParameter> all = all();
             map = new TreeMap<>();
             for (TypeParameter typeParameter: all) {
                 map.put(typeParameter.name(), typeParameter);
@@ -72,18 +72,18 @@ public abstract class TypeParameters implements Renderable, Settled {
             return result;
         else {
             if (!residence().hasContextDefintion())
-                return null;
+                return defaultValue;
             else {
-                return residence().getContextDefinition().typeParameters().get(name);
+                return residence().getContextDefinition().typeParameters().getOrDefault(name, defaultValue);
             }
         }
     }
 
     @Nonnull
-    final List<Type> asInternalTypeArguments() {
+    final List<? extends Type> asInternalTypeArguments() {
         if (asInternalTypeArguments == null) {
             asInternalTypeArguments = new ArrayList<>();
-            List<TypeParameter> all = all();
+            List<? extends TypeParameter> all = all();
             for (TypeParameter typeParameter: all) {
                 asInternalTypeArguments.add(Type.variable(typeParameter.name()).asType());
             }
@@ -102,7 +102,7 @@ public abstract class TypeParameters implements Renderable, Settled {
         return new Renderer() {
             @Override
             public void render() {
-                Iterator<TypeParameter> typeParameters = all().iterator();
+                Iterator<? extends TypeParameter> typeParameters = all().iterator();
                 if (typeParameters.hasNext()) {
                     context.appendText("<");
                     TypeParameter typeParameter = typeParameters.next();
@@ -138,15 +138,15 @@ public abstract class TypeParameters implements Renderable, Settled {
         }
 
         @Override
-        public List<TypeParameter> all() {
+        public List<? extends TypeParameter> all() {
             return parameters.all();
         }
 
         @Override
-        public TypeParameter get(String name) {
+        public TypeParameter getOrDefault(String name, @Nullable TypeParameter defaultValue) {
             try {
                 if (!name.equals(this.name))
-                    return parameters.get(name);
+                    return parameters.getOrDefault(name, defaultValue);
                 else {
                     throw new CodeModelException("Cyclic definition: " + name);
                 }

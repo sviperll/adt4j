@@ -64,7 +64,7 @@ public abstract class TypeParameter {
         TypeParameters environment = declaredIn().typeParameters().preventCycle(name());
         Type bound = bound();
         if (bound.isTypeVariable()) {
-            TypeParameter typeParameter = environment.get(bound.getVariableDetails().name());
+            TypeParameter typeParameter = environment.getOrDefault(bound.getVariableDetails().name(), null);
             if (typeParameter != null)
                 return typeParameter.lowerRawBound();
             else

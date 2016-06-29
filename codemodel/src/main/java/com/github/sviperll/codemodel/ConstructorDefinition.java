@@ -48,7 +48,12 @@ public abstract class ConstructorDefinition extends ExecutableDefinition<Constru
 
     @Override
     final ConstructorType createType(ExecutableType.Implementation<ConstructorType, ConstructorDefinition> implementation) {
-        return new DefinedType(implementation);
+        return new ConstructorType(implementation);
+    }
+
+    @Override
+    final ConstructorDefinition fromGenericDefinition() {
+        return this;
     }
 
     @Override
@@ -63,7 +68,7 @@ public abstract class ConstructorDefinition extends ExecutableDefinition<Constru
                 context.appendWhiteSpace();
                 context.appendText(residence().getNesting().parent().simpleTypeName());
                 context.appendText("(");
-                Iterator<VariableDeclaration> parameters = parameters().iterator();
+                Iterator<? extends VariableDeclaration> parameters = parameters().iterator();
                 if (parameters.hasNext()) {
                     VariableDeclaration parameter = parameters.next();
                     context.appendRenderable(parameter);
@@ -74,7 +79,7 @@ public abstract class ConstructorDefinition extends ExecutableDefinition<Constru
                     }
                 }
                 context.appendText(")");
-                Iterator<Type> throwsExceptions = throwsList().iterator();
+                Iterator<? extends Type> throwsExceptions = throwsList().iterator();
                 if (throwsExceptions.hasNext()) {
                     Type exceptionType = throwsExceptions.next();
                     context.appendWhiteSpace();
@@ -93,16 +98,4 @@ public abstract class ConstructorDefinition extends ExecutableDefinition<Constru
             }
         };
     }
-
-    private class DefinedType extends ConstructorType {
-        DefinedType(ExecutableType.Implementation<ConstructorType, ConstructorDefinition> implementation) {
-            super(implementation);
-        }
-
-        @Override
-        public ConstructorDefinition definition() {
-            return ConstructorDefinition.this;
-        }
-    }
-
 }

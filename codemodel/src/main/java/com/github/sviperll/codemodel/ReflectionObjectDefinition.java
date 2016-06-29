@@ -50,8 +50,8 @@ class ReflectionObjectDefinition<T> extends ObjectDefinition {
     private final CodeModel codeModel;
     private final Residence residence;
     private final Class<T> klass;
-    private Collection<ObjectDefinition> innerClasses = null;
-    private Collection<MethodDefinition> methods = null;
+    private List<ObjectDefinition> innerClasses = null;
+    private List<MethodDefinition> methods = null;
     private final TypeParameters typeParameters;
     private List<ObjectType> implementsInterfaces = null;
     private ObjectType extendsClass = null;
@@ -92,7 +92,7 @@ class ReflectionObjectDefinition<T> extends ObjectDefinition {
     }
 
     @Override
-    public List<ObjectType> implementsInterfaces() {
+    public List<? extends ObjectType> implementsInterfaces() {
         if (implementsInterfaces == null) {
             implementsInterfaces = new ArrayList<>();
             for (java.lang.reflect.Type reflectedInterface: klass.getGenericInterfaces()) {
@@ -104,7 +104,7 @@ class ReflectionObjectDefinition<T> extends ObjectDefinition {
     }
 
     @Override
-    public Collection<MethodDefinition> methods() {
+    public List<? extends MethodDefinition> methods() {
         if (methods == null) {
             methods = new ArrayList<>();
             for (final Method method: klass.getDeclaredMethods()) {
@@ -112,24 +112,26 @@ class ReflectionObjectDefinition<T> extends ObjectDefinition {
                 ReflectedExecutableDefinitionImplementation executable = new ReflectedExecutableDefinitionImplementation(codeModel, methodResidence, method);
                 methods.add(new ReflectedMethodDefinition(codeModel, executable, method));
             }
+            methods = Collections.unmodifiableList(methods);
         }
         return methods;
     }
 
     @Override
-    public Collection<ObjectDefinition> innerClasses() {
+    public Collection<? extends ObjectDefinition> innerClasses() {
         if (innerClasses == null) {
             innerClasses = new ArrayList<>();
             for (final Class<?> innerClass: klass.getDeclaredClasses()) {
                 Residence innerClassResidence = Residence.nested(new ReflectedNesting(innerClass.getModifiers(), this));
                 innerClasses.add(new ReflectionObjectDefinition<>(codeModel, innerClassResidence, innerClass));
             }
+            innerClasses = Collections.unmodifiableList(innerClasses);
         }
         return innerClasses;
     }
 
     @Override
-    public Collection<FieldDeclaration> fields() {
+    public Collection<? extends FieldDeclaration> fields() {
         throw new UnsupportedOperationException("Not supported yet.");
     }
 
@@ -149,22 +151,22 @@ class ReflectionObjectDefinition<T> extends ObjectDefinition {
     }
 
     @Override
-    List<ObjectInitializationElement> staticInitializationElements() {
+    List<? extends ObjectInitializationElement> staticInitializationElements() {
         return Collections.emptyList();
     }
 
     @Override
-    List<ObjectInitializationElement> instanceInitializationElements() {
+    List<? extends ObjectInitializationElement> instanceInitializationElements() {
         return Collections.emptyList();
     }
 
     @Override
-    public Collection<ConstructorDefinition> constructors() {
+    public List<? extends ConstructorDefinition> constructors() {
         throw new UnsupportedOperationException("Not supported yet.");
     }
 
     @Override
-    public Collection<EnumConstant> enumConstants() {
+    public List<? extends EnumConstant> enumConstants() {
         throw new UnsupportedOperationException("Not supported yet.");
     }
 
@@ -190,7 +192,7 @@ class ReflectionObjectDefinition<T> extends ObjectDefinition {
         }
 
         @Override
-        public List<TypeParameter> all() {
+        public List<? extends TypeParameter> all() {
             if (allTypeParameters == null) {
                 allTypeParameters = new ArrayList<>();
                 for (final TypeVariable<T> reflectedTypeParameter: reflectedTypeParameters) {
@@ -338,7 +340,7 @@ class ReflectionObjectDefinition<T> extends ObjectDefinition {
         }
 
         @Override
-        public List<VariableDeclaration> parameters() {
+        public List<? extends VariableDeclaration> parameters() {
             if (parameters == null) {
                 parameters = new ArrayList<>();
                 Parameter[] reflectedParameters = method.getParameters();
@@ -351,7 +353,7 @@ class ReflectionObjectDefinition<T> extends ObjectDefinition {
         }
 
         @Override
-        public List<Type> throwsList() {
+        public List<? extends Type> throwsList() {
             if (throwsList == null) {
                 throwsList = new ArrayList<>();
                 for (java.lang.reflect.Type exceptionType: method.getGenericExceptionTypes()) {

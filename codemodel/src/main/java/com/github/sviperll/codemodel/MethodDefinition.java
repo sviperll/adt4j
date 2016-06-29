@@ -58,7 +58,12 @@ public abstract class MethodDefinition extends ExecutableDefinition<MethodType, 
 
     @Override
     final MethodType createType(ExecutableType.Implementation<MethodType, MethodDefinition> implementation) {
-        return new DefinedType(implementation);
+        return new MethodType(implementation);
+    }
+
+    @Override
+    final MethodDefinition fromGenericDefinition() {
+        return this;
     }
 
     @Override
@@ -84,7 +89,7 @@ public abstract class MethodDefinition extends ExecutableDefinition<MethodType, 
                 context.appendWhiteSpace();
                 context.appendText(name());
                 context.appendText("(");
-                Iterator<VariableDeclaration> parameters = parameters().iterator();
+                Iterator<? extends VariableDeclaration> parameters = parameters().iterator();
                 if (parameters.hasNext()) {
                     VariableDeclaration parameter = parameters.next();
                     context.appendRenderable(parameter);
@@ -95,7 +100,7 @@ public abstract class MethodDefinition extends ExecutableDefinition<MethodType, 
                     }
                 }
                 context.appendText(")");
-                Iterator<Type> throwsExceptions = throwsList().iterator();
+                Iterator<? extends Type> throwsExceptions = throwsList().iterator();
                 if (throwsExceptions.hasNext()) {
                     Type exceptionType = throwsExceptions.next();
                     context.appendWhiteSpace();
@@ -118,21 +123,4 @@ public abstract class MethodDefinition extends ExecutableDefinition<MethodType, 
             }
         };
     }
-
-    private class DefinedType extends MethodType {
-        DefinedType(ExecutableType.Implementation<MethodType, MethodDefinition> implementation) {
-            super(implementation);
-        }
-
-        @Override
-        public MethodDefinition definition() {
-            return MethodDefinition.this;
-        }
-
-        @Override
-        public Type returnType() {
-            return definition().returnType().substitute(definitionEnvironment());
-        }
-    }
-
 }

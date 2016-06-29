@@ -64,7 +64,7 @@ public class ObjectDefinitionTest {
         CodeModel.Builder builder = CodeModel.createBuilder();
         CodeModel codeModel = builder.build();
         StringBuilder builder1 = new StringBuilder();
-        RendererContexts.createInstance(builder1).appendRenderable(codeModel.getReference(String.class.getName()));
+        RendererContexts.createInstance(builder1).appendRenderable(codeModel.getReferenceOrDefault(String.class.getName(), null));
         System.out.println(builder1.toString());
     }
 
@@ -102,15 +102,15 @@ public class ObjectDefinitionTest {
         test1.typeParameter("T");
 
         FieldBuilder field1 = test1.staticField(Type.intType(), "field1");
-        field1.residence().setAccessLevel(MemberAccess.PRIVATE);
+        field1.setAccessLevel(MemberAccess.PRIVATE);
 
         MethodBuilder method = test1.method("test");
-        method.residence().setAccessLevel(MemberAccess.PUBLIC);
+        method.setAccessLevel(MemberAccess.PUBLIC);
         method.resultType(Type.intType());
         method.addParameter(Type.intType(), "param1");
 
         MethodBuilder method2 = test1.method("test2");
-        method2.residence().setAccessLevel(MemberAccess.PUBLIC);
+        method2.setAccessLevel(MemberAccess.PUBLIC);
         method2.resultType(Type.variable("T").asType());
         method2.addParameter(Type.variable("T").asType(), "param1");
 
@@ -136,10 +136,10 @@ public class ObjectDefinitionTest {
         EnumBuilder<PackageLevelBuilder> test1 = pkg.createEnum("Test1");
 
         FieldBuilder field1 = test1.field(Type.intType(), "field1");
-        field1.residence().setAccessLevel(MemberAccess.PRIVATE);
+        field1.setAccessLevel(MemberAccess.PRIVATE);
 
         MethodBuilder method = test1.method("test");
-        method.residence().setAccessLevel(MemberAccess.PUBLIC);
+        method.setAccessLevel(MemberAccess.PUBLIC);
         method.resultType(Type.intType());
         method.addParameter(Type.intType(), "param1");
         method.body().returnStatement(Expression.variable("param1").plus(Expression.variable("field1")));
@@ -149,7 +149,7 @@ public class ObjectDefinitionTest {
             public void accept(EnumConstantBuilder value) {
                 try {
                     MethodBuilder method1 = value.method("test");
-                    method1.residence().setAccessLevel(MemberAccess.PUBLIC);
+                    method1.setAccessLevel(MemberAccess.PUBLIC);
                     method1.resultType(Type.intType());
                     method1.addParameter(Type.intType(), "param1");
                     method1.body().returnStatement(Expression.variable("param1").plus(Expression.variable("field1")).plus(Expression.literal(1)));
@@ -163,7 +163,7 @@ public class ObjectDefinitionTest {
             public void accept(EnumConstantBuilder value) {
                 try {
                     MethodBuilder method1 = value.method("test");
-                    method1.residence().setAccessLevel(MemberAccess.PUBLIC);
+                    method1.setAccessLevel(MemberAccess.PUBLIC);
                     method1.resultType(Type.intType());
                     method1.addParameter(Type.intType(), "param1");
                     method1.body().returnStatement(Expression.variable("param1").plus(Expression.variable("field1")).plus(Expression.literal(2)));
@@ -216,7 +216,7 @@ public class ObjectDefinitionTest {
     public void smokeNarrowedTypes() throws CodeModelException {
         ObjectDefinition test1 = buildClass();
         CodeModel codeModel = test1.getCodeModel();
-        ObjectDefinition stringDefinition = codeModel.getReference(String.class.getName());
+        ObjectDefinition stringDefinition = codeModel.getReferenceOrDefault(String.class.getName(), null);
         ObjectType stringType = stringDefinition.rawType();
 
         ObjectType test1Type = test1.rawType().narrow(Collections.singletonList(stringType.asType()));
@@ -236,8 +236,7 @@ public class ObjectDefinitionTest {
         CodeModel codeModel = test1.getCodeModel();
 
         ObjectType test1Type = test1.rawType();
-        List<MethodType> methods = test1Type.methods();
-        for (MethodType method: methods) {
+        for (MethodType method: test1Type.methods()) {
             if (method.definition().name().equals("test2")) {
                 assertTrue(codeModel.objectType().sameDefinition(method.returnType().getObjectDetails()));
             }
@@ -251,12 +250,11 @@ public class ObjectDefinitionTest {
     public void smokeNarrowedMethodTypes() throws CodeModelException {
         ObjectDefinition test1 = buildClass();
         CodeModel codeModel = test1.getCodeModel();
-        ObjectDefinition stringDefinition = codeModel.getReference(String.class.getName());
+        ObjectDefinition stringDefinition = codeModel.getReferenceOrDefault(String.class.getName(), null);
         ObjectType stringType = stringDefinition.rawType();
 
         ObjectType test1Type = test1.rawType().narrow(Collections.singletonList(stringType.asType()));
-        List<MethodType> methods = test1Type.methods();
-        for (MethodType method: methods) {
+        for (MethodType method: test1Type.methods()) {
             if (method.definition().name().equals("test2")) {
                 assertTrue(stringType.sameDefinition(method.returnType().getObjectDetails()));
             }
@@ -274,25 +272,25 @@ public class ObjectDefinitionTest {
         test1.typeParameter("T");
 
         FieldBuilder field1 = test1.field(Type.intType(), "field1");
-        field1.residence().setAccessLevel(MemberAccess.PRIVATE);
+        field1.setAccessLevel(MemberAccess.PRIVATE);
 
         FieldBuilder field2 = test1.field(Type.variable("T").asType(), "field2");
-        field2.residence().setAccessLevel(MemberAccess.PROTECTED);
+        field2.setAccessLevel(MemberAccess.PROTECTED);
 
         MethodBuilder method = test1.method("test");
-        method.residence().setAccessLevel(MemberAccess.PUBLIC);
+        method.setAccessLevel(MemberAccess.PUBLIC);
         method.resultType(Type.intType());
         method.addParameter(Type.intType(), "param1");
         method.body().returnStatement(Expression.variable("param1").plus(Expression.variable("field1")));
 
         MethodBuilder method2 = test1.method("test2");
-        method2.residence().setAccessLevel(MemberAccess.PUBLIC);
+        method2.setAccessLevel(MemberAccess.PUBLIC);
         method2.resultType(Type.variable("T").asType());
         method2.addParameter(Type.variable("T").asType(), "param1");
         method2.body().returnStatement(Expression.variable("field2"));
 
         MethodBuilder method3 = test1.method("test3");
-        method3.residence().setAccessLevel(MemberAccess.PUBLIC);
+        method3.setAccessLevel(MemberAccess.PUBLIC);
         method3.resultType(test1.definition().internalType().asType());
         method3.addParameter(Type.variable("T").asType(), "param1");
         method3.body().returnStatement(Expression.nullExpression());

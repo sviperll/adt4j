@@ -30,6 +30,8 @@
 
 package com.github.sviperll.codemodel;
 
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import javax.annotation.Nonnull;
 import javax.annotation.ParametersAreNonnullByDefault;
@@ -44,30 +46,30 @@ import javax.annotation.ParametersAreNonnullByDefault;
 public abstract class ExecutableType<T extends ExecutableType<T, D>, D extends ExecutableDefinition<T, D>>
         extends GenericType<T, D> {
 
-    private final Implementation<T, D> implementation;
-    ExecutableType(Implementation<T, D> implementation) {
-        super(implementation.genericTypeImplementation());
-        this.implementation = implementation;
+    private List<VariableDeclaration> parameters = null;
+    private List<Type> throwsList = null;
+
+    ExecutableType(GenericType.Implementation<T, D> implementation) {
+        super(implementation);
     }
 
-    @Nonnull
-    public final List<VariableDeclaration> parameters() {
-        return implementation.parameters(this);
+    public List<? extends VariableDeclaration> parameters() {
+        if (parameters == null) {
+            parameters = new ArrayList<>();
+            for (VariableDeclaration declaration: definition().parameters()) {
+                parameters.add(declaration.substitute(definitionEnvironment()));
+            }
+        }
+        return parameters;
     }
 
-    @Nonnull
-    public final List<Type> throwsList() {
-        return implementation.throwsList(this);
-    }
-
-    interface Implementation<T extends ExecutableType<T, D>, D extends ExecutableDefinition<T, D>> {
-        @Nonnull
-        GenericType.Implementation<T, D> genericTypeImplementation();
-
-        @Nonnull
-        List<VariableDeclaration> parameters(ExecutableType<T, D> thisType);
-
-        @Nonnull
-        List<Type> throwsList(ExecutableType<T, D> thisType);
+    public Collection<? extends Type> throwsList() {
+        if (throwsList == null) {
+            throwsList = new ArrayList<>();
+            for (Type type: definition().throwsList()) {
+                throwsList.add(type.substitute(definitionEnvironment()));
+            }
+        }
+        return throwsList;
     }
 }

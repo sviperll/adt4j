@@ -58,22 +58,22 @@ public abstract class ObjectDefinition extends GenericDefinition<ObjectType, Obj
     public abstract ObjectType extendsClass();
 
     @Nonnull
-    public abstract List<ObjectType> implementsInterfaces();
+    public abstract List<? extends ObjectType> implementsInterfaces();
 
     @Nonnull
-    public abstract Collection<EnumConstant> enumConstants();
+    public abstract List<? extends EnumConstant> enumConstants();
 
     @Nonnull
-    public abstract Collection<ConstructorDefinition> constructors();
+    public abstract List<? extends ConstructorDefinition> constructors();
 
     @Nonnull
-    public abstract Collection<MethodDefinition> methods();
+    public abstract List<? extends MethodDefinition> methods();
 
     @Nonnull
-    public abstract Collection<ObjectDefinition> innerClasses();
+    public abstract Collection<? extends ObjectDefinition> innerClasses();
 
     @Nonnull
-    public abstract Collection<FieldDeclaration> fields();
+    public abstract Collection<? extends FieldDeclaration> fields();
 
     /**
      * Class' simple name.
@@ -88,10 +88,10 @@ public abstract class ObjectDefinition extends GenericDefinition<ObjectType, Obj
     public abstract boolean isAnonymous();
 
     @Nonnull
-    abstract List<ObjectInitializationElement> staticInitializationElements();
+    abstract List<? extends ObjectInitializationElement> staticInitializationElements();
 
     @Nonnull
-    abstract List<ObjectInitializationElement> instanceInitializationElements();
+    abstract List<? extends ObjectInitializationElement> instanceInitializationElements();
 
     @Nonnull
     public final String qualifiedTypeName() {
@@ -104,7 +104,12 @@ public abstract class ObjectDefinition extends GenericDefinition<ObjectType, Obj
 
     @Override
     final ObjectType createType(GenericType.Implementation<ObjectType, ObjectDefinition> implementation) {
-        return new DefinedType(implementation);
+        return new ObjectType(implementation);
+    }
+
+    @Override
+    final ObjectDefinition fromGenericDefinition() {
+        return this;
     }
 
     public final boolean extendsOrImplements(ObjectDefinition objectDefinition) {
@@ -122,7 +127,7 @@ public abstract class ObjectDefinition extends GenericDefinition<ObjectType, Obj
     }
 
     @Nullable
-    final ObjectDefinition getReference(String relativelyQualifiedName) {
+    final ObjectDefinition getReferenceOrDefault(String relativelyQualifiedName, @Nullable ObjectDefinition defaultValue) {
         int index = relativelyQualifiedName.indexOf('.');
         if (index == 0)
             throw new IllegalArgumentException(relativelyQualifiedName + " illegal name");
@@ -133,10 +138,10 @@ public abstract class ObjectDefinition extends GenericDefinition<ObjectType, Obj
                 if (!needsToGoDeeper)
                     return innerClass;
                 else
-                    return innerClass.getReference(relativelyQualifiedName.substring(simpleName.length() + 1));
+                    return innerClass.getReferenceOrDefault(relativelyQualifiedName.substring(simpleName.length() + 1), defaultValue);
             }
         }
-        return null;
+        return defaultValue;
     }
 
     @Override
@@ -161,7 +166,7 @@ public abstract class ObjectDefinition extends GenericDefinition<ObjectType, Obj
                         context.appendRenderable(extendsClass());
                     }
                     if (kind().implementsSomeInterfaces()) {
-                        Iterator<ObjectType> interfaces = implementsInterfaces().iterator();
+                        Iterator<? extends ObjectType> interfaces = implementsInterfaces().iterator();
                         if (interfaces.hasNext()) {
                             if (kind().isInterface())
                                 context.appendText(" extends ");
@@ -183,7 +188,7 @@ public abstract class ObjectDefinition extends GenericDefinition<ObjectType, Obj
                 RendererContext nestedContext = context.indented();
 
                 if (kind().isEnum()) {
-                    Iterator<EnumConstant> iterator = enumConstants().iterator();
+                    Iterator<? extends EnumConstant> iterator = enumConstants().iterator();
                     nestedContext.appendRenderable(iterator.next().definition());
                     while (iterator.hasNext()) {
                         nestedContext.appendText(", ");
@@ -241,18 +246,4 @@ public abstract class ObjectDefinition extends GenericDefinition<ObjectType, Obj
 
         };
     }
-
-    private class DefinedType extends ObjectType {
-        DefinedType(GenericType.Implementation<ObjectType, ObjectDefinition> implementation) {
-            super(implementation);
-        }
-
-        @Override
-        public ObjectDefinition definition() {
-            return ObjectDefinition.this;
-        }
-
-    }
-
-
 }

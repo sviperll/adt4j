@@ -44,7 +44,8 @@ import javax.annotation.ParametersAreNonnullByDefault;
  * @param <D>
  */
 @ParametersAreNonnullByDefault
-public abstract class ExecutableBuilder<T extends ExecutableType<T, D>, D extends ExecutableDefinition<T, D>> extends GenericDefinitionBuilder<NestingBuilder, T, D> {
+public abstract class ExecutableBuilder<T extends ExecutableType<T, D>, D extends ExecutableDefinition<T, D>>
+        extends GenericDefinitionBuilder<NestingBuilder, T, D> {
     private final VariableScope scope = VariableScope.createTopLevel();
     private final BlockBuilder body = BlockBuilder.createWithBracesForced(scope.createNested());
     private final List<VariableDeclaration> parameters = new ArrayList<>();
@@ -55,6 +56,10 @@ public abstract class ExecutableBuilder<T extends ExecutableType<T, D>, D extend
         super(residence);
         this.residence = residence;
         
+    }
+
+    public void setAccessLevel(MemberAccess accessLevel) {
+        residence.setAccessLevel(accessLevel);
     }
 
     @Override
@@ -111,12 +116,12 @@ public abstract class ExecutableBuilder<T extends ExecutableType<T, D>, D extend
             this.typeParameters = typeParameters;
         }
         @Override
-        public final List<VariableDeclaration> parameters() {
+        public final List<? extends VariableDeclaration> parameters() {
             return Collections.unmodifiableList(parameters);
         }
 
         @Override
-        public final List<Type> throwsList() {
+        public final List<? extends Type> throwsList() {
             return Collections.unmodifiableList(throwsList);
         }
 

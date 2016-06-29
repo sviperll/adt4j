@@ -54,7 +54,7 @@ abstract class Substitution {
     }
 
     @Nullable
-    abstract Type get(String name);
+    abstract Type getOrDefault(String name, @Nullable Type defaultValue);
 
     @Nonnull
     final Substitution andThen(Substitution that) {
@@ -91,8 +91,12 @@ abstract class Substitution {
             this.map = map;
         }
         @Override
-        Type get(String name) {
-            return map.get(name);
+        Type getOrDefault(String name, @Nullable Type defaultValue) {
+            Type value = map.get(name);
+            if (value == null)
+                return defaultValue;
+            else
+                return value;
         }
     }
 
@@ -102,8 +106,8 @@ abstract class Substitution {
         }
 
         @Override
-        Type get(String name) {
-            return null;
+        Type getOrDefault(String name, @Nullable Type defaultValue) {
+            return defaultValue;
         }
     }
     private static class AndThenSubstitution extends Substitution {
@@ -117,9 +121,9 @@ abstract class Substitution {
         }
 
         @Override
-        Type get(String name) {
-            Type value = first.get(name);
-            return value != null ? value : second.get(name);
+        Type getOrDefault(String name, @Nullable Type defaultValue) {
+            Type value = first.getOrDefault(name, null);
+            return value != null ? value : second.getOrDefault(name, defaultValue);
         }
     }
 }

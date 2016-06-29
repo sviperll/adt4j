@@ -37,6 +37,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import javax.annotation.Nonnull;
 import javax.annotation.ParametersAreNonnullByDefault;
 
@@ -106,7 +107,7 @@ public abstract class Type implements Renderable {
     }
 
     @Nonnull
-    public static IntersectionType intersection(Collection<ObjectType> bounds) {
+    public static IntersectionType intersection(Collection<? extends ObjectType> bounds) {
         return new IntersectionType(bounds);
     }
 
@@ -157,11 +158,10 @@ public abstract class Type implements Renderable {
 
     private Type() {
     }
-
     @Nonnull
     Type substitute(Substitution environment) {
         if (isTypeVariable()) {
-            Type replacement = environment.get(getVariableDetails().name());
+            Type replacement = environment.getOrDefault(getVariableDetails().name(), null);
             if (replacement != null)
                 return replacement;
             else
@@ -302,7 +302,7 @@ public abstract class Type implements Renderable {
     }
 
     @Nonnull
-    public Collection<Type> toListOfIntersectedTypes() {
+    public Collection<? extends Type> toListOfIntersectedTypes() {
         if (!isIntersection())
             return Collections.singletonList(this);
         else {

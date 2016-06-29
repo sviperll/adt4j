@@ -30,7 +30,7 @@
 
 package com.github.sviperll.codemodel;
 
-import java.util.Collection;
+import java.util.List;
 import javax.annotation.ParametersAreNonnullByDefault;
 
 /**
@@ -94,7 +94,7 @@ public class ClassBuilder<B extends ResidenceBuilder> extends AbstractClassBuild
         }
 
         @Override
-        public Collection<EnumConstant> enumConstants() {
+        public List<? extends EnumConstant> enumConstants() {
             throw new UnsupportedOperationException("Enum constants are listed for enum definitions only. Use kind() method to check for object kind.");
         }
 

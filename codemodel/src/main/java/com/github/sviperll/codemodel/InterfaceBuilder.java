@@ -117,17 +117,17 @@ public class InterfaceBuilder<B extends ResidenceBuilder> extends NamedObjectBui
         }
 
         @Override
-        public List<ObjectType> implementsInterfaces() {
+        public List<? extends ObjectType> implementsInterfaces() {
             return Collections.unmodifiableList(interfaces);
         }
 
         @Override
-        public Collection<ConstructorDefinition> constructors() {
+        public List<? extends ConstructorDefinition> constructors() {
             throw new UnsupportedOperationException("Constructors are listed for class definitions only. Use kind() method to check for object kind.");
         }
 
         @Override
-        public Collection<EnumConstant> enumConstants() {
+        public List<? extends EnumConstant> enumConstants() {
             throw new UnsupportedOperationException("Enum constants are listed for enum definitions only. Use kind() method to check for object kind.");
         }
 

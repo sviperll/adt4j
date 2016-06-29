@@ -86,7 +86,7 @@ public final class Package implements Model {
 
     @Nonnull
     public ClassBuilder<PackageLevelBuilder> createClass(String className) throws CodeModelException {
-        if (getReference(className) != null)
+        if (getReferenceOrDefault(className, null) != null)
             throw new CodeModelException(packageAsNamePrefix() + className + " already defined");
         PackageLevelBuilder membershipBuilder = new PackageLevelBuilder(this);
         ClassBuilder<PackageLevelBuilder> result = new ClassBuilder<>(membershipBuilder, className);
@@ -96,7 +96,7 @@ public final class Package implements Model {
 
     @Nonnull
     public InterfaceBuilder<PackageLevelBuilder> createInterface(String className) throws CodeModelException {
-        if (getReference(className) != null)
+        if (getReferenceOrDefault(className, null) != null)
             throw new CodeModelException(packageAsNamePrefix() + className + " already defined");
         PackageLevelBuilder membershipBuilder = new PackageLevelBuilder(this);
         InterfaceBuilder<PackageLevelBuilder> result = new InterfaceBuilder<>(membershipBuilder, className);
@@ -106,7 +106,7 @@ public final class Package implements Model {
 
     @Nonnull
     public EnumBuilder<PackageLevelBuilder> createEnum(String className) throws CodeModelException {
-        if (getReference(className) != null)
+        if (getReferenceOrDefault(className, null) != null)
             throw new CodeModelException(packageAsNamePrefix() + className + " already defined");
         PackageLevelBuilder membershipBuilder = new PackageLevelBuilder(this);
         EnumBuilder<PackageLevelBuilder> result = new EnumBuilder<>(membershipBuilder, className);
@@ -115,7 +115,7 @@ public final class Package implements Model {
     }
 
     @Nullable
-    ObjectDefinition getReference(String relativelyQualifiedName) {
+    ObjectDefinition getReferenceOrDefault(String relativelyQualifiedName, @Nullable ObjectDefinition defaultValue) {
         int index = relativelyQualifiedName.indexOf('.');
         if (index == 0)
             throw new IllegalArgumentException(packageAsNamePrefix() + relativelyQualifiedName + " illegal name");
@@ -135,18 +135,18 @@ public final class Package implements Model {
             }
         }
         if (!needsToGoDeeper) {
-            return result;
+            return result == null ? defaultValue : result;
         } else {
             String childRelativeName = relativelyQualifiedName.substring(simpleName.length() + 1);
             if (result != null) {
-                return result.getReference(childRelativeName);
+                return result.getReferenceOrDefault(childRelativeName, defaultValue);
             } else {
                 Package childPackage = packages.get(simpleName);
                 if (childPackage == null) {
                     childPackage = new Package(codeModel, packageAsNamePrefix() + simpleName, this);
                     packages.put(simpleName, childPackage);
                 }
-                return childPackage.getReference(childRelativeName);
+                return childPackage.getReferenceOrDefault(childRelativeName, defaultValue);
             }
         }
     }

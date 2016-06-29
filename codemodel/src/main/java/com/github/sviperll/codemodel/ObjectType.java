@@ -35,9 +35,12 @@ import com.github.sviperll.codemodel.render.Renderer;
 import com.github.sviperll.codemodel.render.RendererContext;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import javax.annotation.Nonnull;
 import javax.annotation.ParametersAreNonnullByDefault;
 
@@ -46,21 +49,16 @@ import javax.annotation.ParametersAreNonnullByDefault;
  * @author Victor Nazarov &lt;asviraspossible@gmail.com&gt;
  */
 @ParametersAreNonnullByDefault
-public abstract class ObjectType extends GenericType<ObjectType, ObjectDefinition> implements Renderable {
+public class ObjectType extends GenericType<ObjectType, ObjectDefinition> implements Renderable {
     private final Type type = Type.wrapObjectType(this);
-    private List<MethodType> methods = null;
+    private Map<MethodSignature, MethodType> methods = null;
+    private Map<ObjectDefinition, ObjectType> interfaces = null;
     private List<ConstructorType> constructors = null;
+    private List<ObjectType> supertypes = null;
+    private ObjectType superClass = null;
 
     ObjectType(GenericType.Implementation<ObjectType, ObjectDefinition> implementation) {
         super(implementation);
-    }
-
-    @Override
-    public abstract ObjectDefinition definition();
-
-    @Override
-    final ObjectType asSpecificType() {
-        return this;
     }
 
     @Nonnull
@@ -86,23 +84,96 @@ public abstract class ObjectType extends GenericType<ObjectType, ObjectDefinitio
         return definition() == that.definition();
     }
 
+    /**
+     * All methods supported by this object.
+     * Inherited methods are included.
+     * @return all methods supported by this object
+     */
     @Nonnull
-    public final List<MethodType> methods() {
+    public final Collection<? extends MethodType> methods() {
         if (methods == null) {
-            methods = new ArrayList<>(definition().methods().size());
-            for (final MethodDefinition definition: definition().methods()) {
-                if (definition.isStatic())
-                    methods.add(definition.rawType());
-                else
-                    methods.add(definition.rawType(this));
+            methods = new HashMap<>();
+            for (ObjectType supertype: interfaces()) {
+                for (MethodType method: supertype.methods())
+                    methods.put(method.signature(), method);
             }
-            methods = Collections.unmodifiableList(methods);
+            if (!isJavaLangObject()) {
+                for (MethodType method: superClass().methods()) {
+                    methods.put(method.signature(), method);
+                }
+            }
+            for (MethodDefinition definition: definition().methods()) {
+                MethodType method = definition.isStatic() ? definition.rawType() : definition.rawType(this);
+                methods.put(method.signature(), method);
+            }
+            methods = Collections.unmodifiableMap(methods);
         }
-        return methods;
+        return methods.values();
+    }
+
+    /**
+     * All interfaces supported by this object.
+     * Interfaces are listed regardless wheather they are explicitly implemented or inherited somehow.
+     * @return All interfaces supported by this object.
+     */
+    public Collection<? extends ObjectType> interfaces() {
+        if (interfaces == null) {
+            interfaces = new HashMap<>();
+            if (!isJavaLangObject()) {
+                for (ObjectType iface: superClass().interfaces()) {
+                    interfaces.put(iface.definition(), iface);
+                }
+            }
+            for (ObjectType declaredInterface: definition().implementsInterfaces()) {
+                ObjectType iface = declaredInterface.substitute(definitionEnvironment());
+                interfaces.put(iface.definition(), iface);
+                for (ObjectType subinterface: iface.interfaces()) {
+                    interfaces.put(subinterface.definition(), subinterface);
+                }
+            }
+            interfaces = Collections.unmodifiableMap(interfaces);
+        }
+        return interfaces.values();
+    }
+
+    /**
+     * Directly extended class.
+     * For interfaces superClass is java.lang.Object.
+     * @return Directly extended class
+     */
+    public ObjectType superClass() {
+        if (superClass == null) {
+            superClass = definition().extendsClass().substitute(definitionEnvironment());
+        }
+        return superClass;
+    }
+
+    /**
+     * All directly extended/implemented types.
+     * For interfaces #supertypes() is a list of extended interfaces or
+     * single java.lang.Object type when no interfaces are extended.
+     * @return All directly extended/implemented types.
+     */
+    public Collection<? extends ObjectType> supertypes() {
+        if (supertypes == null) {
+            supertypes = new ArrayList<>();
+            if (definition().kind().isInterface() && definition().implementsInterfaces().isEmpty()) {
+                supertypes.add(definition().getCodeModel().objectType());
+            } else {
+                if (!isJavaLangObject()) {
+                    supertypes.add(superClass());
+                }
+                for (ObjectType iface: definition().implementsInterfaces()) {
+                    supertypes.add(iface.substitute(definitionEnvironment()));
+                }
+            }
+            supertypes = Collections.unmodifiableList(supertypes);
+        }
+        return supertypes;
     }
 
     @Nonnull
-    public final List<ConstructorType> constructors() {
+    public final Collection<? extends ConstructorType> constructors() {
         if (constructors == null) {
             constructors = new ArrayList<>(definition().constructors().size());
             for (final ConstructorDefinition definition: definition().constructors()) {
@@ -126,7 +197,7 @@ public abstract class ObjectType extends GenericType<ObjectType, ObjectDefinitio
                     context.appendQualifiedClassName(definition().qualifiedTypeName());
                 else {
                     context.appendRenderable(erasure());
-                    Iterator<Type> iterator = typeArguments().iterator();
+                    Iterator<? extends Type> iterator = typeArguments().iterator();
                     if (iterator.hasNext()) {
                         context.appendText("<");
                         context.appendRenderable(iterator.next());

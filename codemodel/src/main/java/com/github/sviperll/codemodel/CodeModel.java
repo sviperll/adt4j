@@ -64,7 +64,7 @@ public final class CodeModel {
     @Nonnull
     public ObjectType objectType() {
         if (objectType == null) {
-            ObjectDefinition javaLangObjectDefinition = getReference(Object.class.getName());
+            ObjectDefinition javaLangObjectDefinition = getReferenceOrDefault(Object.class.getName(), null);
             if (javaLangObjectDefinition == null) {
                 throw new RuntimeException("java.lang.Object is not loadable class!");
             } else {
@@ -85,8 +85,8 @@ public final class CodeModel {
     }
 
     @Nullable
-    public ObjectDefinition getReference(String qualifiedName) {
-        return defaultPackage.getReference(qualifiedName);
+    public ObjectDefinition getReferenceOrDefault(String qualifiedName, @Nullable ObjectDefinition defaultValue) {
+        return defaultPackage.getReferenceOrDefault(qualifiedName, defaultValue);
     }
 
     @Nonnull
@@ -128,7 +128,7 @@ public final class CodeModel {
             } else if (reflectedType.isArray()) {
                 return Type.arrayOf(readReflectedType(reflectedType.getComponentType())).asType();
             } else {
-                ObjectDefinition definition = getReference(reflectedType.getName());
+                ObjectDefinition definition = getReferenceOrDefault(reflectedType.getName(), null);
                 if (definition == null)
                     throw new IllegalStateException("java.lang.reflect.Type references unexisting type: " + reflectedType.getName());
                 else

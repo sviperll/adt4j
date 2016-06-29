@@ -35,7 +35,9 @@ import com.github.sviperll.codemodel.render.Renderer;
 import com.github.sviperll.codemodel.render.RendererContext;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Iterator;
+import java.util.List;
 import javax.annotation.Nonnull;
 import javax.annotation.ParametersAreNonnullByDefault;
 
@@ -47,14 +49,14 @@ import javax.annotation.ParametersAreNonnullByDefault;
 public class IntersectionType implements Renderable {
 
     private final Type type = Type.wrapIntersectionType(this);
-    private final Collection<ObjectType> bounds;
+    private final Collection<? extends ObjectType> bounds;
 
-    IntersectionType(Collection<ObjectType> bounds) {
+    IntersectionType(Collection<? extends ObjectType> bounds) {
         this.bounds = bounds;
     }
 
     @Nonnull
-    public Collection<ObjectType> intersectedTypes() {
+    public Collection<? extends ObjectType> intersectedTypes() {
         return bounds;
     }
 
@@ -65,11 +67,11 @@ public class IntersectionType implements Renderable {
 
     @Nonnull
     Type substitute(Substitution environment) {
-        Collection<ObjectType> substituted = new ArrayList<>(bounds.size());
+        List<ObjectType> substituted = new ArrayList<>(bounds.size());
         for (ObjectType bound: bounds) {
             substituted.add(bound.substitute(environment));
         }
-        return new IntersectionType(substituted).asType();
+        return new IntersectionType(Collections.unmodifiableList(substituted)).asType();
     }
 
     @Override
@@ -77,7 +79,7 @@ public class IntersectionType implements Renderable {
         return new Renderer() {
             @Override
             public void render() {
-                Iterator<ObjectType> iterator = intersectedTypes().iterator();
+                Iterator<? extends ObjectType> iterator = intersectedTypes().iterator();
                 if (iterator.hasNext()) {
                     context.appendRenderable(iterator.next());
                     while (iterator.hasNext()) {

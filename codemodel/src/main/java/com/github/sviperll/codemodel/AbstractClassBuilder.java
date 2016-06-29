@@ -114,12 +114,12 @@ abstract class AbstractClassBuilder<B extends ResidenceBuilder> extends NamedObj
         }
 
         @Override
-        final public List<ObjectType> implementsInterfaces() {
+        final public List<? extends ObjectType> implementsInterfaces() {
             return Collections.unmodifiableList(interfaces);
         }
 
         @Override
-        final public Collection<ConstructorDefinition> constructors() {
+        final public List<? extends ConstructorDefinition> constructors() {
             return Collections.unmodifiableList(constructors);
         }
     }

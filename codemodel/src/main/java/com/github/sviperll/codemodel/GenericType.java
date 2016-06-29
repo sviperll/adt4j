@@ -47,12 +47,15 @@ import javax.annotation.ParametersAreNonnullByDefault;
 @ParametersAreNonnullByDefault
 public abstract class GenericType<T extends GenericType<T, D>, D extends GenericDefinition<T, D>> {
     @Nonnull
-    static <T extends GenericType<T, D>, D extends GenericDefinition<T, D>> T createRawType(GenericDefinition<T, D> definition) {
-        return definition.createType(new Raw<>(definition, null));
+    static <T extends GenericType<T, D>, D extends GenericDefinition<T, D>> T createRawType(D definition) {
+        return createRawType(definition, null);
     }
     @Nonnull
-    static <T extends GenericType<T, D>, D extends GenericDefinition<T, D>> T createRawType(GenericDefinition<T, D> definition, GenericType<?, ?> capturedEnclosingType) {
-        return definition.createType(new Raw<>(definition, capturedEnclosingType));
+    static <T extends GenericType<T, D>, D extends GenericDefinition<T, D>> T createRawType(D definition, @Nullable GenericType<?, ?> capturedEnclosingType) {
+        Raw<T, D> raw = new Raw<>(definition, capturedEnclosingType);
+        T instance = definition.createType(raw);
+        raw.instance = instance;
+        return instance;
     }
 
     private final Implementation<T, D> implementation;
@@ -62,11 +65,13 @@ public abstract class GenericType<T extends GenericType<T, D>, D extends Generic
     }
 
     @Nonnull
-    public abstract D definition();
+    public final D definition() {
+        return implementation.definition();
+    }
 
     @Nonnull
     public final T erasure() {
-        return implementation.erasure(this);
+        return implementation.erasure();
     }
 
     public final boolean isNarrowed() {
@@ -87,17 +92,14 @@ public abstract class GenericType<T extends GenericType<T, D>, D extends Generic
      * @return Narrowed type for this raw-type.
      */
     @Nonnull
-    public final T narrow(List<Type> typeArguments) {
-        return implementation.narrow(this, typeArguments);
+    public final T narrow(List<? extends Type> typeArguments) {
+        return implementation.narrow(typeArguments);
     }
 
     @Nonnull
-    public final List<Type> typeArguments() {
-        return implementation.typeArguments(this);
+    public final List<? extends Type> typeArguments() {
+        return implementation.typeArguments();
     }
-
-    @Nonnull
-    abstract T asSpecificType();
 
     public final boolean hasCapturedEnclosingType() {
         return implementation.hasCapturedEnclosingType();
@@ -117,7 +119,7 @@ public abstract class GenericType<T extends GenericType<T, D>, D extends Generic
 
     @Nonnull
     final T substitute(Substitution substitution) {
-        return implementation.createGenericType(this, implementation.substitute(substitution));
+        return definition().createType(implementation.substitute(substitution));
     }
 
     @Nonnull
@@ -126,8 +128,8 @@ public abstract class GenericType<T extends GenericType<T, D>, D extends Generic
             Substitution.Builder builder;
             builder = Substitution.createBuilder();
             D definition = definition();
-            Iterator<TypeParameter> typeParameters = definition.typeParameters().all().iterator();
-            Iterator<Type> typeArguments = typeArguments().iterator();
+            Iterator<? extends TypeParameter> typeParameters = definition.typeParameters().all().iterator();
+            Iterator<? extends Type> typeArguments = typeArguments().iterator();
             while (typeParameters.hasNext() && typeArguments.hasNext()) {
                 TypeParameter typeParameter = typeParameters.next();
                 Type typeArgument = typeArguments.next();
@@ -141,8 +143,8 @@ public abstract class GenericType<T extends GenericType<T, D>, D extends Generic
     }
 
     static abstract class Implementation<T extends GenericType<T, D>, D extends GenericDefinition<T, D>> {
-        private final GenericDefinition<T, D> definition;
-        private Implementation(GenericDefinition<T, D> definition) {
+        private final D definition;
+        private Implementation(D definition) {
             this.definition = definition;
         }
 
@@ -157,15 +159,15 @@ public abstract class GenericType<T extends GenericType<T, D>, D extends Generic
          * @return Narrowed type for given raw-type.
          */
         @Nonnull
-        abstract T narrow(GenericType<T, D> thisGenericType, List<Type> typeArguments);
+        abstract T narrow(List<? extends Type> typeArguments);
 
         @Nonnull
-        abstract T erasure(GenericType<T, D> thisGenericType);
+        abstract T erasure();
         abstract boolean isRaw();
         abstract boolean isNarrowed();
 
         @Nonnull
-        abstract List<Type> typeArguments(GenericType<T, D> thisGenericType);
+        abstract List<? extends Type> typeArguments();
 
         /**
          * Type of enclosing definition that defines a context for current type.
@@ -185,13 +187,8 @@ public abstract class GenericType<T extends GenericType<T, D>, D extends Generic
         }
 
         @Nonnull
-        final GenericDefinition<T, D> definition() {
+        final D definition() {
             return definition;
-        }
-
-        @Nonnull
-        final T createGenericType(GenericType<T, D> thisGenericType, Implementation<T, D> implementation) {
-            return definition.createType(implementation);
         }
     }
     private static class SubstitutedArgumentsImplementation<T extends GenericType<T, D>, D extends GenericDefinition<T, D>>
@@ -200,20 +197,20 @@ public abstract class GenericType<T extends GenericType<T, D>, D extends Generic
         private final Implementation<T, D> original;
         private final Substitution substitution;
         private List<Type> typeArguments = null;
-        SubstitutedArgumentsImplementation(GenericDefinition<T, D> factory, Implementation<T, D> original, Substitution substitution) {
+        SubstitutedArgumentsImplementation(D factory, Implementation<T, D> original, Substitution substitution) {
             super(factory);
             this.original = original;
             this.substitution = substitution;
         }
 
         @Override
-        T narrow(GenericType<T, D> thisGenericType, List<Type> typeArguments) {
-            return original.narrow(thisGenericType, typeArguments);
+        T narrow(List<? extends Type> typeArguments) {
+            return original.narrow(typeArguments);
         }
 
         @Override
-        T erasure(GenericType<T, D> thisGenericType) {
-            return original.erasure(thisGenericType);
+        T erasure() {
+            return original.erasure();
         }
 
         @Override
@@ -227,10 +224,10 @@ public abstract class GenericType<T extends GenericType<T, D>, D extends Generic
         }
 
         @Override
-        List<Type> typeArguments(GenericType<T, D> thisGenericType) {
+        List<? extends Type> typeArguments() {
             if (typeArguments == null) {
                 typeArguments = new ArrayList<>();
-                for (Type type: original.typeArguments(thisGenericType)) {
+                for (Type type: original.typeArguments()) {
                     typeArguments.add(type.substitute(substitution));
                 }
                 typeArguments = Collections.unmodifiableList(typeArguments);
@@ -256,24 +253,25 @@ public abstract class GenericType<T extends GenericType<T, D>, D extends Generic
     private static class Raw<T extends GenericType<T, D>, D extends GenericDefinition<T, D>> extends Implementation<T, D> {
         private List<Type> typeArguments = null;
         private final GenericType<?, ?> capturedEnclosingType;
+        private T instance = null;
 
-        Raw(GenericDefinition<T, D> factory, @Nullable GenericType<?, ?> capturedEnclosingType) {
+        Raw(D factory, @Nullable GenericType<?, ?> capturedEnclosingType) {
             super(factory);
             this.capturedEnclosingType = capturedEnclosingType;
         }
 
         @Override
-        final T narrow(GenericType<T, D> thisGenericType, List<Type> typeArguments) {
+        final T narrow(List<? extends Type> typeArguments) {
             for (Type type: typeArguments) {
                 if (!type.canBeTypeArgument())
                     throw new IllegalArgumentException(type.kind() + "can't be used as type-argument");
             }
-            if (typeArguments.size() != thisGenericType.definition().typeParameters().all().size())
+            if (typeArguments.size() != definition().typeParameters().all().size())
                 throw new IllegalArgumentException("Type-argument list and type-parameter list differ in size");
             if (typeArguments.isEmpty())
-                return thisGenericType.asSpecificType();
+                return instance;
             else
-                return createGenericType(thisGenericType, new Narrowed<>(definition(), thisGenericType.asSpecificType(), typeArguments));
+                return definition().createType(new Narrowed<>(definition(), instance, typeArguments));
         }
 
         @Override
@@ -287,15 +285,15 @@ public abstract class GenericType<T extends GenericType<T, D>, D extends Generic
         }
 
         @Override
-        final List<Type> typeArguments(GenericType<T, D> thisGenericType) {
+        final List<? extends Type> typeArguments() {
             if (typeArguments == null) {
-                typeArguments = new ArrayList<>(thisGenericType.definition().typeParameters().all().size());
-                for (TypeParameter typeParameter: thisGenericType.definition().typeParameters().all()) {
+                typeArguments = new ArrayList<>(definition().typeParameters().all().size());
+                for (TypeParameter typeParameter: definition().typeParameters().all()) {
                     Type lowerRawBound;
                     try {
                         lowerRawBound = typeParameter.lowerRawBound();
                     } catch (CodeModelException ex) {
-                        lowerRawBound = thisGenericType.definition().getCodeModel().objectType().asType();
+                        lowerRawBound = definition().getCodeModel().objectType().asType();
                     }
                     typeArguments.add(lowerRawBound);
                 }
@@ -305,8 +303,8 @@ public abstract class GenericType<T extends GenericType<T, D>, D extends Generic
         }
 
         @Override
-        T erasure(GenericType<T, D> thisGenericType) {
-            return thisGenericType.asSpecificType();
+        T erasure() {
+            return instance;
         }
 
         @Override
@@ -326,8 +324,8 @@ public abstract class GenericType<T extends GenericType<T, D>, D extends Generic
     private static class Narrowed<T extends GenericType<T, D>, D extends GenericDefinition<T, D>> extends Implementation<T, D> {
 
         private final T erasure;
-        private final List<Type> arguments;
-        Narrowed(GenericDefinition<T, D> factory, T erasure, List<Type> arguments) {
+        private final List<? extends Type> arguments;
+        Narrowed(D factory, T erasure, List<? extends Type> arguments) {
             super(factory);
             if (arguments.isEmpty())
                 throw new IllegalArgumentException("Type arguments shouldn't be empty");
@@ -340,7 +338,7 @@ public abstract class GenericType<T extends GenericType<T, D>, D extends Generic
         }
 
         @Override
-        public T erasure(GenericType<T, D> thisGenericType) {
+        public T erasure() {
             return erasure;
         }
 
@@ -355,12 +353,12 @@ public abstract class GenericType<T extends GenericType<T, D>, D extends Generic
         }
 
         @Override
-        public T narrow(GenericType<T, D> thisGenericType, List<Type> typeArguments) {
+        public T narrow(List<? extends Type> typeArguments) {
             throw new UnsupportedOperationException("Raw type expected");
         }
 
         @Override
-        public List<Type> typeArguments(GenericType<T, D> thisGenericType) {
+        public List<? extends Type> typeArguments() {
             return arguments;
         }
 

@@ -161,17 +161,17 @@ abstract class ObjectBuilder<B extends ResidenceBuilder> extends GenericDefiniti
         }
 
         @Override
-        public final Collection<MethodDefinition> methods() {
+        public final List<? extends MethodDefinition> methods() {
             return Collections.unmodifiableList(methods);
         }
 
         @Override
-        public final Collection<ObjectDefinition> innerClasses() {
+        public final Collection<? extends ObjectDefinition> innerClasses() {
             return innerClasses.values();
         }
 
         @Override
-        public final Collection<FieldDeclaration> fields() {
+        public final Collection<? extends FieldDeclaration> fields() {
             return fields.values();
         }
 
@@ -191,12 +191,12 @@ abstract class ObjectBuilder<B extends ResidenceBuilder> extends GenericDefiniti
         }
 
         @Override
-        final List<ObjectInitializationElement> staticInitializationElements() {
+        final List<? extends ObjectInitializationElement> staticInitializationElements() {
             return staticInitOrdering;
         }
 
         @Override
-        final List<ObjectInitializationElement> instanceInitializationElements() {
+        final List<? extends ObjectInitializationElement> instanceInitializationElements() {
             return instanceInitOrdering;
         }
 

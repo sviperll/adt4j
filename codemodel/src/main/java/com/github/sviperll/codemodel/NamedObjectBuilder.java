@@ -30,6 +30,7 @@
 
 package com.github.sviperll.codemodel;
 
+import javax.annotation.Nonnull;
 import javax.annotation.ParametersAreNonnullByDefault;
 
 /**
@@ -43,6 +44,11 @@ abstract class NamedObjectBuilder<B extends ResidenceBuilder> extends ObjectBuil
     NamedObjectBuilder(ObjectKind kind, B residence, String name) {
         super(kind, residence);
         this.name = name;
+    }
+
+    @Override
+    public final B residence() {
+        return super.residence();
     }
 
     @Override
