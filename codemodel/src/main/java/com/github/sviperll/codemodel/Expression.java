@@ -38,6 +38,8 @@ import com.github.sviperll.codemodel.render.RendererContext;
 import javax.annotation.ParametersAreNonnullByDefault;
 import com.github.sviperll.codemodel.render.Renderable;
 import com.github.sviperll.codemodel.expression.PrecedenceAwareRenderable;
+import java.util.Iterator;
+import java.util.List;
 import javax.annotation.Nonnull;
 
 /**
@@ -170,6 +172,80 @@ public class Expression implements Renderable {
             }
         }));
     }
+
+    @Nonnull
+    public static Expression staticInvocation(final MethodType method, final List<? extends Expression> arguments) {
+        return new Expression(TOP.createRenderable(new PrecedenceAwareRenderable() {
+            @Override
+            public Renderer createPrecedenceAwareRenderer(final PrecedenceAwareRendererContext context) {
+                return new Renderer() {
+                    @Override
+                    public void render() {
+                        context.appendFreeStandingRenderable(method.definition().parent().rawType());
+                        context.appendText(".");
+                        Iterator<? extends Type> typeArgumentIterator = method.typeArguments().iterator();
+                        if (typeArgumentIterator.hasNext()) {
+                            context.appendText("<");
+                            context.appendFreeStandingRenderable(typeArgumentIterator.next());
+                            while (typeArgumentIterator.hasNext()) {
+                                context.appendText(", ");
+                                context.appendFreeStandingRenderable(typeArgumentIterator.next());
+                            }
+                            context.appendText(">");
+                        }
+                        context.appendText(method.name());
+                        context.appendText("(");
+                        Iterator<? extends Expression> iterator = arguments.iterator();
+                        if (iterator.hasNext()) {
+                            context.appendFreeStandingRenderable(iterator.next());
+                            while (iterator.hasNext()) {
+                                context.appendText(", ");
+                                context.appendFreeStandingRenderable(iterator.next());
+                            }
+                        }
+                        context.appendText(")");
+                    }
+                };
+            }
+        }));
+    }
+
+    @Nonnull
+    public static Expression instantiation(final ConstructorType constructor, final List<? extends Expression> arguments) {
+        return new Expression(TOP.createRenderable(new PrecedenceAwareRenderable() {
+            @Override
+            public Renderer createPrecedenceAwareRenderer(final PrecedenceAwareRendererContext context) {
+                return new Renderer() {
+                    @Override
+                    public void render() {
+                        Iterator<? extends Type> typeArgumentIterator = constructor.typeArguments().iterator();
+                        if (typeArgumentIterator.hasNext()) {
+                            context.appendText("<");
+                            context.appendFreeStandingRenderable(typeArgumentIterator.next());
+                            while (typeArgumentIterator.hasNext()) {
+                                context.appendText(", ");
+                                context.appendFreeStandingRenderable(typeArgumentIterator.next());
+                            }
+                            context.appendText(">");
+                        }
+                        context.appendText("new ");
+                        context.appendFreeStandingRenderable(constructor.objectType());
+                        context.appendText("(");
+                        Iterator<? extends Expression> argumentIterator = arguments.iterator();
+                        if (argumentIterator.hasNext()) {
+                            context.appendFreeStandingRenderable(argumentIterator.next());
+                            while (argumentIterator.hasNext()) {
+                                context.appendText(", ");
+                                context.appendFreeStandingRenderable(argumentIterator.next());
+                            }
+                        }
+                        context.appendText(")");
+                    }
+                };
+            }
+        }));
+    }
+
     private final PrecedenceRenderable renderable;
 
     public Expression(PrecedenceRenderable precedence) {
@@ -256,4 +332,42 @@ public class Expression implements Renderable {
     public Expression assignment(Expression that) {
         return new Expression(ASSIGNMENT.createRightAssociativeRenderable(this.renderable, "=", that.renderable));
     }
+
+    @Nonnull
+    public final Expression invocation(final MethodType method, final List<? extends Expression> arguments) {
+        return new Expression(TOP.createRenderable(new PrecedenceAwareRenderable() {
+            @Override
+            public Renderer createPrecedenceAwareRenderer(final PrecedenceAwareRendererContext context) {
+                return new Renderer() {
+                    @Override
+                    public void render() {
+                        context.appendSamePrecedenceRenderable(renderable);
+                        context.appendText(".");
+                        Iterator<? extends Type> typeArgumentIterator = method.typeArguments().iterator();
+                        if (typeArgumentIterator.hasNext()) {
+                            context.appendText("<");
+                            context.appendFreeStandingRenderable(typeArgumentIterator.next());
+                            while (typeArgumentIterator.hasNext()) {
+                                context.appendText(", ");
+                                context.appendFreeStandingRenderable(typeArgumentIterator.next());
+                            }
+                            context.appendText(">");
+                        }
+                        context.appendText(method.name());
+                        context.appendText("(");
+                        Iterator<? extends Expression> argumentIterator = arguments.iterator();
+                        if (argumentIterator.hasNext()) {
+                            context.appendFreeStandingRenderable(argumentIterator.next());
+                            while (argumentIterator.hasNext()) {
+                                context.appendText(", ");
+                                context.appendFreeStandingRenderable(argumentIterator.next());
+                            }
+                        }
+                        context.appendText(")");
+                    }
+                };
+            }
+        }));
+    }
+
 }

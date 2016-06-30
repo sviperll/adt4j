@@ -101,7 +101,7 @@ public abstract class GenericType<T extends GenericType<T, D>, D extends Generic
         return implementation.typeArguments();
     }
 
-    public final boolean hasCapturedEnclosingType() {
+    final boolean hasCapturedEnclosingType() {
         return implementation.hasCapturedEnclosingType();
     }
 
@@ -113,7 +113,7 @@ public abstract class GenericType<T extends GenericType<T, D>, D extends Generic
      * @return Type of enclosing definition
      */
     @Nonnull
-    public final GenericType<?, ?> getCapturedEnclosingType() {
+    final GenericType<?, ?> getCapturedEnclosingType() {
         return implementation.getCapturedEnclosingType();
     }
 

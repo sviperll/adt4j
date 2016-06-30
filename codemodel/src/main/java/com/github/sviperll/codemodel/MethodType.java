@@ -67,4 +67,12 @@ public class MethodType extends ExecutableType<MethodType, MethodDefinition> {
         }
         return signature;
     }
+
+    public final Expression staticInvocation(final List<? extends Expression> arguments) {
+        return Expression.staticInvocation(this, arguments);
+    }
+
+    public final Expression invocation(Expression thisObject, final List<? extends Expression> arguments) {
+        return thisObject.invocation(this, arguments);
+    }
 }

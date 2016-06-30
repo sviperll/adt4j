@@ -30,6 +30,8 @@
 
 package com.github.sviperll.codemodel;
 
+import java.util.List;
+import javax.annotation.Nonnull;
 import javax.annotation.ParametersAreNonnullByDefault;
 
 /**
@@ -40,5 +42,16 @@ import javax.annotation.ParametersAreNonnullByDefault;
 public class ConstructorType extends ExecutableType<ConstructorType, ConstructorDefinition> {
     ConstructorType(ExecutableType.Implementation<ConstructorType, ConstructorDefinition> implementation) {
         super(implementation);
+    }
+
+    @Nonnull
+    @SuppressWarnings("unchecked")
+    public ObjectType objectType() {
+        return (ObjectType)getCapturedEnclosingType();
+    }
+
+    @Nonnull
+    public Expression instantiation(final List<? extends Expression> arguments) {
+        return Expression.instantiation(this, arguments);
     }
 }
