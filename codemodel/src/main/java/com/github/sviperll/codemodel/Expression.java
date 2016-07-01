@@ -182,6 +182,22 @@ public class Expression implements Renderable {
                     @Override
                     public void render() {
                         context.appendFreeStandingRenderable(method.definition().parent().rawType());
+                        context.appendFreeStandingRenderable(invocationWithoutReceiver(method, arguments));
+                    }
+                };
+            }
+        }));
+    }
+
+
+    @Nonnull
+    private static Expression invocationWithoutReceiver(final MethodType method, final List<? extends Expression> arguments) {
+        return new Expression(TOP.createRenderable(new PrecedenceAwareRenderable() {
+            @Override
+            public Renderer createPrecedenceAwareRenderer(final PrecedenceAwareRendererContext context) {
+                return new Renderer() {
+                    @Override
+                    public void render() {
                         context.appendText(".");
                         Iterator<? extends Type> typeArgumentIterator = method.typeArguments().iterator();
                         if (typeArgumentIterator.hasNext()) {
@@ -228,8 +244,38 @@ public class Expression implements Renderable {
                             }
                             context.appendText(">");
                         }
+                        context.appendFreeStandingRenderable(instantiation(constructor.objectType(), arguments));
+                    }
+                };
+            }
+        }));
+    }
+
+
+    @Nonnull
+    public static Expression rawInstantiation(final ObjectType objectType, final List<? extends Expression> arguments) {
+        if (!objectType.isRaw())
+            throw new IllegalArgumentException("Raw type expected");
+        return instantiation(objectType, true, arguments);
+    }
+
+    @Nonnull
+    public static Expression instantiation(final ObjectType objectType, final List<? extends Expression> arguments) {
+        return instantiation(objectType, false, arguments);
+    }
+
+    @Nonnull
+    private static Expression instantiation(final ObjectType objectType, final boolean asRaw, final List<? extends Expression> arguments) {
+        return new Expression(TOP.createRenderable(new PrecedenceAwareRenderable() {
+            @Override
+            public Renderer createPrecedenceAwareRenderer(final PrecedenceAwareRendererContext context) {
+                return new Renderer() {
+                    @Override
+                    public void render() {
                         context.appendText("new ");
-                        context.appendFreeStandingRenderable(constructor.objectType());
+                        context.appendFreeStandingRenderable(objectType);
+                        if (objectType.isRaw() && !objectType.definition().typeParameters().all().isEmpty() && !asRaw)
+                            context.appendText("<>");
                         context.appendText("(");
                         Iterator<? extends Expression> argumentIterator = arguments.iterator();
                         if (argumentIterator.hasNext()) {
@@ -342,28 +388,7 @@ public class Expression implements Renderable {
                     @Override
                     public void render() {
                         context.appendSamePrecedenceRenderable(renderable);
-                        context.appendText(".");
-                        Iterator<? extends Type> typeArgumentIterator = method.typeArguments().iterator();
-                        if (typeArgumentIterator.hasNext()) {
-                            context.appendText("<");
-                            context.appendFreeStandingRenderable(typeArgumentIterator.next());
-                            while (typeArgumentIterator.hasNext()) {
-                                context.appendText(", ");
-                                context.appendFreeStandingRenderable(typeArgumentIterator.next());
-                            }
-                            context.appendText(">");
-                        }
-                        context.appendText(method.name());
-                        context.appendText("(");
-                        Iterator<? extends Expression> argumentIterator = arguments.iterator();
-                        if (argumentIterator.hasNext()) {
-                            context.appendFreeStandingRenderable(argumentIterator.next());
-                            while (argumentIterator.hasNext()) {
-                                context.appendText(", ");
-                                context.appendFreeStandingRenderable(argumentIterator.next());
-                            }
-                        }
-                        context.appendText(")");
+                        context.appendFreeStandingRenderable(invocationWithoutReceiver(method, arguments));
                     }
                 };
             }

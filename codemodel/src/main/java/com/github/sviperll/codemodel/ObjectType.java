@@ -184,6 +184,16 @@ public class ObjectType extends GenericType<ObjectType, ObjectDefinition> implem
         return constructors;
     }
 
+    @Nonnull
+    public Expression instantiation(final List<? extends Expression> arguments) {
+        return Expression.instantiation(this, arguments);
+    }
+
+    @Nonnull
+    public Expression rawInstantiation(final List<? extends Expression> arguments) {
+        return Expression.rawInstantiation(this, arguments);
+    }
+
     public boolean isJavaLangObject() {
         return definition().isJavaLangObject();
     }
