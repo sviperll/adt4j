@@ -79,9 +79,9 @@ public abstract class ConstructorDefinition extends ExecutableDefinition<Constru
                     }
                 }
                 context.appendText(")");
-                Iterator<? extends Type> throwsExceptions = throwsList().iterator();
+                Iterator<? extends AnyType> throwsExceptions = throwsList().iterator();
                 if (throwsExceptions.hasNext()) {
-                    Type exceptionType = throwsExceptions.next();
+                    AnyType exceptionType = throwsExceptions.next();
                     context.appendWhiteSpace();
                     context.appendText("throws");
                     context.appendWhiteSpace();

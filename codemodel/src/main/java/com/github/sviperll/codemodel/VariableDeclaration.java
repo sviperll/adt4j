@@ -48,7 +48,7 @@ public abstract class VariableDeclaration implements Renderable {
     public abstract boolean isFinal();
 
     @Nonnull
-    public abstract Type type();
+    public abstract AnyType type();
 
     @Nonnull
     public abstract String name();
@@ -106,7 +106,7 @@ public abstract class VariableDeclaration implements Renderable {
         }
 
         @Override
-        public Type type() {
+        public AnyType type() {
             return original.type().substitute(environment);
         }
 

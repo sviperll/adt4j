@@ -46,12 +46,12 @@ public class TypeParameterBuilder {
     private final GenericDefinition<?, ?> declaredIn;
     private final String name;
     private final List<ObjectType> bounds = new ArrayList<>();
-    private Type effectiveBound;
+    private AnyType effectiveBound;
 
     TypeParameterBuilder(GenericDefinition<?, ?> declaredIn, String name) {
         this.declaredIn = declaredIn;
         this.name = name;
-        effectiveBound = declaredIn.getCodeModel().objectType().asType();
+        effectiveBound = declaredIn.getCodeModel().objectType().asAny();
     }
 
     @Nonnull
@@ -59,12 +59,12 @@ public class TypeParameterBuilder {
         return declaration;
     }
 
-    public void addAllBounds(Collection<? extends Type> bounds) {
-        for (Type type: bounds) {
+    public void addAllBounds(Collection<? extends AnyType> bounds) {
+        for (AnyType type: bounds) {
             addBound(type);
         }
     }
-    public void addBound(Type bound) {
+    public void addBound(AnyType bound) {
         if (!(bound.canBeTypeVariableBound()))
             throw new IllegalArgumentException(bound.kind() + " can't be used as type-variable");
         if (effectiveBound != null && (effectiveBound.isTypeVariable() || bound.isTypeVariable()))
@@ -77,7 +77,7 @@ public class TypeParameterBuilder {
             if (effectiveBound == null) {
                 effectiveBound = bound;
             } else {
-                effectiveBound = Type.intersection(bounds).asType();
+                effectiveBound = Types.intersection(bounds).asAny();
             }
         }
     }
@@ -89,7 +89,7 @@ public class TypeParameterBuilder {
         }
 
         @Override
-        public Type bound() {
+        public AnyType bound() {
             return effectiveBound;
         }
 

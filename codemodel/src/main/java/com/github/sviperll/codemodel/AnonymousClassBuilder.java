@@ -39,8 +39,8 @@ import javax.annotation.ParametersAreNonnullByDefault;
  * @author Victor Nazarov &lt;asviraspossible@gmail.com&gt;
  */
 @ParametersAreNonnullByDefault
-public class AnonymousClassBuilder extends ObjectBuilder<ExpressionContext> {
-    AnonymousClassBuilder(ExpressionContext residence) {
+public class AnonymousClassBuilder extends ObjectBuilder<ExpressionContextDefinition> {
+    AnonymousClassBuilder(ExpressionContextDefinition residence) {
         super(ObjectKind.CLASS, residence);
     }
 

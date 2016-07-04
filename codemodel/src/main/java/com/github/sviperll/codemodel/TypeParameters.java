@@ -50,7 +50,7 @@ import javax.annotation.ParametersAreNonnullByDefault;
 @ParametersAreNonnullByDefault
 public abstract class TypeParameters implements Renderable {
     private Map<String, TypeParameter> map = null;
-    private List<Type> asInternalTypeArguments = null;
+    private List<AnyType> asInternalTypeArguments = null;
     TypeParameters() {
     }
 
@@ -83,12 +83,12 @@ public abstract class TypeParameters implements Renderable {
     }
 
     @Nonnull
-    final List<? extends Type> asInternalTypeArguments() {
+    final List<? extends AnyType> asInternalTypeArguments() {
         if (asInternalTypeArguments == null) {
             asInternalTypeArguments = new ArrayList<>();
             List<? extends TypeParameter> all = all();
             for (TypeParameter typeParameter: all) {
-                asInternalTypeArguments.add(Type.variable(typeParameter.name()).asType());
+                asInternalTypeArguments.add(Types.variable(typeParameter.name()).asAny());
             }
             asInternalTypeArguments = Collections.unmodifiableList(asInternalTypeArguments);
         }

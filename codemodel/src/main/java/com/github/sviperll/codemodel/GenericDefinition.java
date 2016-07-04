@@ -103,7 +103,7 @@ public abstract class GenericDefinition<T extends GenericType<T, D>, D extends G
     }
 
     /**
-     * Type of this definition usable inside definition.
+     * AnyType of this definition usable inside definition.
      * @return type usable inside it's own definition.
      */
     @Nonnull
@@ -114,7 +114,7 @@ public abstract class GenericDefinition<T extends GenericType<T, D>, D extends G
         } else {
             internalRawType = rawType(residence().getContextDefinition().internalType());
         }
-        List<? extends Type> internalTypeArguments = typeParameters().asInternalTypeArguments();
+        List<? extends AnyType> internalTypeArguments = typeParameters().asInternalTypeArguments();
         return internalRawType.narrow(internalTypeArguments);
     }
 }

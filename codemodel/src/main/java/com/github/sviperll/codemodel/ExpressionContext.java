@@ -30,19 +30,14 @@
 
 package com.github.sviperll.codemodel;
 
+import javax.annotation.ParametersAreNonnullByDefault;
+import javax.annotation.Nonnull;
+
 /**
  *
  * @author Victor Nazarov &lt;asviraspossible@gmail.com&gt;
  */
-public class ExpressionContext implements ResidenceProvider {
-
-    private final Residence residence;
-    ExpressionContext(Residence residence) {
-        this.residence = residence;
-    }
-
-    @Override
-    public Residence residence() {
-        return residence;
-    }
+@ParametersAreNonnullByDefault
+public interface ExpressionContext {
+    ExpressionContextDefinition expressionContext();
 }

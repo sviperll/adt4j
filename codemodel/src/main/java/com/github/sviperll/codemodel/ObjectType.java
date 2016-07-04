@@ -49,8 +49,9 @@ import javax.annotation.ParametersAreNonnullByDefault;
  * @author Victor Nazarov &lt;asviraspossible@gmail.com&gt;
  */
 @ParametersAreNonnullByDefault
-public class ObjectType extends GenericType<ObjectType, ObjectDefinition> implements Renderable {
-    private final Type type = Type.wrapObjectType(this);
+public class ObjectType extends GenericType<ObjectType, ObjectDefinition>
+        implements Renderable, Type {
+    private final AnyType type = AnyType.wrapObjectType(this);
     private Map<MethodSignature, MethodType> methods = null;
     private Map<ObjectDefinition, ObjectType> interfaces = null;
     private List<ConstructorType> constructors = null;
@@ -61,8 +62,8 @@ public class ObjectType extends GenericType<ObjectType, ObjectDefinition> implem
         super(implementation);
     }
 
-    @Nonnull
-    public final Type asType() {
+    @Override
+    public final AnyType asAny() {
         return type;
     }
 
@@ -212,7 +213,7 @@ public class ObjectType extends GenericType<ObjectType, ObjectDefinition> implem
                     context.appendQualifiedClassName(definition().qualifiedTypeName());
                 else {
                     context.appendRenderable(erasure());
-                    Iterator<? extends Type> iterator = typeArguments().iterator();
+                    Iterator<? extends AnyType> iterator = typeArguments().iterator();
                     if (iterator.hasNext()) {
                         context.appendText("<");
                         context.appendRenderable(iterator.next());

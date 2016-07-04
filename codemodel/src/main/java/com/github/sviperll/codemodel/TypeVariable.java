@@ -41,8 +41,8 @@ import javax.annotation.ParametersAreNonnullByDefault;
  * @author Victor Nazarov &lt;asviraspossible@gmail.com&gt;
  */
 @ParametersAreNonnullByDefault
-public class TypeVariable implements Renderable {
-    private final Type type = Type.wrapVariableType(this);
+public class TypeVariable implements Renderable, Type {
+    private final AnyType type = AnyType.wrapVariableType(this);
     private final String name;
     TypeVariable(String name) {
         this.name = name;
@@ -53,8 +53,8 @@ public class TypeVariable implements Renderable {
         return name;
     }
 
-    @Nonnull
-    public Type asType() {
+    @Override
+    public AnyType asAny() {
         return type;
     }
 

@@ -219,7 +219,7 @@ class ReflectionObjectDefinition<T> extends ObjectDefinition {
         private final GenericDefinition<?, ?> declaredIn;
         private final TypeVariable<T> reflectedTypeParameter;
 
-        private Type bound = null;
+        private AnyType bound = null;
 
         ReflectedTypeParameter(GenericDefinition<?, ?> declaredIn, TypeVariable<T> reflectedTypeParameter) {
             this.declaredIn = declaredIn;
@@ -232,7 +232,7 @@ class ReflectionObjectDefinition<T> extends ObjectDefinition {
         }
 
         @Override
-        public Type bound() {
+        public AnyType bound() {
             if (bound == null) {
                 java.lang.reflect.Type[] reflectedBounds = reflectedTypeParameter.getBounds();
                 if (reflectedBounds.length == 1)
@@ -243,7 +243,7 @@ class ReflectionObjectDefinition<T> extends ObjectDefinition {
                         ObjectType partialBound = declaredIn.getCodeModel().readReflectedType(reflectedBound).getObjectDetails();
                         bounds.add(partialBound);
                     }
-                    bound = new IntersectionType(bounds).asType();
+                    bound = new IntersectionType(bounds).asAny();
                 }
             }
             return bound;
@@ -291,7 +291,7 @@ class ReflectionObjectDefinition<T> extends ObjectDefinition {
     private static class ReflectedMethodDefinition extends MethodDefinition {
         private final CodeModel codeModel;
         private final Method method;
-        private Type returnType = null;
+        private AnyType returnType = null;
 
         ReflectedMethodDefinition(CodeModel codeModel, ReflectedExecutableDefinitionImplementation executable, Method method) {
             super(executable);
@@ -305,7 +305,7 @@ class ReflectionObjectDefinition<T> extends ObjectDefinition {
         }
 
         @Override
-        public Type returnType() {
+        public AnyType returnType() {
             if (returnType == null) {
                 returnType = codeModel.readReflectedType(method.getGenericReturnType());
             }
@@ -329,7 +329,7 @@ class ReflectionObjectDefinition<T> extends ObjectDefinition {
         private final Nesting nesting;
         private final Method method;
         private List<VariableDeclaration> parameters = null;
-        private List<Type> throwsList = null;
+        private List<AnyType> throwsList = null;
 
         private ReflectedExecutableDefinitionImplementation(CodeModel codeModel, Nesting nesting, Method method) {
             this.codeModel = codeModel;
@@ -356,7 +356,7 @@ class ReflectionObjectDefinition<T> extends ObjectDefinition {
         }
 
         @Override
-        public List<? extends Type> throwsList() {
+        public List<? extends AnyType> throwsList() {
             if (throwsList == null) {
                 throwsList = new ArrayList<>();
                 for (java.lang.reflect.Type exceptionType: method.getGenericExceptionTypes()) {
@@ -382,7 +382,7 @@ class ReflectionObjectDefinition<T> extends ObjectDefinition {
 
         private final CodeModel codeModel;
         private final Parameter parameter;
-        private Type type = null;
+        private AnyType type = null;
 
         ReflectedParameter(CodeModel codeModel, Parameter parameter) {
             this.codeModel = codeModel;
@@ -395,7 +395,7 @@ class ReflectionObjectDefinition<T> extends ObjectDefinition {
         }
 
         @Override
-        public Type type() {
+        public AnyType type() {
             if (type == null) {
                 type = codeModel.readReflectedType(parameter.getParameterizedType());
             }

@@ -39,18 +39,18 @@ import javax.annotation.ParametersAreNonnullByDefault;
  * @author Victor Nazarov &lt;asviraspossible@gmail.com&gt;
  */
 @ParametersAreNonnullByDefault
-public class FieldBuilder {
+public class FieldBuilder implements ExpressionContext {
 
     private final FieldDeclaration declaration = new BuiltFieldDeclaration();
     private final NestingBuilder residence;
-    private final Type type;
+    private final AnyType type;
     private final String name;
     private final boolean isFinal;
     private boolean isInitialized = false;
     private Expression initializer = null;
-    private ExpressionContext initializationContext = null;
+    private ExpressionContextDefinition initializationContext = null;
 
-    FieldBuilder(NestingBuilder residence, boolean isFinal, Type type, String name) {
+    FieldBuilder(NestingBuilder residence, boolean isFinal, AnyType type, String name) {
         if (!(type.isArray() || type.isObjectType() || type.isPrimitive() || type.isTypeVariable()))
             throw new IllegalArgumentException(type.kind() + " is not allowed here");
         this.residence = residence;
@@ -75,16 +75,13 @@ public class FieldBuilder {
         initializer = expression;
     }
 
-    public void initialize(Function<ExpressionContext, Expression> expression) {
-        initialize(expression.apply(initializationContext()));
-    }
-
-    public ExpressionContext initializationContext() {
+    @Override
+    public ExpressionContextDefinition expressionContext() {
         if (initializationContext == null) {
             Nesting nesting = residence.residence().getNesting();
             NestingBuilder nestingBuilder = new NestingBuilder(nesting.isStatic(), nesting.parent());
             nestingBuilder.setAccessLevel(MemberAccess.PRIVATE);
-            initializationContext = new ExpressionContext(nestingBuilder.residence());
+            initializationContext = new ExpressionContextDefinition(nestingBuilder.residence());
         }
         return initializationContext;
     }
@@ -96,7 +93,7 @@ public class FieldBuilder {
         }
 
         @Override
-        public Type type() {
+        public AnyType type() {
             return type;
         }
 

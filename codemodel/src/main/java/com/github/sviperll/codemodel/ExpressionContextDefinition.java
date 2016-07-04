@@ -34,10 +34,10 @@ package com.github.sviperll.codemodel;
  *
  * @author Victor Nazarov &lt;asviraspossible@gmail.com&gt;
  */
-public class ExpressionContext implements ResidenceProvider {
+public class ExpressionContextDefinition implements ResidenceProvider {
 
     private final Residence residence;
-    ExpressionContext(Residence residence) {
+    ExpressionContextDefinition(Residence residence) {
         this.residence = residence;
     }
 

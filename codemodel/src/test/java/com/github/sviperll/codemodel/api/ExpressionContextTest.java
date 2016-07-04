@@ -44,7 +44,8 @@ import com.github.sviperll.codemodel.ObjectDefinition;
 import com.github.sviperll.codemodel.ObjectType;
 import com.github.sviperll.codemodel.Package;
 import com.github.sviperll.codemodel.PackageLevelBuilder;
-import com.github.sviperll.codemodel.Type;
+import com.github.sviperll.codemodel.AnyType;
+import com.github.sviperll.codemodel.Types;
 import com.github.sviperll.codemodel.VariableDeclaration;
 import com.github.sviperll.codemodel.render.RendererContexts;
 import java.util.Arrays;
@@ -64,20 +65,20 @@ public class ExpressionContextTest {
         CodeModel codeModel = builder.build();
         final ObjectType stringType = codeModel.getReferenceOrDefault(String.class.getName(), null).rawType();
         ObjectDefinition comparatorDefinition = codeModel.getReferenceOrDefault(Comparator.class.getName(), null);
-        ObjectType stringComparatorType = comparatorDefinition.rawType().narrow(Arrays.asList(stringType.asType()));
+        ObjectType stringComparatorType = comparatorDefinition.rawType().narrow(Arrays.asList(stringType));
 
         Package pkg = codeModel.getPackage("com.github.sviperll.test.generated");
         ClassBuilder<PackageLevelBuilder> testA = pkg.createClass("TestA");
         MethodBuilder method = testA.method("test1");
         BlockBuilder body = method.body();
-        body.variable(stringComparatorType.asType(), "comparator", stringComparatorType.instantiation(Collections.<Expression>emptyList(), body.expressionContext(), new Consumer<AnonymousClassBuilder>() {
+        body.variable(stringComparatorType, "comparator", stringComparatorType.instantiation(Expression.emptyList(), body, new Consumer<AnonymousClassBuilder>() {
             @Override
             public void accept(AnonymousClassBuilder builder) {
                 try {
                     MethodBuilder compareMethod = builder.method("compare");
-                    VariableDeclaration a = compareMethod.addParameter(stringType.asType(), "a");
-                    VariableDeclaration b = compareMethod.addParameter(stringType.asType(), "b");
-                    compareMethod.resultType(Type.intType());
+                    VariableDeclaration a = compareMethod.addParameter(stringType, "a");
+                    VariableDeclaration b = compareMethod.addParameter(stringType, "b");
+                    compareMethod.resultType(Types.intType());
                     compareMethod.setAccessLevel(MemberAccess.PUBLIC);
                     MethodType compareToMethod = null;
                     for (MethodType method: stringType.methods()) {

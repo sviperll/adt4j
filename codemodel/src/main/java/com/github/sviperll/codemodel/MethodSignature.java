@@ -44,8 +44,8 @@ public class MethodSignature {
         return type.definition().hashCode();
     }
 
-    private static int hashCodeType(Type type) {
-        Type.Kind kind = type.kind();
+    private static int hashCodeType(AnyType type) {
+        AnyType.Kind kind = type.kind();
         int hash = 3;
         hash = 31 * hash + Objects.hashCode(kind);
         switch (kind) {
@@ -76,8 +76,8 @@ public class MethodSignature {
         return type1.definition().equals(type2.definition());
     }
 
-    private static boolean equalsType(Type type1, Type type2) {
-        Type.Kind kind = type1.kind();
+    private static boolean equalsType(AnyType type1, AnyType type2) {
+        AnyType.Kind kind = type1.kind();
         if (!Objects.equals(kind, type2.kind()))
             return false;
         switch (kind) {
@@ -110,8 +110,8 @@ public class MethodSignature {
     }
 
     private final String name;
-    private final List<? extends Type> parameterTypes;
-    MethodSignature(String name, List<? extends Type> parameterTypes) {
+    private final List<? extends AnyType> parameterTypes;
+    MethodSignature(String name, List<? extends AnyType> parameterTypes) {
         this.name = name;
         this.parameterTypes = parameterTypes;
     }
@@ -120,7 +120,7 @@ public class MethodSignature {
     public int hashCode() {
         int hash = 3;
         hash = 31 * hash + Objects.hashCode(this.name);
-        for (Type type: parameterTypes) {
+        for (AnyType type: parameterTypes) {
             hash = 31 * hash + hashCodeType(type);
         }
         return hash;

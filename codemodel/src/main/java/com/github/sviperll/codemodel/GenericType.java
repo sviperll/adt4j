@@ -97,7 +97,7 @@ public abstract class GenericType<T extends GenericType<T, D>, D extends Generic
     }
 
     @Nonnull
-    public final List<? extends Type> typeArguments() {
+    public final List<? extends AnyType> typeArguments() {
         return implementation.typeArguments();
     }
 
@@ -106,11 +106,11 @@ public abstract class GenericType<T extends GenericType<T, D>, D extends Generic
     }
 
     /**
-     * Type of enclosing definition that defines a context for current type.
+     * AnyType of enclosing definition that defines a context for current type.
      * Throws UnsupportedOperationException when there is no captured enclosing type.
      * @see GenericType#hasCapturedEnclosingType()
      * @throws UnsupportedOperationException
-     * @return Type of enclosing definition
+     * @return AnyType of enclosing definition
      */
     @Nonnull
     final GenericType<?, ?> getCapturedEnclosingType() {
@@ -129,10 +129,10 @@ public abstract class GenericType<T extends GenericType<T, D>, D extends Generic
             builder = Substitution.createBuilder();
             D definition = definition();
             Iterator<? extends TypeParameter> typeParameters = definition.typeParameters().all().iterator();
-            Iterator<? extends Type> typeArguments = typeArguments().iterator();
+            Iterator<? extends AnyType> typeArguments = typeArguments().iterator();
             while (typeParameters.hasNext() && typeArguments.hasNext()) {
                 TypeParameter typeParameter = typeParameters.next();
-                Type typeArgument = typeArguments.next();
+                AnyType typeArgument = typeArguments.next();
                 builder.put(typeParameter.name(), typeArgument);
             }
             Substitution result = builder.build();
@@ -167,14 +167,14 @@ public abstract class GenericType<T extends GenericType<T, D>, D extends Generic
         abstract boolean isNarrowed();
 
         @Nonnull
-        abstract List<? extends Type> typeArguments();
+        abstract List<? extends AnyType> typeArguments();
 
         /**
-         * Type of enclosing definition that defines a context for current type.
+         * AnyType of enclosing definition that defines a context for current type.
          * Throws UnsupportedOperationException when there is no captured enclosing type.
          * @see Implementation#hasCapturedEnclosingType()
          * @throws UnsupportedOperationException
-         * @return Type of enclosing definition
+         * @return AnyType of enclosing definition
          */
         @Nonnull
         abstract GenericType<?, ?> getCapturedEnclosingType();
@@ -196,7 +196,7 @@ public abstract class GenericType<T extends GenericType<T, D>, D extends Generic
 
         private final Implementation<T, D> original;
         private final Substitution substitution;
-        private List<Type> typeArguments = null;
+        private List<AnyType> typeArguments = null;
         SubstitutedArgumentsImplementation(D factory, Implementation<T, D> original, Substitution substitution) {
             super(factory);
             this.original = original;
@@ -224,10 +224,10 @@ public abstract class GenericType<T extends GenericType<T, D>, D extends Generic
         }
 
         @Override
-        List<? extends Type> typeArguments() {
+        List<? extends AnyType> typeArguments() {
             if (typeArguments == null) {
                 typeArguments = new ArrayList<>();
-                for (Type type: original.typeArguments()) {
+                for (AnyType type: original.typeArguments()) {
                     typeArguments.add(type.substitute(substitution));
                 }
                 typeArguments = Collections.unmodifiableList(typeArguments);
@@ -251,7 +251,7 @@ public abstract class GenericType<T extends GenericType<T, D>, D extends Generic
         }
     }
     private static class Raw<T extends GenericType<T, D>, D extends GenericDefinition<T, D>> extends Implementation<T, D> {
-        private List<Type> typeArguments = null;
+        private List<AnyType> typeArguments = null;
         private final GenericType<?, ?> capturedEnclosingType;
         private T instance = null;
 
@@ -262,16 +262,19 @@ public abstract class GenericType<T extends GenericType<T, D>, D extends Generic
 
         @Override
         final T narrow(List<? extends Type> typeArguments) {
+            List<AnyType> castedTypeArguments = new ArrayList<>();
             for (Type type: typeArguments) {
-                if (!type.canBeTypeArgument())
-                    throw new IllegalArgumentException(type.kind() + "can't be used as type-argument");
+                AnyType anyType = type.asAny();
+                if (!anyType.canBeTypeArgument())
+                    throw new IllegalArgumentException(anyType.kind() + "can't be used as type-argument");
+                castedTypeArguments.add(anyType);
             }
             if (typeArguments.size() != definition().typeParameters().all().size())
                 throw new IllegalArgumentException("Type-argument list and type-parameter list differ in size");
             if (typeArguments.isEmpty())
                 return instance;
             else
-                return definition().createType(new Narrowed<>(definition(), instance, typeArguments));
+                return definition().createType(new Narrowed<>(definition(), instance, Collections.unmodifiableList(castedTypeArguments)));
         }
 
         @Override
@@ -285,15 +288,15 @@ public abstract class GenericType<T extends GenericType<T, D>, D extends Generic
         }
 
         @Override
-        final List<? extends Type> typeArguments() {
+        final List<? extends AnyType> typeArguments() {
             if (typeArguments == null) {
                 typeArguments = new ArrayList<>(definition().typeParameters().all().size());
                 for (TypeParameter typeParameter: definition().typeParameters().all()) {
-                    Type lowerRawBound;
+                    AnyType lowerRawBound;
                     try {
                         lowerRawBound = typeParameter.lowerRawBound();
                     } catch (CodeModelException ex) {
-                        lowerRawBound = definition().residence().getCodeModel().objectType().asType();
+                        lowerRawBound = definition().residence().getCodeModel().objectType().asAny();
                     }
                     typeArguments.add(lowerRawBound);
                 }
@@ -324,12 +327,12 @@ public abstract class GenericType<T extends GenericType<T, D>, D extends Generic
     private static class Narrowed<T extends GenericType<T, D>, D extends GenericDefinition<T, D>> extends Implementation<T, D> {
 
         private final T erasure;
-        private final List<? extends Type> arguments;
-        Narrowed(D factory, T erasure, List<? extends Type> arguments) {
+        private final List<? extends AnyType> arguments;
+        Narrowed(D factory, T erasure, List<? extends AnyType> arguments) {
             super(factory);
             if (arguments.isEmpty())
                 throw new IllegalArgumentException("Type arguments shouldn't be empty");
-            for (Type type: arguments) {
+            for (AnyType type: arguments) {
                 if (!type.canBeTypeArgument())
                     throw new IllegalArgumentException(type.kind() + "can't be used as type-argument");
             }
@@ -358,7 +361,7 @@ public abstract class GenericType<T extends GenericType<T, D>, D extends Generic
         }
 
         @Override
-        public List<? extends Type> typeArguments() {
+        public List<? extends AnyType> typeArguments() {
             return arguments;
         }
 

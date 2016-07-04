@@ -51,7 +51,7 @@ public abstract class MethodDefinition extends ExecutableDefinition<MethodType, 
     public abstract boolean isAbstract();
 
     @Nonnull
-    public abstract Type returnType();
+    public abstract AnyType returnType();
 
     @Nonnull
     public abstract String name();
@@ -100,9 +100,9 @@ public abstract class MethodDefinition extends ExecutableDefinition<MethodType, 
                     }
                 }
                 context.appendText(")");
-                Iterator<? extends Type> throwsExceptions = throwsList().iterator();
+                Iterator<? extends AnyType> throwsExceptions = throwsList().iterator();
                 if (throwsExceptions.hasNext()) {
-                    Type exceptionType = throwsExceptions.next();
+                    AnyType exceptionType = throwsExceptions.next();
                     context.appendWhiteSpace();
                     context.appendText("throws");
                     context.appendWhiteSpace();

@@ -54,15 +54,15 @@ public abstract class TypeParameter {
      * @return bound or bounds of this type-variable as single type.
      */
     @Nonnull
-    public abstract Type bound();
+    public abstract AnyType bound();
 
     @Nonnull
     public abstract GenericDefinition<?, ?> declaredIn();
 
     @Nonnull
-    final Type lowerRawBound() throws CodeModelException {
+    final AnyType lowerRawBound() throws CodeModelException {
         TypeParameters environment = declaredIn().typeParameters().preventCycle(name());
-        Type bound = bound();
+        AnyType bound = bound();
         if (bound.isTypeVariable()) {
             TypeParameter typeParameter = environment.getOrDefault(bound.getVariableDetails().name(), null);
             if (typeParameter != null)
@@ -75,14 +75,14 @@ public abstract class TypeParameter {
                                 bound.getVariableDetails().name()));
         } else {
             ObjectType lower = null;
-            for (Type type: bound.toListOfIntersectedTypes()) {
+            for (AnyType type: bound.toListOfIntersectedTypes()) {
                 ObjectType object = type.getObjectDetails();
                 if (lower == null || lower.definition().extendsOrImplements(object.definition()))
                     lower = object;
             }
             if (lower == null)
                 throw new CodeModelException("Empty bounds found for variable");
-            return lower.asType();
+            return lower.asAny();
         }
     }
 }

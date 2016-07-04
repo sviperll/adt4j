@@ -45,7 +45,8 @@ import com.github.sviperll.codemodel.ObjectDefinition;
 import com.github.sviperll.codemodel.ObjectType;
 import com.github.sviperll.codemodel.Package;
 import com.github.sviperll.codemodel.PackageLevelBuilder;
-import com.github.sviperll.codemodel.Type;
+import com.github.sviperll.codemodel.AnyType;
+import com.github.sviperll.codemodel.Types;
 import com.github.sviperll.codemodel.render.RendererContexts;
 import java.util.Collections;
 import java.util.logging.Level;
@@ -100,18 +101,18 @@ public class ObjectDefinitionTest {
         InterfaceBuilder<PackageLevelBuilder> test1 = pkg.createInterface("Test1");
         test1.typeParameter("T");
 
-        FieldBuilder field1 = test1.staticField(Type.intType(), "field1");
+        FieldBuilder field1 = test1.staticField(Types.intType(), "field1");
         field1.setAccessLevel(MemberAccess.PRIVATE);
 
         MethodBuilder method = test1.method("test");
         method.setAccessLevel(MemberAccess.PUBLIC);
-        method.resultType(Type.intType());
-        method.addParameter(Type.intType(), "param1");
+        method.resultType(Types.intType());
+        method.addParameter(Types.intType(), "param1");
 
         MethodBuilder method2 = test1.method("test2");
         method2.setAccessLevel(MemberAccess.PUBLIC);
-        method2.resultType(Type.variable("T").asType());
-        method2.addParameter(Type.variable("T").asType(), "param1");
+        method2.resultType(Types.variable("T"));
+        method2.addParameter(Types.variable("T"), "param1");
 
         String result =
             "interface Test1<T> {\n" +
@@ -134,13 +135,13 @@ public class ObjectDefinitionTest {
         Package pkg = codeModel.getPackage("com.github.sviperll.codemodel.test");
         EnumBuilder<PackageLevelBuilder> test1 = pkg.createEnum("Test1");
 
-        FieldBuilder field1 = test1.field(Type.intType(), "field1");
+        FieldBuilder field1 = test1.field(Types.intType(), "field1");
         field1.setAccessLevel(MemberAccess.PRIVATE);
 
         MethodBuilder method = test1.method("test");
         method.setAccessLevel(MemberAccess.PUBLIC);
-        method.resultType(Type.intType());
-        method.addParameter(Type.intType(), "param1");
+        method.resultType(Types.intType());
+        method.addParameter(Types.intType(), "param1");
         method.body().returnStatement(Expression.variable("param1").plus(Expression.variable("field1")));
 
         test1.constant("TEST1_1", new Consumer<AnonymousClassBuilder>() {
@@ -149,8 +150,8 @@ public class ObjectDefinitionTest {
                 try {
                     MethodBuilder method1 = value.method("test");
                     method1.setAccessLevel(MemberAccess.PUBLIC);
-                    method1.resultType(Type.intType());
-                    method1.addParameter(Type.intType(), "param1");
+                    method1.resultType(Types.intType());
+                    method1.addParameter(Types.intType(), "param1");
                     method1.body().returnStatement(Expression.variable("param1").plus(Expression.variable("field1")).plus(Expression.literal(1)));
                 } catch (CodeModelException ex) {
                     Logger.getLogger(ObjectDefinitionTest.class.getName()).log(Level.SEVERE, null, ex);
@@ -163,8 +164,8 @@ public class ObjectDefinitionTest {
                 try {
                     MethodBuilder method1 = value.method("test");
                     method1.setAccessLevel(MemberAccess.PUBLIC);
-                    method1.resultType(Type.intType());
-                    method1.addParameter(Type.intType(), "param1");
+                    method1.resultType(Types.intType());
+                    method1.addParameter(Types.intType(), "param1");
                     method1.body().returnStatement(Expression.variable("param1").plus(Expression.variable("field1")).plus(Expression.literal(2)));
                 } catch (CodeModelException ex) {
                     Logger.getLogger(ObjectDefinitionTest.class.getName()).log(Level.SEVERE, null, ex);
@@ -205,7 +206,7 @@ public class ObjectDefinitionTest {
         assertEquals(test1, test1Type.definition());
         assertTrue(test1Type.isRaw());
 
-        Type typeArgument = test1Type.typeArguments().get(0);
+        AnyType typeArgument = test1Type.typeArguments().get(0);
         assertTrue(typeArgument.isObjectType());
         ObjectType typeArgumentDetails = typeArgument.getObjectDetails();
         assertEquals(codeModel.objectType().definition(), typeArgumentDetails.definition());
@@ -218,12 +219,12 @@ public class ObjectDefinitionTest {
         ObjectDefinition stringDefinition = codeModel.getReferenceOrDefault(String.class.getName(), null);
         ObjectType stringType = stringDefinition.rawType();
 
-        ObjectType test1Type = test1.rawType().narrow(Collections.singletonList(stringType.asType()));
+        ObjectType test1Type = test1.rawType().narrow(Collections.singletonList(stringType));
         assertEquals(test1, test1Type.definition());
         assertFalse(test1Type.isRaw());
         assertTrue(test1Type.isNarrowed());
 
-        Type typeArgument = test1Type.typeArguments().get(0);
+        AnyType typeArgument = test1Type.typeArguments().get(0);
         assertTrue(typeArgument.isObjectType());
         ObjectType typeArgumentDetails = typeArgument.getObjectDetails();
         assertEquals(stringDefinition, typeArgumentDetails.definition());
@@ -252,7 +253,7 @@ public class ObjectDefinitionTest {
         ObjectDefinition stringDefinition = codeModel.getReferenceOrDefault(String.class.getName(), null);
         ObjectType stringType = stringDefinition.rawType();
 
-        ObjectType test1Type = test1.rawType().narrow(Collections.singletonList(stringType.asType()));
+        ObjectType test1Type = test1.rawType().narrow(Collections.singletonList(stringType));
         for (MethodType method: test1Type.methods()) {
             if (method.definition().name().equals("test2")) {
                 assertTrue(stringType.sameDefinition(method.returnType().getObjectDetails()));
@@ -270,28 +271,28 @@ public class ObjectDefinitionTest {
         ClassBuilder<PackageLevelBuilder> test1 = pkg.createClass("Test1");
         test1.typeParameter("T");
 
-        FieldBuilder field1 = test1.field(Type.intType(), "field1");
+        FieldBuilder field1 = test1.field(Types.intType(), "field1");
         field1.setAccessLevel(MemberAccess.PRIVATE);
 
-        FieldBuilder field2 = test1.field(Type.variable("T").asType(), "field2");
+        FieldBuilder field2 = test1.field(Types.variable("T"), "field2");
         field2.setAccessLevel(MemberAccess.PROTECTED);
 
         MethodBuilder method = test1.method("test");
         method.setAccessLevel(MemberAccess.PUBLIC);
-        method.resultType(Type.intType());
-        method.addParameter(Type.intType(), "param1");
+        method.resultType(Types.intType());
+        method.addParameter(Types.intType(), "param1");
         method.body().returnStatement(Expression.variable("param1").plus(Expression.variable("field1")));
 
         MethodBuilder method2 = test1.method("test2");
         method2.setAccessLevel(MemberAccess.PUBLIC);
-        method2.resultType(Type.variable("T").asType());
-        method2.addParameter(Type.variable("T").asType(), "param1");
+        method2.resultType(Types.variable("T"));
+        method2.addParameter(Types.variable("T"), "param1");
         method2.body().returnStatement(Expression.variable("field2"));
 
         MethodBuilder method3 = test1.method("test3");
         method3.setAccessLevel(MemberAccess.PUBLIC);
-        method3.resultType(test1.definition().internalType().asType());
-        method3.addParameter(Type.variable("T").asType(), "param1");
+        method3.resultType(test1.definition().internalType());
+        method3.addParameter(Types.variable("T"), "param1");
         method3.body().returnStatement(Expression.nullExpression());
 
         return test1.definition();

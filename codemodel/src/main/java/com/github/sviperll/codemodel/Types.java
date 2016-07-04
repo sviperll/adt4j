@@ -30,90 +30,94 @@
 
 package com.github.sviperll.codemodel;
 
-import com.github.sviperll.codemodel.render.Renderable;
-import java.util.List;
-import javax.annotation.Nonnull;
+import java.util.Collection;
 import javax.annotation.ParametersAreNonnullByDefault;
+import javax.annotation.Nonnull;
 
 /**
  *
  * @author Victor Nazarov &lt;asviraspossible@gmail.com&gt;
- * @param <T>
- * @param <D>
  */
 @ParametersAreNonnullByDefault
-public abstract class ExecutableDefinition<T extends ExecutableType<T, D>, D extends ExecutableDefinition<T, D>>
-        extends GenericDefinition<T, D> {
+public class Types {
+    private static final PrimitiveType BYTE = PrimitiveType.BYTE;
+    private static final PrimitiveType SHORT = PrimitiveType.SHORT;
+    private static final PrimitiveType INT = PrimitiveType.INT;
+    private static final PrimitiveType LONG = PrimitiveType.LONG;
+    private static final PrimitiveType FLOAT = PrimitiveType.FLOAT;
+    private static final PrimitiveType DOUBLE = PrimitiveType.DOUBLE;
+    private static final PrimitiveType CHAR = PrimitiveType.CHAR;
+    private static final PrimitiveType BOOLEAN = PrimitiveType.BOOLEAN;
 
-    private final Implementation<T, D> implementation;
-    ExecutableDefinition(Implementation<T, D> implementation) {
-        this.implementation = implementation;
-    }
-
-    @Override
-    public final TypeParameters typeParameters() {
-        return implementation.typeParameters(this);
-    }
-
-    @Nonnull
-    public final List<? extends VariableDeclaration> parameters() {
-        return implementation.parameters();
+    public static TypeVariable variable(String name) {
+        return new TypeVariable(name);
     }
 
     @Nonnull
-    public final List<? extends AnyType> throwsList() {
-        return implementation.throwsList();
+    public static AnyType voidType() {
+        return AnyType.voidType();
     }
 
     @Nonnull
-    final Renderable body() {
-        return implementation.body();
-    }
-
-    @Override
-    final Residence residence() {
-        return nesting().residence();
-    }
-
-    @Override
-    public final CodeModel getCodeModel() {
-        return residence().getCodeModel();
+    public static PrimitiveType byteType() {
+        return BYTE;
     }
 
     @Nonnull
-    final Nesting nesting() {
-        return implementation.nesting();
-    }
-
-    public boolean isStatic(){
-        return nesting().isStatic();
+    public static PrimitiveType shortType() {
+        return SHORT;
     }
 
     @Nonnull
-    public MemberAccess accessLevel(){
-        return nesting().accessLevel();
+    public static PrimitiveType intType() {
+        return INT;
     }
 
     @Nonnull
-    public ObjectDefinition parent(){
-        return nesting().parent();
+    public static PrimitiveType longType() {
+        return LONG;
     }
 
-    interface Implementation<T extends ExecutableType<T, D>, D extends ExecutableDefinition<T, D>> {
+    @Nonnull
+    public static PrimitiveType floatType() {
+        return FLOAT;
+    }
 
-        @Nonnull
-        TypeParameters typeParameters(ExecutableDefinition<T, D> thisDefinition);
+    @Nonnull
+    public static PrimitiveType doubleType() {
+        return DOUBLE;
+    }
 
-        @Nonnull
-        List<? extends VariableDeclaration> parameters();
+    @Nonnull
+    public static PrimitiveType charType() {
+        return CHAR;
+    }
 
-        @Nonnull
-        List<? extends AnyType> throwsList();
+    @Nonnull
+    public static PrimitiveType booleanType() {
+        return BOOLEAN;
+    }
 
-        @Nonnull
-        Renderable body();
+    @Nonnull
+    public static IntersectionType intersection(Collection<? extends ObjectType> bounds) {
+        return new IntersectionType(bounds);
+    }
+    @Nonnull
+    public static ArrayType arrayOf(AnyType componentType) {
+        return new ArrayType(componentType);
+    }
 
-        @Nonnull
-        Nesting nesting();
+    @Nonnull
+    public static WildcardType wildcardExtends(AnyType bound) {
+        return new WildcardType(WildcardType.BoundKind.EXTENDS, bound);
+    }
+
+    @Nonnull
+    public static WildcardType wildcardSuper(AnyType bound) {
+        return new WildcardType(WildcardType.BoundKind.SUPER, bound);
+    }
+
+
+    private Types() {
     }
 }

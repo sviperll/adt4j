@@ -46,7 +46,7 @@ public abstract class ExecutableType<T extends ExecutableType<T, D>, D extends E
         extends GenericType<T, D> {
 
     private List<VariableDeclaration> parameters = null;
-    private List<Type> throwsList = null;
+    private List<AnyType> throwsList = null;
 
     ExecutableType(GenericType.Implementation<T, D> implementation) {
         super(implementation);
@@ -62,10 +62,10 @@ public abstract class ExecutableType<T extends ExecutableType<T, D>, D extends E
         return parameters;
     }
 
-    public Collection<? extends Type> throwsList() {
+    public Collection<? extends AnyType> throwsList() {
         if (throwsList == null) {
             throwsList = new ArrayList<>();
-            for (Type type: definition().throwsList()) {
+            for (AnyType type: definition().throwsList()) {
                 throwsList.add(type.substitute(definitionEnvironment()));
             }
         }

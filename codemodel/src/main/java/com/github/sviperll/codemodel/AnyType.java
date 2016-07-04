@@ -45,128 +45,56 @@ import javax.annotation.ParametersAreNonnullByDefault;
  * @author Victor Nazarov &lt;asviraspossible@gmail.com&gt;
  */
 @ParametersAreNonnullByDefault
-public abstract class Type implements Renderable {
+public abstract class AnyType implements Renderable, Type {
     private static final VoidType VOID = new VoidType();
-    private static final Type BYTE = PrimitiveType.BYTE.asType();
-    private static final Type SHORT = PrimitiveType.SHORT.asType();
-    private static final Type INT = PrimitiveType.INT.asType();
-    private static final Type LONG = PrimitiveType.LONG.asType();
-    private static final Type FLOAT = PrimitiveType.FLOAT.asType();
-    private static final Type DOUBLE = PrimitiveType.DOUBLE.asType();
-    private static final Type CHAR = PrimitiveType.CHAR.asType();
-    private static final Type BOOLEAN = PrimitiveType.BOOLEAN.asType();
-
-    public static TypeVariable variable(String name) {
-        return new TypeVariable(name);
-    }
 
     @Nonnull
-    public static Type voidType() {
+    static AnyType voidType() {
         return VOID;
     }
 
     @Nonnull
-    public static Type byteType() {
-        return BYTE;
-    }
-
-    @Nonnull
-    public static Type shortType() {
-        return SHORT;
-    }
-
-    @Nonnull
-    public static Type intType() {
-        return INT;
-    }
-
-    @Nonnull
-    public static Type longType() {
-        return LONG;
-    }
-
-    @Nonnull
-    public static Type floatType() {
-        return FLOAT;
-    }
-
-    @Nonnull
-    public static Type doubleType() {
-        return DOUBLE;
-    }
-
-    @Nonnull
-    public static Type charType() {
-        return CHAR;
-    }
-
-    @Nonnull
-    public static Type booleanType() {
-        return BOOLEAN;
-    }
-
-    @Nonnull
-    public static IntersectionType intersection(Collection<? extends ObjectType> bounds) {
-        return new IntersectionType(bounds);
-    }
-
-    @Nonnull
-    static Type wrapVariableType(TypeVariable details) {
+    static AnyType wrapVariableType(TypeVariable details) {
         return new TypeVariableWrapper(details);
     }
 
     @Nonnull
-    static Type wrapIntersectionType(IntersectionType details) {
+    static AnyType wrapIntersectionType(IntersectionType details) {
         return new IntersectionTypeWrapper(details);
     }
 
     @Nonnull
-    static Type wrapObjectType(ObjectType typeDetails) {
+    static AnyType wrapObjectType(ObjectType typeDetails) {
         return new ObjectTypeWrapper(typeDetails);
     }
 
     @Nonnull
-    static Type wrapArrayType(ArrayType details) {
+    static AnyType wrapArrayType(ArrayType details) {
         return new ArrayTypeWrapper(details);
     }
 
     @Nonnull
-    static Type wrapWildcardType(WildcardType details) {
+    static AnyType wrapWildcardType(WildcardType details) {
         return new WildcardTypeWrapper(details);
     }
 
     @Nonnull
-    static Type wrapPrimitiveType(final PrimitiveType details) {
+    static AnyType wrapPrimitiveType(final PrimitiveType details) {
         return new PrimitiveTypeWrapper(details);
     }
 
-    @Nonnull
-    public static ArrayType arrayOf(Type componentType) {
-        return new ArrayType(componentType);
-    }
-
-    @Nonnull
-    public static WildcardType wildcardExtends(Type bound) {
-        return new WildcardType(WildcardType.BoundKind.EXTENDS, bound);
-    }
-
-    @Nonnull
-    public static WildcardType wildcardSuper(Type bound) {
-        return new WildcardType(WildcardType.BoundKind.SUPER, bound);
-    }
-
-    private Type() {
+    private AnyType() {
     }
     @Nonnull
-    Type substitute(Substitution environment) {
+    AnyType substitute(Substitution environment) {
         if (isTypeVariable()) {
-            Type replacement = environment.getOrDefault(getVariableDetails().name(), null);
+            AnyType replacement = environment.getOrDefault(getVariableDetails().name(), null);
             if (replacement != null)
                 return replacement;
             else
                 return this;
         } else if (isObjectType()) {
-            return getObjectDetails().substitute(environment).asType();
+            return getObjectDetails().substitute(environment).asAny();
         } else if (isArray()) {
             return getArrayDetails().substitute(environment);
         } else if (isIntersection()) {
@@ -179,6 +107,11 @@ public abstract class Type implements Renderable {
 
     @Nonnull
     public abstract Kind kind();
+
+    @Override
+    public final AnyType asAny() {
+        return this;
+    }
 
     public final boolean isVoid() {
         return kind() == Kind.VOID;
@@ -227,7 +160,7 @@ public abstract class Type implements Renderable {
     /**
      * Object-type details.
      * Throws UnsupportedOperationException for other types than object-types
-     * @see Type#isObjectType()
+     * @see AnyType#isObjectType()
      * @throws UnsupportedOperationException
      * @return Object-type details.
      */
@@ -239,7 +172,7 @@ public abstract class Type implements Renderable {
     /**
      * Wildcard-type details.
      * Throws UnsupportedOperationException for other types than Wildcard-types
-     * @see Type#isWildcard()
+     * @see AnyType#isWildcard()
      * @throws UnsupportedOperationException
      * @return Wildcard-type details.
      */
@@ -251,7 +184,7 @@ public abstract class Type implements Renderable {
     /**
      * Primitive-type details.
      * Throws UnsupportedOperationException for other types than Primitive-types
-     * @see Type#isPrimitive()
+     * @see AnyType#isPrimitive()
      * @throws UnsupportedOperationException
      * @return Primitive-type details.
      */
@@ -263,7 +196,7 @@ public abstract class Type implements Renderable {
     /**
      * Array-type details.
      * Throws UnsupportedOperationException for other types than Array-types
-     * @see Type#isArray()
+     * @see AnyType#isArray()
      * @throws UnsupportedOperationException
      * @return Array-type details.
      */
@@ -273,11 +206,11 @@ public abstract class Type implements Renderable {
     }
 
     /**
-     * Type-variable details.
-     * Throws UnsupportedOperationException for other types than Type-variables
-     * @see Type#isTypeVariable()
+     * AnyType-variable details.
+     * Throws UnsupportedOperationException for other types than AnyType-variables
+     * @see AnyType#isTypeVariable()
      * @throws UnsupportedOperationException
-     * @return Type-variable details.
+     * @return AnyType-variable details.
      */
     @Nonnull
     public TypeVariable getVariableDetails() {
@@ -287,7 +220,7 @@ public abstract class Type implements Renderable {
     /**
      * Intersection-type details.
      * Throws UnsupportedOperationException for other types than Intersection-types
-     * @see Type#isIntersection()
+     * @see AnyType#isIntersection()
      * @throws UnsupportedOperationException
      * @return Intersection-type details.
      */
@@ -301,13 +234,13 @@ public abstract class Type implements Renderable {
     }
 
     @Nonnull
-    public Collection<? extends Type> toListOfIntersectedTypes() {
+    public Collection<? extends AnyType> toListOfIntersectedTypes() {
         if (!isIntersection())
             return Collections.singletonList(this);
         else {
-            List<Type> result = new ArrayList<>();
+            List<AnyType> result = new ArrayList<>();
             for (ObjectType type: getIntersectionDetails().intersectedTypes())
-                result.add(type.asType());
+                result.add(type.asAny());
             return Collections.unmodifiableList(result);
         }
     }
@@ -340,14 +273,14 @@ public abstract class Type implements Renderable {
         VOID, OBJECT, PRIMITIVE, ARRAY, TYPE_VARIABLE, WILDCARD, INTERSECTION
     }
 
-    private static class VoidType extends Type {
+    private static class VoidType extends AnyType {
         @Override
         public Kind kind() {
             return Kind.VOID;
         }
     }
 
-    private static class TypeVariableWrapper extends Type {
+    private static class TypeVariableWrapper extends AnyType {
 
         private final TypeVariable details;
 
@@ -365,7 +298,7 @@ public abstract class Type implements Renderable {
             return details;
         }
     }
-    private static class IntersectionTypeWrapper extends Type {
+    private static class IntersectionTypeWrapper extends AnyType {
 
         private final IntersectionType details;
 
@@ -384,7 +317,7 @@ public abstract class Type implements Renderable {
         }
     }
 
-    private static class ObjectTypeWrapper extends Type {
+    private static class ObjectTypeWrapper extends AnyType {
 
         private final ObjectType details;
 
@@ -403,7 +336,7 @@ public abstract class Type implements Renderable {
         }
     }
 
-    private static class PrimitiveTypeWrapper extends Type {
+    private static class PrimitiveTypeWrapper extends AnyType {
 
         private final PrimitiveType details;
 
@@ -421,7 +354,7 @@ public abstract class Type implements Renderable {
         }
     }
 
-    private static class ArrayTypeWrapper extends Type {
+    private static class ArrayTypeWrapper extends AnyType {
 
         private final ArrayType details;
 
@@ -440,7 +373,7 @@ public abstract class Type implements Renderable {
         }
     }
 
-    private static class WildcardTypeWrapper extends Type {
+    private static class WildcardTypeWrapper extends AnyType {
 
         private final WildcardType details;
 

@@ -41,14 +41,14 @@ import javax.annotation.ParametersAreNonnullByDefault;
  */
 @ParametersAreNonnullByDefault
 public class MethodType extends ExecutableType<MethodType, MethodDefinition> {
-    private Type returnType = null;
+    private AnyType returnType = null;
     private MethodSignature signature = null;
 
     MethodType(ExecutableType.Implementation<MethodType, MethodDefinition> implementation) {
         super(implementation);
     }
 
-    public final Type returnType() {
+    public final AnyType returnType() {
         if (returnType == null) {
             returnType = definition().returnType().substitute(definitionEnvironment());
         }
@@ -59,7 +59,7 @@ public class MethodType extends ExecutableType<MethodType, MethodDefinition> {
     }
     public final MethodSignature signature() {
         if (signature == null) {
-            List<Type> parameterTypes = new ArrayList<>();
+            List<AnyType> parameterTypes = new ArrayList<>();
             for (VariableDeclaration declaration: parameters()) {
                 parameterTypes.add(declaration.type().substitute(definitionEnvironment()));
             }

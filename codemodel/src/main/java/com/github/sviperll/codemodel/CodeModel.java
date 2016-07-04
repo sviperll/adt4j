@@ -90,49 +90,49 @@ public final class CodeModel {
     }
 
     @Nonnull
-    Type readReflectedType(java.lang.reflect.Type genericReflectedType) {
+    AnyType readReflectedType(java.lang.reflect.Type genericReflectedType) {
         if (genericReflectedType instanceof ParameterizedType) {
             ParameterizedType reflectedType = (ParameterizedType)genericReflectedType;
             ObjectType rawType = readReflectedType(reflectedType.getRawType()).getObjectDetails();
-            List<Type> arguments = new ArrayList<>();
+            List<AnyType> arguments = new ArrayList<>();
             for (java.lang.reflect.Type reflectedArgumentType: reflectedType.getActualTypeArguments()) {
                 arguments.add(readReflectedType(reflectedArgumentType));
             }
-            return rawType.narrow(arguments).asType();
+            return rawType.narrow(arguments).asAny();
         } else if (genericReflectedType instanceof GenericArrayType) {
             GenericArrayType reflectedType = (GenericArrayType)genericReflectedType;
-            Type componentType = readReflectedType(reflectedType.getGenericComponentType());
-            return Type.arrayOf(componentType).asType();
+            AnyType componentType = readReflectedType(reflectedType.getGenericComponentType());
+            return Types.arrayOf(componentType).asAny();
         } else if (genericReflectedType instanceof java.lang.reflect.WildcardType) {
             java.lang.reflect.WildcardType reflectedType = (java.lang.reflect.WildcardType)genericReflectedType;
             java.lang.reflect.Type[] reflectedLowerBounds = reflectedType.getLowerBounds();
             if (reflectedLowerBounds.length != 0) {
-                Type bound = readReflectedType(reflectedLowerBounds[0]);
-                return Type.wildcardSuper(bound).asType();
+                AnyType bound = readReflectedType(reflectedLowerBounds[0]);
+                return Types.wildcardSuper(bound).asAny();
             } else {
                 java.lang.reflect.Type[] reflectedUpperBounds = reflectedType.getUpperBounds();
-                Type bound = readReflectedType(reflectedUpperBounds[0]);
-                return Type.wildcardExtends(bound).asType();
+                AnyType bound = readReflectedType(reflectedUpperBounds[0]);
+                return Types.wildcardExtends(bound).asAny();
             }
         } else if (genericReflectedType instanceof java.lang.reflect.TypeVariable) {
             java.lang.reflect.TypeVariable<?> reflectedType = (java.lang.reflect.TypeVariable<?>)genericReflectedType;
-            return Type.variable(reflectedType.getName()).asType();
+            return Types.variable(reflectedType.getName()).asAny();
         } else if (genericReflectedType instanceof Class) {
             Class<?> reflectedType = (Class<?>)genericReflectedType;
             if (reflectedType.isPrimitive()) {
                 String name = reflectedType.getName();
                 if (name.equals("void"))
-                    return Type.voidType();
+                    return AnyType.voidType();
                 else
-                    return PrimitiveType.valueOf(name.toUpperCase(Locale.US)).asType();
+                    return PrimitiveType.valueOf(name.toUpperCase(Locale.US)).asAny();
             } else if (reflectedType.isArray()) {
-                return Type.arrayOf(readReflectedType(reflectedType.getComponentType())).asType();
+                return Types.arrayOf(readReflectedType(reflectedType.getComponentType())).asAny();
             } else {
                 ObjectDefinition definition = getReferenceOrDefault(reflectedType.getName(), null);
                 if (definition == null)
                     throw new IllegalStateException("java.lang.reflect.Type references unexisting type: " + reflectedType.getName());
                 else
-                    return definition.rawType().asType();
+                    return definition.rawType().asAny();
             }
         } else
             throw new UnsupportedOperationException("Can't read " + genericReflectedType);

@@ -68,11 +68,11 @@ abstract class Statement {
     static class StatementVariableDeclaration extends Simple {
         private final Declaration declaration = new Declaration();
         private final boolean isFinal;
-        private final Type type;
+        private final AnyType type;
         private final String name;
         private final Expression initializer;
 
-        StatementVariableDeclaration(boolean isFinal, Type type, String name, @Nullable Expression initializer) {
+        StatementVariableDeclaration(boolean isFinal, AnyType type, String name, @Nullable Expression initializer) {
             if (!(type.canBeDeclaredVariableType()))
                 throw new IllegalArgumentException(type.kind() + " is not allowed here");
             this.isFinal = isFinal;
@@ -81,7 +81,7 @@ abstract class Statement {
             this.initializer = initializer;
         }
 
-        StatementVariableDeclaration(boolean isFinal, Type type, String name) {
+        StatementVariableDeclaration(boolean isFinal, AnyType type, String name) {
             this(isFinal, type, name, null);
         }
 
@@ -103,7 +103,7 @@ abstract class Statement {
             }
 
             @Override
-            public Type type() {
+            public AnyType type() {
                 return type;
             }
 

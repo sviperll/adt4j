@@ -48,7 +48,7 @@ public abstract class ExecutableBuilder<T extends ExecutableType<T, D>, D extend
         extends GenericDefinitionBuilder<NestingBuilder, T, D> {
     private final VariableScope scope = VariableScope.createTopLevel();
     private final List<VariableDeclaration> parameters = new ArrayList<>();
-    private final List<Type> throwsList = new ArrayList<>();
+    private final List<AnyType> throwsList = new ArrayList<>();
     private final NestingBuilder residence;
     private BlockBuilder body = null;
 
@@ -83,7 +83,7 @@ public abstract class ExecutableBuilder<T extends ExecutableType<T, D>, D extend
     public VariableDeclaration addParameter(Type type, String name) throws CodeModelException {
         name = scope.makeIntroducable(name);
         scope.introduce(name);
-        Parameter parameter = new Parameter(false, type, name);
+        Parameter parameter = new Parameter(false, type.asAny(), name);
         parameters.add(parameter);
         return parameter;
     }
@@ -91,7 +91,7 @@ public abstract class ExecutableBuilder<T extends ExecutableType<T, D>, D extend
     public VariableDeclaration addFinalParameter(Type type, String name) throws CodeModelException {
         name = scope.makeIntroducable(name);
         scope.introduce(name);
-        Parameter parameter = new Parameter(true, type, name);
+        Parameter parameter = new Parameter(true, type.asAny(), name);
         parameters.add(parameter);
         return parameter;
     }
@@ -99,18 +99,18 @@ public abstract class ExecutableBuilder<T extends ExecutableType<T, D>, D extend
     public void throwsException(ObjectType type) throws CodeModelException {
         if (type.definition().isGeneric())
             throw new CodeModelException("Generic class can't be used as throwable exception");
-        throwsList.add(type.asType());
+        throwsList.add(type.asAny());
     }
 
     public void throwsException(TypeVariable typeVariable) throws CodeModelException {
-        throwsList.add(typeVariable.asType());
+        throwsList.add(typeVariable.asAny());
     }
 
     @Nonnull
     public BlockBuilder body() {
         if (body == null) {
-            Residence residence = new MethodLocalResidence(definition()).residence();
-            body = BlockBuilder.createWithBracesForced(new ExpressionContext(residence), scope.createNested());
+            Residence expressionContext = new MethodLocalResidence(definition()).residence();
+            body = BlockBuilder.createWithBracesForced(new ExpressionContextDefinition(expressionContext), scope.createNested());
         }
         return body;
     }
@@ -127,7 +127,7 @@ public abstract class ExecutableBuilder<T extends ExecutableType<T, D>, D extend
         }
 
         @Override
-        public final List<? extends Type> throwsList() {
+        public final List<? extends AnyType> throwsList() {
             return Collections.unmodifiableList(throwsList);
         }
 
@@ -151,10 +151,10 @@ public abstract class ExecutableBuilder<T extends ExecutableType<T, D>, D extend
     private static class Parameter extends VariableDeclaration {
 
         private final boolean isFinal;
-        private final Type type;
+        private final AnyType type;
         private final String name;
 
-        Parameter(boolean isFinal, Type type, String name) throws CodeModelException {
+        Parameter(boolean isFinal, AnyType type, String name) throws CodeModelException {
             if (!(type.isArray() || type.isObjectType() || type.isPrimitive() || type.isTypeVariable()))
                 throw new CodeModelException(type.kind() + " is not allowed here");
             this.isFinal = isFinal;
@@ -168,7 +168,7 @@ public abstract class ExecutableBuilder<T extends ExecutableType<T, D>, D extend
         }
 
         @Override
-        public Type type() {
+        public AnyType type() {
             return type;
         }
 

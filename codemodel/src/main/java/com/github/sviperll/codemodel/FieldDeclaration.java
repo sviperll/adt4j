@@ -48,7 +48,7 @@ public abstract class FieldDeclaration extends VariableDeclaration {
     public abstract String name();
 
     @Override
-    public abstract Type type();
+    public abstract AnyType type();
 
     @Override
     public abstract boolean isInitialized();

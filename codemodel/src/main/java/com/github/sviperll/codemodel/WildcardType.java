@@ -42,12 +42,12 @@ import javax.annotation.ParametersAreNonnullByDefault;
  * @author Victor Nazarov &lt;asviraspossible@gmail.com&gt;
  */
 @ParametersAreNonnullByDefault
-public final class WildcardType implements Renderable {
+public final class WildcardType implements Renderable, Type {
 
-    private final Type type = Type.wrapWildcardType(this);
+    private final AnyType type = AnyType.wrapWildcardType(this);
     private final BoundKind boundKind;
-    private final Type bound;
-    WildcardType(BoundKind boundKind, Type bound) {
+    private final AnyType bound;
+    WildcardType(BoundKind boundKind, AnyType bound) {
         if (!bound.canBeTypeVariableBound())
             throw new IllegalArgumentException(bound.kind() + " can't be wildcard bound");
         this.boundKind = boundKind;
@@ -60,17 +60,17 @@ public final class WildcardType implements Renderable {
     }
 
     @Nonnull
-    public Type bound() {
+    public AnyType bound() {
         return bound;
     }
 
     @Nonnull
-    Type substitute(Substitution environment) {
-        return new WildcardType(boundKind, bound.substitute(environment)).asType();
+    AnyType substitute(Substitution environment) {
+        return new WildcardType(boundKind, bound.substitute(environment)).asAny();
     }
 
-    @Nonnull
-    public Type asType() {
+    @Override
+    public AnyType asAny() {
         return type;
     }
 

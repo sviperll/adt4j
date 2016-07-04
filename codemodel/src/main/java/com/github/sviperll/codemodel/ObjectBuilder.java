@@ -72,7 +72,7 @@ abstract class ObjectBuilder<B extends ResidenceProvider> extends GenericDefinit
             throw new CodeModelException(definition().qualifiedTypeName() + "." + name + " already defined");
         }
         NestingBuilder membership = new NestingBuilder(true, definition());
-        FieldBuilder result = new FieldBuilder(membership, false, type, name);
+        FieldBuilder result = new FieldBuilder(membership, false, type.asAny(), name);
         fields.put(name, result.declaration());
         staticInitOrdering.add(new ObjectInitializationElement(result.declaration()));
         return result;
@@ -84,7 +84,7 @@ abstract class ObjectBuilder<B extends ResidenceProvider> extends GenericDefinit
             throw new CodeModelException(definition().qualifiedTypeName() + "." + name + " already defined");
         }
         NestingBuilder membership = new NestingBuilder(true, definition());
-        FieldBuilder result = new FieldBuilder(membership, true, type, name);
+        FieldBuilder result = new FieldBuilder(membership, true, type.asAny(), name);
         fields.put(name, result.declaration());
         staticInitOrdering.add(new ObjectInitializationElement(result.declaration()));
         return result;
@@ -97,7 +97,7 @@ abstract class ObjectBuilder<B extends ResidenceProvider> extends GenericDefinit
             throw new CodeModelException(definition().qualifiedTypeName() + "." + name + " already defined");
         }
         NestingBuilder membership = new NestingBuilder(false, definition());
-        FieldBuilder result = new FieldBuilder(membership, false, type, name);
+        FieldBuilder result = new FieldBuilder(membership, false, type.asAny(), name);
         fields.put(name, result.declaration());
         instanceInitOrdering.add(new ObjectInitializationElement(result.declaration()));
         return result;
@@ -110,7 +110,7 @@ abstract class ObjectBuilder<B extends ResidenceProvider> extends GenericDefinit
             throw new CodeModelException(definition().qualifiedTypeName() + "." + name + " already defined");
         }
         NestingBuilder membership = new NestingBuilder(false, definition());
-        FieldBuilder result = new FieldBuilder(membership, true, type, name);
+        FieldBuilder result = new FieldBuilder(membership, true, type.asAny(), name);
         fields.put(name, result.declaration());
         instanceInitOrdering.add(new ObjectInitializationElement(result.declaration()));
         return result;

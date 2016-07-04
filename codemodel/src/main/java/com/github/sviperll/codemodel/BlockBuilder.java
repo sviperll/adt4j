@@ -44,21 +44,21 @@ import javax.annotation.ParametersAreNonnullByDefault;
  * @author Victor Nazarov &lt;asviraspossible@gmail.com&gt;
  */
 @ParametersAreNonnullByDefault
-public class BlockBuilder implements Renderable {
-    static BlockBuilder createWithBracesForced(ExpressionContext expressionContext, VariableScope scope) {
+public class BlockBuilder implements Renderable, ExpressionContext {
+    static BlockBuilder createWithBracesForced(ExpressionContextDefinition expressionContext, VariableScope scope) {
         return new BlockBuilder(expressionContext, scope, true);
     }
-    static BlockBuilder createWithAutoBraces(ExpressionContext expressionContext, VariableScope scope) {
+    static BlockBuilder createWithAutoBraces(ExpressionContextDefinition expressionContext, VariableScope scope) {
         return new BlockBuilder(expressionContext, scope, false);
     }
 
     private final List<Statement> statements = new ArrayList<>();
-    private final ExpressionContext expressionContext;
+    private final ExpressionContextDefinition expressionContext;
     private final VariableScope scope;
     private final boolean braces;
     private IfBuilder ifStatement = null;
 
-    private BlockBuilder(ExpressionContext expressionContext, VariableScope scope, boolean braces) {
+    private BlockBuilder(ExpressionContextDefinition expressionContext, VariableScope scope, boolean braces) {
         this.expressionContext = expressionContext;
         this.scope = scope;
         this.braces = braces;
@@ -70,7 +70,7 @@ public class BlockBuilder implements Renderable {
     }
 
     @Nonnull
-    public ExpressionContext expressionContext() {
+    public ExpressionContextDefinition expressionContext() {
         return expressionContext;
     }
 
@@ -125,7 +125,7 @@ public class BlockBuilder implements Renderable {
     public VariableDeclaration variable(final Type type, String nameOrTemplate) throws CodeModelException {
         final String name = scope.makeIntroducable(nameOrTemplate);
         scope.introduce(name);
-        Statement.StatementVariableDeclaration statement = new Statement.StatementVariableDeclaration(false, type, name);
+        Statement.StatementVariableDeclaration statement = new Statement.StatementVariableDeclaration(false, type.asAny(), name);
         statements.add(statement);
         return statement.declaration();
     }
@@ -134,7 +134,7 @@ public class BlockBuilder implements Renderable {
     public VariableDeclaration variable(final Type type, String nameOrTemplate, final Expression initializer) throws CodeModelException {
         final String name = scope.makeIntroducable(nameOrTemplate);
         scope.introduce(name);
-        Statement.StatementVariableDeclaration statement = new Statement.StatementVariableDeclaration(false, type, name, initializer);
+        Statement.StatementVariableDeclaration statement = new Statement.StatementVariableDeclaration(false, type.asAny(), name, initializer);
         statements.add(statement);
         return statement.declaration();
     }
@@ -143,7 +143,7 @@ public class BlockBuilder implements Renderable {
     public VariableDeclaration finalVariable(final Type type, String nameOrTemplate) throws CodeModelException {
         final String name = scope.makeIntroducable(nameOrTemplate);
         scope.introduce(name);
-        Statement.StatementVariableDeclaration statement = new Statement.StatementVariableDeclaration(true, type, name);
+        Statement.StatementVariableDeclaration statement = new Statement.StatementVariableDeclaration(true, type.asAny(), name);
         statements.add(statement);
         return statement.declaration();
     }
@@ -152,7 +152,7 @@ public class BlockBuilder implements Renderable {
     public VariableDeclaration finalVariable(final Type type, String nameOrTemplate, final Expression initializer) throws CodeModelException {
         final String name = scope.makeIntroducable(nameOrTemplate);
         scope.introduce(name);
-        Statement.StatementVariableDeclaration statement = new Statement.StatementVariableDeclaration(true, type, name, initializer);
+        Statement.StatementVariableDeclaration statement = new Statement.StatementVariableDeclaration(true, type.asAny(), name, initializer);
         statements.add(statement);
         return statement.declaration();
     }

@@ -58,7 +58,7 @@ public class EnumBuilder<B extends ResidenceProvider> extends AbstractClassBuild
         ObjectDefinition enumDefinition = definition();
         NestingBuilder nestingBuilder = new NestingBuilder(false, enumDefinition);
         nestingBuilder.setAccessLevel(MemberAccess.PRIVATE);
-        AnonymousClassBuilder builder = new AnonymousClassBuilder(new ExpressionContext(nestingBuilder.residence()));
+        AnonymousClassBuilder builder = new AnonymousClassBuilder(new ExpressionContextDefinition(nestingBuilder.residence()));
         customization.accept(builder);
         EnumConstant constant = new BuiltConstant(enumDefinition, name, constructorArguments, builder.definition());
         constants.add(constant);

@@ -54,7 +54,7 @@ abstract class Substitution {
     }
 
     @Nullable
-    abstract Type getOrDefault(String name, @Nullable Type defaultValue);
+    abstract AnyType getOrDefault(String name, @Nullable AnyType defaultValue);
 
     @Nonnull
     final Substitution andThen(Substitution that) {
@@ -62,13 +62,13 @@ abstract class Substitution {
     }
 
     static class Builder {
-        private Map<String, Type> map = new TreeMap<>();
+        private Map<String, AnyType> map = new TreeMap<>();
         private boolean copyOnWrite = false;
 
         private Builder() {
         }
 
-        void put(String name, Type typeArgument) {
+        void put(String name, AnyType typeArgument) {
             if (copyOnWrite) {
                 map = new TreeMap<>(map);
                 copyOnWrite = false;
@@ -85,14 +85,14 @@ abstract class Substitution {
     }
 
     private static class MapSubstitution extends Substitution {
-        private final Map<String, Type> map;
+        private final Map<String, AnyType> map;
 
-        private MapSubstitution(Map<String, Type> map) {
+        private MapSubstitution(Map<String, AnyType> map) {
             this.map = map;
         }
         @Override
-        Type getOrDefault(String name, @Nullable Type defaultValue) {
-            Type value = map.get(name);
+        AnyType getOrDefault(String name, @Nullable AnyType defaultValue) {
+            AnyType value = map.get(name);
             if (value == null)
                 return defaultValue;
             else
@@ -106,7 +106,7 @@ abstract class Substitution {
         }
 
         @Override
-        Type getOrDefault(String name, @Nullable Type defaultValue) {
+        AnyType getOrDefault(String name, @Nullable AnyType defaultValue) {
             return defaultValue;
         }
     }
@@ -121,8 +121,8 @@ abstract class Substitution {
         }
 
         @Override
-        Type getOrDefault(String name, @Nullable Type defaultValue) {
-            Type value = first.getOrDefault(name, null);
+        AnyType getOrDefault(String name, @Nullable AnyType defaultValue) {
+            AnyType value = first.getOrDefault(name, null);
             return value != null ? value : second.getOrDefault(name, defaultValue);
         }
     }

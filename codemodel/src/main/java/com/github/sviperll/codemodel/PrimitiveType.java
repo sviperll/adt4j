@@ -42,16 +42,16 @@ import javax.annotation.ParametersAreNonnullByDefault;
  * @author Victor Nazarov &lt;asviraspossible@gmail.com&gt;
  */
 @ParametersAreNonnullByDefault
-public enum PrimitiveType implements Renderable {
+public enum PrimitiveType implements Renderable, Type {
     BYTE, SHORT, INT, LONG,
     FLOAT, DOUBLE,
     CHAR,
     BOOLEAN;
 
-    private final Type type = Type.wrapPrimitiveType(this);
+    private final AnyType type = AnyType.wrapPrimitiveType(this);
 
-    @Nonnull
-    public Type asType() {
+    @Override
+    public AnyType asAny() {
         return type;
     }
 

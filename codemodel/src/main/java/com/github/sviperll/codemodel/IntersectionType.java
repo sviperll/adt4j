@@ -46,9 +46,9 @@ import javax.annotation.ParametersAreNonnullByDefault;
  * @author Victor Nazarov &lt;asviraspossible@gmail.com&gt;
  */
 @ParametersAreNonnullByDefault
-public class IntersectionType implements Renderable {
+public class IntersectionType implements Renderable, Type {
 
-    private final Type type = Type.wrapIntersectionType(this);
+    private final AnyType type = AnyType.wrapIntersectionType(this);
     private final Collection<? extends ObjectType> bounds;
 
     IntersectionType(Collection<? extends ObjectType> bounds) {
@@ -60,18 +60,18 @@ public class IntersectionType implements Renderable {
         return bounds;
     }
 
-    @Nonnull
-    public Type asType() {
+    @Override
+    public AnyType asAny() {
         return type;
     }
 
     @Nonnull
-    Type substitute(Substitution environment) {
+    AnyType substitute(Substitution environment) {
         List<ObjectType> substituted = new ArrayList<>(bounds.size());
         for (ObjectType bound: bounds) {
             substituted.add(bound.substitute(environment));
         }
-        return new IntersectionType(Collections.unmodifiableList(substituted)).asType();
+        return new IntersectionType(Collections.unmodifiableList(substituted)).asAny();
     }
 
     @Override

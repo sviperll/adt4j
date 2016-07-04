@@ -62,7 +62,7 @@ public class InterfaceBuilder<B extends ResidenceProvider> extends NamedObjectBu
 
     @Override
     public FieldBuilder staticFinalField(Type type, String name) throws CodeModelException {
-        return super.staticField(type, name);
+        return super.staticFinalField(type, name);
     }
 
     @Override

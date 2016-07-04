@@ -41,25 +41,25 @@ import javax.annotation.ParametersAreNonnullByDefault;
  * @author Victor Nazarov &lt;asviraspossible@gmail.com&gt;
  */
 @ParametersAreNonnullByDefault
-public class ArrayType implements Renderable {
-    private final Type type = Type.wrapArrayType(this);
-    private final Type elementType;
-    ArrayType(Type elementType) {
+public class ArrayType implements Renderable, Type {
+    private final AnyType type = AnyType.wrapArrayType(this);
+    private final AnyType elementType;
+    ArrayType(AnyType elementType) {
         this.elementType = elementType;
     }
 
     @Nonnull
-    public Type elementType() {
+    public AnyType elementType() {
         return elementType;
     }
 
     @Nonnull
-    Type substitute(Substitution environment) {
-        return new ArrayType(elementType.substitute(environment)).asType();
+    AnyType substitute(Substitution environment) {
+        return new ArrayType(elementType.substitute(environment)).asAny();
     }
 
-    @Nonnull
-    public Type asType() {
+    @Override
+    public AnyType asAny() {
         return type;
     }
 

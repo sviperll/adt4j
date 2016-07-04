@@ -41,7 +41,7 @@ public class MethodBuilder extends ExecutableBuilder<MethodType, MethodDefinitio
     private final String name;
     private boolean isFinal;
     private boolean isAbstract;
-    private Type resultType = Type.voidType();
+    private AnyType resultType = AnyType.voidType();
 
     MethodBuilder(NestingBuilder residence, String name) {
         super(residence);
@@ -59,9 +59,10 @@ public class MethodBuilder extends ExecutableBuilder<MethodType, MethodDefinitio
     }
 
     public void resultType(Type resultType) {
-        if (!resultType.canBeMethodResult())
-            throw new IllegalArgumentException(resultType.kind() + " is not allowed here");
-        this.resultType = resultType;
+        AnyType type = resultType.asAny();
+        if (!type.canBeMethodResult())
+            throw new IllegalArgumentException(type.kind() + " is not allowed here");
+        this.resultType = type;
     }
 
     @Override
@@ -85,7 +86,7 @@ public class MethodBuilder extends ExecutableBuilder<MethodType, MethodDefinitio
         }
 
         @Override
-        public Type returnType() {
+        public AnyType returnType() {
             return resultType;
         }
 

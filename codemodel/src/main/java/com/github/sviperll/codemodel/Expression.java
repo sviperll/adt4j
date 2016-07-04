@@ -66,6 +66,10 @@ public class Expression implements Renderable {
     private static final Precedence TERNARY = LOGICAL_OR.next();
     private static final Precedence ASSIGNMENT = TERNARY.next();
 
+    public static List<? extends Expression> emptyList() {
+        return Collections.emptyList();
+    }
+
     @Nonnull
     public static final Expression literal(final String s) {
         return new Expression(TOP.createRenderable(new PrecedenceAwareRenderable() {
@@ -202,7 +206,7 @@ public class Expression implements Renderable {
                     @Override
                     public void render() {
                         context.appendText(".");
-                        Iterator<? extends Type> typeArgumentIterator = method.typeArguments().iterator();
+                        Iterator<? extends AnyType> typeArgumentIterator = method.typeArguments().iterator();
                         if (typeArgumentIterator.hasNext()) {
                             context.appendText("<");
                             context.appendFreeStandingRenderable(typeArgumentIterator.next());
@@ -245,22 +249,22 @@ public class Expression implements Renderable {
     public static Expression rawInstantiation(ObjectType objectType, List<? extends Expression> arguments) {
         if (!objectType.isRaw())
             throw new IllegalArgumentException("Raw type expected");
-        return instantiation(Collections.<Type>emptyList(), objectType, true, arguments, null, null);
+        return instantiation(Collections.<AnyType>emptyList(), objectType, true, arguments, null, null);
     }
 
     @Nonnull
     public static Expression instantiation(ObjectType objectType, List<? extends Expression> arguments) {
-        return instantiation(Collections.<Type>emptyList(), objectType, false, arguments, null, null);
+        return instantiation(Collections.<AnyType>emptyList(), objectType, false, arguments, null, null);
     }
 
     @Nonnull
     public static Expression instantiation(ObjectType objectType, List<? extends Expression> arguments, ExpressionContext context, Consumer<? super AnonymousClassBuilder> anonymousDefinition) {
-        return instantiation(Collections.<Type>emptyList(), objectType, false, arguments, context, anonymousDefinition);
+        return instantiation(Collections.<AnyType>emptyList(), objectType, false, arguments, context, anonymousDefinition);
     }
 
     @Nonnull
     private static Expression instantiation(
-            final Collection<? extends Type> typeArguments,
+            final Collection<? extends AnyType> typeArguments,
             final ObjectType objectType,
             final boolean asRaw,
             final List<? extends Expression> arguments,
@@ -271,7 +275,7 @@ public class Expression implements Renderable {
         if (anonymousDefinition == null) {
             definition = null;
         } else {
-            AnonymousClassBuilder builder = new AnonymousClassBuilder(context);
+            AnonymousClassBuilder builder = new AnonymousClassBuilder(context.expressionContext());
             anonymousDefinition.accept(builder);
             definition = builder.definition();
         }
@@ -282,7 +286,7 @@ public class Expression implements Renderable {
                 return new Renderer() {
                     @Override
                     public void render() {
-                        Iterator<? extends Type> iterator = typeArguments.iterator();
+                        Iterator<? extends AnyType> iterator = typeArguments.iterator();
                         if (iterator.hasNext()) {
                             context.appendText("<");
                             context.appendFreeStandingRenderable(iterator.next());
