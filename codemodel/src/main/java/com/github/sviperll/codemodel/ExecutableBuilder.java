@@ -47,10 +47,10 @@ import javax.annotation.ParametersAreNonnullByDefault;
 public abstract class ExecutableBuilder<T extends ExecutableType<T, D>, D extends ExecutableDefinition<T, D>>
         extends GenericDefinitionBuilder<NestingBuilder, T, D> {
     private final VariableScope scope = VariableScope.createTopLevel();
-    private final BlockBuilder body = BlockBuilder.createWithBracesForced(scope.createNested());
     private final List<VariableDeclaration> parameters = new ArrayList<>();
     private final List<Type> throwsList = new ArrayList<>();
     private final NestingBuilder residence;
+    private BlockBuilder body = null;
 
     ExecutableBuilder(NestingBuilder residence) {
         super(residence);
@@ -80,18 +80,20 @@ public abstract class ExecutableBuilder<T extends ExecutableType<T, D>, D extend
         return super.typeParameter(name);
     }
 
-    public void addParameter(Type type, String name) throws CodeModelException {
+    public VariableDeclaration addParameter(Type type, String name) throws CodeModelException {
         name = scope.makeIntroducable(name);
         scope.introduce(name);
         Parameter parameter = new Parameter(false, type, name);
         parameters.add(parameter);
+        return parameter;
     }
 
-    public void addFinalParameter(Type type, String name) throws CodeModelException {
+    public VariableDeclaration addFinalParameter(Type type, String name) throws CodeModelException {
         name = scope.makeIntroducable(name);
         scope.introduce(name);
         Parameter parameter = new Parameter(true, type, name);
         parameters.add(parameter);
+        return parameter;
     }
 
     public void throwsException(ObjectType type) throws CodeModelException {
@@ -106,6 +108,10 @@ public abstract class ExecutableBuilder<T extends ExecutableType<T, D>, D extend
 
     @Nonnull
     public BlockBuilder body() {
+        if (body == null) {
+            Residence residence = Residence.local(new MethodLocalResidence(definition()));
+            body = BlockBuilder.createWithBracesForced(new ExpressionContext(residence), scope.createNested());
+        }
         return body;
     }
 

@@ -83,10 +83,13 @@ class ReflectionObjectDefinition<T> extends ObjectDefinition {
 
     @Override
     public ObjectType extendsClass() {
-        if (this == codeModel.objectType().definition())
+        if (isJavaLangObject())
             throw new UnsupportedOperationException("java.lang.Object super class is undefined");
         if (extendsClass == null) {
-            extendsClass = codeModel.readReflectedType(klass.getGenericSuperclass()).getObjectDetails();
+            if (kind().isInterface())
+                extendsClass = codeModel.objectType();
+            else
+                extendsClass = codeModel.readReflectedType(klass.getGenericSuperclass()).getObjectDetails();
         }
         return extendsClass;
     }

@@ -30,33 +30,16 @@
 
 package com.github.sviperll.codemodel;
 
-import java.util.List;
-import javax.annotation.Nonnull;
 import javax.annotation.ParametersAreNonnullByDefault;
+import javax.annotation.Nonnull;
 
 /**
  *
  * @author Victor Nazarov &lt;asviraspossible@gmail.com&gt;
+ * @param <T>
+ * @param <R>
  */
 @ParametersAreNonnullByDefault
-public class ConstructorType extends ExecutableType<ConstructorType, ConstructorDefinition> {
-    ConstructorType(ExecutableType.Implementation<ConstructorType, ConstructorDefinition> implementation) {
-        super(implementation);
-    }
-
-    @Nonnull
-    @SuppressWarnings("unchecked")
-    public ObjectType objectType() {
-        return (ObjectType)getCapturedEnclosingType();
-    }
-
-    @Nonnull
-    public Expression instantiation(final List<? extends Expression> arguments) {
-        return Expression.instantiation(this, arguments);
-    }
-
-    @Nonnull
-    public Expression instantiation(final List<? extends Expression> arguments, ExpressionContext context, Consumer<? super AnonymousClassBuilder> anonymousClassDefinition) {
-        return Expression.instantiation(this, arguments, context, anonymousClassDefinition);
-    }
+public interface Function<T, R> {
+    R apply(T argument);
 }

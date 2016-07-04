@@ -61,6 +61,11 @@ public class InterfaceBuilder<B extends ResidenceBuilder> extends NamedObjectBui
     }
 
     @Override
+    public FieldBuilder staticFinalField(Type type, String name) throws CodeModelException {
+        return super.staticField(type, name);
+    }
+
+    @Override
     public ClassBuilder<NestingBuilder> staticNestedClass(String name) throws CodeModelException {
         return super.staticNestedClass(name);
     }

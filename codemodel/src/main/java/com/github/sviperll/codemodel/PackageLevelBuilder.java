@@ -39,7 +39,7 @@ import javax.annotation.ParametersAreNonnullByDefault;
 @ParametersAreNonnullByDefault
 public class PackageLevelBuilder implements ResidenceBuilder {
     private final Package pkg;
-    private final BuiltMembership residence = new BuiltMembership();
+    private final Residence residence = Residence.packageLevel(new BuiltMembership());
     private boolean isPublic = false;
 
     PackageLevelBuilder(Package pkg) {
@@ -52,7 +52,7 @@ public class PackageLevelBuilder implements ResidenceBuilder {
 
     @Override
     public Residence residence() {
-        return Residence.packageLevel(residence);
+        return residence;
     }
 
     @Override

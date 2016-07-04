@@ -56,8 +56,18 @@ abstract class AbstractClassBuilder<B extends ResidenceBuilder> extends NamedObj
     }
 
     @Override
+    public FieldBuilder finalField(Type type, String name) throws CodeModelException {
+        return super.finalField(type, name);
+    }
+
+    @Override
     public FieldBuilder staticField(Type type, String name) throws CodeModelException {
         return super.staticField(type, name);
+    }
+
+    @Override
+    public FieldBuilder staticFinalField(Type type, String name) throws CodeModelException {
+        return super.staticFinalField(type, name);
     }
 
     @Override

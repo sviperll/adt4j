@@ -45,19 +45,21 @@ import javax.annotation.ParametersAreNonnullByDefault;
  */
 @ParametersAreNonnullByDefault
 public class BlockBuilder implements Renderable {
-    static BlockBuilder createWithBracesForced(VariableScope scope) {
-        return new BlockBuilder(scope, true);
+    static BlockBuilder createWithBracesForced(ExpressionContext expressionContext, VariableScope scope) {
+        return new BlockBuilder(expressionContext, scope, true);
     }
-    static BlockBuilder createWithAutoBraces(VariableScope scope) {
-        return new BlockBuilder(scope, false);
+    static BlockBuilder createWithAutoBraces(ExpressionContext expressionContext, VariableScope scope) {
+        return new BlockBuilder(expressionContext, scope, false);
     }
 
     private final List<Statement> statements = new ArrayList<>();
+    private final ExpressionContext expressionContext;
     private final VariableScope scope;
     private final boolean braces;
     private IfBuilder ifStatement = null;
 
-    private BlockBuilder(VariableScope scope, boolean braces) {
+    private BlockBuilder(ExpressionContext expressionContext, VariableScope scope, boolean braces) {
+        this.expressionContext = expressionContext;
         this.scope = scope;
         this.braces = braces;
     }
@@ -65,6 +67,11 @@ public class BlockBuilder implements Renderable {
     @Override
     public Renderer createRenderer(final RendererContext context) {
         return createBlockRenderer(context, false);
+    }
+
+    @Nonnull
+    public ExpressionContext expressionContext() {
+        return expressionContext;
     }
 
     @Nonnull
@@ -158,6 +165,7 @@ public class BlockBuilder implements Renderable {
             }
         });
     }
+
     public void assignment(final String name, final Expression expression) throws CodeModelException {
         expression(Expression.variable(name).assignment(expression));
     }
@@ -168,9 +176,9 @@ public class BlockBuilder implements Renderable {
 
     @Nonnull
     public IfBuilder ifStatement(final Expression condition) throws CodeModelException {
-        VariableScope thenScope = scope.createNested();
-        VariableScope elseScope = scope.createNested();
-        IfBuilder result = new IfBuilder(condition, thenScope, elseScope);
+        BlockBuilder thenBlock = BlockBuilder.createWithAutoBraces(expressionContext, scope.createNested());
+        BlockBuilder elseBlock = BlockBuilder.createWithAutoBraces(expressionContext, scope.createNested());
+        IfBuilder result = new IfBuilder(condition, thenBlock, elseBlock);
         ifStatement = result;
         statements.add(result.statement());
         return result;

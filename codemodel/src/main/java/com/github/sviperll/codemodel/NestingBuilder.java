@@ -39,14 +39,14 @@ import javax.annotation.ParametersAreNonnullByDefault;
 @ParametersAreNonnullByDefault
 public final class NestingBuilder implements ResidenceBuilder {
 
-    private final BuiltClassMembership residence = new BuiltClassMembership();
+    private final Residence residence = Residence.nested(new BuiltClassMembership());
     private final ObjectDefinition parent;
     private final boolean isStatic;
     private MemberAccess accessLevel = MemberAccess.PACKAGE;
 
-    NestingBuilder(boolean isStatic, ObjectDefinition parent) throws CodeModelException {
+    NestingBuilder(boolean isStatic, ObjectDefinition parent) {
         if (isStatic && parent.residence().isNested() && !parent.residence().getNesting().isStatic())
-            throw new CodeModelException("Can't create static member in non-static class");
+            throw new IllegalArgumentException("Can't create static member in non-static class");
         this.isStatic = isStatic;
         this.parent = parent;
     }
@@ -57,7 +57,7 @@ public final class NestingBuilder implements ResidenceBuilder {
 
     @Override
     public Residence residence() {
-        return Residence.nested(residence);
+        return residence;
     }
 
     @Override

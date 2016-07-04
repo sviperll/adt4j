@@ -30,33 +30,24 @@
 
 package com.github.sviperll.codemodel;
 
-import java.util.List;
-import javax.annotation.Nonnull;
-import javax.annotation.ParametersAreNonnullByDefault;
-
 /**
  *
  * @author Victor Nazarov &lt;asviraspossible@gmail.com&gt;
  */
-@ParametersAreNonnullByDefault
-public class ConstructorType extends ExecutableType<ConstructorType, ConstructorDefinition> {
-    ConstructorType(ExecutableType.Implementation<ConstructorType, ConstructorDefinition> implementation) {
-        super(implementation);
+public class ExpressionContext implements ResidenceBuilder {
+
+    private final Residence residence;
+    ExpressionContext(Residence residence) {
+        this.residence = residence;
     }
 
-    @Nonnull
-    @SuppressWarnings("unchecked")
-    public ObjectType objectType() {
-        return (ObjectType)getCapturedEnclosingType();
+    @Override
+    public Residence residence() {
+        return residence;
     }
 
-    @Nonnull
-    public Expression instantiation(final List<? extends Expression> arguments) {
-        return Expression.instantiation(this, arguments);
-    }
-
-    @Nonnull
-    public Expression instantiation(final List<? extends Expression> arguments, ExpressionContext context, Consumer<? super AnonymousClassBuilder> anonymousClassDefinition) {
-        return Expression.instantiation(this, arguments, context, anonymousClassDefinition);
+    @Override
+    public CodeModel getCodeModel() {
+        return residence.getPackage().getCodeModel();
     }
 }

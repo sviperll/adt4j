@@ -72,7 +72,19 @@ abstract class ObjectBuilder<B extends ResidenceBuilder> extends GenericDefiniti
             throw new CodeModelException(definition().qualifiedTypeName() + "." + name + " already defined");
         }
         NestingBuilder membership = new NestingBuilder(true, definition());
-        FieldBuilder result = new FieldBuilder(membership, type, name);
+        FieldBuilder result = new FieldBuilder(membership, false, type, name);
+        fields.put(name, result.declaration());
+        staticInitOrdering.add(new ObjectInitializationElement(result.declaration()));
+        return result;
+    }
+
+    @Nonnull
+    protected FieldBuilder staticFinalField(Type type, String name) throws CodeModelException {
+        if (fields.containsKey(name)) {
+            throw new CodeModelException(definition().qualifiedTypeName() + "." + name + " already defined");
+        }
+        NestingBuilder membership = new NestingBuilder(true, definition());
+        FieldBuilder result = new FieldBuilder(membership, true, type, name);
         fields.put(name, result.declaration());
         staticInitOrdering.add(new ObjectInitializationElement(result.declaration()));
         return result;
@@ -85,7 +97,20 @@ abstract class ObjectBuilder<B extends ResidenceBuilder> extends GenericDefiniti
             throw new CodeModelException(definition().qualifiedTypeName() + "." + name + " already defined");
         }
         NestingBuilder membership = new NestingBuilder(false, definition());
-        FieldBuilder result = new FieldBuilder(membership, type, name);
+        FieldBuilder result = new FieldBuilder(membership, false, type, name);
+        fields.put(name, result.declaration());
+        instanceInitOrdering.add(new ObjectInitializationElement(result.declaration()));
+        return result;
+    }
+
+    // Should be exposed as public by ClassBuilder and EnumBuilder subclasses that want to allow nonstatic field definition
+    @Nonnull
+    protected FieldBuilder finalField(Type type, String name) throws CodeModelException {
+        if (fields.containsKey(name)) {
+            throw new CodeModelException(definition().qualifiedTypeName() + "." + name + " already defined");
+        }
+        NestingBuilder membership = new NestingBuilder(false, definition());
+        FieldBuilder result = new FieldBuilder(membership, true, type, name);
         fields.put(name, result.declaration());
         instanceInitOrdering.add(new ObjectInitializationElement(result.declaration()));
         return result;

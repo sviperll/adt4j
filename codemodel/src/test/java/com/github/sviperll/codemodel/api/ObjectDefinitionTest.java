@@ -34,7 +34,7 @@ import com.github.sviperll.codemodel.CodeModel;
 import com.github.sviperll.codemodel.CodeModelException;
 import com.github.sviperll.codemodel.Consumer;
 import com.github.sviperll.codemodel.EnumBuilder;
-import com.github.sviperll.codemodel.EnumConstantBuilder;
+import com.github.sviperll.codemodel.AnonymousClassBuilder;
 import com.github.sviperll.codemodel.Expression;
 import com.github.sviperll.codemodel.FieldBuilder;
 import com.github.sviperll.codemodel.InterfaceBuilder;
@@ -48,7 +48,6 @@ import com.github.sviperll.codemodel.PackageLevelBuilder;
 import com.github.sviperll.codemodel.Type;
 import com.github.sviperll.codemodel.render.RendererContexts;
 import java.util.Collections;
-import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.junit.Test;
@@ -144,9 +143,9 @@ public class ObjectDefinitionTest {
         method.addParameter(Type.intType(), "param1");
         method.body().returnStatement(Expression.variable("param1").plus(Expression.variable("field1")));
 
-        test1.constant("TEST1_1", new Consumer<EnumConstantBuilder>() {
+        test1.constant("TEST1_1", new Consumer<AnonymousClassBuilder>() {
             @Override
-            public void accept(EnumConstantBuilder value) {
+            public void accept(AnonymousClassBuilder value) {
                 try {
                     MethodBuilder method1 = value.method("test");
                     method1.setAccessLevel(MemberAccess.PUBLIC);
@@ -158,9 +157,9 @@ public class ObjectDefinitionTest {
                 }
             }
         });
-        test1.constant("TEST1_2", new Consumer<EnumConstantBuilder>() {
+        test1.constant("TEST1_2", new Consumer<AnonymousClassBuilder>() {
             @Override
-            public void accept(EnumConstantBuilder value) {
+            public void accept(AnonymousClassBuilder value) {
                 try {
                     MethodBuilder method1 = value.method("test");
                     method1.setAccessLevel(MemberAccess.PUBLIC);

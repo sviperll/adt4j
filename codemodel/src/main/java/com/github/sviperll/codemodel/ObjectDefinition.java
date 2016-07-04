@@ -102,6 +102,10 @@ public abstract class ObjectDefinition extends GenericDefinition<ObjectType, Obj
         return this == getCodeModel().objectType().definition();
     }
 
+    public boolean declaresConstructors() {
+        return !isAnonymous() && kind().declaresConstructors();
+    }
+
     @Override
     final ObjectType createType(GenericType.Implementation<ObjectType, ObjectDefinition> implementation) {
         return new ObjectType(implementation);
@@ -203,7 +207,7 @@ public abstract class ObjectDefinition extends GenericDefinition<ObjectType, Obj
                 }
 
                 for (MethodDefinition method: methods()) {
-                    if (method.residence().getNesting().isStatic()) {
+                    if (method.isStatic()) {
                         nestedContext.appendEmptyLine();
                         nestedContext.appendRenderable(method);
                     }
@@ -213,7 +217,7 @@ public abstract class ObjectDefinition extends GenericDefinition<ObjectType, Obj
                     nestedContext.appendRenderable(element);
                 }
 
-                if (kind().hasConstructors()) {
+                if (declaresConstructors()) {
                     for (ConstructorDefinition constructor: constructors()) {
                         nestedContext.appendEmptyLine();
                         nestedContext.appendRenderable(constructor);
@@ -221,7 +225,7 @@ public abstract class ObjectDefinition extends GenericDefinition<ObjectType, Obj
                 }
 
                 for (MethodDefinition method: methods()) {
-                    if (!method.residence().getNesting().isStatic()) {
+                    if (!method.isStatic()) {
                         nestedContext.appendEmptyLine();
                         nestedContext.appendRenderable(method);
                     }
@@ -243,7 +247,6 @@ public abstract class ObjectDefinition extends GenericDefinition<ObjectType, Obj
 
                 context.appendText("}");
             }
-
         };
     }
 }

@@ -46,9 +46,9 @@ public class IfBuilder {
     private final BlockBuilder elseBlock;
     private final Expression condition;
 
-    IfBuilder(Expression condition, VariableScope thenScope, VariableScope elseScope) {
-        thenBlock = BlockBuilder.createWithAutoBraces(thenScope);
-        elseBlock = BlockBuilder.createWithAutoBraces(elseScope);
+    IfBuilder(Expression condition, BlockBuilder thenBlock, BlockBuilder elseBlock) {
+        this.thenBlock = thenBlock;
+        this.elseBlock = elseBlock;
         this.condition = condition;
     }
 

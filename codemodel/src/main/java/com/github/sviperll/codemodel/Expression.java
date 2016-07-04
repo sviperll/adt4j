@@ -38,9 +38,12 @@ import com.github.sviperll.codemodel.render.RendererContext;
 import javax.annotation.ParametersAreNonnullByDefault;
 import com.github.sviperll.codemodel.render.Renderable;
 import com.github.sviperll.codemodel.expression.PrecedenceAwareRenderable;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
 /**
  *
@@ -227,51 +230,68 @@ public class Expression implements Renderable {
     }
 
     @Nonnull
-    public static Expression instantiation(final ConstructorType constructor, final List<? extends Expression> arguments) {
+    public static Expression instantiation(ConstructorType constructor, List<? extends Expression> arguments) {
+        return instantiation(constructor.typeArguments(), constructor.objectType(), false, arguments, null, null);
+    }
+
+
+    @Nonnull
+    public static Expression instantiation(ConstructorType constructor, List<? extends Expression> arguments, ExpressionContext context, Consumer<? super AnonymousClassBuilder> anonymousDefinition) {
+        return instantiation(constructor.typeArguments(), constructor.objectType(), false, arguments, context, anonymousDefinition);
+    }
+
+
+    @Nonnull
+    public static Expression rawInstantiation(ObjectType objectType, List<? extends Expression> arguments) {
+        if (!objectType.isRaw())
+            throw new IllegalArgumentException("Raw type expected");
+        return instantiation(Collections.<Type>emptyList(), objectType, true, arguments, null, null);
+    }
+
+    @Nonnull
+    public static Expression instantiation(ObjectType objectType, List<? extends Expression> arguments) {
+        return instantiation(Collections.<Type>emptyList(), objectType, false, arguments, null, null);
+    }
+
+    @Nonnull
+    public static Expression instantiation(ObjectType objectType, List<? extends Expression> arguments, ExpressionContext context, Consumer<? super AnonymousClassBuilder> anonymousDefinition) {
+        return instantiation(Collections.<Type>emptyList(), objectType, false, arguments, context, anonymousDefinition);
+    }
+
+    @Nonnull
+    private static Expression instantiation(
+            final Collection<? extends Type> typeArguments,
+            final ObjectType objectType,
+            final boolean asRaw,
+            final List<? extends Expression> arguments,
+            final ExpressionContext context,
+            final @Nullable Consumer<? super AnonymousClassBuilder> anonymousDefinition
+    ) {
+        final ObjectDefinition definition;
+        if (anonymousDefinition == null) {
+            definition = null;
+        } else {
+            AnonymousClassBuilder builder = new AnonymousClassBuilder(context);
+            anonymousDefinition.accept(builder);
+            definition = builder.definition();
+        }
+
         return new Expression(TOP.createRenderable(new PrecedenceAwareRenderable() {
             @Override
             public Renderer createPrecedenceAwareRenderer(final PrecedenceAwareRendererContext context) {
                 return new Renderer() {
                     @Override
                     public void render() {
-                        Iterator<? extends Type> typeArgumentIterator = constructor.typeArguments().iterator();
-                        if (typeArgumentIterator.hasNext()) {
+                        Iterator<? extends Type> iterator = typeArguments.iterator();
+                        if (iterator.hasNext()) {
                             context.appendText("<");
-                            context.appendFreeStandingRenderable(typeArgumentIterator.next());
-                            while (typeArgumentIterator.hasNext()) {
+                            context.appendFreeStandingRenderable(iterator.next());
+                            while (iterator.hasNext()) {
                                 context.appendText(", ");
-                                context.appendFreeStandingRenderable(typeArgumentIterator.next());
+                                context.appendFreeStandingRenderable(iterator.next());
                             }
                             context.appendText(">");
                         }
-                        context.appendFreeStandingRenderable(instantiation(constructor.objectType(), arguments));
-                    }
-                };
-            }
-        }));
-    }
-
-
-    @Nonnull
-    public static Expression rawInstantiation(final ObjectType objectType, final List<? extends Expression> arguments) {
-        if (!objectType.isRaw())
-            throw new IllegalArgumentException("Raw type expected");
-        return instantiation(objectType, true, arguments);
-    }
-
-    @Nonnull
-    public static Expression instantiation(final ObjectType objectType, final List<? extends Expression> arguments) {
-        return instantiation(objectType, false, arguments);
-    }
-
-    @Nonnull
-    private static Expression instantiation(final ObjectType objectType, final boolean asRaw, final List<? extends Expression> arguments) {
-        return new Expression(TOP.createRenderable(new PrecedenceAwareRenderable() {
-            @Override
-            public Renderer createPrecedenceAwareRenderer(final PrecedenceAwareRendererContext context) {
-                return new Renderer() {
-                    @Override
-                    public void render() {
                         context.appendText("new ");
                         context.appendFreeStandingRenderable(objectType);
                         if (objectType.isRaw() && !objectType.definition().typeParameters().all().isEmpty() && !asRaw)
@@ -286,6 +306,10 @@ public class Expression implements Renderable {
                             }
                         }
                         context.appendText(")");
+                        if (definition != null) {
+                            context.appendText(" ");
+                            context.appendFreeStandingRenderable(definition);
+                        }
                     }
                 };
             }

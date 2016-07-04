@@ -190,6 +190,11 @@ public class ObjectType extends GenericType<ObjectType, ObjectDefinition> implem
     }
 
     @Nonnull
+    public Expression instantiation(final List<? extends Expression> arguments, ExpressionContext context, Consumer<? super AnonymousClassBuilder> anonymousClassDefinition) {
+        return Expression.instantiation(this, arguments, context, anonymousClassDefinition);
+    }
+
+    @Nonnull
     public Expression rawInstantiation(final List<? extends Expression> arguments) {
         return Expression.rawInstantiation(this, arguments);
     }

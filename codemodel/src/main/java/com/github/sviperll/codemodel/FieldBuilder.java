@@ -45,14 +45,16 @@ public class FieldBuilder {
     private final NestingBuilder residence;
     private final Type type;
     private final String name;
-    private boolean isFinal = false;
+    private final boolean isFinal;
     private boolean isInitialized = false;
     private Expression initializer = null;
+    private ExpressionContext initializationContext = null;
 
-    FieldBuilder(NestingBuilder residence, Type type, String name) {
+    FieldBuilder(NestingBuilder residence, boolean isFinal, Type type, String name) {
         if (!(type.isArray() || type.isObjectType() || type.isPrimitive() || type.isTypeVariable()))
             throw new IllegalArgumentException(type.kind() + " is not allowed here");
         this.residence = residence;
+        this.isFinal = isFinal;
         this.type = type;
         this.name = name;
     }
@@ -66,15 +68,25 @@ public class FieldBuilder {
         return declaration;
     }
 
-    public void setFinal(boolean isFinal) {
-        this.isFinal = isFinal;
-    }
-
     public void initialize(Expression expression) {
         if (isInitialized)
             throw new IllegalStateException("Field already initialized");
         isInitialized = true;
         initializer = expression;
+    }
+
+    public void initialize(Function<ExpressionContext, Expression> expression) {
+        initialize(expression.apply(initializationContext()));
+    }
+
+    public ExpressionContext initializationContext() {
+        if (initializationContext == null) {
+            Nesting nesting = residence.residence().getNesting();
+            NestingBuilder nestingBuilder = new NestingBuilder(nesting.isStatic(), nesting.parent());
+            nestingBuilder.setAccessLevel(MemberAccess.PRIVATE);
+            initializationContext = new ExpressionContext(nestingBuilder.residence());
+        }
+        return initializationContext;
     }
 
     private class BuiltFieldDeclaration extends FieldDeclaration {

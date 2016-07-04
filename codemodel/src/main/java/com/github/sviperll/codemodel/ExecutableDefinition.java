@@ -31,7 +31,6 @@
 package com.github.sviperll.codemodel;
 
 import com.github.sviperll.codemodel.render.Renderable;
-import java.util.ArrayList;
 import java.util.List;
 import javax.annotation.Nonnull;
 import javax.annotation.ParametersAreNonnullByDefault;

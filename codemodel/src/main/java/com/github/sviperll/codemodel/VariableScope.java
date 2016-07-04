@@ -35,6 +35,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;
 
 /**
@@ -54,7 +55,7 @@ class VariableScope {
         this(null);
     }
 
-    private VariableScope(VariableScope parent) {
+    private VariableScope(@Nullable VariableScope parent) {
         this.parent = parent;
     }
 

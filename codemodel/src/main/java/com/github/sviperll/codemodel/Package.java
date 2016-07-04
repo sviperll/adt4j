@@ -170,7 +170,7 @@ public final class Package implements Model {
     Package getChildPackageBySuffix(String suffix) throws CodeModelException {
         int index = suffix.indexOf('.');
         if (index == 0)
-            throw new CodeModelException(packageAsNamePrefix() + suffix + " illegal package name");
+            throw new IllegalArgumentException(packageAsNamePrefix() + suffix + " illegal package name");
         boolean isChild = index < 0;
         String childSuffix = isChild ? suffix : suffix.substring(0, index);
         if (classes.containsKey(childSuffix))

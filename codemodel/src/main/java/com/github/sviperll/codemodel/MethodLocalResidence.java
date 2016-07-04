@@ -41,13 +41,17 @@ import javax.annotation.ParametersAreNonnullByDefault;
  * @author Victor Nazarov &lt;asviraspossible@gmail.com&gt;
  */
 @ParametersAreNonnullByDefault
-public abstract class MethodLocalResidence implements Renderable {
+public class MethodLocalResidence implements Renderable {
     private static final NoOpRenderer NO_OP_RENDERER = new NoOpRenderer();
-    MethodLocalResidence() {
+    private final ExecutableDefinition<?, ?> parent;
+    MethodLocalResidence(ExecutableDefinition<?, ?> parent) {
+        this.parent = parent;
     }
 
     @Nonnull
-    public abstract ExecutableDefinition<?, ?> parent();
+    public ExecutableDefinition<?, ?> parent() {
+        return parent;
+    }
 
     @Override
     public Renderer createRenderer(RendererContext context) {

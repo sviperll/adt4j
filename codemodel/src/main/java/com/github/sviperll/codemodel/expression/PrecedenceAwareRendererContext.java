@@ -30,9 +30,12 @@
 
 package com.github.sviperll.codemodel.expression;
 
+import com.github.sviperll.codemodel.Type;
 import com.github.sviperll.codemodel.render.Renderable;
 import com.github.sviperll.codemodel.render.Renderer;
 import com.github.sviperll.codemodel.render.RendererContext;
+import java.util.Collection;
+import java.util.Iterator;
 
 /**
  *

@@ -78,6 +78,7 @@ public abstract class VariableDeclaration implements Renderable {
                 context.appendWhiteSpace();
                 context.appendText(name());
                 if (isInitialized()) {
+                    context.appendText(" = ");
                     context.appendRenderable(getInitialValue());
                 }
             }
