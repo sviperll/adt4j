@@ -71,7 +71,7 @@ public abstract class MethodDefinition extends ExecutableDefinition<MethodType, 
         return new Renderer() {
             @Override
             public void render() {
-                context.appendRenderable(residence());
+                context.appendRenderable(nesting());
                 context.appendWhiteSpace();
                 if (isFinal()) {
                     context.appendText("final");

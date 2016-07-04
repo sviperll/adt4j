@@ -39,7 +39,8 @@ import javax.annotation.Nonnull;
  *
  * @author Victor Nazarov &lt;asviraspossible@gmail.com&gt;
  */
-public abstract class Nesting implements Renderable {
+public abstract class Nesting implements Renderable, ResidenceProvider {
+    private final Residence residence = Residence.nested(this);
     private final RenderableNesting defaultRenderable = new RenderableNesting(false);
     private final RenderableNesting implicitlyStaticRenderable = new RenderableNesting(true);
     Nesting() {
@@ -52,6 +53,11 @@ public abstract class Nesting implements Renderable {
 
     @Nonnull
     public abstract ObjectDefinition parent();
+
+    @Override
+    public final Residence residence() {
+        return residence;
+    }
 
     @Override
     public Renderer createRenderer(final RendererContext context) {

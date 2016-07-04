@@ -32,6 +32,7 @@ package com.github.sviperll.codemodel;
 
 import com.github.sviperll.codemodel.render.Renderer;
 import com.github.sviperll.codemodel.render.RendererContext;
+import javax.annotation.Nonnull;
 import javax.annotation.ParametersAreNonnullByDefault;
 
 /**
@@ -39,7 +40,7 @@ import javax.annotation.ParametersAreNonnullByDefault;
  * @author Victor Nazarov &lt;asviraspossible@gmail.com&gt;
  */
 @ParametersAreNonnullByDefault
-public abstract class FieldDeclaration extends VariableDeclaration implements Settled {
+public abstract class FieldDeclaration extends VariableDeclaration {
     FieldDeclaration() {
     }
 
@@ -52,13 +53,16 @@ public abstract class FieldDeclaration extends VariableDeclaration implements Se
     @Override
     public abstract boolean isInitialized();
 
+    @Nonnull
+    public abstract Nesting nesting();
+
     @Override
     public Renderer createRenderer(final RendererContext context) {
         final Renderer simpleRenderer = super.createRenderer(context);
         return new Renderer() {
             @Override
             public void render() {
-                context.appendRenderable(residence());
+                context.appendRenderable(nesting());
                 context.appendWhiteSpace();
                 simpleRenderer.render();
                 context.appendText(";");

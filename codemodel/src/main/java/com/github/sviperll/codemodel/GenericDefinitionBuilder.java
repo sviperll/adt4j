@@ -46,8 +46,7 @@ import javax.annotation.ParametersAreNonnullByDefault;
  * @param <D>
  */
 @ParametersAreNonnullByDefault
-public abstract class GenericDefinitionBuilder<B extends ResidenceBuilder, T extends GenericType<T, D>, D extends GenericDefinition<T, D>>
-        implements Model {
+public abstract class GenericDefinitionBuilder<B extends ResidenceProvider, T extends GenericType<T, D>, D extends GenericDefinition<T, D>> {
     private final List<TypeParameter> typeParameters = new ArrayList<>();
     private final Map<String, TypeParameter> typeParametersMap = new TreeMap<>();
     private final B residence;
@@ -83,11 +82,6 @@ public abstract class GenericDefinitionBuilder<B extends ResidenceBuilder, T ext
         return residence;
     }
 
-    @Override
-    public final CodeModel getCodeModel() {
-        return residence.getCodeModel();
-    }
-
     private class BuiltTypeParameters extends TypeParameters {
 
         @Override
@@ -110,7 +104,7 @@ public abstract class GenericDefinitionBuilder<B extends ResidenceBuilder, T ext
         }
 
         @Override
-        public final Residence residence() {
+        final Residence residence() {
             return residence.residence();
         }
     }

@@ -41,7 +41,7 @@ import javax.annotation.Nonnull;
  * @param <D>
  */
 public abstract class GenericDefinition<T extends GenericType<T, D>, D extends GenericDefinition<T, D>>
-        implements Settled, Renderable, Model {
+        implements Renderable, Model {
 
     private T rawType;
     GenericDefinition() {
@@ -55,6 +55,9 @@ public abstract class GenericDefinition<T extends GenericType<T, D>, D extends G
 
     @Nonnull
     abstract T createType(GenericType.Implementation<T, D> implementation);
+
+    @Nonnull
+    abstract Residence residence();
 
     public final boolean isGeneric() {
         if (!typeParameters().all().isEmpty())

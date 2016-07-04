@@ -45,7 +45,7 @@ import javax.annotation.ParametersAreNonnullByDefault;
  * @param <B>
  */
 @ParametersAreNonnullByDefault
-abstract class ObjectBuilder<B extends ResidenceBuilder> extends GenericDefinitionBuilder<B, ObjectType, ObjectDefinition> {
+abstract class ObjectBuilder<B extends ResidenceProvider> extends GenericDefinitionBuilder<B, ObjectType, ObjectDefinition> {
     private final List<MethodDefinition> methods = new ArrayList<>();
     private final Map<String, FieldDeclaration> fields = new TreeMap<>();
     private final List<ObjectInitializationElement> staticInitOrdering = new ArrayList<>();
@@ -207,7 +207,7 @@ abstract class ObjectBuilder<B extends ResidenceBuilder> extends GenericDefiniti
 
         @Override
         public final CodeModel getCodeModel() {
-            return residence.getCodeModel();
+            return residence().getCodeModel();
         }
 
         @Override

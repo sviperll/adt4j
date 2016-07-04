@@ -109,7 +109,7 @@ public abstract class ExecutableBuilder<T extends ExecutableType<T, D>, D extend
     @Nonnull
     public BlockBuilder body() {
         if (body == null) {
-            Residence residence = Residence.local(new MethodLocalResidence(definition()));
+            Residence residence = new MethodLocalResidence(definition()).residence();
             body = BlockBuilder.createWithBracesForced(new ExpressionContext(residence), scope.createNested());
         }
         return body;
@@ -137,13 +137,8 @@ public abstract class ExecutableBuilder<T extends ExecutableType<T, D>, D extend
         }
 
         @Override
-        public final Residence residence() {
-            return residence.residence();
-        }
-
-        @Override
-        public final CodeModel getCodeModel() {
-            return residence.getCodeModel();
+        public final Nesting nesting() {
+            return residence.residence().getNesting();
         }
 
         @Override

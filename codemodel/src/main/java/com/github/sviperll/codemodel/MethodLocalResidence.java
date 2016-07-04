@@ -41,25 +41,32 @@ import javax.annotation.ParametersAreNonnullByDefault;
  * @author Victor Nazarov &lt;asviraspossible@gmail.com&gt;
  */
 @ParametersAreNonnullByDefault
-public class MethodLocalResidence implements Renderable {
+public class MethodLocalResidence implements Renderable, ResidenceProvider {
     private static final NoOpRenderer NO_OP_RENDERER = new NoOpRenderer();
+    private final Residence residence = Residence.local(this);
     private final ExecutableDefinition<?, ?> parent;
     MethodLocalResidence(ExecutableDefinition<?, ?> parent) {
         this.parent = parent;
     }
 
     @Nonnull
-    public ExecutableDefinition<?, ?> parent() {
+    public final ExecutableDefinition<?, ?> parent() {
         return parent;
     }
 
     @Override
-    public Renderer createRenderer(RendererContext context) {
+    public final Renderer createRenderer(RendererContext context) {
         return NO_OP_RENDERER;
     }
 
-    Renderable forObjectKind(ObjectKind kind) {
+    @Nonnull
+    public final Renderable forObjectKind(ObjectKind kind) {
         return this;
+    }
+
+    @Override
+    public final Residence residence() {
+        return residence;
     }
 
     private static class NoOpRenderer implements Renderer {

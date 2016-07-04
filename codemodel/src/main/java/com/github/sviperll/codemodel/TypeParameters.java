@@ -48,7 +48,7 @@ import javax.annotation.ParametersAreNonnullByDefault;
  * @author Victor Nazarov &lt;asviraspossible@gmail.com&gt;
  */
 @ParametersAreNonnullByDefault
-public abstract class TypeParameters implements Renderable, Settled {
+public abstract class TypeParameters implements Renderable {
     private Map<String, TypeParameter> map = null;
     private List<Type> asInternalTypeArguments = null;
     TypeParameters() {
@@ -56,6 +56,9 @@ public abstract class TypeParameters implements Renderable, Settled {
 
     @Nonnull
     public abstract List<? extends TypeParameter> all();
+
+    @Nonnull
+    abstract Residence residence();
 
     @Nullable
     public TypeParameter getOrDefault(String name, @Nullable TypeParameter defaultValue) {

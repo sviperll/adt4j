@@ -101,8 +101,8 @@ public class FieldBuilder {
         }
 
         @Override
-        public Residence residence() {
-            return residence.residence();
+        public Nesting nesting() {
+            return residence.residence().getNesting();
         }
 
         @Override

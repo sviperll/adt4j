@@ -37,9 +37,9 @@ import javax.annotation.ParametersAreNonnullByDefault;
  * @author Victor Nazarov &lt;asviraspossible@gmail.com&gt;
  */
 @ParametersAreNonnullByDefault
-public final class NestingBuilder implements ResidenceBuilder {
+public final class NestingBuilder implements ResidenceProvider {
 
-    private final Residence residence = Residence.nested(new BuiltClassMembership());
+    private final BuiltClassMembership residence = new BuiltClassMembership();
     private final ObjectDefinition parent;
     private final boolean isStatic;
     private MemberAccess accessLevel = MemberAccess.PACKAGE;
@@ -57,12 +57,7 @@ public final class NestingBuilder implements ResidenceBuilder {
 
     @Override
     public Residence residence() {
-        return residence;
-    }
-
-    @Override
-    public CodeModel getCodeModel() {
-        return parent.getCodeModel();
+        return residence.residence();
     }
 
     private class BuiltClassMembership extends Nesting {

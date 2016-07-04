@@ -42,6 +42,8 @@ import javax.annotation.ParametersAreNonnullByDefault;
  */
 @ParametersAreNonnullByDefault
 public abstract class PackageLevelResidence implements Renderable {
+    private final Residence residence = Residence.packageLevel(this);
+
     PackageLevelResidence() {
     }
 
@@ -49,6 +51,11 @@ public abstract class PackageLevelResidence implements Renderable {
 
     @Nonnull
     public abstract Package getPackage();
+
+    @Nonnull
+    public final Residence asResidence() {
+        return residence;
+    }
 
     @Override
     public Renderer createRenderer(final RendererContext context) {

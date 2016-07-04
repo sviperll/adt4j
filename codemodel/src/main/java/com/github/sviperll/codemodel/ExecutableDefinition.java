@@ -71,27 +71,32 @@ public abstract class ExecutableDefinition<T extends ExecutableType<T, D>, D ext
     }
 
     @Override
-    public final Residence residence() {
-        return implementation.residence();
-    }
-
-    public boolean isStatic(){
-        return residence().getNesting().isStatic();
-    }
-
-    @Nonnull
-    public MemberAccess accessLevel(){
-        return residence().getNesting().accessLevel();
-    }
-
-    @Nonnull
-    public ObjectDefinition parent(){
-        return residence().getNesting().parent();
+    final Residence residence() {
+        return nesting().residence();
     }
 
     @Override
     public final CodeModel getCodeModel() {
-        return implementation.getCodeModel();
+        return residence().getCodeModel();
+    }
+
+    @Nonnull
+    final Nesting nesting() {
+        return implementation.nesting();
+    }
+
+    public boolean isStatic(){
+        return nesting().isStatic();
+    }
+
+    @Nonnull
+    public MemberAccess accessLevel(){
+        return nesting().accessLevel();
+    }
+
+    @Nonnull
+    public ObjectDefinition parent(){
+        return nesting().parent();
     }
 
     interface Implementation<T extends ExecutableType<T, D>, D extends ExecutableDefinition<T, D>> {
@@ -109,9 +114,6 @@ public abstract class ExecutableDefinition<T extends ExecutableType<T, D>, D ext
         Renderable body();
 
         @Nonnull
-        Residence residence();
-
-        @Nonnull
-        CodeModel getCodeModel();
+        Nesting nesting();
     }
 }

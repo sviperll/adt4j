@@ -46,7 +46,7 @@ import javax.annotation.ParametersAreNonnullByDefault;
  * @param <B>
  */
 @ParametersAreNonnullByDefault
-public class EnumBuilder<B extends ResidenceBuilder> extends AbstractClassBuilder<B> {
+public class EnumBuilder<B extends ResidenceProvider> extends AbstractClassBuilder<B> {
     private static final NoOpConsumer NO_OP_CONSUMER = new NoOpConsumer();
     private final List<EnumConstant> constants = new ArrayList<>();
     public EnumBuilder(B residence, String name) {

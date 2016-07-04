@@ -39,7 +39,7 @@ import javax.annotation.Nonnull;
  *
  * @author Victor Nazarov &lt;asviraspossible@gmail.com&gt;
  */
-public abstract class Residence implements Renderable {
+public abstract class Residence implements Renderable, ResidenceProvider, Model {
 
     @Nonnull
     static Residence packageLevel(final PackageLevelResidence details) {
@@ -163,6 +163,16 @@ public abstract class Residence implements Renderable {
             return getNesting().forObjectKind(kind);
         } else
             throw new IllegalStateException("Rendering unsupported residence " + kind());
+    }
+
+    @Override
+    public Residence residence() {
+        return this;
+    }
+
+    @Override
+    public CodeModel getCodeModel() {
+        return getPackage().getCodeModel();
     }
 
     public enum Kind {

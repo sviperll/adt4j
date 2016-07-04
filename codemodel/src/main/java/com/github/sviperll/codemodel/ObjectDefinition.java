@@ -44,10 +44,14 @@ import javax.annotation.ParametersAreNonnullByDefault;
  * @author Victor Nazarov &lt;asviraspossible@gmail.com&gt;
  */
 @ParametersAreNonnullByDefault
-public abstract class ObjectDefinition extends GenericDefinition<ObjectType, ObjectDefinition> {
+public abstract class ObjectDefinition extends GenericDefinition<ObjectType, ObjectDefinition>
+        implements Model {
 
     ObjectDefinition() {
     }
+
+    @Override
+    public abstract Residence residence();
 
     public abstract boolean isFinal();
 

@@ -61,12 +61,12 @@ public abstract class ConstructorDefinition extends ExecutableDefinition<Constru
         return new Renderer() {
             @Override
             public void render() {
-                context.appendRenderable(residence());
+                context.appendRenderable(nesting());
                 context.appendWhiteSpace();
                 context.appendWhiteSpace();
                 context.appendRenderable(typeParameters());
                 context.appendWhiteSpace();
-                context.appendText(residence().getNesting().parent().simpleTypeName());
+                context.appendText(nesting().parent().simpleTypeName());
                 context.appendText("(");
                 Iterator<? extends VariableDeclaration> parameters = parameters().iterator();
                 if (parameters.hasNext()) {

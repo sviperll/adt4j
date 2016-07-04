@@ -42,7 +42,7 @@ import javax.annotation.ParametersAreNonnullByDefault;
  * @param <B>
  */
 @ParametersAreNonnullByDefault
-public class InterfaceBuilder<B extends ResidenceBuilder> extends NamedObjectBuilder<B> {
+public class InterfaceBuilder<B extends ResidenceProvider> extends NamedObjectBuilder<B> {
 
     private final List<ObjectType> interfaces = new ArrayList<>();
 

@@ -38,7 +38,7 @@ import javax.annotation.ParametersAreNonnullByDefault;
  * @author Victor Nazarov &lt;asviraspossible@gmail.com&gt;
  */
 @ParametersAreNonnullByDefault
-public interface ResidenceBuilder extends Model {
+public interface ResidenceProvider {
     @Nonnull
     public abstract Residence residence();
 }

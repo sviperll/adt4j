@@ -111,7 +111,7 @@ class ReflectionObjectDefinition<T> extends ObjectDefinition {
         if (methods == null) {
             methods = new ArrayList<>();
             for (final Method method: klass.getDeclaredMethods()) {
-                Residence methodResidence = Residence.nested(new ReflectedNesting(method.getModifiers(), this));
+                Nesting methodResidence = new ReflectedNesting(method.getModifiers(), this);
                 ReflectedExecutableDefinitionImplementation executable = new ReflectedExecutableDefinitionImplementation(codeModel, methodResidence, method);
                 methods.add(new ReflectedMethodDefinition(codeModel, executable, method));
             }
@@ -125,7 +125,7 @@ class ReflectionObjectDefinition<T> extends ObjectDefinition {
         if (innerClasses == null) {
             innerClasses = new ArrayList<>();
             for (final Class<?> innerClass: klass.getDeclaredClasses()) {
-                Residence innerClassResidence = Residence.nested(new ReflectedNesting(innerClass.getModifiers(), this));
+                Residence innerClassResidence = new ReflectedNesting(innerClass.getModifiers(), this).residence();
                 innerClasses.add(new ReflectionObjectDefinition<>(codeModel, innerClassResidence, innerClass));
             }
             innerClasses = Collections.unmodifiableList(innerClasses);
@@ -326,14 +326,14 @@ class ReflectionObjectDefinition<T> extends ObjectDefinition {
 
         private static final Renderable body = new RenderableUnaccessibleCode();
         private final CodeModel codeModel;
-        private final Residence residence;
+        private final Nesting nesting;
         private final Method method;
         private List<VariableDeclaration> parameters = null;
         private List<Type> throwsList = null;
 
-        private ReflectedExecutableDefinitionImplementation(CodeModel codeModel, Residence residence, Method method) {
+        private ReflectedExecutableDefinitionImplementation(CodeModel codeModel, Nesting nesting, Method method) {
             this.codeModel = codeModel;
-            this.residence = residence;
+            this.nesting = nesting;
             this.method = method;
         }
 
@@ -373,15 +373,9 @@ class ReflectionObjectDefinition<T> extends ObjectDefinition {
         }
 
         @Override
-        public Residence residence() {
-            return residence;
+        public Nesting nesting() {
+            return nesting;
         }
-
-        @Override
-        public CodeModel getCodeModel() {
-            return codeModel;
-        }
-
     }
 
     private static class ReflectedParameter extends VariableDeclaration {

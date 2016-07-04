@@ -39,7 +39,7 @@ import javax.annotation.ParametersAreNonnullByDefault;
  * @param <B>
  */
 @ParametersAreNonnullByDefault
-public class ClassBuilder<B extends ResidenceBuilder> extends AbstractClassBuilder<B> {
+public class ClassBuilder<B extends ResidenceProvider> extends AbstractClassBuilder<B> {
     private ObjectType extendsClass = null;
     private boolean isFinal = false;
 

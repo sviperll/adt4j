@@ -34,7 +34,7 @@ package com.github.sviperll.codemodel;
  *
  * @author Victor Nazarov &lt;asviraspossible@gmail.com&gt;
  */
-public class ExpressionContext implements ResidenceBuilder {
+public class ExpressionContext implements ResidenceProvider {
 
     private final Residence residence;
     ExpressionContext(Residence residence) {
@@ -44,10 +44,5 @@ public class ExpressionContext implements ResidenceBuilder {
     @Override
     public Residence residence() {
         return residence;
-    }
-
-    @Override
-    public CodeModel getCodeModel() {
-        return residence.getPackage().getCodeModel();
     }
 }

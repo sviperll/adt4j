@@ -38,7 +38,7 @@ import javax.annotation.ParametersAreNonnullByDefault;
  * @author Victor Nazarov &lt;asviraspossible@gmail.com&gt;
  */
 @ParametersAreNonnullByDefault
-abstract class NamedObjectBuilder<B extends ResidenceBuilder> extends ObjectBuilder<B> {
+abstract class NamedObjectBuilder<B extends ResidenceProvider> extends ObjectBuilder<B> {
     private final String name;
 
     NamedObjectBuilder(ObjectKind kind, B residence, String name) {

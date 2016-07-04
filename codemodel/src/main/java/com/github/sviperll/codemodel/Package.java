@@ -196,7 +196,7 @@ public final class Package implements Model {
             throw new CodeModelException(packageAsNamePrefix() + className + " already defined");
         int modifiers = klass.getModifiers();
         final boolean isPublic = (modifiers & Modifier.PUBLIC) != 0;
-        Residence residence = Residence.packageLevel(new PackageLevelResidence() {
+        PackageLevelResidence residence = new PackageLevelResidence() {
             @Override
             public boolean isPublic() {
                 return isPublic;
@@ -206,7 +206,7 @@ public final class Package implements Model {
             public Package getPackage() {
                 return Package.this;
             }
-        });
-        return new ReflectionObjectDefinition<>(codeModel, residence, klass);
+        };
+        return new ReflectionObjectDefinition<>(codeModel, residence.asResidence(), klass);
     }
 }

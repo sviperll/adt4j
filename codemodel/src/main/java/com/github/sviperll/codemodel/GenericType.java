@@ -293,7 +293,7 @@ public abstract class GenericType<T extends GenericType<T, D>, D extends Generic
                     try {
                         lowerRawBound = typeParameter.lowerRawBound();
                     } catch (CodeModelException ex) {
-                        lowerRawBound = definition().getCodeModel().objectType().asType();
+                        lowerRawBound = definition().residence().getCodeModel().objectType().asType();
                     }
                     typeArguments.add(lowerRawBound);
                 }
