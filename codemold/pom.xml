@@ -6,7 +6,7 @@
         <artifactId>adt4j-maven-parent</artifactId>
         <version>3.2-alpha1-successor-SNAPSHOT</version>
     </parent>
-    <artifactId>codemodel</artifactId>
+    <artifactId>codemold</artifactId>
     <packaging>jar</packaging>
     <dependencies>
         <dependency>
@@ -29,4 +29,5 @@
             </plugin>
         </plugins>
     </build>
+    <name>codemold</name>
 </project>
