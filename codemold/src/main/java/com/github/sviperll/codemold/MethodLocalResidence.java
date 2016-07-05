@@ -71,7 +71,7 @@ public class MethodLocalResidence implements Renderable, ResidenceProvider {
 
     private static class NoOpRenderer implements Renderer {
 
-        public NoOpRenderer() {
+        NoOpRenderer() {
         }
 
         @Override

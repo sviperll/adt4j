@@ -30,6 +30,8 @@
 
 package com.github.sviperll.codemold;
 
+import com.github.sviperll.codemold.util.Collections2;
+import com.github.sviperll.codemold.util.Immutable;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -45,8 +47,8 @@ import javax.annotation.ParametersAreNonnullByDefault;
 public abstract class ExecutableType<T extends ExecutableType<T, D>, D extends ExecutableDefinition<T, D>>
         extends GenericType<T, D> {
 
-    private List<VariableDeclaration> parameters = null;
-    private List<AnyType> throwsList = null;
+    private List<? extends VariableDeclaration> parameters = null;
+    private List<? extends AnyType> throwsList = null;
 
     ExecutableType(GenericType.Implementation<T, D> implementation) {
         super(implementation);
@@ -54,21 +56,23 @@ public abstract class ExecutableType<T extends ExecutableType<T, D>, D extends E
 
     public List<? extends VariableDeclaration> parameters() {
         if (parameters == null) {
-            parameters = new ArrayList<>();
+            List<VariableDeclaration> parametersBuilder = Collections2.newArrayList();
             for (VariableDeclaration declaration: definition().parameters()) {
-                parameters.add(declaration.substitute(definitionEnvironment()));
+                parametersBuilder.add(declaration.substitute(definitionEnvironment()));
             }
+            parameters = Immutable.copyOf(parametersBuilder);
         }
-        return parameters;
+        return Immutable.copyOf(parameters);
     }
 
     public Collection<? extends AnyType> throwsList() {
         if (throwsList == null) {
-            throwsList = new ArrayList<>();
+            List<AnyType> throwsListBuilder = Collections2.newArrayList();
             for (AnyType type: definition().throwsList()) {
-                throwsList.add(type.substitute(definitionEnvironment()));
+                throwsListBuilder.add(type.substitute(definitionEnvironment()));
             }
+            throwsList = Immutable.copyOf(throwsListBuilder);
         }
-        return throwsList;
+        return Immutable.copyOf(throwsList);
     }
 }

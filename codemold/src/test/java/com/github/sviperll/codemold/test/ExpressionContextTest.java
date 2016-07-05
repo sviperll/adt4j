@@ -35,7 +35,6 @@ import com.github.sviperll.codemold.BlockBuilder;
 import com.github.sviperll.codemold.ClassBuilder;
 import com.github.sviperll.codemold.CodeMold;
 import com.github.sviperll.codemold.CodeMoldException;
-import com.github.sviperll.codemold.Consumer;
 import com.github.sviperll.codemold.Expression;
 import com.github.sviperll.codemold.MemberAccess;
 import com.github.sviperll.codemold.MethodBuilder;
@@ -44,15 +43,14 @@ import com.github.sviperll.codemold.ObjectDefinition;
 import com.github.sviperll.codemold.ObjectType;
 import com.github.sviperll.codemold.Package;
 import com.github.sviperll.codemold.PackageLevelBuilder;
-import com.github.sviperll.codemold.AnyType;
 import com.github.sviperll.codemold.Types;
 import com.github.sviperll.codemold.VariableDeclaration;
 import com.github.sviperll.codemold.render.RendererContexts;
+import com.github.sviperll.codemold.util.Consumer;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.Comparator;
-import org.junit.Test;
 import static org.junit.Assert.*;
+import org.junit.Test;
 
 /**
  *

@@ -31,19 +31,20 @@
 package com.github.sviperll.codemold;
 
 import com.github.sviperll.codemold.expression.Precedence;
-import com.github.sviperll.codemold.render.Renderer;
+import com.github.sviperll.codemold.expression.PrecedenceAwareRenderable;
 import com.github.sviperll.codemold.expression.PrecedenceAwareRendererContext;
 import com.github.sviperll.codemold.expression.PrecedenceRenderable;
-import com.github.sviperll.codemold.render.RendererContext;
-import javax.annotation.ParametersAreNonnullByDefault;
 import com.github.sviperll.codemold.render.Renderable;
-import com.github.sviperll.codemold.expression.PrecedenceAwareRenderable;
+import com.github.sviperll.codemold.render.Renderer;
+import com.github.sviperll.codemold.render.RendererContext;
+import com.github.sviperll.codemold.util.Consumer;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import javax.annotation.ParametersAreNonnullByDefault;
 
 /**
  *

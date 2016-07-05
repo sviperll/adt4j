@@ -30,6 +30,7 @@
 
 package com.github.sviperll.codemold;
 
+import com.github.sviperll.codemold.util.Collections2;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
@@ -48,7 +49,7 @@ class VariableScope {
         return new VariableScope();
     }
 
-    private final List<VariableScope> childScopes = new ArrayList<>();
+    private final List<VariableScope> childScopes = Collections2.newArrayList();
     private final Set<String> variables = new TreeSet<>();
     private final VariableScope parent;
     private VariableScope() {

@@ -30,13 +30,22 @@
 
 package com.github.sviperll.codemold;
 
-import javax.annotation.ParametersAreNonnullByDefault;
-
 /**
  *
  * @author Victor Nazarov &lt;asviraspossible@gmail.com&gt;
  */
-@ParametersAreNonnullByDefault
-public interface Consumer<T> {
-    void accept(T value);
+@SuppressWarnings("serial")
+class RuntimeCodeMoldException extends RuntimeException {
+    private final CodeMoldException cause;
+
+    RuntimeCodeMoldException(CodeMoldException cause) {
+        super(cause);
+        this.cause = cause;
+    }
+
+    @Override
+    public CodeMoldException getCause() {
+        return cause;
+    }
+
 }

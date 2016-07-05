@@ -30,6 +30,8 @@
 
 package com.github.sviperll.codemold;
 
+import com.github.sviperll.codemold.util.Collections2;
+import com.github.sviperll.codemold.util.Immutable;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -46,10 +48,10 @@ import javax.annotation.ParametersAreNonnullByDefault;
  */
 @ParametersAreNonnullByDefault
 abstract class ObjectBuilder<B extends ResidenceProvider> extends GenericDefinitionBuilder<B, ObjectType, ObjectDefinition> {
-    private final List<MethodDefinition> methods = new ArrayList<>();
+    private final List<MethodDefinition> methods = Collections2.newArrayList();
     private final Map<String, FieldDeclaration> fields = new TreeMap<>();
-    private final List<ObjectInitializationElement> staticInitOrdering = new ArrayList<>();
-    private final List<ObjectInitializationElement> instanceInitOrdering = new ArrayList<>();
+    private final List<ObjectInitializationElement> staticInitOrdering = Collections2.newArrayList();
+    private final List<ObjectInitializationElement> instanceInitOrdering = Collections2.newArrayList();
     private final Map<String, ObjectDefinition> innerClasses = new TreeMap<>();
 
     private final B residence;
@@ -187,7 +189,7 @@ abstract class ObjectBuilder<B extends ResidenceProvider> extends GenericDefinit
 
         @Override
         public final List<? extends MethodDefinition> methods() {
-            return Collections.unmodifiableList(methods);
+            return Immutable.copyOf(methods);
         }
 
         @Override

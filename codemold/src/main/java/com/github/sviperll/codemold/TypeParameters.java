@@ -33,6 +33,8 @@ package com.github.sviperll.codemold;
 import com.github.sviperll.codemold.render.Renderable;
 import com.github.sviperll.codemold.render.Renderer;
 import com.github.sviperll.codemold.render.RendererContext;
+import com.github.sviperll.codemold.util.Collections2;
+import com.github.sviperll.codemold.util.Immutable;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;
@@ -50,7 +52,7 @@ import javax.annotation.ParametersAreNonnullByDefault;
 @ParametersAreNonnullByDefault
 public abstract class TypeParameters implements Renderable {
     private Map<String, TypeParameter> map = null;
-    private List<AnyType> asInternalTypeArguments = null;
+    private List<? extends AnyType> asInternalTypeArguments = null;
     TypeParameters() {
     }
 
@@ -85,14 +87,14 @@ public abstract class TypeParameters implements Renderable {
     @Nonnull
     final List<? extends AnyType> asInternalTypeArguments() {
         if (asInternalTypeArguments == null) {
-            asInternalTypeArguments = new ArrayList<>();
+            List<AnyType> internalTypeArgumentsBuilder = Collections2.newArrayList();
             List<? extends TypeParameter> all = all();
             for (TypeParameter typeParameter: all) {
-                asInternalTypeArguments.add(Types.variable(typeParameter.name()).asAny());
+                internalTypeArgumentsBuilder.add(Types.variable(typeParameter.name()).asAny());
             }
-            asInternalTypeArguments = Collections.unmodifiableList(asInternalTypeArguments);
+            asInternalTypeArguments = Immutable.copyOf(internalTypeArgumentsBuilder);
         }
-        return asInternalTypeArguments;
+        return Immutable.copyOf(asInternalTypeArguments);
     }
 
     @Nonnull
@@ -154,7 +156,7 @@ public abstract class TypeParameters implements Renderable {
                     throw new CodeMoldException("Cyclic definition: " + name);
                 }
             } catch (CodeMoldException ex) {
-                throw new RuntimeCodeModelException(ex);
+                throw new RuntimeCodeMoldException(ex);
             }
         }
 

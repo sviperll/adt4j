@@ -30,7 +30,6 @@
 
 package com.github.sviperll.codemold;
 
-import javax.annotation.Nonnull;
 import javax.annotation.ParametersAreNonnullByDefault;
 
 /**

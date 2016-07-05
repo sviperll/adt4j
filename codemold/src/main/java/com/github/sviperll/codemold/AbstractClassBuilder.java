@@ -30,6 +30,8 @@
 
 package com.github.sviperll.codemold;
 
+import com.github.sviperll.codemold.util.Collections2;
+import com.github.sviperll.codemold.util.Immutable;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -42,8 +44,8 @@ import javax.annotation.ParametersAreNonnullByDefault;
  */
 @ParametersAreNonnullByDefault
 abstract class AbstractClassBuilder<B extends ResidenceProvider> extends NamedObjectBuilder<B> {
-    private final List<ObjectType> interfaces = new ArrayList<>();
-    private final List<ConstructorDefinition> constructors = new ArrayList<>();
+    private final List<ObjectType> interfaces = Collections2.newArrayList();
+    private final List<ConstructorDefinition> constructors = Collections2.newArrayList();
 
     AbstractClassBuilder(ObjectKind kind, B residence, String name) {
         super(kind, residence, name);
@@ -124,12 +126,12 @@ abstract class AbstractClassBuilder<B extends ResidenceProvider> extends NamedOb
 
         @Override
         final public List<? extends ObjectType> implementsInterfaces() {
-            return Collections.unmodifiableList(interfaces);
+            return Immutable.copyOf(interfaces);
         }
 
         @Override
         final public List<? extends ConstructorDefinition> constructors() {
-            return Collections.unmodifiableList(constructors);
+            return Immutable.copyOf(constructors);
         }
     }
 

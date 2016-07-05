@@ -28,25 +28,16 @@
  *  EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.github.sviperll.codemold;
+package com.github.sviperll.codemold.util;
 
-import javax.annotation.Nonnull;
+import javax.annotation.ParametersAreNonnullByDefault;
 
 /**
  *
  * @author Victor Nazarov &lt;asviraspossible@gmail.com&gt;
+ * @param <T>
  */
-@SuppressWarnings("serial")
-class RuntimeCodeModelException extends RuntimeException {
-
-    RuntimeCodeModelException(CodeMoldException ex) {
-        super(ex);
-    }
-
-    @Override
-    @SuppressWarnings("unchecked")
-    public CodeMoldException getCause() {
-        return (CodeMoldException)super.getCause();
-    }
-
+@ParametersAreNonnullByDefault
+public interface Consumer<T> {
+    void accept(T value);
 }

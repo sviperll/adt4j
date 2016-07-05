@@ -31,8 +31,8 @@
 package com.github.sviperll.codemold;
 
 import java.util.Collection;
-import javax.annotation.ParametersAreNonnullByDefault;
 import javax.annotation.Nonnull;
+import javax.annotation.ParametersAreNonnullByDefault;
 
 /**
  *

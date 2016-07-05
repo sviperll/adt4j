@@ -33,6 +33,8 @@ package com.github.sviperll.codemold;
 import com.github.sviperll.codemold.render.Renderable;
 import com.github.sviperll.codemold.render.Renderer;
 import com.github.sviperll.codemold.render.RendererContext;
+import com.github.sviperll.codemold.util.Collections2;
+import com.github.sviperll.codemold.util.Immutable;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -52,12 +54,12 @@ public class IntersectionType implements Renderable, Type {
     private final Collection<? extends ObjectType> bounds;
 
     IntersectionType(Collection<? extends ObjectType> bounds) {
-        this.bounds = bounds;
+        this.bounds = Immutable.copyOf(bounds);
     }
 
     @Nonnull
     public Collection<? extends ObjectType> intersectedTypes() {
-        return bounds;
+        return Immutable.copyOf(bounds);
     }
 
     @Override
@@ -67,11 +69,11 @@ public class IntersectionType implements Renderable, Type {
 
     @Nonnull
     AnyType substitute(Substitution environment) {
-        List<ObjectType> substituted = new ArrayList<>(bounds.size());
+        List<ObjectType> substituted = Collections2.newArrayList(bounds.size());
         for (ObjectType bound: bounds) {
             substituted.add(bound.substitute(environment));
         }
-        return new IntersectionType(Collections.unmodifiableList(substituted)).asAny();
+        return new IntersectionType(Immutable.copyOf(substituted)).asAny();
     }
 
     @Override

@@ -29,12 +29,12 @@
  */
 package com.github.sviperll.codemold.test;
 
+import com.github.sviperll.codemold.AnonymousClassBuilder;
+import com.github.sviperll.codemold.AnyType;
 import com.github.sviperll.codemold.ClassBuilder;
 import com.github.sviperll.codemold.CodeMold;
 import com.github.sviperll.codemold.CodeMoldException;
-import com.github.sviperll.codemold.Consumer;
 import com.github.sviperll.codemold.EnumBuilder;
-import com.github.sviperll.codemold.AnonymousClassBuilder;
 import com.github.sviperll.codemold.Expression;
 import com.github.sviperll.codemold.FieldBuilder;
 import com.github.sviperll.codemold.InterfaceBuilder;
@@ -45,14 +45,14 @@ import com.github.sviperll.codemold.ObjectDefinition;
 import com.github.sviperll.codemold.ObjectType;
 import com.github.sviperll.codemold.Package;
 import com.github.sviperll.codemold.PackageLevelBuilder;
-import com.github.sviperll.codemold.AnyType;
 import com.github.sviperll.codemold.Types;
 import com.github.sviperll.codemold.render.RendererContexts;
+import com.github.sviperll.codemold.util.Consumer;
 import java.util.Collections;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.junit.Test;
 import static org.junit.Assert.*;
+import org.junit.Test;
 
 /**
  *
@@ -65,7 +65,6 @@ public class ObjectDefinitionTest {
         CodeMold codeModel = builder.build();
         StringBuilder builder1 = new StringBuilder();
         RendererContexts.createInstance(builder1).appendRenderable(codeModel.getReferenceOrDefault(String.class.getName(), null));
-        System.out.println(builder1.toString());
     }
 
     @Test

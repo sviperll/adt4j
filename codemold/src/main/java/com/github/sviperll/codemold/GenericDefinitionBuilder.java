@@ -30,6 +30,7 @@
 
 package com.github.sviperll.codemold;
 
+import com.github.sviperll.codemold.util.Collections2;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -47,7 +48,7 @@ import javax.annotation.ParametersAreNonnullByDefault;
  */
 @ParametersAreNonnullByDefault
 public abstract class GenericDefinitionBuilder<B extends ResidenceProvider, T extends GenericType<T, D>, D extends GenericDefinition<T, D>> {
-    private final List<TypeParameter> typeParameters = new ArrayList<>();
+    private final List<TypeParameter> typeParameters = Collections2.newArrayList();
     private final Map<String, TypeParameter> typeParametersMap = new TreeMap<>();
     private final B residence;
     private D definition = null;

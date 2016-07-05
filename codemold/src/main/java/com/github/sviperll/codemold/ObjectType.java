@@ -33,6 +33,9 @@ package com.github.sviperll.codemold;
 import com.github.sviperll.codemold.render.Renderable;
 import com.github.sviperll.codemold.render.Renderer;
 import com.github.sviperll.codemold.render.RendererContext;
+import com.github.sviperll.codemold.util.Collections2;
+import com.github.sviperll.codemold.util.Consumer;
+import com.github.sviperll.codemold.util.Immutable;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -54,8 +57,8 @@ public class ObjectType extends GenericType<ObjectType, ObjectDefinition>
     private final AnyType type = AnyType.wrapObjectType(this);
     private Map<MethodSignature, MethodType> methods = null;
     private Map<ObjectDefinition, ObjectType> interfaces = null;
-    private List<ConstructorType> constructors = null;
-    private List<ObjectType> supertypes = null;
+    private List<? extends ConstructorType> constructors = null;
+    private List<? extends ObjectType> supertypes = null;
     private ObjectType superClass = null;
 
     ObjectType(GenericType.Implementation<ObjectType, ObjectDefinition> implementation) {
@@ -157,32 +160,32 @@ public class ObjectType extends GenericType<ObjectType, ObjectDefinition>
      */
     public Collection<? extends ObjectType> supertypes() {
         if (supertypes == null) {
-            supertypes = new ArrayList<>();
+            List<ObjectType> supertypesBuilder = Collections2.newArrayList();
             if (definition().kind().isInterface() && definition().implementsInterfaces().isEmpty()) {
-                supertypes.add(definition().getCodeModel().objectType());
+                supertypesBuilder.add(definition().getCodeModel().objectType());
             } else {
                 if (!isJavaLangObject()) {
-                    supertypes.add(superClass());
+                    supertypesBuilder.add(superClass());
                 }
                 for (ObjectType iface: definition().implementsInterfaces()) {
-                    supertypes.add(iface.substitute(definitionEnvironment()));
+                    supertypesBuilder.add(iface.substitute(definitionEnvironment()));
                 }
             }
-            supertypes = Collections.unmodifiableList(supertypes);
+            supertypes = Immutable.copyOf(supertypesBuilder);
         }
-        return supertypes;
+        return Immutable.copyOf(supertypes);
     }
 
     @Nonnull
     public final Collection<? extends ConstructorType> constructors() {
         if (constructors == null) {
-            constructors = new ArrayList<>(definition().constructors().size());
+            List<ConstructorType> constructorsBuilder = Collections2.newArrayList(definition().constructors().size());
             for (final ConstructorDefinition definition: definition().constructors()) {
-                constructors.add(definition.rawType(this));
+                constructorsBuilder.add(definition.rawType(this));
             }
-            constructors = Collections.unmodifiableList(constructors);
+            constructors = Immutable.copyOf(constructorsBuilder);
         }
-        return constructors;
+        return Immutable.copyOf(constructors);
     }
 
     /**

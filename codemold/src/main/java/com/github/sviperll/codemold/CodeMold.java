@@ -30,6 +30,7 @@
 
 package com.github.sviperll.codemold;
 
+import com.github.sviperll.codemold.util.Collections2;
 import java.lang.reflect.GenericArrayType;
 import java.lang.reflect.ParameterizedType;
 import java.util.ArrayList;
@@ -96,7 +97,7 @@ public final class CodeMold {
         if (genericReflectedType instanceof ParameterizedType) {
             ParameterizedType reflectedType = (ParameterizedType)genericReflectedType;
             ObjectType rawType = readReflectedType(reflectedType.getRawType()).getObjectDetails();
-            List<AnyType> arguments = new ArrayList<>();
+            List<AnyType> arguments = Collections2.newArrayList();
             for (java.lang.reflect.Type reflectedArgumentType: reflectedType.getActualTypeArguments()) {
                 arguments.add(readReflectedType(reflectedArgumentType));
             }

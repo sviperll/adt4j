@@ -30,6 +30,8 @@
 
 package com.github.sviperll.codemold;
 
+import com.github.sviperll.codemold.util.Collections2;
+import com.github.sviperll.codemold.util.Immutable;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;
@@ -196,7 +198,7 @@ public abstract class GenericType<T extends GenericType<T, D>, D extends Generic
 
         private final Implementation<T, D> original;
         private final Substitution substitution;
-        private List<AnyType> typeArguments = null;
+        private List<? extends AnyType> typeArguments = null;
         SubstitutedArgumentsImplementation(D factory, Implementation<T, D> original, Substitution substitution) {
             super(factory);
             this.original = original;
@@ -226,13 +228,13 @@ public abstract class GenericType<T extends GenericType<T, D>, D extends Generic
         @Override
         List<? extends AnyType> typeArguments() {
             if (typeArguments == null) {
-                typeArguments = new ArrayList<>();
+                List<AnyType> typeArgumentsBuilder = Collections2.newArrayList();
                 for (AnyType type: original.typeArguments()) {
-                    typeArguments.add(type.substitute(substitution));
+                    typeArgumentsBuilder.add(type.substitute(substitution));
                 }
-                typeArguments = Collections.unmodifiableList(typeArguments);
+                typeArguments = Immutable.copyOf(typeArgumentsBuilder);
             }
-            return typeArguments;
+            return Immutable.copyOf(typeArguments);
         }
 
         @Override
@@ -251,7 +253,7 @@ public abstract class GenericType<T extends GenericType<T, D>, D extends Generic
         }
     }
     private static class Raw<T extends GenericType<T, D>, D extends GenericDefinition<T, D>> extends Implementation<T, D> {
-        private List<AnyType> typeArguments = null;
+        private List<? extends AnyType> typeArguments = null;
         private final GenericType<?, ?> capturedEnclosingType;
         private T instance = null;
 
@@ -262,7 +264,7 @@ public abstract class GenericType<T extends GenericType<T, D>, D extends Generic
 
         @Override
         final T narrow(List<? extends Type> typeArguments) {
-            List<AnyType> castedTypeArguments = new ArrayList<>();
+            List<AnyType> castedTypeArguments = Collections2.newArrayList();
             for (Type type: typeArguments) {
                 AnyType anyType = type.asAny();
                 if (!anyType.canBeTypeArgument())
@@ -274,7 +276,7 @@ public abstract class GenericType<T extends GenericType<T, D>, D extends Generic
             if (typeArguments.isEmpty())
                 return instance;
             else
-                return definition().createType(new Narrowed<>(definition(), instance, Collections.unmodifiableList(castedTypeArguments)));
+                return definition().createType(new Narrowed<>(definition(), instance, Immutable.copyOf(castedTypeArguments)));
         }
 
         @Override
@@ -290,7 +292,7 @@ public abstract class GenericType<T extends GenericType<T, D>, D extends Generic
         @Override
         final List<? extends AnyType> typeArguments() {
             if (typeArguments == null) {
-                typeArguments = new ArrayList<>(definition().typeParameters().all().size());
+                List<AnyType> typeArgumentsBuilder = Collections2.newArrayList(definition().typeParameters().all().size());
                 for (TypeParameter typeParameter: definition().typeParameters().all()) {
                     AnyType lowerRawBound;
                     try {
@@ -298,11 +300,11 @@ public abstract class GenericType<T extends GenericType<T, D>, D extends Generic
                     } catch (CodeMoldException ex) {
                         lowerRawBound = definition().residence().getCodeModel().objectType().asAny();
                     }
-                    typeArguments.add(lowerRawBound);
+                    typeArgumentsBuilder.add(lowerRawBound);
                 }
-                typeArguments = Collections.unmodifiableList(typeArguments);
+                typeArguments = Immutable.copyOf(typeArgumentsBuilder);
             }
-            return typeArguments;
+            return Immutable.copyOf(typeArguments);
         }
 
         @Override
@@ -337,7 +339,7 @@ public abstract class GenericType<T extends GenericType<T, D>, D extends Generic
                     throw new IllegalArgumentException(type.kind() + "can't be used as type-argument");
             }
             this.erasure = erasure;
-            this.arguments = Collections.unmodifiableList(new ArrayList<>(arguments));
+            this.arguments = Immutable.copyOf(arguments);
         }
 
         @Override

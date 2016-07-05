@@ -28,53 +28,89 @@
  *  EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.github.sviperll.codemold;
+package com.github.sviperll.codemold.util;
 
-import com.github.sviperll.codemold.util.Collections2;
-import com.github.sviperll.codemold.util.Immutable;
+import com.github.sviperll.codemold.AnyType;
+import java.util.AbstractList;
+import java.util.AbstractMap;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import javax.annotation.ParametersAreNonnullByDefault;
+import javax.annotation.Nonnull;
 
 /**
  *
  * @author Victor Nazarov &lt;asviraspossible@gmail.com&gt;
  */
 @ParametersAreNonnullByDefault
-public class MethodType extends ExecutableType<MethodType, MethodDefinition> {
-    private AnyType returnType = null;
-    private MethodSignature signature = null;
-
-    MethodType(ExecutableType.Implementation<MethodType, MethodDefinition> implementation) {
-        super(implementation);
+public class Collections2 {
+    public static <T> List<T> newArrayList() {
+        return new ArrayListWrapper<>();
     }
 
-    public final AnyType returnType() {
-        if (returnType == null) {
-            returnType = definition().returnType().substitute(definitionEnvironment());
+    public static <T> List<T> newArrayList(int size) {
+        return new ArrayListWrapper<>(size);
+    }
+
+    public static <T> List<T> newArrayList(Collection<? extends T> c) {
+        return new ArrayListWrapper<>(c);
+    }
+
+    static class ArrayListWrapper<T> extends AbstractList<T> {
+        private List<T> list;
+        private boolean copyOnWrite = false;
+
+        ArrayListWrapper() {
+            list = new ArrayList<>();
         }
-        return returnType;
-    }
-    public final String name() {
-        return definition().name();
-    }
-    public final MethodSignature signature() {
-        if (signature == null) {
-            List<AnyType> parameterTypes = Collections2.newArrayList();
-            for (VariableDeclaration declaration: parameters()) {
-                parameterTypes.add(declaration.type().substitute(definitionEnvironment()));
+        ArrayListWrapper(int size) {
+            list = new ArrayList<>(size);
+        }
+        ArrayListWrapper(Collection<? extends T> c) {
+            list = new ArrayList<>(c);
+        }
+
+        List<? extends T> unmodifiable() {
+            list = Collections.unmodifiableList(list);
+            copyOnWrite = true;
+            return list;
+        }
+
+        @Override
+        public T get(int index) {
+            return list.get(index);
+        }
+
+        @Override
+        public int size() {
+            return list.size();
+        }
+
+        @Override
+        public void add(int index, T element) {
+            copyOnWrite();
+            list.add(index, element);
+        }
+
+        @Override
+        public T remove(int index) {
+            copyOnWrite();
+            return list.remove(index);
+        }
+
+        @Override
+        public T set(int index, T element) {
+            copyOnWrite();
+            return list.set(index, element);
+        }
+
+        private void copyOnWrite() {
+            if (copyOnWrite) {
+                list = new ArrayList<>(list);
+                copyOnWrite = false;
             }
-            signature = new MethodSignature(name(), Immutable.copyOf(parameterTypes));
         }
-        return signature;
-    }
-
-    public final Expression staticInvocation(final List<? extends Expression> arguments) {
-        return Expression.staticInvocation(this, arguments);
-    }
-
-    public final Expression invocation(Expression thisObject, final List<? extends Expression> arguments) {
-        return thisObject.invocation(this, arguments);
     }
 }

@@ -32,10 +32,10 @@ package com.github.sviperll.codemold.test;
 import com.github.sviperll.codemold.CodeMold;
 import com.github.sviperll.codemold.CodeMoldException;
 import com.github.sviperll.codemold.Expression;
-import com.github.sviperll.codemold.render.RendererContexts;
-import org.junit.Test;
-import static org.junit.Assert.*;
 import static com.github.sviperll.codemold.Expression.literal;
+import com.github.sviperll.codemold.render.RendererContexts;
+import static org.junit.Assert.*;
+import org.junit.Test;
 
 /**
  *

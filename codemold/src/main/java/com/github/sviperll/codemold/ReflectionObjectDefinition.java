@@ -33,6 +33,8 @@ package com.github.sviperll.codemold;
 import com.github.sviperll.codemold.render.Renderable;
 import com.github.sviperll.codemold.render.Renderer;
 import com.github.sviperll.codemold.render.RendererContext;
+import com.github.sviperll.codemold.util.Collections2;
+import com.github.sviperll.codemold.util.Immutable;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.lang.reflect.Parameter;
@@ -50,10 +52,10 @@ class ReflectionObjectDefinition<T> extends ObjectDefinition {
     private final CodeMold codeModel;
     private final Residence residence;
     private final Class<T> klass;
-    private List<ObjectDefinition> innerClasses = null;
-    private List<MethodDefinition> methods = null;
+    private List<? extends ObjectDefinition> innerClasses = null;
+    private List<? extends MethodDefinition> methods = null;
     private final TypeParameters typeParameters;
-    private List<ObjectType> implementsInterfaces = null;
+    private List<? extends ObjectType> implementsInterfaces = null;
     private ObjectType extendsClass = null;
 
     ReflectionObjectDefinition(CodeMold codeModel, Residence residence, Class<T> klass) {
@@ -97,40 +99,40 @@ class ReflectionObjectDefinition<T> extends ObjectDefinition {
     @Override
     public List<? extends ObjectType> implementsInterfaces() {
         if (implementsInterfaces == null) {
-            implementsInterfaces = new ArrayList<>();
+            List<ObjectType> implementsInterfacesBuilder = Collections2.newArrayList();
             for (java.lang.reflect.Type reflectedInterface: klass.getGenericInterfaces()) {
-                implementsInterfaces.add(codeModel.readReflectedType(reflectedInterface).getObjectDetails());
+                implementsInterfacesBuilder.add(codeModel.readReflectedType(reflectedInterface).getObjectDetails());
             }
-            implementsInterfaces = Collections.unmodifiableList(implementsInterfaces);
+            implementsInterfaces = Immutable.copyOf(implementsInterfacesBuilder);
         }
-        return implementsInterfaces;
+        return Immutable.copyOf(implementsInterfaces);
     }
 
     @Override
     public List<? extends MethodDefinition> methods() {
         if (methods == null) {
-            methods = new ArrayList<>();
+            List<MethodDefinition> methodsBuilder = Collections2.newArrayList();
             for (final Method method: klass.getDeclaredMethods()) {
                 Nesting methodResidence = new ReflectedNesting(method.getModifiers(), this);
                 ReflectedExecutableDefinitionImplementation executable = new ReflectedExecutableDefinitionImplementation(codeModel, methodResidence, method);
-                methods.add(new ReflectedMethodDefinition(codeModel, executable, method));
+                methodsBuilder.add(new ReflectedMethodDefinition(codeModel, executable, method));
             }
-            methods = Collections.unmodifiableList(methods);
+            methods = Immutable.copyOf(methodsBuilder);
         }
-        return methods;
+        return Immutable.copyOf(methods);
     }
 
     @Override
     public Collection<? extends ObjectDefinition> innerClasses() {
         if (innerClasses == null) {
-            innerClasses = new ArrayList<>();
+            List<ObjectDefinition> innerClassesBuilder = Collections2.newArrayList();
             for (final Class<?> innerClass: klass.getDeclaredClasses()) {
                 Residence innerClassResidence = new ReflectedNesting(innerClass.getModifiers(), this).residence();
-                innerClasses.add(new ReflectionObjectDefinition<>(codeModel, innerClassResidence, innerClass));
+                innerClassesBuilder.add(new ReflectionObjectDefinition<>(codeModel, innerClassResidence, innerClass));
             }
-            innerClasses = Collections.unmodifiableList(innerClasses);
+            innerClasses = Immutable.copyOf(innerClassesBuilder);
         }
-        return innerClasses;
+        return Immutable.copyOf(innerClasses);
     }
 
     @Override
@@ -185,7 +187,7 @@ class ReflectionObjectDefinition<T> extends ObjectDefinition {
 
     private static class ReflectedTypeParameters<T extends java.lang.reflect.GenericDeclaration>
             extends TypeParameters {
-        private List<TypeParameter> allTypeParameters = null;
+        private List<? extends TypeParameter> allTypeParameters = null;
         private final GenericDefinition<?, ?> definition;
         private final TypeVariable<T>[] reflectedTypeParameters;
 
@@ -197,14 +199,14 @@ class ReflectionObjectDefinition<T> extends ObjectDefinition {
         @Override
         public List<? extends TypeParameter> all() {
             if (allTypeParameters == null) {
-                allTypeParameters = new ArrayList<>();
+                List<TypeParameter> allTypeParametersBuilder = Collections2.newArrayList();
                 for (final TypeVariable<T> reflectedTypeParameter: reflectedTypeParameters) {
                     TypeParameter parameter = new ReflectedTypeParameter<>(definition, reflectedTypeParameter);
-                    allTypeParameters.add(parameter);
+                    allTypeParametersBuilder.add(parameter);
                 }
-                allTypeParameters = Collections.unmodifiableList(allTypeParameters);
+                allTypeParameters = Immutable.copyOf(allTypeParametersBuilder);
             }
-            return allTypeParameters;
+            return Immutable.copyOf(allTypeParameters);
         }
 
         @Override
@@ -238,7 +240,7 @@ class ReflectionObjectDefinition<T> extends ObjectDefinition {
                 if (reflectedBounds.length == 1)
                     bound = declaredIn.getCodeModel().readReflectedType(reflectedBounds[0]);
                 else {
-                    List<ObjectType> bounds = new ArrayList<>();
+                    List<ObjectType> bounds = Collections2.newArrayList();
                     for (java.lang.reflect.Type reflectedBound: reflectedBounds) {
                         ObjectType partialBound = declaredIn.getCodeModel().readReflectedType(reflectedBound).getObjectDetails();
                         bounds.add(partialBound);
@@ -328,8 +330,8 @@ class ReflectionObjectDefinition<T> extends ObjectDefinition {
         private final CodeMold codeModel;
         private final Nesting nesting;
         private final Method method;
-        private List<VariableDeclaration> parameters = null;
-        private List<AnyType> throwsList = null;
+        private List<? extends VariableDeclaration> parameters = null;
+        private List<? extends AnyType> throwsList = null;
 
         private ReflectedExecutableDefinitionImplementation(CodeMold codeModel, Nesting nesting, Method method) {
             this.codeModel = codeModel;
@@ -345,26 +347,26 @@ class ReflectionObjectDefinition<T> extends ObjectDefinition {
         @Override
         public List<? extends VariableDeclaration> parameters() {
             if (parameters == null) {
-                parameters = new ArrayList<>();
+                List<VariableDeclaration> parametersBuilder = Collections2.newArrayList();
                 Parameter[] reflectedParameters = method.getParameters();
                 for (Parameter parameter: reflectedParameters) {
-                    parameters.add(new ReflectedParameter(codeModel, parameter));
+                    parametersBuilder.add(new ReflectedParameter(codeModel, parameter));
                 }
-                parameters = Collections.unmodifiableList(parameters);
+                parameters = Immutable.copyOf(parametersBuilder);
             }
-            return parameters;
+            return Immutable.copyOf(parameters);
         }
 
         @Override
         public List<? extends AnyType> throwsList() {
             if (throwsList == null) {
-                throwsList = new ArrayList<>();
+                List<AnyType> throwsListBuilder = Collections2.newArrayList();
                 for (java.lang.reflect.Type exceptionType: method.getGenericExceptionTypes()) {
-                    throwsList.add(codeModel.readReflectedType(exceptionType));
+                    throwsListBuilder.add(codeModel.readReflectedType(exceptionType));
                 }
-                throwsList = Collections.unmodifiableList(throwsList);
+                throwsList = Immutable.copyOf(throwsListBuilder);
             }
-            return throwsList;
+            return Immutable.copyOf(throwsList);
         }
 
         @Override

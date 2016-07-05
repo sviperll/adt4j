@@ -30,8 +30,8 @@
 
 package com.github.sviperll.codemold;
 
-import com.github.sviperll.codemold.render.RendererContext;
 import com.github.sviperll.codemold.render.Renderer;
+import com.github.sviperll.codemold.render.RendererContext;
 import javax.annotation.Nonnull;
 import javax.annotation.ParametersAreNonnullByDefault;
 

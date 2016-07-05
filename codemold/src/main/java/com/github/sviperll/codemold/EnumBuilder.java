@@ -33,8 +33,10 @@ package com.github.sviperll.codemold;
 import com.github.sviperll.codemold.render.Renderable;
 import com.github.sviperll.codemold.render.Renderer;
 import com.github.sviperll.codemold.render.RendererContext;
+import com.github.sviperll.codemold.util.Collections2;
+import com.github.sviperll.codemold.util.Consumer;
+import com.github.sviperll.codemold.util.Immutable;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
@@ -48,13 +50,13 @@ import javax.annotation.ParametersAreNonnullByDefault;
 @ParametersAreNonnullByDefault
 public class EnumBuilder<B extends ResidenceProvider> extends AbstractClassBuilder<B> {
     private static final NoOpConsumer NO_OP_CONSUMER = new NoOpConsumer();
-    private final List<EnumConstant> constants = new ArrayList<>();
+    private final List<EnumConstant> constants = Collections2.newArrayList();
     public EnumBuilder(B residence, String name) {
         super(ObjectKind.ENUM, residence, name);
     }
 
     public void constant(final String name, List<? extends Expression> constructorArguments, Consumer<? super AnonymousClassBuilder> customization) throws CodeMoldException {
-        constructorArguments = Collections.unmodifiableList(new ArrayList<>(constructorArguments));
+        constructorArguments = Immutable.copyOf(Collections2.newArrayList(constructorArguments));
         ObjectDefinition enumDefinition = definition();
         NestingBuilder nestingBuilder = new NestingBuilder(false, enumDefinition);
         nestingBuilder.setAccessLevel(MemberAccess.PRIVATE);
@@ -98,7 +100,7 @@ public class EnumBuilder<B extends ResidenceProvider> extends AbstractClassBuild
 
         @Override
         public List<? extends EnumConstant> enumConstants() {
-            return Collections.unmodifiableList(constants);
+            return Immutable.copyOf(constants);
         }
     }
 
@@ -158,7 +160,7 @@ public class EnumBuilder<B extends ResidenceProvider> extends AbstractClassBuild
 
     private static class NoOpConsumer implements Consumer<AnonymousClassBuilder> {
 
-        public NoOpConsumer() {
+        NoOpConsumer() {
         }
 
         @Override

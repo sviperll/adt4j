@@ -30,8 +30,9 @@
 
 package com.github.sviperll.codemold;
 
+import com.github.sviperll.codemold.util.Collections2;
+import com.github.sviperll.codemold.util.Immutable;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import javax.annotation.ParametersAreNonnullByDefault;
@@ -44,7 +45,7 @@ import javax.annotation.ParametersAreNonnullByDefault;
 @ParametersAreNonnullByDefault
 public class InterfaceBuilder<B extends ResidenceProvider> extends NamedObjectBuilder<B> {
 
-    private final List<ObjectType> interfaces = new ArrayList<>();
+    private final List<ObjectType> interfaces = Collections2.newArrayList();
 
     public InterfaceBuilder(B residence, String name) {
         super(ObjectKind.INTERFACE, residence, name);
@@ -123,7 +124,7 @@ public class InterfaceBuilder<B extends ResidenceProvider> extends NamedObjectBu
 
         @Override
         public List<? extends ObjectType> implementsInterfaces() {
-            return Collections.unmodifiableList(interfaces);
+            return Immutable.copyOf(interfaces);
         }
 
         @Override

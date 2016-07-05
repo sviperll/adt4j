@@ -31,6 +31,8 @@
 package com.github.sviperll.codemold;
 
 import com.github.sviperll.codemold.render.Renderable;
+import com.github.sviperll.codemold.util.Collections2;
+import com.github.sviperll.codemold.util.Immutable;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -47,8 +49,8 @@ import javax.annotation.ParametersAreNonnullByDefault;
 public abstract class ExecutableBuilder<T extends ExecutableType<T, D>, D extends ExecutableDefinition<T, D>>
         extends GenericDefinitionBuilder<NestingBuilder, T, D> {
     private final VariableScope scope = VariableScope.createTopLevel();
-    private final List<VariableDeclaration> parameters = new ArrayList<>();
-    private final List<AnyType> throwsList = new ArrayList<>();
+    private final List<VariableDeclaration> parameters = Collections2.newArrayList();
+    private final List<AnyType> throwsList = Collections2.newArrayList();
     private final NestingBuilder residence;
     private BlockBuilder body = null;
 
@@ -123,12 +125,12 @@ public abstract class ExecutableBuilder<T extends ExecutableType<T, D>, D extend
         }
         @Override
         public final List<? extends VariableDeclaration> parameters() {
-            return Collections.unmodifiableList(parameters);
+            return Immutable.copyOf(parameters);
         }
 
         @Override
         public final List<? extends AnyType> throwsList() {
-            return Collections.unmodifiableList(throwsList);
+            return Immutable.copyOf(throwsList);
         }
 
         @Override

@@ -32,7 +32,6 @@ package com.github.sviperll.codemold;
 
 import com.github.sviperll.codemold.render.Renderable;
 import javax.annotation.ParametersAreNonnullByDefault;
-import javax.annotation.Nonnull;
 
 /**
  *
