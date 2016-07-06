@@ -41,6 +41,7 @@ public class MethodBuilder extends ExecutableBuilder<MethodType, MethodDefinitio
     private final String name;
     private boolean isFinal;
     private boolean isAbstract;
+    private AnyAnnotationElementValue defaultValue = null;
     private AnyType resultType = AnyType.voidType();
 
     MethodBuilder(NestingBuilder residence, String name) {
@@ -56,6 +57,10 @@ public class MethodBuilder extends ExecutableBuilder<MethodType, MethodDefinitio
     public void setAbstract(boolean isAbstract) {
         this.isAbstract = isAbstract;
         isFinal = isFinal && !isAbstract;
+    }
+
+    public void setDefaultValue(AnnotationElementValue defaultValue) {
+        this.defaultValue = defaultValue.asAny();
     }
 
     public void resultType(Type resultType) {
@@ -95,5 +100,16 @@ public class MethodBuilder extends ExecutableBuilder<MethodType, MethodDefinitio
             return isAbstract;
         }
 
+        @Override
+        public boolean hasDefaultValue() {
+            return defaultValue != null;
+        }
+
+        @Override
+        public AnyAnnotationElementValue defaultValue() {
+            if (!hasDefaultValue())
+                throw new UnsupportedOperationException("Method has no default value. Use hasDefaultValue to check");
+            return defaultValue;
+        }
     }
 }

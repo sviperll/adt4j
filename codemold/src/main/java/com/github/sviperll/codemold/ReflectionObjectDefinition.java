@@ -322,7 +322,20 @@ class ReflectionObjectDefinition<T> extends ObjectDefinition {
         public boolean isAbstract() {
             return Modifier.isAbstract(method.getModifiers());
         }
+
+        @Override
+        public boolean hasDefaultValue() {
+            return method.getDefaultValue() != null;
+        }
+
+        @Override
+        public AnyAnnotationElementValue defaultValue() {
+            if (!hasDefaultValue())
+                throw new UnsupportedOperationException("No default value");
+            return AnnotationElementValues.ofObject(method.getDefaultValue());
+        }
     }
+
     private static class ReflectedExecutableDefinitionImplementation implements ExecutableDefinition.Implementation<MethodType, MethodDefinition> {
 
         private static final Renderable body = new RenderableUnaccessibleCode();

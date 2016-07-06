@@ -56,6 +56,11 @@ public abstract class MethodDefinition extends ExecutableDefinition<MethodType, 
     @Nonnull
     public abstract String name();
 
+    public abstract boolean hasDefaultValue();
+
+    @Nonnull
+    public abstract AnyAnnotationElementValue defaultValue();
+
     @Override
     final MethodType createType(ExecutableType.Implementation<MethodType, MethodDefinition> implementation) {
         return new MethodType(implementation);
@@ -100,6 +105,12 @@ public abstract class MethodDefinition extends ExecutableDefinition<MethodType, 
                     }
                 }
                 context.appendText(")");
+                if (hasDefaultValue()) {
+                    context.appendWhiteSpace();
+                    context.appendText("default");
+                    context.appendWhiteSpace();
+                    context.appendRenderable(defaultValue());
+                }
                 Iterator<? extends AnyType> throwsExceptions = throwsList().iterator();
                 if (throwsExceptions.hasNext()) {
                     AnyType exceptionType = throwsExceptions.next();
