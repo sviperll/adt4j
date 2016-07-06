@@ -31,10 +31,8 @@
 package com.github.sviperll.codemold;
 
 import com.github.sviperll.codemold.util.Collections2;
-import com.github.sviperll.codemold.util.Immutable;
-import java.util.ArrayList;
+import com.github.sviperll.codemold.util.Snapshot;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
@@ -189,7 +187,7 @@ abstract class ObjectBuilder<B extends ResidenceProvider> extends GenericDefinit
 
         @Override
         public final List<? extends MethodDefinition> methods() {
-            return Immutable.copyOf(methods);
+            return Snapshot.of(methods);
         }
 
         @Override

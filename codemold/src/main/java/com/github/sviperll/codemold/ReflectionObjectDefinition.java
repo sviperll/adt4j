@@ -34,12 +34,11 @@ import com.github.sviperll.codemold.render.Renderable;
 import com.github.sviperll.codemold.render.Renderer;
 import com.github.sviperll.codemold.render.RendererContext;
 import com.github.sviperll.codemold.util.Collections2;
-import com.github.sviperll.codemold.util.Immutable;
+import com.github.sviperll.codemold.util.Snapshot;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.lang.reflect.Parameter;
 import java.lang.reflect.TypeVariable;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
@@ -103,9 +102,9 @@ class ReflectionObjectDefinition<T> extends ObjectDefinition {
             for (java.lang.reflect.Type reflectedInterface: klass.getGenericInterfaces()) {
                 implementsInterfacesBuilder.add(codeModel.readReflectedType(reflectedInterface).getObjectDetails());
             }
-            implementsInterfaces = Immutable.copyOf(implementsInterfacesBuilder);
+            implementsInterfaces = Snapshot.of(implementsInterfacesBuilder);
         }
-        return Immutable.copyOf(implementsInterfaces);
+        return Snapshot.of(implementsInterfaces);
     }
 
     @Override
@@ -117,9 +116,9 @@ class ReflectionObjectDefinition<T> extends ObjectDefinition {
                 ReflectedExecutableDefinitionImplementation executable = new ReflectedExecutableDefinitionImplementation(codeModel, methodResidence, method);
                 methodsBuilder.add(new ReflectedMethodDefinition(codeModel, executable, method));
             }
-            methods = Immutable.copyOf(methodsBuilder);
+            methods = Snapshot.of(methodsBuilder);
         }
-        return Immutable.copyOf(methods);
+        return Snapshot.of(methods);
     }
 
     @Override
@@ -130,9 +129,9 @@ class ReflectionObjectDefinition<T> extends ObjectDefinition {
                 Residence innerClassResidence = new ReflectedNesting(innerClass.getModifiers(), this).residence();
                 innerClassesBuilder.add(new ReflectionObjectDefinition<>(codeModel, innerClassResidence, innerClass));
             }
-            innerClasses = Immutable.copyOf(innerClassesBuilder);
+            innerClasses = Snapshot.of(innerClassesBuilder);
         }
-        return Immutable.copyOf(innerClasses);
+        return Snapshot.of(innerClasses);
     }
 
     @Override
@@ -204,9 +203,9 @@ class ReflectionObjectDefinition<T> extends ObjectDefinition {
                     TypeParameter parameter = new ReflectedTypeParameter<>(definition, reflectedTypeParameter);
                     allTypeParametersBuilder.add(parameter);
                 }
-                allTypeParameters = Immutable.copyOf(allTypeParametersBuilder);
+                allTypeParameters = Snapshot.of(allTypeParametersBuilder);
             }
-            return Immutable.copyOf(allTypeParameters);
+            return Snapshot.of(allTypeParameters);
         }
 
         @Override
@@ -352,9 +351,9 @@ class ReflectionObjectDefinition<T> extends ObjectDefinition {
                 for (Parameter parameter: reflectedParameters) {
                     parametersBuilder.add(new ReflectedParameter(codeModel, parameter));
                 }
-                parameters = Immutable.copyOf(parametersBuilder);
+                parameters = Snapshot.of(parametersBuilder);
             }
-            return Immutable.copyOf(parameters);
+            return Snapshot.of(parameters);
         }
 
         @Override
@@ -364,9 +363,9 @@ class ReflectionObjectDefinition<T> extends ObjectDefinition {
                 for (java.lang.reflect.Type exceptionType: method.getGenericExceptionTypes()) {
                     throwsListBuilder.add(codeModel.readReflectedType(exceptionType));
                 }
-                throwsList = Immutable.copyOf(throwsListBuilder);
+                throwsList = Snapshot.of(throwsListBuilder);
             }
-            return Immutable.copyOf(throwsList);
+            return Snapshot.of(throwsList);
         }
 
         @Override

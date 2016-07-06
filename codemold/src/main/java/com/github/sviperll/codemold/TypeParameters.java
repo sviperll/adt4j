@@ -34,13 +34,10 @@ import com.github.sviperll.codemold.render.Renderable;
 import com.github.sviperll.codemold.render.Renderer;
 import com.github.sviperll.codemold.render.RendererContext;
 import com.github.sviperll.codemold.util.Collections2;
-import com.github.sviperll.codemold.util.Immutable;
-import java.util.ArrayList;
-import java.util.Collections;
+import com.github.sviperll.codemold.util.Snapshot;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.TreeMap;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;
@@ -51,7 +48,7 @@ import javax.annotation.ParametersAreNonnullByDefault;
  */
 @ParametersAreNonnullByDefault
 public abstract class TypeParameters implements Renderable {
-    private Map<String, TypeParameter> map = null;
+    private Map<? extends String, ? extends TypeParameter> map = null;
     private List<? extends AnyType> asInternalTypeArguments = null;
     TypeParameters() {
     }
@@ -66,11 +63,11 @@ public abstract class TypeParameters implements Renderable {
     public TypeParameter getOrDefault(String name, @Nullable TypeParameter defaultValue) {
         if (map == null) {
             List<? extends TypeParameter> all = all();
-            map = new TreeMap<>();
+            Map<String, TypeParameter> mapBuilder = Collections2.newTreeMap();
             for (TypeParameter typeParameter: all) {
-                map.put(typeParameter.name(), typeParameter);
+                mapBuilder.put(typeParameter.name(), typeParameter);
             }
-            map = Collections.unmodifiableMap(map);
+            map = Snapshot.of(mapBuilder);
         }
         TypeParameter result = map.get(name);
         if (result != null)
@@ -92,9 +89,9 @@ public abstract class TypeParameters implements Renderable {
             for (TypeParameter typeParameter: all) {
                 internalTypeArgumentsBuilder.add(Types.variable(typeParameter.name()).asAny());
             }
-            asInternalTypeArguments = Immutable.copyOf(internalTypeArgumentsBuilder);
+            asInternalTypeArguments = Snapshot.of(internalTypeArgumentsBuilder);
         }
-        return Immutable.copyOf(asInternalTypeArguments);
+        return Snapshot.of(asInternalTypeArguments);
     }
 
     @Nonnull

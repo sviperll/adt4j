@@ -31,9 +31,7 @@
 package com.github.sviperll.codemold;
 
 import com.github.sviperll.codemold.util.Collections2;
-import com.github.sviperll.codemold.util.Immutable;
-import java.util.ArrayList;
-import java.util.Collections;
+import com.github.sviperll.codemold.util.Snapshot;
 import java.util.List;
 import javax.annotation.ParametersAreNonnullByDefault;
 
@@ -65,7 +63,7 @@ public class MethodType extends ExecutableType<MethodType, MethodDefinition> {
             for (VariableDeclaration declaration: parameters()) {
                 parameterTypes.add(declaration.type().substitute(definitionEnvironment()));
             }
-            signature = new MethodSignature(name(), Immutable.copyOf(parameterTypes));
+            signature = new MethodSignature(name(), Snapshot.of(parameterTypes));
         }
         return signature;
     }

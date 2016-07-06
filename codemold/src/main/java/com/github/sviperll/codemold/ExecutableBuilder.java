@@ -32,9 +32,7 @@ package com.github.sviperll.codemold;
 
 import com.github.sviperll.codemold.render.Renderable;
 import com.github.sviperll.codemold.util.Collections2;
-import com.github.sviperll.codemold.util.Immutable;
-import java.util.ArrayList;
-import java.util.Collections;
+import com.github.sviperll.codemold.util.Snapshot;
 import java.util.List;
 import javax.annotation.Nonnull;
 import javax.annotation.ParametersAreNonnullByDefault;
@@ -125,12 +123,12 @@ public abstract class ExecutableBuilder<T extends ExecutableType<T, D>, D extend
         }
         @Override
         public final List<? extends VariableDeclaration> parameters() {
-            return Immutable.copyOf(parameters);
+            return Snapshot.of(parameters);
         }
 
         @Override
         public final List<? extends AnyType> throwsList() {
-            return Immutable.copyOf(throwsList);
+            return Snapshot.of(throwsList);
         }
 
         @Override

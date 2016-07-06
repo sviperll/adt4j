@@ -30,87 +30,39 @@
 
 package com.github.sviperll.codemold.util;
 
-import com.github.sviperll.codemold.AnyType;
-import java.util.AbstractList;
-import java.util.AbstractMap;
-import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
-import javax.annotation.ParametersAreNonnullByDefault;
-import javax.annotation.Nonnull;
+import java.util.Map;
 
 /**
  *
  * @author Victor Nazarov &lt;asviraspossible@gmail.com&gt;
  */
-@ParametersAreNonnullByDefault
 public class Collections2 {
     public static <T> List<T> newArrayList() {
-        return new ArrayListWrapper<>();
-    }
-
-    public static <T> List<T> newArrayList(int size) {
-        return new ArrayListWrapper<>(size);
+        return new SnapshotableArrayList<>();
     }
 
     public static <T> List<T> newArrayList(Collection<? extends T> c) {
-        return new ArrayListWrapper<>(c);
+        return new SnapshotableArrayList<>(c);
     }
 
-    static class ArrayListWrapper<T> extends AbstractList<T> {
-        private List<T> list;
-        private boolean copyOnWrite = false;
+    public static <K, V> Map<K, V> newHashMap() {
+        return new SnapshotableHashMap<>();
+    }
 
-        ArrayListWrapper() {
-            list = new ArrayList<>();
-        }
-        ArrayListWrapper(int size) {
-            list = new ArrayList<>(size);
-        }
-        ArrayListWrapper(Collection<? extends T> c) {
-            list = new ArrayList<>(c);
-        }
+    public static <K, V> Map<K, V> newHashMap(Map<? extends K, ? extends V> m) {
+        return new SnapshotableHashMap<>(m);
+    }
 
-        List<? extends T> unmodifiable() {
-            list = Collections.unmodifiableList(list);
-            copyOnWrite = true;
-            return list;
-        }
+    public static <K, V> Map<K, V> newTreeMap() {
+        return new SnapshotableHashMap<>();
+    }
 
-        @Override
-        public T get(int index) {
-            return list.get(index);
-        }
+    public static <K, V> Map<K, V> newTreeMap(Map<? extends K, ? extends V> m) {
+        return new SnapshotableHashMap<>(m);
+    }
 
-        @Override
-        public int size() {
-            return list.size();
-        }
-
-        @Override
-        public void add(int index, T element) {
-            copyOnWrite();
-            list.add(index, element);
-        }
-
-        @Override
-        public T remove(int index) {
-            copyOnWrite();
-            return list.remove(index);
-        }
-
-        @Override
-        public T set(int index, T element) {
-            copyOnWrite();
-            return list.set(index, element);
-        }
-
-        private void copyOnWrite() {
-            if (copyOnWrite) {
-                list = new ArrayList<>(list);
-                copyOnWrite = false;
-            }
-        }
+    private Collections2() {
     }
 }

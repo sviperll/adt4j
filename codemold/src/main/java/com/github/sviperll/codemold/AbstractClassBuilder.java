@@ -31,9 +31,7 @@
 package com.github.sviperll.codemold;
 
 import com.github.sviperll.codemold.util.Collections2;
-import com.github.sviperll.codemold.util.Immutable;
-import java.util.ArrayList;
-import java.util.Collections;
+import com.github.sviperll.codemold.util.Snapshot;
 import java.util.List;
 import javax.annotation.ParametersAreNonnullByDefault;
 
@@ -126,12 +124,12 @@ abstract class AbstractClassBuilder<B extends ResidenceProvider> extends NamedOb
 
         @Override
         final public List<? extends ObjectType> implementsInterfaces() {
-            return Immutable.copyOf(interfaces);
+            return Snapshot.of(interfaces);
         }
 
         @Override
         final public List<? extends ConstructorDefinition> constructors() {
-            return Immutable.copyOf(constructors);
+            return Snapshot.of(constructors);
         }
     }
 

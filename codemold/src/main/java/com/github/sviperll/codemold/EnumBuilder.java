@@ -35,8 +35,7 @@ import com.github.sviperll.codemold.render.Renderer;
 import com.github.sviperll.codemold.render.RendererContext;
 import com.github.sviperll.codemold.util.Collections2;
 import com.github.sviperll.codemold.util.Consumer;
-import com.github.sviperll.codemold.util.Immutable;
-import java.util.ArrayList;
+import com.github.sviperll.codemold.util.Snapshot;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
@@ -56,7 +55,7 @@ public class EnumBuilder<B extends ResidenceProvider> extends AbstractClassBuild
     }
 
     public void constant(final String name, List<? extends Expression> constructorArguments, Consumer<? super AnonymousClassBuilder> customization) throws CodeMoldException {
-        constructorArguments = Immutable.copyOf(Collections2.newArrayList(constructorArguments));
+        constructorArguments = Snapshot.of(Collections2.newArrayList(constructorArguments));
         ObjectDefinition enumDefinition = definition();
         NestingBuilder nestingBuilder = new NestingBuilder(false, enumDefinition);
         nestingBuilder.setAccessLevel(MemberAccess.PRIVATE);
@@ -100,7 +99,7 @@ public class EnumBuilder<B extends ResidenceProvider> extends AbstractClassBuild
 
         @Override
         public List<? extends EnumConstant> enumConstants() {
-            return Immutable.copyOf(constants);
+            return Snapshot.of(constants);
         }
     }
 

@@ -31,8 +31,7 @@
 package com.github.sviperll.codemold;
 
 import com.github.sviperll.codemold.util.Collections2;
-import com.github.sviperll.codemold.util.Immutable;
-import java.util.ArrayList;
+import com.github.sviperll.codemold.util.Snapshot;
 import java.util.Collection;
 import java.util.List;
 import javax.annotation.ParametersAreNonnullByDefault;
@@ -60,9 +59,9 @@ public abstract class ExecutableType<T extends ExecutableType<T, D>, D extends E
             for (VariableDeclaration declaration: definition().parameters()) {
                 parametersBuilder.add(declaration.substitute(definitionEnvironment()));
             }
-            parameters = Immutable.copyOf(parametersBuilder);
+            parameters = Snapshot.of(parametersBuilder);
         }
-        return Immutable.copyOf(parameters);
+        return Snapshot.of(parameters);
     }
 
     public Collection<? extends AnyType> throwsList() {
@@ -71,8 +70,8 @@ public abstract class ExecutableType<T extends ExecutableType<T, D>, D extends E
             for (AnyType type: definition().throwsList()) {
                 throwsListBuilder.add(type.substitute(definitionEnvironment()));
             }
-            throwsList = Immutable.copyOf(throwsListBuilder);
+            throwsList = Snapshot.of(throwsListBuilder);
         }
-        return Immutable.copyOf(throwsList);
+        return Snapshot.of(throwsList);
     }
 }

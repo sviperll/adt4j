@@ -33,7 +33,6 @@ package com.github.sviperll.codemold;
 import com.github.sviperll.codemold.util.Collections2;
 import java.lang.reflect.GenericArrayType;
 import java.lang.reflect.ParameterizedType;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import javax.annotation.Nonnull;

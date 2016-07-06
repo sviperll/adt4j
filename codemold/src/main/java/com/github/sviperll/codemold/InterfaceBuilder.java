@@ -31,9 +31,7 @@
 package com.github.sviperll.codemold;
 
 import com.github.sviperll.codemold.util.Collections2;
-import com.github.sviperll.codemold.util.Immutable;
-import java.util.ArrayList;
-import java.util.Collections;
+import com.github.sviperll.codemold.util.Snapshot;
 import java.util.List;
 import javax.annotation.ParametersAreNonnullByDefault;
 
@@ -124,7 +122,7 @@ public class InterfaceBuilder<B extends ResidenceProvider> extends NamedObjectBu
 
         @Override
         public List<? extends ObjectType> implementsInterfaces() {
-            return Immutable.copyOf(interfaces);
+            return Snapshot.of(interfaces);
         }
 
         @Override

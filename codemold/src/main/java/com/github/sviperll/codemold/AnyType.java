@@ -34,8 +34,7 @@ import com.github.sviperll.codemold.render.Renderable;
 import com.github.sviperll.codemold.render.Renderer;
 import com.github.sviperll.codemold.render.RendererContext;
 import com.github.sviperll.codemold.util.Collections2;
-import com.github.sviperll.codemold.util.Immutable;
-import java.util.ArrayList;
+import com.github.sviperll.codemold.util.Snapshot;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
@@ -243,7 +242,7 @@ public abstract class AnyType implements Renderable, Type {
             List<AnyType> result = Collections2.newArrayList();
             for (ObjectType type: getIntersectionDetails().intersectedTypes())
                 result.add(type.asAny());
-            return Immutable.copyOf(result);
+            return Snapshot.of(result);
         }
     }
 

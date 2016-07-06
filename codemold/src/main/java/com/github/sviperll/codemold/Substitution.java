@@ -30,9 +30,9 @@
 
 package com.github.sviperll.codemold;
 
-import java.util.Collections;
+import com.github.sviperll.codemold.util.Collections2;
+import com.github.sviperll.codemold.util.Snapshot;
 import java.util.Map;
-import java.util.TreeMap;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;
@@ -62,32 +62,25 @@ abstract class Substitution {
     }
 
     static class Builder {
-        private Map<String, AnyType> map = new TreeMap<>();
-        private boolean copyOnWrite = false;
+        private final Map<String, AnyType> map = Collections2.newTreeMap();
 
         private Builder() {
         }
 
         void put(String name, AnyType typeArgument) {
-            if (copyOnWrite) {
-                map = new TreeMap<>(map);
-                copyOnWrite = false;
-            }
             map.put(name, typeArgument);
         }
 
         @Nonnull
         Substitution build() {
-            map = Collections.unmodifiableMap(map);
-            copyOnWrite = true;
-            return new MapSubstitution(map);
+            return new MapSubstitution(Snapshot.of(map));
         }
     }
 
     private static class MapSubstitution extends Substitution {
-        private final Map<String, AnyType> map;
+        private final Map<? extends String, ? extends AnyType> map;
 
-        private MapSubstitution(Map<String, AnyType> map) {
+        private MapSubstitution(Map<? extends String, ? extends AnyType> map) {
             this.map = map;
         }
         @Override

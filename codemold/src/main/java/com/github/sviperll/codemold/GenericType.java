@@ -31,9 +31,7 @@
 package com.github.sviperll.codemold;
 
 import com.github.sviperll.codemold.util.Collections2;
-import com.github.sviperll.codemold.util.Immutable;
-import java.util.ArrayList;
-import java.util.Collections;
+import com.github.sviperll.codemold.util.Snapshot;
 import java.util.Iterator;
 import java.util.List;
 import javax.annotation.Nonnull;
@@ -232,9 +230,9 @@ public abstract class GenericType<T extends GenericType<T, D>, D extends Generic
                 for (AnyType type: original.typeArguments()) {
                     typeArgumentsBuilder.add(type.substitute(substitution));
                 }
-                typeArguments = Immutable.copyOf(typeArgumentsBuilder);
+                typeArguments = Snapshot.of(typeArgumentsBuilder);
             }
-            return Immutable.copyOf(typeArguments);
+            return Snapshot.of(typeArguments);
         }
 
         @Override
@@ -276,7 +274,7 @@ public abstract class GenericType<T extends GenericType<T, D>, D extends Generic
             if (typeArguments.isEmpty())
                 return instance;
             else
-                return definition().createType(new Narrowed<>(definition(), instance, Immutable.copyOf(castedTypeArguments)));
+                return definition().createType(new Narrowed<>(definition(), instance, Snapshot.of(castedTypeArguments)));
         }
 
         @Override
@@ -292,7 +290,7 @@ public abstract class GenericType<T extends GenericType<T, D>, D extends Generic
         @Override
         final List<? extends AnyType> typeArguments() {
             if (typeArguments == null) {
-                List<AnyType> typeArgumentsBuilder = Collections2.newArrayList(definition().typeParameters().all().size());
+                List<AnyType> typeArgumentsBuilder = Collections2.newArrayList();
                 for (TypeParameter typeParameter: definition().typeParameters().all()) {
                     AnyType lowerRawBound;
                     try {
@@ -302,9 +300,9 @@ public abstract class GenericType<T extends GenericType<T, D>, D extends Generic
                     }
                     typeArgumentsBuilder.add(lowerRawBound);
                 }
-                typeArguments = Immutable.copyOf(typeArgumentsBuilder);
+                typeArguments = Snapshot.of(typeArgumentsBuilder);
             }
-            return Immutable.copyOf(typeArguments);
+            return Snapshot.of(typeArguments);
         }
 
         @Override
@@ -339,7 +337,7 @@ public abstract class GenericType<T extends GenericType<T, D>, D extends Generic
                     throw new IllegalArgumentException(type.kind() + "can't be used as type-argument");
             }
             this.erasure = erasure;
-            this.arguments = Immutable.copyOf(arguments);
+            this.arguments = Snapshot.of(arguments);
         }
 
         @Override
