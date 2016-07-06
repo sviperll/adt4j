@@ -55,7 +55,6 @@ public class EnumBuilder<B extends ResidenceProvider> extends AbstractClassBuild
     }
 
     public void constant(final String name, List<? extends Expression> constructorArguments, Consumer<? super AnonymousClassBuilder> customization) throws CodeMoldException {
-        constructorArguments = Snapshot.of(Collections2.newArrayList(constructorArguments));
         ObjectDefinition enumDefinition = definition();
         NestingBuilder nestingBuilder = new NestingBuilder(false, enumDefinition);
         nestingBuilder.setAccessLevel(MemberAccess.PRIVATE);
@@ -111,7 +110,7 @@ public class EnumBuilder<B extends ResidenceProvider> extends AbstractClassBuild
         BuiltConstant(ObjectDefinition enumDefinition, String name, List<? extends Expression> constructorArguments, ObjectDefinition members) {
             this.enumDefinition = enumDefinition;
             this.name = name;
-            this.constructorArguments = constructorArguments;
+            this.constructorArguments = Snapshot.of(constructorArguments);
             this.members = members;
         }
 
