@@ -16,6 +16,10 @@ import java.util.List;
 import java.util.ListIterator;
 import java.util.Map;
 import java.util.Set;
+import java.util.SortedMap;
+import java.util.SortedSet;
+import java.util.TreeMap;
+import java.util.TreeSet;
 import javax.annotation.ParametersAreNonnullByDefault;
 
 /**
@@ -33,10 +37,7 @@ public class Snapshot {
     }
 
     public static <T> Set<? extends T> of(Set<? extends T> argument) {
-        if (isKnownToBeImmutable(argument))
-            return argument;
-        else
-            return markedAsKnownToBeImmutableSet(Collections.unmodifiableSet(new HashSet<>(argument)));
+        return preciseTypeSnapshotOf(argument);
     }
 
     public static <T> Collection<? extends T> of(Collection<? extends T> argument) {
@@ -80,6 +81,15 @@ public class Snapshot {
             return markedAsKnownToBeImmutableList(Collections.unmodifiableList(new ArrayList<>(argument)));
     }
 
+    private static <T> Set<? extends T> preciseTypeSnapshotOf(Set<T> argument) {
+        if (isKnownToBeImmutable(argument))
+            return argument;
+        else if (argument instanceof SortedSet)
+            return markedAsKnownToBeImmutableSet(Collections.unmodifiableSet(new TreeSet<>(argument)));
+        else
+            return markedAsKnownToBeImmutableSet(Collections.unmodifiableSet(new HashSet<>(argument)));
+    }
+
     private static <T> List<? extends T> preciseTypeSnapshotOf(List<T> argument) {
         if (isKnownToBeImmutable(argument)) {
             return argument;
@@ -97,6 +107,8 @@ public class Snapshot {
         } else if (argument instanceof SnapshotableHashMap) {
             SnapshotableHashMap<K, V> snapshotable = (SnapshotableHashMap<K, V>)argument;
             return snapshotable.snapshot();
+        } else if (argument instanceof SortedMap) {
+            return markedAsKnownToBeImmutableMap(Collections.unmodifiableMap(new TreeMap<>(argument)));
         } else {
             return markedAsKnownToBeImmutableMap(Collections.unmodifiableMap(new HashMap<>(argument)));
         }
