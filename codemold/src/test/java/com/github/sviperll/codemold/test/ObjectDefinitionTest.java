@@ -48,6 +48,7 @@ import com.github.sviperll.codemold.PackageLevelBuilder;
 import com.github.sviperll.codemold.Types;
 import com.github.sviperll.codemold.render.RendererContexts;
 import com.github.sviperll.codemold.util.Consumer;
+import com.github.sviperll.codemold.util.OnMissing;
 import java.util.Collections;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -64,7 +65,7 @@ public class ObjectDefinitionTest {
         CodeMold.Builder builder = CodeMold.createBuilder();
         CodeMold codeModel = builder.build();
         StringBuilder builder1 = new StringBuilder();
-        RendererContexts.createInstance(builder1).appendRenderable(codeModel.getReferenceOrDefault(String.class.getName(), null));
+        RendererContexts.createInstance(builder1).appendRenderable(codeModel.getReference(String.class.getName(), OnMissing.<ObjectDefinition>throwNullPointerException()));
     }
 
     @Test
@@ -143,34 +144,8 @@ public class ObjectDefinitionTest {
         method.addParameter(Types.intType(), "param1");
         method.body().returnStatement(Expression.variable("param1").plus(Expression.variable("field1")));
 
-        test1.constant("TEST1_1", new Consumer<AnonymousClassBuilder>() {
-            @Override
-            public void accept(AnonymousClassBuilder value) {
-                try {
-                    MethodBuilder method1 = value.method("test");
-                    method1.setAccessLevel(MemberAccess.PUBLIC);
-                    method1.resultType(Types.intType());
-                    method1.addParameter(Types.intType(), "param1");
-                    method1.body().returnStatement(Expression.variable("param1").plus(Expression.variable("field1")).plus(Expression.literal(1)));
-                } catch (CodeMoldException ex) {
-                    Logger.getLogger(ObjectDefinitionTest.class.getName()).log(Level.SEVERE, null, ex);
-                }
-            }
-        });
-        test1.constant("TEST1_2", new Consumer<AnonymousClassBuilder>() {
-            @Override
-            public void accept(AnonymousClassBuilder value) {
-                try {
-                    MethodBuilder method1 = value.method("test");
-                    method1.setAccessLevel(MemberAccess.PUBLIC);
-                    method1.resultType(Types.intType());
-                    method1.addParameter(Types.intType(), "param1");
-                    method1.body().returnStatement(Expression.variable("param1").plus(Expression.variable("field1")).plus(Expression.literal(2)));
-                } catch (CodeMoldException ex) {
-                    Logger.getLogger(ObjectDefinitionTest.class.getName()).log(Level.SEVERE, null, ex);
-                }
-            }
-        });
+        test1.constant("TEST1_1", new Test11EnumConstantBlueprint());
+        test1.constant("TEST1_2", new Test12EnumConstantBlueprint());
 
         String result =
             "enum Test1 {\n"
@@ -215,7 +190,7 @@ public class ObjectDefinitionTest {
     public void smokeNarrowedTypes() throws CodeMoldException {
         ObjectDefinition test1 = buildClass();
         CodeMold codeModel = test1.getCodeModel();
-        ObjectDefinition stringDefinition = codeModel.getReferenceOrDefault(String.class.getName(), null);
+        ObjectDefinition stringDefinition = codeModel.getReference(String.class.getName(), OnMissing.<ObjectDefinition>throwNullPointerException());
         ObjectType stringType = stringDefinition.rawType();
 
         ObjectType test1Type = test1.rawType().narrow(Collections.singletonList(stringType));
@@ -249,7 +224,7 @@ public class ObjectDefinitionTest {
     public void smokeNarrowedMethodTypes() throws CodeMoldException {
         ObjectDefinition test1 = buildClass();
         CodeMold codeModel = test1.getCodeModel();
-        ObjectDefinition stringDefinition = codeModel.getReferenceOrDefault(String.class.getName(), null);
+        ObjectDefinition stringDefinition = codeModel.getReference(String.class.getName(), OnMissing.<ObjectDefinition>throwNullPointerException());
         ObjectType stringType = stringDefinition.rawType();
 
         ObjectType test1Type = test1.rawType().narrow(Collections.singletonList(stringType));
@@ -295,5 +270,35 @@ public class ObjectDefinitionTest {
         method3.body().returnStatement(Expression.nullExpression());
 
         return test1.definition();
+    }
+
+    private static class Test11EnumConstantBlueprint implements Consumer<AnonymousClassBuilder> {
+        @Override
+        public void accept(AnonymousClassBuilder builder) {
+            try {
+                MethodBuilder method1 = builder.method("test");
+                method1.setAccessLevel(MemberAccess.PUBLIC);
+                method1.resultType(Types.intType());
+                method1.addParameter(Types.intType(), "param1");
+                method1.body().returnStatement(Expression.variable("param1").plus(Expression.variable("field1")).plus(Expression.literal(1)));
+            } catch (CodeMoldException ex) {
+                Logger.getLogger(ObjectDefinitionTest.class.getName()).log(Level.SEVERE, null, ex);
+            }
+        }
+    }
+
+    private static class Test12EnumConstantBlueprint implements Consumer<AnonymousClassBuilder> {
+        @Override
+        public void accept(AnonymousClassBuilder builder) {
+            try {
+                MethodBuilder method1 = builder.method("test");
+                method1.setAccessLevel(MemberAccess.PUBLIC);
+                method1.resultType(Types.intType());
+                method1.addParameter(Types.intType(), "param1");
+                method1.body().returnStatement(Expression.variable("param1").plus(Expression.variable("field1")).plus(Expression.literal(2)));
+            } catch (CodeMoldException ex) {
+                Logger.getLogger(ObjectDefinitionTest.class.getName()).log(Level.SEVERE, null, ex);
+            }
+        }
     }
 }

@@ -28,11 +28,8 @@
  *  EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.github.sviperll.codemold;
+package com.github.sviperll.codemold.util;
 
-import com.github.sviperll.codemold.util.OnMissing;
-import java.text.MessageFormat;
-import javax.annotation.Nonnull;
 import javax.annotation.ParametersAreNonnullByDefault;
 
 /**
@@ -40,48 +37,28 @@ import javax.annotation.ParametersAreNonnullByDefault;
  * @author Victor Nazarov &lt;asviraspossible@gmail.com&gt;
  */
 @ParametersAreNonnullByDefault
-public abstract class TypeParameter {
-    TypeParameter() {
+public class Optionalities {
+    @SuppressWarnings("rawtypes")
+    private static final CheckIsPresenceOptionality CHECK_IS_PRESENT_OPTIONALITY = new CheckIsPresenceOptionality();
+
+    @SuppressWarnings("unchecked")
+    public static <T> Optionality<T, Boolean> checkIsPresent() {
+        return CHECK_IS_PRESENT_OPTIONALITY;
     }
 
-    @Nonnull
-    public abstract String name();
+    private Optionalities() {
+    }
 
-    /**
-     * Return bound or bounds of this type-wrapVariableType as single type.
-     *
-     * If there are several bounds then IntersectionType type is returned.
-     * 
-     * @return bound or bounds of this type-variable as single type.
-     */
-    @Nonnull
-    public abstract AnyType bound();
+    private static class CheckIsPresenceOptionality<T> implements Optionality<T, Boolean> {
 
-    @Nonnull
-    public abstract GenericDefinition<?, ?> declaredIn();
+        @Override
+        public Boolean present(T value) {
+            return true;
+        }
 
-    @Nonnull
-    final AnyType lowerRawBound() throws CodeMoldException {
-        TypeParameters environment = declaredIn().typeParameters().preventCycle(name());
-        AnyType bound = bound();
-        if (bound.isTypeVariable()) {
-            TypeParameter typeParameter = environment.get(bound.getVariableDetails().name(),
-                    OnMissing.<TypeParameter>throwIllegalStateException(
-                            MessageFormat.format(
-                                "Type parameter {0} is bound by unknown type-variable: {1}",
-                                name(),
-                                bound.getVariableDetails().name())));
-            return typeParameter.lowerRawBound();
-        } else {
-            ObjectType lower = null;
-            for (AnyType type: bound.toListOfIntersectedTypes()) {
-                ObjectType object = type.getObjectDetails();
-                if (lower == null || lower.definition().extendsOrImplements(object.definition()))
-                    lower = object;
-            }
-            if (lower == null)
-                throw new CodeMoldException("Empty bounds found for variable");
-            return lower.asAny();
+        @Override
+        public Boolean missing() {
+            return false;
         }
     }
 }

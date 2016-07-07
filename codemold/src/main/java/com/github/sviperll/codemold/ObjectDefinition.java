@@ -32,11 +32,11 @@ package com.github.sviperll.codemold;
 
 import com.github.sviperll.codemold.render.Renderer;
 import com.github.sviperll.codemold.render.RendererContext;
+import com.github.sviperll.codemold.util.Optionality;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;
 
 /**
@@ -133,8 +133,7 @@ public abstract class ObjectDefinition extends GenericDefinition<ObjectType, Obj
         }
     }
 
-    @Nullable
-    final ObjectDefinition getReferenceOrDefault(String relativelyQualifiedName, @Nullable ObjectDefinition defaultValue) {
+    final <T> T getReference(String relativelyQualifiedName, Optionality<ObjectDefinition, T> optionality) {
         int index = relativelyQualifiedName.indexOf('.');
         if (index == 0)
             throw new IllegalArgumentException(relativelyQualifiedName + " illegal name");
@@ -143,12 +142,12 @@ public abstract class ObjectDefinition extends GenericDefinition<ObjectType, Obj
         for (ObjectDefinition innerClass: innerClasses()) {
             if (innerClass.simpleTypeName().equals(simpleName)) {
                 if (!needsToGoDeeper)
-                    return innerClass;
+                    return optionality.present(innerClass);
                 else
-                    return innerClass.getReferenceOrDefault(relativelyQualifiedName.substring(simpleName.length() + 1), defaultValue);
+                    return innerClass.getReference(relativelyQualifiedName.substring(simpleName.length() + 1), optionality);
             }
         }
-        return defaultValue;
+        return optionality.missing();
     }
 
     @Override

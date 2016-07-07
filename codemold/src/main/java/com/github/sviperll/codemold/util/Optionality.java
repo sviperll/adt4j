@@ -27,47 +27,22 @@
  *  (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
  *  EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package com.github.sviperll.codemold.test;
 
-import com.github.sviperll.codemold.CodeMold;
-import com.github.sviperll.codemold.CodeMoldException;
-import com.github.sviperll.codemold.Expression;
-import static com.github.sviperll.codemold.Expression.literal;
-import com.github.sviperll.codemold.render.RendererContexts;
-import static org.junit.Assert.*;
-import org.junit.Test;
-import static com.github.sviperll.codemold.Expression.literal;
+package com.github.sviperll.codemold.util;
 
 /**
+ * Visitor interface for potentially missing or optional values.
  *
+ * You should probably not implement this interface yourself
+ * and use instances provided be OnMissing and Optionalities classes.
+ *
+ * @see com.github.sviperll.codemold.util.OnMissing
+ * @see com.github.sviperll.codemold.util.Optionalities
  * @author Victor Nazarov &lt;asviraspossible@gmail.com&gt;
+ * @param <T>
+ * @param <R>
  */
-public class ExpressionTest {
-
-    /**
-     * Test of literal method, of class Expression.
-     */
-    @Test
-    public void smoke1() {
-        Expression expression = literal(5).plus(literal(6)).times(literal(6).plus(literal(7)));
-        assertEquals("(5 + 6) * (6 + 7)", renderExpression(expression));
-    }
-    @Test
-    public void smoke2() {
-        Expression expression = literal("aa\nbb\"sdfsd\"sdfsd").plus(literal(5)).plus(literal(6)).times(literal(6).plus(literal(7)));
-        assertEquals("(\"aa\\nbb\\\"sdfsd\\\"sdfsd\" + 5 + 6) * (6 + 7)", renderExpression(expression));
-    }
-    @Test
-    public void instanceofTest() throws CodeMoldException {
-        CodeMold.Builder builder = CodeMold.createBuilder();
-        CodeMold codeModel = builder.build();
-        Expression expression = literal("aaa").instanceofOp(codeModel.objectType());
-        assertEquals("\"aaa\" instanceof java.lang.Object", renderExpression(expression));
-    }
-
-    private String renderExpression(Expression expression) {
-        StringBuilder builder = new StringBuilder();
-        RendererContexts.createInstance(builder).appendRenderable(expression);
-        return builder.toString();
-    }
+public interface Optionality<T, R> {
+    R present(T value);
+    R missing();
 }

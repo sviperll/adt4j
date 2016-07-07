@@ -34,6 +34,7 @@ import com.github.sviperll.codemold.render.Renderable;
 import com.github.sviperll.codemold.render.Renderer;
 import com.github.sviperll.codemold.render.RendererContext;
 import com.github.sviperll.codemold.util.Collections2;
+import com.github.sviperll.codemold.util.OnMissing;
 import com.github.sviperll.codemold.util.Snapshot;
 import java.util.Collection;
 import java.util.Collections;
@@ -89,11 +90,7 @@ public abstract class AnyType implements Renderable, Type {
     @Nonnull
     AnyType substitute(Substitution environment) {
         if (isTypeVariable()) {
-            AnyType replacement = environment.getOrDefault(getVariableDetails().name(), null);
-            if (replacement != null)
-                return replacement;
-            else
-                return this;
+            return environment.get(getVariableDetails().name(), OnMissing.returnDefault(this));
         } else if (isObjectType()) {
             return getObjectDetails().substitute(environment).asAny();
         } else if (isArray()) {

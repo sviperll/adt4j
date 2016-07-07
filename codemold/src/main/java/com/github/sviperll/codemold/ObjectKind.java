@@ -71,7 +71,7 @@ public enum ObjectKind implements Renderable {
     }
 
     public boolean implicitlyFinal() {
-        return isEnum() || isAnnotation();
+        return isEnum();
     }
 
     public boolean implicitlyStatic() {

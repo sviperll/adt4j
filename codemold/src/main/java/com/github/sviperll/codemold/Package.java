@@ -30,6 +30,9 @@
 
 package com.github.sviperll.codemold;
 
+import com.github.sviperll.codemold.util.OnMissing;
+import com.github.sviperll.codemold.util.Optionalities;
+import com.github.sviperll.codemold.util.Optionality;
 import java.lang.reflect.Modifier;
 import java.util.Map;
 import java.util.TreeMap;
@@ -86,7 +89,7 @@ public final class Package implements Model {
 
     @Nonnull
     public ClassBuilder<PackageLevelBuilder> createClass(String className) throws CodeMoldException {
-        if (getReferenceOrDefault(className, null) != null)
+        if (getReference(className, Optionalities.<ObjectDefinition>checkIsPresent()))
             throw new CodeMoldException(packageAsNamePrefix() + className + " already defined");
         PackageLevelBuilder membershipBuilder = new PackageLevelBuilder(this);
         ClassBuilder<PackageLevelBuilder> result = new ClassBuilder<>(membershipBuilder, className);
@@ -96,7 +99,7 @@ public final class Package implements Model {
 
     @Nonnull
     public InterfaceBuilder<PackageLevelBuilder> createInterface(String className) throws CodeMoldException {
-        if (getReferenceOrDefault(className, null) != null)
+        if (getReference(className, Optionalities.<ObjectDefinition>checkIsPresent()))
             throw new CodeMoldException(packageAsNamePrefix() + className + " already defined");
         PackageLevelBuilder membershipBuilder = new PackageLevelBuilder(this);
         InterfaceBuilder<PackageLevelBuilder> result = new InterfaceBuilder<>(membershipBuilder, className);
@@ -106,7 +109,7 @@ public final class Package implements Model {
 
     @Nonnull
     public EnumBuilder<PackageLevelBuilder> createEnum(String className) throws CodeMoldException {
-        if (getReferenceOrDefault(className, null) != null)
+        if (getReference(className, Optionalities.<ObjectDefinition>checkIsPresent()))
             throw new CodeMoldException(packageAsNamePrefix() + className + " already defined");
         PackageLevelBuilder membershipBuilder = new PackageLevelBuilder(this);
         EnumBuilder<PackageLevelBuilder> result = new EnumBuilder<>(membershipBuilder, className);
@@ -114,8 +117,7 @@ public final class Package implements Model {
         return result;
     }
 
-    @Nullable
-    ObjectDefinition getReferenceOrDefault(String relativelyQualifiedName, @Nullable ObjectDefinition defaultValue) {
+    <T> T getReference(String relativelyQualifiedName, Optionality<ObjectDefinition, T> optionality) {
         int index = relativelyQualifiedName.indexOf('.');
         if (index == 0)
             throw new IllegalArgumentException(packageAsNamePrefix() + relativelyQualifiedName + " illegal name");
@@ -135,18 +137,21 @@ public final class Package implements Model {
             }
         }
         if (!needsToGoDeeper) {
-            return result == null ? defaultValue : result;
+            if (result == null)
+                return optionality.missing();
+            else
+                return optionality.present(result);
         } else {
             String childRelativeName = relativelyQualifiedName.substring(simpleName.length() + 1);
             if (result != null) {
-                return result.getReferenceOrDefault(childRelativeName, defaultValue);
+                return result.getReference(childRelativeName, optionality);
             } else {
                 Package childPackage = packages.get(simpleName);
                 if (childPackage == null) {
                     childPackage = new Package(codeModel, packageAsNamePrefix() + simpleName, this);
                     packages.put(simpleName, childPackage);
                 }
-                return childPackage.getReferenceOrDefault(childRelativeName, defaultValue);
+                return childPackage.getReference(childRelativeName, optionality);
             }
         }
     }

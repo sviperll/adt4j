@@ -34,6 +34,7 @@ import com.github.sviperll.codemold.render.Renderable;
 import com.github.sviperll.codemold.render.Renderer;
 import com.github.sviperll.codemold.render.RendererContext;
 import com.github.sviperll.codemold.util.Collections2;
+import com.github.sviperll.codemold.util.Optionality;
 import com.github.sviperll.codemold.util.Snapshot;
 import java.util.Iterator;
 import java.util.List;
@@ -59,8 +60,7 @@ public abstract class TypeParameters implements Renderable {
     @Nonnull
     abstract Residence residence();
 
-    @Nullable
-    public TypeParameter getOrDefault(String name, @Nullable TypeParameter defaultValue) {
+    public <T> T get(String name, Optionality<TypeParameter, T> optionality) {
         if (map == null) {
             List<? extends TypeParameter> all = all();
             Map<String, TypeParameter> mapBuilder = Collections2.newTreeMap();
@@ -71,12 +71,12 @@ public abstract class TypeParameters implements Renderable {
         }
         TypeParameter result = map.get(name);
         if (result != null)
-            return result;
+            return optionality.present(result);
         else {
             if (!residence().hasContextDefintion())
-                return defaultValue;
+                return optionality.missing();
             else {
-                return residence().getContextDefinition().typeParameters().getOrDefault(name, defaultValue);
+                return residence().getContextDefinition().typeParameters().get(name, optionality);
             }
         }
     }
@@ -145,10 +145,10 @@ public abstract class TypeParameters implements Renderable {
         }
 
         @Override
-        public TypeParameter getOrDefault(String name, @Nullable TypeParameter defaultValue) {
+        public <T> T get(String name, Optionality<TypeParameter, T> optionality) {
             try {
                 if (!name.equals(this.name))
-                    return parameters.getOrDefault(name, defaultValue);
+                    return parameters.get(name, optionality);
                 else {
                     throw new CodeMoldException("Cyclic definition: " + name);
                 }

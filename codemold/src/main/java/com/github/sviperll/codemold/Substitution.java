@@ -31,6 +31,8 @@
 package com.github.sviperll.codemold;
 
 import com.github.sviperll.codemold.util.Collections2;
+import com.github.sviperll.codemold.util.OnMissing;
+import com.github.sviperll.codemold.util.Optionality;
 import com.github.sviperll.codemold.util.Snapshot;
 import java.util.Map;
 import javax.annotation.Nonnull;
@@ -53,8 +55,7 @@ abstract class Substitution {
     private Substitution() {
     }
 
-    @Nullable
-    abstract AnyType getOrDefault(String name, @Nullable AnyType defaultValue);
+    abstract <T> T get(String name, Optionality<AnyType, T> optionality);
 
     @Nonnull
     final Substitution andThen(Substitution that) {
@@ -84,12 +85,12 @@ abstract class Substitution {
             this.map = map;
         }
         @Override
-        AnyType getOrDefault(String name, @Nullable AnyType defaultValue) {
+        <T> T get(String name, Optionality<AnyType, T> optionality) {
             AnyType value = map.get(name);
             if (value == null)
-                return defaultValue;
+                return optionality.missing();
             else
-                return value;
+                return optionality.present(value);
         }
     }
 
@@ -99,8 +100,8 @@ abstract class Substitution {
         }
 
         @Override
-        AnyType getOrDefault(String name, @Nullable AnyType defaultValue) {
-            return defaultValue;
+        <T> T get(String name, Optionality<AnyType, T> optionality) {
+            return optionality.missing();
         }
     }
     private static class AndThenSubstitution extends Substitution {
@@ -114,9 +115,9 @@ abstract class Substitution {
         }
 
         @Override
-        AnyType getOrDefault(String name, @Nullable AnyType defaultValue) {
-            AnyType value = first.getOrDefault(name, null);
-            return value != null ? value : second.getOrDefault(name, defaultValue);
+        <T> T get(String name, Optionality<AnyType, T> optionality) {
+            AnyType value = first.get(name, OnMissing.<AnyType>returnNull());
+            return value != null ? optionality.present(value) : second.get(name, optionality);
         }
     }
 }
