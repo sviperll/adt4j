@@ -35,6 +35,7 @@ import com.github.sviperll.adt4j.model.config.ValueClassConfiguration;
 import com.github.sviperll.adt4j.model.config.VisitorDefinition;
 import com.github.sviperll.adt4j.model.util.GenerationProcess;
 import com.github.sviperll.adt4j.model.util.GenerationResult;
+import com.github.sviperll.adt4j.model.util.Source;
 import com.github.sviperll.adt4j.model.util.Types;
 import com.helger.jcodemodel.AbstractJClass;
 import com.helger.jcodemodel.AbstractJType;
@@ -170,7 +171,7 @@ public class Stage1ValueClassModel {
             valueClass._implements(types._Serializable);
         }
         if (configuration.isValueClassComparable()) {
-            valueClass._implements(types._Comparable.narrow(configuration.wrapValueClass(valueClass).narrow(valueClass.typeParams())));
+            valueClass._implements(types._Comparable.narrow(Source.narrowType(configuration.wrapValueClass(valueClass), valueClass.typeParams())));
         }
     }
 
@@ -207,7 +208,7 @@ public class Stage1ValueClassModel {
             acceptMethod._throws(exceptionType);
         }
 
-        AbstractJClass usedValueClassType = valueClass.narrow(valueClass.typeParams());
+        AbstractJClass usedValueClassType = Source.narrowType(valueClass, valueClass.typeParams());
         VisitorDefinition.VisitorUsage usedVisitorType = configuration.visitorDefinition().narrowed(usedValueClassType, resultType, exceptionType);
         acceptMethod.param(usedVisitorType.getVisitorType(), "visitor");
 
