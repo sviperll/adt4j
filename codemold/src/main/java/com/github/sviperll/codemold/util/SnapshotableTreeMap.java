@@ -56,6 +56,7 @@ import java.util.TreeMap;
         map = new TreeMap<>(m);
     }
 
+    @SuppressWarnings("ReturnOfCollectionOrArrayField")
     Map<? extends K, ? extends V> snapshot() {
         if (!shouldCopyOnWrite) {
             map = Snapshot.markedAsKnownToBeImmutableMap(Collections.unmodifiableMap(map));
@@ -74,6 +75,7 @@ import java.util.TreeMap;
     }
 
     @Override
+    @SuppressWarnings("ReturnOfCollectionOrArrayField")
     public Set<Entry<K, V>> entrySet() {
         if (entrySet == null) {
             entrySet = new EntrySet(map.entrySet());

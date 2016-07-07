@@ -30,7 +30,6 @@
 
 package com.github.sviperll.codemold;
 
-import com.github.sviperll.codemold.util.OnMissing;
 import com.github.sviperll.codemold.util.Optionalities;
 import com.github.sviperll.codemold.util.Optionality;
 import java.lang.reflect.Modifier;
@@ -38,7 +37,6 @@ import java.util.Map;
 import java.util.TreeMap;
 import java.util.logging.Logger;
 import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;
 
 /**

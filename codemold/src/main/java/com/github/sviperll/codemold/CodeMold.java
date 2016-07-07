@@ -38,7 +38,6 @@ import java.lang.reflect.ParameterizedType;
 import java.util.List;
 import java.util.Locale;
 import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;
 
 /**

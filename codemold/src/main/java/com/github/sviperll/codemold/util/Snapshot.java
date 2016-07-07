@@ -146,6 +146,7 @@ public class Snapshot {
         }
 
         @Override
+        @SuppressWarnings("SuspiciousToArrayCall")
         public <T> T[] toArray(T[] a) {
             return list.toArray(a);
         }
@@ -273,6 +274,7 @@ public class Snapshot {
         }
 
         @Override
+        @SuppressWarnings("SuspiciousToArrayCall")
         public <T> T[] toArray(T[] a) {
             return set.toArray(a);
         }
@@ -345,6 +347,7 @@ public class Snapshot {
         }
 
         @Override
+        @SuppressWarnings("SuspiciousToArrayCall")
         public <T> T[] toArray(T[] a) {
             return set.toArray(a);
         }
@@ -440,6 +443,7 @@ public class Snapshot {
         }
 
         @Override
+        @SuppressWarnings("ReturnOfCollectionOrArrayField")
         public Set<K> keySet() {
             if (keySet == null)
                 keySet = markedAsKnownToBeImmutableSet(map.keySet());
@@ -447,6 +451,7 @@ public class Snapshot {
         }
 
         @Override
+        @SuppressWarnings("ReturnOfCollectionOrArrayField")
         public Collection<V> values() {
             if (values == null)
                 values = markedAsKnownToBeImmutableCollection(map.values());
@@ -454,6 +459,7 @@ public class Snapshot {
         }
 
         @Override
+        @SuppressWarnings("ReturnOfCollectionOrArrayField")
         public Set<Entry<K, V>> entrySet() {
             if (entrySet == null)
                 entrySet= markedAsKnownToBeImmutableSet(map.entrySet());

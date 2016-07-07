@@ -36,7 +36,6 @@ import com.github.sviperll.codemold.util.Optionality;
 import com.github.sviperll.codemold.util.Snapshot;
 import java.util.Map;
 import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;
 
 /**

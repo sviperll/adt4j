@@ -54,6 +54,7 @@ class SnapshotableArrayList<T> extends AbstractList<T> {
         list = new ArrayList<>(c);
     }
 
+    @SuppressWarnings("ReturnOfCollectionOrArrayField")
     List<? extends T> snapshot() {
         if (!shouldCopyOnWrite) {
             list = Snapshot.markedAsKnownToBeImmutableList(Collections.unmodifiableList(list));

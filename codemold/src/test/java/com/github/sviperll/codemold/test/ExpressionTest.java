@@ -36,7 +36,6 @@ import static com.github.sviperll.codemold.Expression.literal;
 import com.github.sviperll.codemold.render.RendererContexts;
 import static org.junit.Assert.*;
 import org.junit.Test;
-import static com.github.sviperll.codemold.Expression.literal;
 
 /**
  *
