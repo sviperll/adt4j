@@ -329,10 +329,10 @@ class ReflectionObjectDefinition<T> extends ObjectDefinition {
         }
 
         @Override
-        public AnyAnnotationElementValue defaultValue() {
+        public AnyAnnotationValue defaultValue() {
             if (!hasDefaultValue())
                 throw new UnsupportedOperationException("No default value");
-            return AnnotationElementValues.ofObject(method.getDefaultValue());
+            return AnnotationValues.ofObject(method.getDefaultValue());
         }
     }
 

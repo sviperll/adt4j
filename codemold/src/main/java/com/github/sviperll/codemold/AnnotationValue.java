@@ -37,6 +37,6 @@ import javax.annotation.ParametersAreNonnullByDefault;
  * @author Victor Nazarov &lt;asviraspossible@gmail.com&gt;
  */
 @ParametersAreNonnullByDefault
-public interface AnnotationElementValue {
-    AnyAnnotationElementValue asAny();
+public interface AnnotationValue {
+    AnyAnnotationValue asAny();
 }

@@ -37,59 +37,59 @@ import javax.annotation.ParametersAreNonnullByDefault;
  * @author Victor Nazarov &lt;asviraspossible@gmail.com&gt;
  */
 @ParametersAreNonnullByDefault
-public class AnnotationElementValues {
-    static AnyAnnotationElementValue ofObject(Object defaultValue) {
+public class AnnotationValues {
+    static AnyAnnotationValue ofObject(Object defaultValue) {
         throw new UnsupportedOperationException("Not supported yet.");
     }
 
-    public static AnnotationElementValue of(byte value) {
+    public static AnnotationValue of(byte value) {
         throw new UnsupportedOperationException("Not supported yet.");
     }
 
-    public static AnnotationElementValue of(short value) {
+    public static AnnotationValue of(short value) {
         throw new UnsupportedOperationException("Not supported yet.");
     }
 
-    public static AnnotationElementValue of(int value) {
+    public static AnnotationValue of(int value) {
         throw new UnsupportedOperationException("Not supported yet.");
     }
 
-    public static AnnotationElementValue of(long value) {
+    public static AnnotationValue of(long value) {
         throw new UnsupportedOperationException("Not supported yet.");
     }
 
-    public static AnnotationElementValue of(float value) {
+    public static AnnotationValue of(float value) {
         throw new UnsupportedOperationException("Not supported yet.");
     }
 
-    public static AnnotationElementValue of(double value) {
+    public static AnnotationValue of(double value) {
         throw new UnsupportedOperationException("Not supported yet.");
     }
 
-    public static AnnotationElementValue of(char value) {
+    public static AnnotationValue of(char value) {
         throw new UnsupportedOperationException("Not supported yet.");
     }
 
-    public static AnnotationElementValue of(boolean value) {
+    public static AnnotationValue of(boolean value) {
         throw new UnsupportedOperationException("Not supported yet.");
     }
 
-    public static AnnotationElementValue of(String value) {
+    public static AnnotationValue of(String value) {
         throw new UnsupportedOperationException("Not supported yet.");
     }
 
-    public static AnnotationElementValue of(EnumConstant constant) {
+    public static AnnotationValue of(EnumConstant constant) {
         throw new UnsupportedOperationException("Not supported yet.");
     }
 
-    public static AnnotationElementValue of(ObjectDefinition definition) {
+    public static AnnotationValue of(ObjectDefinition definition) {
         throw new UnsupportedOperationException("Not supported yet.");
     }
 
-    public static AnnotationElementValue of(Annotation definition) {
+    public static AnnotationValue of(Annotation definition) {
         throw new UnsupportedOperationException("Not supported yet.");
     }
 
-    private AnnotationElementValues() {
+    private AnnotationValues() {
     }
 }

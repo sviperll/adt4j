@@ -38,12 +38,12 @@ import javax.annotation.ParametersAreNonnullByDefault;
  * @author Victor Nazarov &lt;asviraspossible@gmail.com&gt;
  */
 @ParametersAreNonnullByDefault
-public abstract class AnyAnnotationElementValue
-        implements AnnotationElementValue, Renderable {
+public abstract class AnyAnnotationValue
+        implements AnnotationValue, Renderable {
 
     private final Kind kind;
 
-    private AnyAnnotationElementValue(Kind kind) {
+    private AnyAnnotationValue(Kind kind) {
         this.kind = kind;
     }
 
@@ -68,7 +68,7 @@ public abstract class AnyAnnotationElementValue
     }
 
     @Override
-    public AnyAnnotationElementValue asAny() {
+    public AnyAnnotationValue asAny() {
         return this;
     }
 

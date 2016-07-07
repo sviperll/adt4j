@@ -59,7 +59,7 @@ public abstract class MethodDefinition extends ExecutableDefinition<MethodType, 
     public abstract boolean hasDefaultValue();
 
     @Nonnull
-    public abstract AnyAnnotationElementValue defaultValue();
+    public abstract AnyAnnotationValue defaultValue();
 
     @Override
     final MethodType createType(ExecutableType.Implementation<MethodType, MethodDefinition> implementation) {
