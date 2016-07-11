@@ -76,21 +76,6 @@ abstract class AbstractClassBuilder<B extends ResidenceProvider>
     }
 
     @Override
-    public ClassBuilder<NestingBuilder> staticNestedClass(String name) throws CodeMoldException {
-        return super.staticNestedClass(name);
-    }
-
-    @Override
-    public InterfaceBuilder<NestingBuilder> nestedInterface(String name) throws CodeMoldException {
-        return super.nestedInterface(name);
-    }
-
-    @Override
-    public EnumBuilder<NestingBuilder> nestedEnum(String name) throws CodeMoldException {
-        return super.nestedEnum(name);
-    }
-
-    @Override
     public MethodBuilder method(String name) throws CodeMoldException {
         return super.method(name);
     }

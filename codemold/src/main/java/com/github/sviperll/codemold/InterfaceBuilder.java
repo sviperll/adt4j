@@ -66,21 +66,6 @@ public class InterfaceBuilder<B extends ResidenceProvider>
     }
 
     @Override
-    public ClassBuilder<NestingBuilder> staticNestedClass(String name) throws CodeMoldException {
-        return super.staticNestedClass(name);
-    }
-
-    @Override
-    public InterfaceBuilder<NestingBuilder> nestedInterface(String name) throws CodeMoldException {
-        return super.nestedInterface(name);
-    }
-
-    @Override
-    public EnumBuilder<NestingBuilder> nestedEnum(String name) throws CodeMoldException {
-        return super.nestedEnum(name);
-    }
-
-    @Override
     public MethodBuilder staticMethod(String name) throws CodeMoldException {
         return super.staticMethod(name);
     }

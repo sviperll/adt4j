@@ -149,6 +149,16 @@ abstract class ObjectBuilder<B extends ResidenceProvider, MB extends ExecutableB
     }
 
     @Nonnull
+    protected AnnotationDefinitionBuilder<NestingBuilder> nestedAnnotationDefinition(String name) throws CodeMoldException {
+        if (innerClasses.containsKey(name))
+            throw new CodeMoldException(definition().qualifiedTypeName() + "." + name + " already defined");
+        NestingBuilder classResidence = new NestingBuilder(true, definition());
+        AnnotationDefinitionBuilder<NestingBuilder> result = new AnnotationDefinitionBuilder<>(classResidence, name);
+        innerClasses.put(name, result.definition());
+        return result;
+    }
+
+    @Nonnull
     protected EnumBuilder<NestingBuilder> nestedEnum(String name) throws CodeMoldException {
         if (innerClasses.containsKey(name))
             throw new CodeMoldException(definition().qualifiedTypeName() + "." + name + " already defined");

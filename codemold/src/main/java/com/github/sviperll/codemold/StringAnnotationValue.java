@@ -30,66 +30,25 @@
 
 package com.github.sviperll.codemold;
 
-import javax.annotation.ParametersAreNonnullByDefault;
-
 /**
  *
  * @author Victor Nazarov &lt;asviraspossible@gmail.com&gt;
  */
-@ParametersAreNonnullByDefault
-abstract class NamedObjectBuilder<B extends ResidenceProvider, MB extends ExecutableBuilder<MethodType, MethodDefinition>>
-        extends ObjectBuilder<B, MB> {
-    private final String name;
+public class StringAnnotationValue implements AnnotationValue {
+    private final AnyAnnotationValue any = AnyAnnotationValue.wrapString(this);
+    private final String value;
 
-    NamedObjectBuilder(ObjectKind kind, B residence, String name) {
-        super(kind, residence);
-        this.name = name;
+    public StringAnnotationValue(String value) {
+        this.value = value;
+    }
+
+    public String getValue() {
+        return value;
     }
 
     @Override
-    public final B residence() {
-        return super.residence();
-    }
-
-    @Override
-    public final ObjectDefinition definition() {
-        return super.definition();
-    }
-
-    @Override
-    public ClassBuilder<NestingBuilder> staticNestedClass(String name) throws CodeMoldException {
-        return super.staticNestedClass(name);
-    }
-
-    @Override
-    public InterfaceBuilder<NestingBuilder> nestedInterface(String name) throws CodeMoldException {
-        return super.nestedInterface(name);
-    }
-
-    @Override
-    public AnnotationDefinitionBuilder<NestingBuilder> nestedAnnotationDefinition(String name) throws CodeMoldException {
-        return super.nestedAnnotationDefinition(name);
-    }
-
-    @Override
-    public EnumBuilder<NestingBuilder> nestedEnum(String name) throws CodeMoldException {
-        return super.nestedEnum(name);
-    }
-
-    abstract class BuiltDefinition extends ObjectBuilder<B, MB>.BuiltDefinition {
-        BuiltDefinition(TypeParameters typeParameters) {
-            super(typeParameters);
-        }
-
-        @Override
-        public final String simpleTypeName() {
-            return name;
-        }
-
-        @Override
-        public final boolean isAnonymous() {
-            return false;
-        }
+    public AnyAnnotationValue asAny() {
+        return any;
     }
 
 }

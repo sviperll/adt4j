@@ -37,59 +37,68 @@ import javax.annotation.ParametersAreNonnullByDefault;
  * @author Victor Nazarov &lt;asviraspossible@gmail.com&gt;
  */
 @ParametersAreNonnullByDefault
-abstract class NamedObjectBuilder<B extends ResidenceProvider, MB extends ExecutableBuilder<MethodType, MethodDefinition>>
-        extends ObjectBuilder<B, MB> {
+public class AnnotationMethodBuilder extends ExecutableBuilder<MethodType, MethodDefinition> {
     private final String name;
+    private AnyType resultType = AnyType.voidType();
+    private AnyAnnotationValue defaultValue = null;
 
-    NamedObjectBuilder(ObjectKind kind, B residence, String name) {
-        super(kind, residence);
+    AnnotationMethodBuilder(NestingBuilder residence, String name) {
+        super(residence);
         this.name = name;
     }
 
-    @Override
-    public final B residence() {
-        return super.residence();
+    public void resultType(Type resultType) {
+        AnyType type = resultType.asAny();
+        if (!type.canBeMethodResult())
+            throw new IllegalArgumentException(type.kind() + " is not allowed here");
+        this.resultType = type;
+    }
+
+    public void setDefaultValue(AnnotationValue defaultValue) {
+        this.defaultValue = defaultValue.asAny();
     }
 
     @Override
-    public final ObjectDefinition definition() {
-        return super.definition();
+    MethodDefinition createDefinition(ExecutableDefinition.Implementation<MethodType, MethodDefinition> implementation) {
+        return new BuiltDefinition(implementation);
     }
 
-    @Override
-    public ClassBuilder<NestingBuilder> staticNestedClass(String name) throws CodeMoldException {
-        return super.staticNestedClass(name);
-    }
-
-    @Override
-    public InterfaceBuilder<NestingBuilder> nestedInterface(String name) throws CodeMoldException {
-        return super.nestedInterface(name);
-    }
-
-    @Override
-    public AnnotationDefinitionBuilder<NestingBuilder> nestedAnnotationDefinition(String name) throws CodeMoldException {
-        return super.nestedAnnotationDefinition(name);
-    }
-
-    @Override
-    public EnumBuilder<NestingBuilder> nestedEnum(String name) throws CodeMoldException {
-        return super.nestedEnum(name);
-    }
-
-    abstract class BuiltDefinition extends ObjectBuilder<B, MB>.BuiltDefinition {
-        BuiltDefinition(TypeParameters typeParameters) {
-            super(typeParameters);
+    private class BuiltDefinition extends MethodDefinition {
+        BuiltDefinition(ExecutableDefinition.Implementation<MethodType, MethodDefinition> implementation) {
+            super(implementation);
         }
 
         @Override
-        public final String simpleTypeName() {
+        public String name() {
             return name;
         }
 
         @Override
-        public final boolean isAnonymous() {
+        public boolean isFinal() {
             return false;
         }
-    }
 
+        @Override
+        public AnyType returnType() {
+            return resultType;
+        }
+
+        @Override
+        public boolean isAbstract() {
+            return true;
+        }
+
+        @Override
+        public boolean hasDefaultValue() {
+            return defaultValue != null;
+        }
+
+        @Override
+        public AnyAnnotationValue defaultValue() {
+            if (defaultValue == null)
+                throw new UnsupportedOperationException("Method has no default value. Use hasDefaultValue to check");
+            else
+                return defaultValue;
+        }
+    }
 }

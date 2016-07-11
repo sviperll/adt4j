@@ -42,40 +42,40 @@ public class AnnotationValues {
         throw new UnsupportedOperationException("Not supported yet.");
     }
 
-    public static AnnotationValue of(byte value) {
-        throw new UnsupportedOperationException("Not supported yet.");
+    public static PrimitiveAnnotationValue of(byte value) {
+        return PrimitiveAnnotationValue.of(value);
     }
 
-    public static AnnotationValue of(short value) {
-        throw new UnsupportedOperationException("Not supported yet.");
+    public static PrimitiveAnnotationValue of(short value) {
+        return PrimitiveAnnotationValue.of(value);
     }
 
-    public static AnnotationValue of(int value) {
-        throw new UnsupportedOperationException("Not supported yet.");
+    public static PrimitiveAnnotationValue of(int value) {
+        return PrimitiveAnnotationValue.of(value);
     }
 
-    public static AnnotationValue of(long value) {
-        throw new UnsupportedOperationException("Not supported yet.");
+    public static PrimitiveAnnotationValue of(long value) {
+        return PrimitiveAnnotationValue.of(value);
     }
 
-    public static AnnotationValue of(float value) {
-        throw new UnsupportedOperationException("Not supported yet.");
+    public static PrimitiveAnnotationValue of(float value) {
+        return PrimitiveAnnotationValue.of(value);
     }
 
-    public static AnnotationValue of(double value) {
-        throw new UnsupportedOperationException("Not supported yet.");
+    public static PrimitiveAnnotationValue of(double value) {
+        return PrimitiveAnnotationValue.of(value);
     }
 
-    public static AnnotationValue of(char value) {
-        throw new UnsupportedOperationException("Not supported yet.");
+    public static PrimitiveAnnotationValue of(char value) {
+        return PrimitiveAnnotationValue.of(value);
     }
 
-    public static AnnotationValue of(boolean value) {
-        throw new UnsupportedOperationException("Not supported yet.");
+    public static PrimitiveAnnotationValue of(boolean value) {
+        return PrimitiveAnnotationValue.of(value);
     }
 
-    public static AnnotationValue of(String value) {
-        throw new UnsupportedOperationException("Not supported yet.");
+    public static StringAnnotationValue of(String value) {
+        return new StringAnnotationValue(value);
     }
 
     public static AnnotationValue of(EnumConstant constant) {

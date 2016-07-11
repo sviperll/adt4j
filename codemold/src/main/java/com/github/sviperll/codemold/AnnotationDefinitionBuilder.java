@@ -30,66 +30,80 @@
 
 package com.github.sviperll.codemold;
 
+import com.github.sviperll.codemold.util.Collections2;
+import com.github.sviperll.codemold.util.Snapshot;
+import java.util.Collections;
+import java.util.List;
 import javax.annotation.ParametersAreNonnullByDefault;
 
 /**
  *
  * @author Victor Nazarov &lt;asviraspossible@gmail.com&gt;
+ * @param <B>
  */
 @ParametersAreNonnullByDefault
-abstract class NamedObjectBuilder<B extends ResidenceProvider, MB extends ExecutableBuilder<MethodType, MethodDefinition>>
-        extends ObjectBuilder<B, MB> {
-    private final String name;
+public class AnnotationDefinitionBuilder<B extends ResidenceProvider>
+        extends NamedObjectBuilder<B, AnnotationMethodBuilder> {
 
-    NamedObjectBuilder(ObjectKind kind, B residence, String name) {
-        super(kind, residence);
-        this.name = name;
+    public AnnotationDefinitionBuilder(B residence, String name) {
+        super(ObjectKind.ANNOTATION, residence, name);
     }
 
     @Override
-    public final B residence() {
-        return super.residence();
+    public FieldBuilder staticField(Type type, String name) throws CodeMoldException {
+        return super.staticField(type, name);
     }
 
     @Override
-    public final ObjectDefinition definition() {
-        return super.definition();
+    public FieldBuilder staticFinalField(Type type, String name) throws CodeMoldException {
+        return super.staticFinalField(type, name);
     }
 
     @Override
-    public ClassBuilder<NestingBuilder> staticNestedClass(String name) throws CodeMoldException {
-        return super.staticNestedClass(name);
+    public AnnotationMethodBuilder method(String name) throws CodeMoldException {
+        return super.method(name);
     }
 
     @Override
-    public InterfaceBuilder<NestingBuilder> nestedInterface(String name) throws CodeMoldException {
-        return super.nestedInterface(name);
+    AnnotationMethodBuilder createMethodBuilder(NestingBuilder methodResidence, String name) {
+        return new AnnotationMethodBuilder(methodResidence, name);
     }
 
     @Override
-    public AnnotationDefinitionBuilder<NestingBuilder> nestedAnnotationDefinition(String name) throws CodeMoldException {
-        return super.nestedAnnotationDefinition(name);
+    ObjectDefinition createDefinition(TypeParameters typeParameters) {
+        return new BuiltDefinition(typeParameters);
     }
 
-    @Override
-    public EnumBuilder<NestingBuilder> nestedEnum(String name) throws CodeMoldException {
-        return super.nestedEnum(name);
-    }
+    private class BuiltDefinition extends NamedObjectBuilder<B, MethodBuilder>.BuiltDefinition {
 
-    abstract class BuiltDefinition extends ObjectBuilder<B, MB>.BuiltDefinition {
         BuiltDefinition(TypeParameters typeParameters) {
             super(typeParameters);
         }
 
         @Override
-        public final String simpleTypeName() {
-            return name;
+        public boolean isFinal() {
+            return false;
         }
 
         @Override
-        public final boolean isAnonymous() {
-            return false;
+        public ObjectType extendsClass() {
+            return getCodeModel().objectType();
         }
-    }
 
+        @Override
+        public List<? extends ObjectType> implementsInterfaces() {
+            return Collections.emptyList();
+        }
+
+        @Override
+        public List<? extends ConstructorDefinition> constructors() {
+            throw new UnsupportedOperationException("Constructors are listed for class definitions only. Use kind() method to check for object kind.");
+        }
+
+        @Override
+        public List<? extends EnumConstant> enumConstants() {
+            throw new UnsupportedOperationException("Enum constants are listed for enum definitions only. Use kind() method to check for object kind.");
+        }
+
+    }
 }

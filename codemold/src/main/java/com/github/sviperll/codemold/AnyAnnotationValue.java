@@ -31,6 +31,8 @@
 package com.github.sviperll.codemold;
 
 import com.github.sviperll.codemold.render.Renderable;
+import com.github.sviperll.codemold.render.Renderer;
+import com.github.sviperll.codemold.render.RendererContext;
 import javax.annotation.ParametersAreNonnullByDefault;
 
 /**
@@ -40,6 +42,14 @@ import javax.annotation.ParametersAreNonnullByDefault;
 @ParametersAreNonnullByDefault
 public abstract class AnyAnnotationValue
         implements AnnotationValue, Renderable {
+
+    static AnyAnnotationValue wrapPrimitive(PrimitiveAnnotationValue value) {
+        return new PrimitiveAnnotationValueWrapper(value);
+    }
+
+    static AnyAnnotationValue wrapString(StringAnnotationValue value) {
+        return new StringAnnotationValueWrapper(value);
+    }
 
     private final Kind kind;
 
@@ -67,9 +77,22 @@ public abstract class AnyAnnotationValue
         return kind == Kind.ANNOTATION;
     }
 
+    public PrimitiveAnnotationValue getPrimitive() {
+        throw new UnsupportedOperationException("Is not primitive");
+    }
+
+    public StringAnnotationValue getString() {
+        throw new UnsupportedOperationException("Is not string");
+    }
+
     @Override
     public AnyAnnotationValue asAny() {
         return this;
+    }
+
+    @Override
+    public Renderer createRenderer(RendererContext context) {
+        throw new UnsupportedOperationException("Not supported yet.");
     }
 
     public enum Kind {
@@ -79,6 +102,35 @@ public abstract class AnyAnnotationValue
         OBJECT_DEFINITION,
         ANNOTATION,
         ARRAY;
+    }
+
+    private static class PrimitiveAnnotationValueWrapper extends AnyAnnotationValue {
+
+        private final PrimitiveAnnotationValue value;
+
+        PrimitiveAnnotationValueWrapper(PrimitiveAnnotationValue value) {
+            super(Kind.PRIMITIVE);
+            this.value = value;
+        }
+
+        @Override
+        public PrimitiveAnnotationValue getPrimitive() {
+            return value;
+        }
+    }
+
+    private static class StringAnnotationValueWrapper extends AnyAnnotationValue {
+        private final StringAnnotationValue value;
+
+        public StringAnnotationValueWrapper(StringAnnotationValue value) {
+            super(Kind.STRING);
+            this.value = value;
+        }
+
+        @Override
+        public StringAnnotationValue getString() {
+            return value;
+        }
     }
 
 }
