@@ -45,7 +45,8 @@ import javax.annotation.ParametersAreNonnullByDefault;
  * @param <B>
  */
 @ParametersAreNonnullByDefault
-abstract class ObjectBuilder<B extends ResidenceProvider> extends GenericDefinitionBuilder<B, ObjectType, ObjectDefinition> {
+abstract class ObjectBuilder<B extends ResidenceProvider, MB extends ExecutableBuilder<MethodType, MethodDefinition>>
+        extends GenericDefinitionBuilder<B, ObjectType, ObjectDefinition> {
     private final List<MethodDefinition> methods = Collections2.newArrayList();
     private final Map<String, FieldDeclaration> fields = new TreeMap<>();
     private final List<ObjectInitializationElement> staticInitOrdering = Collections2.newArrayList();
@@ -157,18 +158,20 @@ abstract class ObjectBuilder<B extends ResidenceProvider> extends GenericDefinit
         return result;
     }
 
+    abstract MB createMethodBuilder(NestingBuilder methodResidence, String name);
+
     @Nonnull
-    protected MethodBuilder method(String name) throws CodeMoldException {
+    protected MB method(String name) throws CodeMoldException {
         NestingBuilder methodResidence = new NestingBuilder(false, definition());
-        MethodBuilder result = new MethodBuilder(methodResidence, name);
+        MB result = createMethodBuilder(methodResidence, name);
         methods.add(result.definition());
         return result;
     }
 
     @Nonnull
-    protected MethodBuilder staticMethod(String name) throws CodeMoldException {
+    protected MB staticMethod(String name) throws CodeMoldException {
         NestingBuilder methodResidence = new NestingBuilder(true, definition());
-        MethodBuilder result = new MethodBuilder(methodResidence, name);
+        MB result = createMethodBuilder(methodResidence, name);
         methods.add(result.definition());
         return result;
     }

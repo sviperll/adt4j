@@ -49,6 +49,36 @@ public class ConstructorBuilder extends ExecutableBuilder<ConstructorType, Const
         return new BuiltDefinition(implementation);
     }
 
+    @Override
+    public TypeParameterBuilder typeParameter(String name) throws CodeMoldException {
+        return super.typeParameter(name);
+    }
+
+    @Override
+    public VariableDeclaration addParameter(Type type, String name) throws CodeMoldException {
+        return super.addParameter(type, name);
+    }
+
+    @Override
+    public VariableDeclaration addFinalParameter(Type type, String name) throws CodeMoldException {
+        return super.addFinalParameter(type, name);
+    }
+
+    @Override
+    public void throwsException(ObjectType type) throws CodeMoldException {
+        super.throwsException(type);
+    }
+
+    @Override
+    public void throwsException(TypeVariable typeVariable) throws CodeMoldException {
+        super.throwsException(typeVariable);
+    }
+
+    @Override
+    public BlockBuilder body() {
+        return super.body();
+    }
+
     private static class BuiltDefinition extends ConstructorDefinition {
         BuiltDefinition(ExecutableDefinition.Implementation<ConstructorType, ConstructorDefinition> implementation) {
             super(implementation);

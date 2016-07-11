@@ -39,7 +39,7 @@ import javax.annotation.ParametersAreNonnullByDefault;
  * @author Victor Nazarov &lt;asviraspossible@gmail.com&gt;
  */
 @ParametersAreNonnullByDefault
-public class AnonymousClassBuilder extends ObjectBuilder<ExpressionContextDefinition> {
+public class AnonymousClassBuilder extends ObjectBuilder<ExpressionContextDefinition, MethodBuilder> {
     AnonymousClassBuilder(ExpressionContextDefinition residence) {
         super(ObjectKind.CLASS, residence);
     }
@@ -69,7 +69,12 @@ public class AnonymousClassBuilder extends ObjectBuilder<ExpressionContextDefini
         return super.method(name);
     }
 
-    class BuiltDefinition extends ObjectBuilder<NestingBuilder>.BuiltDefinition {
+    @Override
+    MethodBuilder createMethodBuilder(NestingBuilder methodResidence, String name) {
+        return new MethodBuilder(methodResidence, name);
+    }
+
+    class BuiltDefinition extends ObjectBuilder<NestingBuilder, MethodBuilder>.BuiltDefinition {
         BuiltDefinition(TypeParameters typeParameters) {
             super(typeParameters);
         }

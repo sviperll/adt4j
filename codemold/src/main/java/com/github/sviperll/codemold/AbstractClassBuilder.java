@@ -41,7 +41,8 @@ import javax.annotation.ParametersAreNonnullByDefault;
  * @param <B>
  */
 @ParametersAreNonnullByDefault
-abstract class AbstractClassBuilder<B extends ResidenceProvider> extends NamedObjectBuilder<B> {
+abstract class AbstractClassBuilder<B extends ResidenceProvider>
+        extends NamedObjectBuilder<B, MethodBuilder> {
     private final List<ObjectType> interfaces = Collections2.newArrayList();
     private final List<ConstructorDefinition> constructors = Collections2.newArrayList();
 
@@ -99,6 +100,11 @@ abstract class AbstractClassBuilder<B extends ResidenceProvider> extends NamedOb
         return super.staticMethod(name);
     }
 
+    @Override
+    MethodBuilder createMethodBuilder(NestingBuilder methodResidence, String name) {
+        return new MethodBuilder(methodResidence, name);
+    }
+
     public void implementsInterface(ObjectType type) throws CodeMoldException {
         if (!type.definition().kind().isInterface()) {
             throw new CodeMoldException("Only interfaces can be implemented");
@@ -116,7 +122,7 @@ abstract class AbstractClassBuilder<B extends ResidenceProvider> extends NamedOb
         return result;
     }
 
-    abstract class BuiltDefinition extends NamedObjectBuilder<B>.BuiltDefinition {
+    abstract class BuiltDefinition extends NamedObjectBuilder<B, MethodBuilder>.BuiltDefinition {
 
         BuiltDefinition(TypeParameters typeParameters) {
             super(typeParameters);

@@ -41,12 +41,41 @@ public class MethodBuilder extends ExecutableBuilder<MethodType, MethodDefinitio
     private final String name;
     private boolean isFinal;
     private boolean isAbstract;
-    private AnyAnnotationValue defaultValue = null;
     private AnyType resultType = AnyType.voidType();
 
     MethodBuilder(NestingBuilder residence, String name) {
         super(residence);
         this.name = name;
+    }
+
+    @Override
+    public TypeParameterBuilder typeParameter(String name) throws CodeMoldException {
+        return super.typeParameter(name);
+    }
+
+    @Override
+    public VariableDeclaration addParameter(Type type, String name) throws CodeMoldException {
+        return super.addParameter(type, name);
+    }
+
+    @Override
+    public VariableDeclaration addFinalParameter(Type type, String name) throws CodeMoldException {
+        return super.addFinalParameter(type, name);
+    }
+
+    @Override
+    public void throwsException(ObjectType type) throws CodeMoldException {
+        super.throwsException(type);
+    }
+
+    @Override
+    public void throwsException(TypeVariable typeVariable) throws CodeMoldException {
+        super.throwsException(typeVariable);
+    }
+
+    @Override
+    public BlockBuilder body() {
+        return super.body();
     }
 
     public void setFinal(boolean isFinal) {
@@ -57,10 +86,6 @@ public class MethodBuilder extends ExecutableBuilder<MethodType, MethodDefinitio
     public void setAbstract(boolean isAbstract) {
         this.isAbstract = isAbstract;
         isFinal = isFinal && !isAbstract;
-    }
-
-    public void setDefaultValue(AnnotationValue defaultValue) {
-        this.defaultValue = defaultValue.asAny();
     }
 
     public void resultType(Type resultType) {
@@ -102,14 +127,12 @@ public class MethodBuilder extends ExecutableBuilder<MethodType, MethodDefinitio
 
         @Override
         public boolean hasDefaultValue() {
-            return defaultValue != null;
+            return false;
         }
 
         @Override
         public AnyAnnotationValue defaultValue() {
-            if (!hasDefaultValue())
-                throw new UnsupportedOperationException("Method has no default value. Use hasDefaultValue to check");
-            return defaultValue;
+            throw new UnsupportedOperationException("Method has no default value. Use hasDefaultValue to check");
         }
     }
 }

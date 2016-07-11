@@ -76,11 +76,11 @@ public abstract class ExecutableBuilder<T extends ExecutableType<T, D>, D extend
     }
 
     @Override
-    public TypeParameterBuilder typeParameter(String name) throws CodeMoldException {
+    protected TypeParameterBuilder typeParameter(String name) throws CodeMoldException {
         return super.typeParameter(name);
     }
 
-    public VariableDeclaration addParameter(Type type, String name) throws CodeMoldException {
+    protected VariableDeclaration addParameter(Type type, String name) throws CodeMoldException {
         name = scope.makeIntroducable(name);
         scope.introduce(name);
         Parameter parameter = new Parameter(false, type.asAny(), name);
@@ -88,7 +88,7 @@ public abstract class ExecutableBuilder<T extends ExecutableType<T, D>, D extend
         return parameter;
     }
 
-    public VariableDeclaration addFinalParameter(Type type, String name) throws CodeMoldException {
+    protected VariableDeclaration addFinalParameter(Type type, String name) throws CodeMoldException {
         name = scope.makeIntroducable(name);
         scope.introduce(name);
         Parameter parameter = new Parameter(true, type.asAny(), name);
@@ -96,18 +96,18 @@ public abstract class ExecutableBuilder<T extends ExecutableType<T, D>, D extend
         return parameter;
     }
 
-    public void throwsException(ObjectType type) throws CodeMoldException {
+    protected void throwsException(ObjectType type) throws CodeMoldException {
         if (type.definition().isGeneric())
             throw new CodeMoldException("Generic class can't be used as throwable exception");
         throwsList.add(type.asAny());
     }
 
-    public void throwsException(TypeVariable typeVariable) throws CodeMoldException {
+    protected void throwsException(TypeVariable typeVariable) throws CodeMoldException {
         throwsList.add(typeVariable.asAny());
     }
 
     @Nonnull
-    public BlockBuilder body() {
+    protected BlockBuilder body() {
         if (body == null) {
             Residence expressionContext = new MethodLocalResidence(definition()).residence();
             body = BlockBuilder.createWithBracesForced(new ExpressionContextDefinition(expressionContext), scope.createNested());

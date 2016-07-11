@@ -41,7 +41,8 @@ import javax.annotation.ParametersAreNonnullByDefault;
  * @param <B>
  */
 @ParametersAreNonnullByDefault
-public class InterfaceBuilder<B extends ResidenceProvider> extends NamedObjectBuilder<B> {
+public class InterfaceBuilder<B extends ResidenceProvider>
+        extends NamedObjectBuilder<B, MethodBuilder> {
 
     private final List<ObjectType> interfaces = Collections2.newArrayList();
 
@@ -91,6 +92,11 @@ public class InterfaceBuilder<B extends ResidenceProvider> extends NamedObjectBu
         return method;
     }
 
+    @Override
+    MethodBuilder createMethodBuilder(NestingBuilder methodResidence, String name) {
+        return new MethodBuilder(methodResidence, name);
+    }
+
     public void extendsInterface(ObjectType type) throws CodeMoldException {
         if (!type.definition().kind().isInterface())
             throw new CodeMoldException("Only interfaces can be implemented");
@@ -104,7 +110,7 @@ public class InterfaceBuilder<B extends ResidenceProvider> extends NamedObjectBu
         return new BuiltDefinition(typeParameters);
     }
 
-    private class BuiltDefinition extends NamedObjectBuilder<B>.BuiltDefinition {
+    private class BuiltDefinition extends NamedObjectBuilder<B, MethodBuilder>.BuiltDefinition {
 
         BuiltDefinition(TypeParameters typeParameters) {
             super(typeParameters);
