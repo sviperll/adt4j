@@ -142,7 +142,7 @@ public abstract class ExecutableBuilder<T extends ExecutableType<T, D>, D extend
         }
 
         @Override
-        public TypeParameters typeParameters(ExecutableDefinition<T, D> thisDefinition) {
+        public TypeParameters typeParameters() {
             return typeParameters;
         }
 

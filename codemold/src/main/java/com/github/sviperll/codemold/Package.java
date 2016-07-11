@@ -126,7 +126,25 @@ public final class Package implements Model {
             try {
                 Class<?> klass = Class.forName(packageAsNamePrefix() + simpleName);
                 try {
-                    result = createObjectDefinitionForClass(klass);
+                    assert klass.getEnclosingClass() == null;
+                    assert klass.getPackage().getName().equals(qualifiedName());
+                    String className = klass.getSimpleName();
+                    if (classes.containsKey(className))
+                        throw new CodeMoldException(packageAsNamePrefix() + className + " already defined");
+                    int modifiers = klass.getModifiers();
+                    final boolean isPublic = (modifiers & Modifier.PUBLIC) != 0;
+                    PackageLevelResidence residence = new PackageLevelResidence() {
+                        @Override
+                        public boolean isPublic() {
+                            return isPublic;
+                        }
+
+                        @Override
+                        public com.github.sviperll.codemold.Package getPackage() {
+                            return Package.this;
+                        }
+                    };
+                    result = new ReflectedObjectDefinition<>(codeModel, residence.asResidence(), klass);
                 } catch (CodeMoldException ex) {
                     throw new RuntimeException("Should never happen");
                 }
@@ -155,7 +173,7 @@ public final class Package implements Model {
     }
 
     @Nonnull
-    String qualifiedName() {
+    public String qualifiedName() {
         return name;
     }
 
@@ -188,28 +206,5 @@ public final class Package implements Model {
             return childPackage;
         else
             return childPackage.getChildPackageBySuffix(suffix.substring(index + 1));
-    }
-
-    @Nonnull
-    private ObjectDefinition createObjectDefinitionForClass(final Class<?> klass) throws CodeMoldException {
-        assert klass.getEnclosingClass() == null;
-        assert klass.getPackage().getName().equals(name);
-        String className = klass.getSimpleName();
-        if (classes.containsKey(className))
-            throw new CodeMoldException(packageAsNamePrefix() + className + " already defined");
-        int modifiers = klass.getModifiers();
-        final boolean isPublic = (modifiers & Modifier.PUBLIC) != 0;
-        PackageLevelResidence residence = new PackageLevelResidence() {
-            @Override
-            public boolean isPublic() {
-                return isPublic;
-            }
-
-            @Override
-            public Package getPackage() {
-                return Package.this;
-            }
-        };
-        return new ReflectionObjectDefinition<>(codeModel, residence.asResidence(), klass);
     }
 }

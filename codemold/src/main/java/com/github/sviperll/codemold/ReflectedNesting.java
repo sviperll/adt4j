@@ -30,90 +30,45 @@
 
 package com.github.sviperll.codemold;
 
-import com.github.sviperll.codemold.render.Renderable;
-import java.util.List;
-import javax.annotation.Nonnull;
+import java.lang.reflect.Modifier;
 import javax.annotation.ParametersAreNonnullByDefault;
+import javax.annotation.Nonnull;
 
 /**
  *
  * @author Victor Nazarov &lt;asviraspossible@gmail.com&gt;
- * @param <T>
- * @param <D>
  */
-@ParametersAreNonnullByDefault
-public abstract class ExecutableDefinition<T extends ExecutableType<T, D>, D extends ExecutableDefinition<T, D>>
-        extends GenericDefinition<T, D> {
+ class ReflectedNesting extends Nesting {
 
-    private final Implementation<T, D> implementation;
-    ExecutableDefinition(Implementation<T, D> implementation) {
-        this.implementation = implementation;
+    private final int modifiers;
+    private final ObjectDefinition parent;
+
+    ReflectedNesting(int modifiers, ObjectDefinition parent) {
+        this.modifiers = modifiers;
+        this.parent = parent;
     }
 
     @Override
-    public final TypeParameters typeParameters() {
-        return implementation.typeParameters();
-    }
-
-    @Nonnull
-    public final List<? extends VariableDeclaration> parameters() {
-        return implementation.parameters();
-    }
-
-    @Nonnull
-    public final List<? extends AnyType> throwsList() {
-        return implementation.throwsList();
-    }
-
-    @Nonnull
-    final Renderable body() {
-        return implementation.body();
+    public MemberAccess accessLevel() {
+        if ((modifiers & Modifier.PUBLIC) != 0) {
+            return MemberAccess.PUBLIC;
+        } else if ((modifiers & Modifier.PROTECTED) != 0) {
+            return MemberAccess.PROTECTED;
+        } else if ((modifiers & Modifier.PRIVATE) != 0) {
+            return MemberAccess.PRIVATE;
+        } else {
+            return MemberAccess.PACKAGE;
+        }
     }
 
     @Override
-    final Residence residence() {
-        return nesting().residence();
+    public boolean isStatic() {
+        return (modifiers & Modifier.STATIC) != 0;
     }
 
     @Override
-    public final CodeMold getCodeModel() {
-        return residence().getCodeModel();
+    public ObjectDefinition parent() {
+        return parent;
     }
 
-    @Nonnull
-    final Nesting nesting() {
-        return implementation.nesting();
-    }
-
-    public boolean isStatic(){
-        return nesting().isStatic();
-    }
-
-    @Nonnull
-    public MemberAccess accessLevel(){
-        return nesting().accessLevel();
-    }
-
-    @Nonnull
-    public ObjectDefinition parent(){
-        return nesting().parent();
-    }
-
-    interface Implementation<T extends ExecutableType<T, D>, D extends ExecutableDefinition<T, D>> {
-
-        @Nonnull
-        TypeParameters typeParameters();
-
-        @Nonnull
-        List<? extends VariableDeclaration> parameters();
-
-        @Nonnull
-        List<? extends AnyType> throwsList();
-
-        @Nonnull
-        Renderable body();
-
-        @Nonnull
-        Nesting nesting();
-    }
 }

@@ -53,9 +53,7 @@ public abstract class GenericType<T extends GenericType<T, D>, D extends Generic
     @Nonnull
     static <T extends GenericType<T, D>, D extends GenericDefinition<T, D>> T createRawType(D definition, @Nullable GenericType<?, ?> capturedEnclosingType) {
         Raw<T, D> raw = new Raw<>(definition, capturedEnclosingType);
-        T instance = definition.createType(raw);
-        raw.instance = instance;
-        return instance;
+        return raw.erasure();
     }
 
     private final Implementation<T, D> implementation;
@@ -307,6 +305,9 @@ public abstract class GenericType<T extends GenericType<T, D>, D extends Generic
 
         @Override
         T erasure() {
+            if (instance == null) {
+                this.instance = definition().createType(this);
+            }
             return instance;
         }
 
