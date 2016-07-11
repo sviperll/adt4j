@@ -30,6 +30,10 @@
 
 package com.github.sviperll.codemold;
 
+import com.github.sviperll.codemold.render.Renderable;
+import com.github.sviperll.codemold.render.Renderer;
+import com.github.sviperll.codemold.render.RendererContext;
+import com.github.sviperll.codemold.util.Characters;
 import javax.annotation.ParametersAreNonnullByDefault;
 
 /**
@@ -37,7 +41,7 @@ import javax.annotation.ParametersAreNonnullByDefault;
  * @author Victor Nazarov &lt;asviraspossible@gmail.com&gt;
  */
 @ParametersAreNonnullByDefault
-public class PrimitiveAnnotationValue implements AnnotationValue {
+public class PrimitiveAnnotationValue implements AnnotationValue, Renderable {
 
     public static PrimitiveAnnotationValue of(byte value) {
         return new PrimitiveAnnotationValue(PrimitiveType.BYTE, value);
@@ -80,82 +84,54 @@ public class PrimitiveAnnotationValue implements AnnotationValue {
         this.value = value;
     }
 
-    public boolean isByte() {
-        return type == PrimitiveType.BYTE;
-    }
-
-    public boolean isShort() {
-        return type == PrimitiveType.SHORT;
-    }
-
-    public boolean isInteger() {
-        return type == PrimitiveType.INT;
-    }
-
-    public boolean isLong() {
-        return type == PrimitiveType.LONG;
-    }
-
-    public boolean isFloat() {
-        return type == PrimitiveType.FLOAT;
-    }
-
-    public boolean isDouble() {
-        return type == PrimitiveType.DOUBLE;
-    }
-
-    public boolean isBoolean() {
-        return type == PrimitiveType.BOOLEAN;
-    }
-
-    public boolean isCharacter() {
-        return type == PrimitiveType.CHAR;
+    public PrimitiveType type() {
+        return type;
     }
 
     public byte getByte() {
-        if (!isByte())
+        if (!type.isByte())
             throw new UnsupportedOperationException("Is not byte");
         return (Byte)value;
     }
 
     public short getShort() {
-        if (!isShort())
+        if (!type.isShort())
             throw new UnsupportedOperationException("Is not short");
         return (Short)value;
     }
 
     public int getInteger() {
-        if (!isInteger())
+        if (!type.isInteger())
             throw new UnsupportedOperationException("Is not int");
         return (Integer)value;
     }
 
     public long getLong() {
-        if (!isLong())
+        if (!type.isLong())
             throw new UnsupportedOperationException("Is not long");
         return (Long)value;
     }
 
     public float getFloat() {
-        if (!isFloat())
+        if (!type.isFloat())
             throw new UnsupportedOperationException("Is not float");
         return (Float)value;
     }
 
     public double getDouble() {
-        if (!isDouble())
+        if (!type.isDouble())
             throw new UnsupportedOperationException("Is not double");
         return (Double)value;
     }
 
     public boolean getBoolean() {
-        if (!isBoolean())
+        if (!type.isBoolean())
             throw new UnsupportedOperationException("Is not boolean");
         return (Boolean)value;
     }
 
     public char getCharacter() {
-        if (!isCharacter())
+        if (!type.isCharacter())
             throw new UnsupportedOperationException("Is not character");
         return (Character)value;
     }
@@ -163,5 +139,18 @@ public class PrimitiveAnnotationValue implements AnnotationValue {
     @Override
     public AnyAnnotationValue asAny() {
         return any;
+    }
+
+    @Override
+    public Renderer createRenderer(final RendererContext context) {
+        return new Renderer() {
+            @Override
+            public void render() {
+                if (type.isCharacter())
+                    context.appendText(Characters.quote(getCharacter()));
+                else
+                    context.appendText(value.toString());
+            }
+        };
     }
 }

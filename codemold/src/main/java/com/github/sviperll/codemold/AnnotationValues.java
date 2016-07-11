@@ -30,6 +30,7 @@
 
 package com.github.sviperll.codemold;
 
+import java.util.List;
 import javax.annotation.ParametersAreNonnullByDefault;
 
 /**
@@ -74,21 +75,70 @@ public class AnnotationValues {
         return PrimitiveAnnotationValue.of(value);
     }
 
-    public static StringAnnotationValue of(String value) {
-        return new StringAnnotationValue(value);
+    public static AnyAnnotationValue of(String value) {
+        return AnyAnnotationValue.of(value);
     }
 
-    public static AnnotationValue of(EnumConstant constant) {
-        throw new UnsupportedOperationException("Not supported yet.");
+    public static AnyAnnotationValue of(EnumConstant constant) {
+        return AnyAnnotationValue.of(constant);
     }
 
-    public static AnnotationValue of(ObjectDefinition definition) {
-        throw new UnsupportedOperationException("Not supported yet.");
+    public static AnyAnnotationValue of(ObjectDefinition definition) {
+        return AnyAnnotationValue.of(definition);
     }
 
-    public static AnnotationValue of(Annotation definition) {
-        throw new UnsupportedOperationException("Not supported yet.");
+    public static AnnotationValue of(Annotation annotation) {
+        return AnyAnnotationValue.of(annotation);
     }
+
+    public static PrimitiveArrayAnnotationValue ofBytes(List<? extends Byte> bytes) {
+        return ArrayAnnotationValue.ofBytes(bytes);
+    }
+
+    public static PrimitiveArrayAnnotationValue ofShorts(List<? extends Short> shorts) {
+        return ArrayAnnotationValue.ofShorts(shorts);
+    }
+
+    public static PrimitiveArrayAnnotationValue ofIntegers(List<? extends Integer> integes) {
+        return ArrayAnnotationValue.ofIntegers(integes);
+    }
+
+    public static PrimitiveArrayAnnotationValue ofLongs(List<? extends Long> longs) {
+        return ArrayAnnotationValue.ofLongs(longs);
+    }
+
+    public static PrimitiveArrayAnnotationValue ofFloats(List<? extends Float> floats) {
+        return ArrayAnnotationValue.ofFloats(floats);
+    }
+
+    public static PrimitiveArrayAnnotationValue ofDoubles(List<? extends Double> doubles) {
+        return ArrayAnnotationValue.ofDoubles(doubles);
+    }
+
+    public static PrimitiveArrayAnnotationValue ofBooleans(List<? extends Boolean> booleans) {
+        return ArrayAnnotationValue.ofBooleans(booleans);
+    }
+
+    public static PrimitiveArrayAnnotationValue ofCharacters(List<? extends Character> characters) {
+        return ArrayAnnotationValue.ofCharacters(characters);
+    }
+
+    public static ArrayAnnotationValue ofStrings(List<? extends String> strings) {
+        return ArrayAnnotationValue.ofStrings(strings);
+    }
+
+    public static ArrayAnnotationValue ofEnumConstants(List<? extends EnumConstant> enumConstants) {
+        return ArrayAnnotationValue.ofEnumConstants(enumConstants);
+    }
+
+    public static ArrayAnnotationValue ofObjectDefinitions(List<? extends ObjectDefinition> objectDefinitions) {
+        return ArrayAnnotationValue.ofObjectDefinitions(objectDefinitions);
+    }
+
+    public static ArrayAnnotationValue ofAnnotations(List<? extends Annotation> annotations) {
+        return ArrayAnnotationValue.ofAnnotations(annotations);
+    }
+
 
     private AnnotationValues() {
     }

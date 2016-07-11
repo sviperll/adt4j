@@ -103,6 +103,21 @@ public class Expression implements Renderable {
         }));
     }
 
+    public static Expression classLiteral(final ObjectDefinition klass) {
+        return new Expression(TOP.createRenderable(new PrecedenceAwareRenderable() {
+            @Override
+            public Renderer createPrecedenceAwareRenderer(final PrecedenceAwareRendererContext context) {
+                return new Renderer() {
+                    @Override
+                    public void render() {
+                        context.appendFreeStandingRenderable(klass.rawType());
+                        context.appendText(".class");
+                    }
+                };
+            }
+        }));
+    }
+
     @Nonnull
     public static final Expression literal(final int i) {
         return new Expression(TOP.createRenderable(new PrecedenceAwareRenderable() {

@@ -49,6 +49,39 @@ public enum PrimitiveType implements Renderable, Type {
 
     private final AnyType type = AnyType.wrapPrimitiveType(this);
 
+
+    public boolean isByte() {
+        return this == BYTE;
+    }
+
+    public boolean isShort() {
+        return this == SHORT;
+    }
+
+    public boolean isInteger() {
+        return this == INT;
+    }
+
+    public boolean isLong() {
+        return this == LONG;
+    }
+
+    public boolean isFloat() {
+        return this == FLOAT;
+    }
+
+    public boolean isDouble() {
+        return this == DOUBLE;
+    }
+
+    public boolean isBoolean() {
+        return this == BOOLEAN;
+    }
+
+    public boolean isCharacter() {
+        return this == CHAR;
+    }
+
     @Override
     public AnyType asAny() {
         return type;

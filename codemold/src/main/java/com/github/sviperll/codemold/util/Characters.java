@@ -28,27 +28,31 @@
  *  EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.github.sviperll.codemold;
+package com.github.sviperll.codemold.util;
+
+import javax.annotation.ParametersAreNonnullByDefault;
+import javax.annotation.Nonnull;
 
 /**
  *
  * @author Victor Nazarov &lt;asviraspossible@gmail.com&gt;
  */
-public class StringAnnotationValue implements AnnotationValue {
-    private final AnyAnnotationValue any = AnyAnnotationValue.wrapString(this);
-    private final String value;
-
-    public StringAnnotationValue(String value) {
-        this.value = value;
+@ParametersAreNonnullByDefault
+public class Characters {
+    public static String quote(char c) {
+        switch (c) {
+            case '\'':
+                return "'\\''";
+            case '\n':
+                return "'\\n'";
+            case '\r':
+                return "'\\r'";
+            case '\\':
+                return "'\\\\'";
+            default:
+                return String.valueOf(new char[] {'\'', c, '\''});
+        }
     }
-
-    public String getValue() {
-        return value;
+    private Characters() {
     }
-
-    @Override
-    public AnyAnnotationValue asAny() {
-        return any;
-    }
-
 }

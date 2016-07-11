@@ -30,7 +30,9 @@
 
 package com.github.sviperll.codemold.util;
 
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -61,6 +63,48 @@ public class Collections2 {
 
     public static <K, V> Map<K, V> newTreeMap(Map<? extends K, ? extends V> m) {
         return new SnapshotableHashMap<>(m);
+    }
+
+    public static <E> List<? extends E> listOf() {
+        return Snapshot.markedAsKnownToBeImmutableList(Collections.<E>emptyList());
+    }
+
+    public static <E> List<? extends E> listOf(E e1) {
+        return Snapshot.markedAsKnownToBeImmutableList(Collections.singletonList(e1));
+    }
+
+    public static <E> List<? extends E> listOf(E e1, E e2) {
+        List<E> list = new ArrayList<>(2);
+        list.add(e1);
+        list.add(e2);
+        return Snapshot.markedAsKnownToBeImmutableList(Collections.unmodifiableList(list));
+    }
+
+    public static <E> List<? extends E> listOf(E e1, E e2, E e3) {
+        List<E> list = new ArrayList<>(3);
+        list.add(e1);
+        list.add(e2);
+        list.add(e3);
+        return Snapshot.markedAsKnownToBeImmutableList(Collections.unmodifiableList(list));
+    }
+
+    public static <E> List<? extends E> listOf(E e1, E e2, E e3, E e4) {
+        List<E> list = new ArrayList<>(4);
+        list.add(e1);
+        list.add(e2);
+        list.add(e3);
+        list.add(e4);
+        return Snapshot.markedAsKnownToBeImmutableList(Collections.unmodifiableList(list));
+    }
+
+    public static <E> List<? extends E> listOf(E e1, E e2, E e3, E e4, E e5) {
+        List<E> list = new ArrayList<>(5);
+        list.add(e1);
+        list.add(e2);
+        list.add(e3);
+        list.add(e4);
+        list.add(e5);
+        return Snapshot.markedAsKnownToBeImmutableList(Collections.unmodifiableList(list));
     }
 
     private Collections2() {

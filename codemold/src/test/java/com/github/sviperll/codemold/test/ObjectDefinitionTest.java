@@ -47,9 +47,9 @@ import com.github.sviperll.codemold.Package;
 import com.github.sviperll.codemold.PackageLevelBuilder;
 import com.github.sviperll.codemold.Types;
 import com.github.sviperll.codemold.render.RendererContexts;
+import com.github.sviperll.codemold.util.Collections2;
 import com.github.sviperll.codemold.util.Consumer;
 import com.github.sviperll.codemold.util.OnMissing;
-import java.util.Collections;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import static org.junit.Assert.*;
@@ -193,7 +193,7 @@ public class ObjectDefinitionTest {
         ObjectDefinition stringDefinition = codeModel.getReference(String.class.getName(), OnMissing.<ObjectDefinition>throwNullPointerException());
         ObjectType stringType = stringDefinition.rawType();
 
-        ObjectType test1Type = test1.rawType().narrow(Collections.singletonList(stringType));
+        ObjectType test1Type = test1.rawType().narrow(Collections2.listOf(stringType));
         assertEquals(test1, test1Type.definition());
         assertFalse(test1Type.isRaw());
         assertTrue(test1Type.isNarrowed());
@@ -227,7 +227,7 @@ public class ObjectDefinitionTest {
         ObjectDefinition stringDefinition = codeModel.getReference(String.class.getName(), OnMissing.<ObjectDefinition>throwNullPointerException());
         ObjectType stringType = stringDefinition.rawType();
 
-        ObjectType test1Type = test1.rawType().narrow(Collections.singletonList(stringType));
+        ObjectType test1Type = test1.rawType().narrow(Collections2.listOf(stringType));
         for (MethodType method: test1Type.methods()) {
             if (method.definition().name().equals("test2")) {
                 assertTrue(stringType.sameDefinition(method.returnType().getObjectDetails()));

@@ -33,6 +33,7 @@ package com.github.sviperll.codemold;
 import com.github.sviperll.codemold.render.Renderable;
 import com.github.sviperll.codemold.render.Renderer;
 import com.github.sviperll.codemold.render.RendererContext;
+import com.github.sviperll.codemold.util.Strings;
 import javax.annotation.ParametersAreNonnullByDefault;
 
 /**
@@ -47,8 +48,24 @@ public abstract class AnyAnnotationValue
         return new PrimitiveAnnotationValueWrapper(value);
     }
 
-    static AnyAnnotationValue wrapString(StringAnnotationValue value) {
+    static AnyAnnotationValue of(String value) {
         return new StringAnnotationValueWrapper(value);
+    }
+
+    static AnyAnnotationValue of(EnumConstant value) {
+        return new EnumConstantAnnotationValueWrapper(value);
+    }
+
+    static AnyAnnotationValue of(ObjectDefinition value) {
+        return new ObjectDefinitionAnnotationValueWrapper(value);
+    }
+
+    static AnyAnnotationValue of(Annotation value) {
+        return new AnnotationAnnotationValueWrapper(value);
+    }
+
+    static AnyAnnotationValue wrapArray(ArrayAnnotationValue value) {
+        return new AnyAnnotationValueWrapper(value);
     }
 
     private final Kind kind;
@@ -57,32 +74,32 @@ public abstract class AnyAnnotationValue
         this.kind = kind;
     }
 
-    public boolean isPrimitive() {
-        return kind == Kind.PRIMITIVE;
-    }
-
-    public boolean isString() {
-        return kind == Kind.STRING;
-    }
-
-    public boolean isEnumConstant() {
-        return kind == Kind.ENUM_CONSTANT;
-    }
-
-    public boolean isObjectDefinition() {
-        return kind == Kind.OBJECT_DEFINITION;
-    }
-
-    public boolean isAnnotation() {
-        return kind == Kind.ANNOTATION;
+    public Kind kind() {
+        return kind;
     }
 
     public PrimitiveAnnotationValue getPrimitive() {
         throw new UnsupportedOperationException("Is not primitive");
     }
 
-    public StringAnnotationValue getString() {
+    public String getString() {
         throw new UnsupportedOperationException("Is not string");
+    }
+
+    public EnumConstant getEnumConstant() {
+        throw new UnsupportedOperationException("Is not EnumConstant");
+    }
+
+    public ObjectDefinition getObjectDefinition() {
+        throw new UnsupportedOperationException("Is not ObjectDefinition");
+    }
+
+    public Annotation getAnnotation() {
+        throw new UnsupportedOperationException("Is not Annotation");
+    }
+
+    public ArrayAnnotationValue getArray() {
+        throw new UnsupportedOperationException("Is not array");
     }
 
     @Override
@@ -91,8 +108,28 @@ public abstract class AnyAnnotationValue
     }
 
     @Override
-    public Renderer createRenderer(RendererContext context) {
-        throw new UnsupportedOperationException("Not supported yet.");
+    public Renderer createRenderer(final RendererContext context) {
+        return new Renderer() {
+            @Override
+            public void render() {
+                if (kind.isAnnotation())
+                    context.appendRenderable(getAnnotation());
+                else if (kind.isArray())
+                    context.appendRenderable(getArray());
+                else if (kind.isEnumConstant()) {
+                    context.appendRenderable(getEnumConstant().enumDefinition().rawType());
+                    context.appendText(".");
+                    context.appendText(getEnumConstant().name());
+                } else if (kind.isObjectDefinition())
+                    context.appendRenderable(getObjectDefinition().classLiteral());
+                else if (kind.isPrimitive())
+                    context.appendRenderable(getPrimitive());
+                else if (kind.isString())
+                    context.appendText(Strings.quote(getString()));
+                else
+                    throw new UnsupportedOperationException("Unsupported kind " + kind);
+            }
+        };
     }
 
     public enum Kind {
@@ -102,6 +139,30 @@ public abstract class AnyAnnotationValue
         OBJECT_DEFINITION,
         ANNOTATION,
         ARRAY;
+
+        public boolean isPrimitive() {
+            return this == PRIMITIVE;
+        }
+
+        public boolean isString() {
+            return this == STRING;
+        }
+
+        public boolean isEnumConstant() {
+            return this == ENUM_CONSTANT;
+        }
+
+        public boolean isObjectDefinition() {
+            return this == OBJECT_DEFINITION;
+        }
+
+        public boolean isAnnotation() {
+            return this == ANNOTATION;
+        }
+
+        public boolean isArray() {
+            return this == ARRAY;
+        }
     }
 
     private static class PrimitiveAnnotationValueWrapper extends AnyAnnotationValue {
@@ -120,17 +181,74 @@ public abstract class AnyAnnotationValue
     }
 
     private static class StringAnnotationValueWrapper extends AnyAnnotationValue {
-        private final StringAnnotationValue value;
+        private final String value;
 
-        public StringAnnotationValueWrapper(StringAnnotationValue value) {
+        public StringAnnotationValueWrapper(String value) {
             super(Kind.STRING);
             this.value = value;
         }
 
         @Override
-        public StringAnnotationValue getString() {
+        public String getString() {
             return value;
         }
     }
 
+    private static class EnumConstantAnnotationValueWrapper extends AnyAnnotationValue {
+
+        private final EnumConstant value;
+
+        public EnumConstantAnnotationValueWrapper(EnumConstant value) {
+            super(Kind.ENUM_CONSTANT);
+            this.value = value;
+        }
+        @Override
+        public EnumConstant getEnumConstant() {
+            return value;
+        }
+    }
+
+    private static class ObjectDefinitionAnnotationValueWrapper extends AnyAnnotationValue {
+
+        private final ObjectDefinition value;
+
+        public ObjectDefinitionAnnotationValueWrapper(ObjectDefinition value) {
+            super(Kind.OBJECT_DEFINITION);
+            this.value = value;
+        }
+        @Override
+        public ObjectDefinition getObjectDefinition() {
+            return value;
+        }
+    }
+
+    private static class AnnotationAnnotationValueWrapper extends AnyAnnotationValue {
+
+        private final Annotation value;
+
+        public AnnotationAnnotationValueWrapper(Annotation value) {
+            super(Kind.ANNOTATION);
+            this.value = value;
+        }
+
+        @Override
+        public Annotation getAnnotation() {
+            return value;
+        }
+    }
+
+    private static class AnyAnnotationValueWrapper extends AnyAnnotationValue {
+
+        private final ArrayAnnotationValue value;
+
+        public AnyAnnotationValueWrapper(ArrayAnnotationValue value) {
+            super(Kind.ARRAY);
+            this.value = value;
+        }
+
+        @Override
+        public ArrayAnnotationValue getArray() {
+            return value;
+        }
+    }
 }

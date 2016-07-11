@@ -28,11 +28,8 @@
  *  EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.github.sviperll.codemold;
+package com.github.sviperll.codemold.util;
 
-import com.github.sviperll.codemold.render.Renderable;
-import com.github.sviperll.codemold.render.Renderer;
-import com.github.sviperll.codemold.render.RendererContext;
 import javax.annotation.ParametersAreNonnullByDefault;
 
 /**
@@ -40,13 +37,13 @@ import javax.annotation.ParametersAreNonnullByDefault;
  * @author Victor Nazarov &lt;asviraspossible@gmail.com&gt;
  */
 @ParametersAreNonnullByDefault
-public class Annotation implements Renderable {
-    private Annotation() {
-
+public class Strings {
+    public static String quote(CharSequence s) {
+        return "\""
+                + s.toString().replace("\\", "\\\\").replace("\n", "\\n").replace("\r", "\\r").replace("\"", "\\\"")
+                + "\"";
     }
 
-    @Override
-    public Renderer createRenderer(RendererContext context) {
-        throw new UnsupportedOperationException("Not supported yet.");
+    private Strings() {
     }
 }
