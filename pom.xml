@@ -136,6 +136,8 @@
                     <releaseVersion>${release.version}</releaseVersion>
                     <developmentVersion>${release.version}-successor-SNAPSHOT</developmentVersion>
                     <tagNameFormat>adt4j-@{project.version}</tagNameFormat>
+                    <useReleaseProfile>false</useReleaseProfile>
+                    <arguments>-Pattach-sources,attach-javadocs,sign-artifacts,findbugs-check</arguments>
                     <preparationGoals>-Pcommit-version-infromation clean versioning:update-file verify scm:checkin</preparationGoals>
                 </configuration>
             </plugin>
