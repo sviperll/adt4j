@@ -104,8 +104,8 @@ public class Snapshot {
     private static <K, V> Map<? extends K, ? extends V> preciseTypeSnapshotOf(Map<K, V> argument) {
         if (isKnownToBeImmutable(argument)) {
             return argument;
-        } else if (argument instanceof SnapshotableHashMap) {
-            SnapshotableHashMap<K, V> snapshotable = (SnapshotableHashMap<K, V>)argument;
+        } else if (argument instanceof SnapshotableMap) {
+            SnapshotableMap<K, V> snapshotable = (SnapshotableMap<K, V>)argument;
             return snapshotable.snapshot();
         } else if (argument instanceof SortedMap) {
             return markedAsKnownToBeImmutableMap(Collections.unmodifiableMap(new TreeMap<>(argument)));

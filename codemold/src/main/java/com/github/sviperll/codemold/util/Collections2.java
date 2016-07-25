@@ -50,19 +50,19 @@ public class Collections2 {
     }
 
     public static <K, V> Map<K, V> newHashMap() {
-        return new SnapshotableHashMap<>();
+        return new SnapshotableMap<>(MapFactories.hashMap());
     }
 
     public static <K, V> Map<K, V> newHashMap(Map<? extends K, ? extends V> m) {
-        return new SnapshotableHashMap<>(m);
+        return new SnapshotableMap<>(MapFactories.hashMap(), m);
     }
 
-    public static <K, V> Map<K, V> newTreeMap() {
-        return new SnapshotableHashMap<>();
+    public static <K extends Comparable<? super K>, V> Map<K, V> newTreeMap() {
+        return new SnapshotableMap<>(MapFactories.<K, V>treeMap());
     }
 
-    public static <K, V> Map<K, V> newTreeMap(Map<? extends K, ? extends V> m) {
-        return new SnapshotableHashMap<>(m);
+    public static <K extends Comparable<? super K>, V> Map<K, V> newTreeMap(Map<? extends K, ? extends V> m) {
+        return new SnapshotableMap<>(MapFactories.treeMap(), m);
     }
 
     public static <E> List<? extends E> listOf() {

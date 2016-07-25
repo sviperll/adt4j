@@ -33,7 +33,6 @@ package com.github.sviperll.codemold.util;
 import java.util.AbstractMap;
 import java.util.AbstractSet;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
@@ -42,18 +41,21 @@ import java.util.Set;
  *
  * @author Victor Nazarov &lt;asviraspossible@gmail.com&gt;
  */
- class SnapshotableHashMap<K, V> extends AbstractMap<K, V> {
+ class SnapshotableMap<K, V> extends AbstractMap<K, V> {
 
+    private final MapFactory<K, V> factory;
     private Map<K, V> map;
     private Set<Entry<K, V>> entrySet = null;
     private boolean shouldCopyOnWrite = false;
 
-    SnapshotableHashMap() {
-        map = new HashMap<>();
+    SnapshotableMap(MapFactory<K, V> factory) {
+        this.factory = factory;
+        map = factory.createEmptyMap();
     }
 
-    SnapshotableHashMap(Map<? extends K, ? extends V> m) {
-        map = new HashMap<>(m);
+    SnapshotableMap(MapFactory<K, V> factory, Map<? extends K, ? extends V> m) {
+        this.factory = factory;
+        map = factory.createPreinitializedMap(m);
     }
 
     @SuppressWarnings("ReturnOfCollectionOrArrayField")
@@ -68,7 +70,7 @@ import java.util.Set;
 
     private void copyOnWrite() {
         if (shouldCopyOnWrite) {
-            map = new HashMap<>(map);
+            map = factory.createPreinitializedMap(map);
             entrySet = null;
             shouldCopyOnWrite = false;
         }
