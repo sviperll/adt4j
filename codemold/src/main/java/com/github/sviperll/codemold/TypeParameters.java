@@ -34,11 +34,11 @@ import com.github.sviperll.codemold.render.Renderable;
 import com.github.sviperll.codemold.render.Renderer;
 import com.github.sviperll.codemold.render.RendererContext;
 import com.github.sviperll.codemold.util.Collections2;
-import com.github.sviperll.codemold.util.Optionality;
 import com.github.sviperll.codemold.util.Snapshot;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import javax.annotation.Nonnull;
 import javax.annotation.ParametersAreNonnullByDefault;
 
@@ -59,23 +59,23 @@ public abstract class TypeParameters implements Renderable {
     @Nonnull
     abstract Residence residence();
 
-    public <T> T get(String name, Optionality<TypeParameter, T> optionality) {
+    public Optional<TypeParameter> get(String name) {
         if (map == null) {
             List<? extends TypeParameter> all = all();
             Map<String, TypeParameter> mapBuilder = Collections2.newTreeMap();
-            for (TypeParameter typeParameter: all) {
+            all.stream().forEach((typeParameter) -> {
                 mapBuilder.put(typeParameter.name(), typeParameter);
-            }
+            });
             map = Snapshot.of(mapBuilder);
         }
         TypeParameter result = map.get(name);
         if (result != null)
-            return optionality.present(result);
+            return Optional.of(result);
         else {
             if (!residence().hasContextDefintion())
-                return optionality.missing();
+                return Optional.empty();
             else {
-                return residence().getContextDefinition().typeParameters().get(name, optionality);
+                return residence().getContextDefinition().typeParameters().get(name);
             }
         }
     }
@@ -85,9 +85,9 @@ public abstract class TypeParameters implements Renderable {
         if (asInternalTypeArguments == null) {
             List<AnyType> internalTypeArgumentsBuilder = Collections2.newArrayList();
             List<? extends TypeParameter> all = all();
-            for (TypeParameter typeParameter: all) {
+            all.stream().forEach((typeParameter) -> {
                 internalTypeArgumentsBuilder.add(Types.variable(typeParameter.name()).asAny());
-            }
+            });
             asInternalTypeArguments = Snapshot.of(internalTypeArgumentsBuilder);
         }
         return Snapshot.of(asInternalTypeArguments);
@@ -100,31 +100,28 @@ public abstract class TypeParameters implements Renderable {
 
     @Override
     public Renderer createRenderer(final RendererContext context) {
-        return new Renderer() {
-            @Override
-            public void render() {
-                Iterator<? extends TypeParameter> typeParameters = all().iterator();
-                if (typeParameters.hasNext()) {
-                    context.appendText("<");
-                    TypeParameter typeParameter = typeParameters.next();
+        return () -> {
+            Iterator<? extends TypeParameter> typeParameters = all().iterator();
+            if (typeParameters.hasNext()) {
+                context.appendText("<");
+                TypeParameter typeParameter = typeParameters.next();
+                context.appendText(typeParameter.name());
+                if (!(typeParameter.bound().isObjectType()
+                          && typeParameter.bound().getObjectDetails().isJavaLangObject())) {
+                    context.appendText(" extends ");
+                    context.appendRenderable(typeParameter.bound());
+                }
+                while (typeParameters.hasNext()) {
+                    context.appendText(", ");
+                    typeParameter = typeParameters.next();
                     context.appendText(typeParameter.name());
                     if (!(typeParameter.bound().isObjectType()
-                            && typeParameter.bound().getObjectDetails().isJavaLangObject())) {
+                              && typeParameter.bound().getObjectDetails().isJavaLangObject())) {
                         context.appendText(" extends ");
                         context.appendRenderable(typeParameter.bound());
                     }
-                    while (typeParameters.hasNext()) {
-                        context.appendText(", ");
-                        typeParameter = typeParameters.next();
-                        context.appendText(typeParameter.name());
-                        if (!(typeParameter.bound().isObjectType()
-                                && typeParameter.bound().getObjectDetails().isJavaLangObject())) {
-                            context.appendText(" extends ");
-                            context.appendRenderable(typeParameter.bound());
-                        }
-                    }
-                    context.appendText(">");
                 }
+                context.appendText(">");
             }
         };
     }
@@ -144,10 +141,10 @@ public abstract class TypeParameters implements Renderable {
         }
 
         @Override
-        public <T> T get(String name, Optionality<TypeParameter, T> optionality) {
+        public Optional<TypeParameter> get(String name) {
             try {
                 if (!name.equals(this.name))
-                    return parameters.get(name, optionality);
+                    return parameters.get(name);
                 else {
                     throw new CodeMoldException("Cyclic definition: " + name);
                 }

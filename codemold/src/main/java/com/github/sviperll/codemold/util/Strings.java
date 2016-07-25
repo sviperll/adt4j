@@ -39,9 +39,10 @@ import javax.annotation.ParametersAreNonnullByDefault;
 @ParametersAreNonnullByDefault
 public class Strings {
     public static String quote(CharSequence s) {
-        return "\""
-                + s.toString().replace("\\", "\\\\").replace("\n", "\\n").replace("\r", "\\r").replace("\"", "\\\"")
-                + "\"";
+        return "\"" + escape(s) + "\"";
+    }
+    public static String escape(CharSequence s) {
+        return s.toString().replace("\\", "\\\\").replace("\n", "\\n").replace("\r", "\\r").replace("\"", "\\\"");
     }
 
     private Strings() {

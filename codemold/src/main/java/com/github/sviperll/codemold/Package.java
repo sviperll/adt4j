@@ -30,10 +30,9 @@
 
 package com.github.sviperll.codemold;
 
-import com.github.sviperll.codemold.util.Optionalities;
-import com.github.sviperll.codemold.util.Optionality;
 import java.lang.reflect.Modifier;
 import java.util.Map;
+import java.util.Optional;
 import java.util.TreeMap;
 import java.util.logging.Logger;
 import javax.annotation.Nonnull;
@@ -69,7 +68,7 @@ public final class Package implements Model {
 
     /** This package's parent.
      * Throws UnsupportedOperationException for root/default package
-     * @see Package#isRootPackage() 
+     * @see Package#isRootPackage()
      * @throws UnsupportedOperationException
      * @return This package's parent.
      */
@@ -87,7 +86,7 @@ public final class Package implements Model {
 
     @Nonnull
     public ClassBuilder<PackageLevelBuilder> createClass(String className) throws CodeMoldException {
-        if (getReference(className, Optionalities.<ObjectDefinition>checkIsPresent()))
+        if (getReference(className).isPresent())
             throw new CodeMoldException(packageAsNamePrefix() + className + " already defined");
         PackageLevelBuilder membershipBuilder = new PackageLevelBuilder(this);
         ClassBuilder<PackageLevelBuilder> result = new ClassBuilder<>(membershipBuilder, className);
@@ -97,7 +96,7 @@ public final class Package implements Model {
 
     @Nonnull
     public InterfaceBuilder<PackageLevelBuilder> createInterface(String className) throws CodeMoldException {
-        if (getReference(className, Optionalities.<ObjectDefinition>checkIsPresent()))
+        if (getReference(className).isPresent())
             throw new CodeMoldException(packageAsNamePrefix() + className + " already defined");
         PackageLevelBuilder membershipBuilder = new PackageLevelBuilder(this);
         InterfaceBuilder<PackageLevelBuilder> result = new InterfaceBuilder<>(membershipBuilder, className);
@@ -107,7 +106,7 @@ public final class Package implements Model {
 
     @Nonnull
     public EnumBuilder<PackageLevelBuilder> createEnum(String className) throws CodeMoldException {
-        if (getReference(className, Optionalities.<ObjectDefinition>checkIsPresent()))
+        if (getReference(className).isPresent())
             throw new CodeMoldException(packageAsNamePrefix() + className + " already defined");
         PackageLevelBuilder membershipBuilder = new PackageLevelBuilder(this);
         EnumBuilder<PackageLevelBuilder> result = new EnumBuilder<>(membershipBuilder, className);
@@ -115,7 +114,7 @@ public final class Package implements Model {
         return result;
     }
 
-    <T> T getReference(String relativelyQualifiedName, Optionality<ObjectDefinition, T> optionality) {
+    Optional<ObjectDefinition> getReference(String relativelyQualifiedName) {
         int index = relativelyQualifiedName.indexOf('.');
         if (index == 0)
             throw new IllegalArgumentException(packageAsNamePrefix() + relativelyQualifiedName + " illegal name");
@@ -153,21 +152,18 @@ public final class Package implements Model {
             }
         }
         if (!needsToGoDeeper) {
-            if (result == null)
-                return optionality.missing();
-            else
-                return optionality.present(result);
+            return Optional.ofNullable(result);
         } else {
             String childRelativeName = relativelyQualifiedName.substring(simpleName.length() + 1);
             if (result != null) {
-                return result.getReference(childRelativeName, optionality);
+                return result.getReference(childRelativeName);
             } else {
                 Package childPackage = packages.get(simpleName);
                 if (childPackage == null) {
                     childPackage = new Package(codeModel, packageAsNamePrefix() + simpleName, this);
                     packages.put(simpleName, childPackage);
                 }
-                return childPackage.getReference(childRelativeName, optionality);
+                return childPackage.getReference(childRelativeName);
             }
         }
     }

@@ -31,14 +31,13 @@
 package com.github.sviperll.codemold;
 
 import com.github.sviperll.codemold.render.Renderable;
-import com.github.sviperll.codemold.render.Renderer;
 import com.github.sviperll.codemold.render.RendererContext;
 import com.github.sviperll.codemold.util.Collections2;
-import com.github.sviperll.codemold.util.Consumer;
 import com.github.sviperll.codemold.util.Snapshot;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
+import java.util.function.Consumer;
 import javax.annotation.ParametersAreNonnullByDefault;
 
 /**
@@ -127,30 +126,24 @@ public class EnumBuilder<B extends ResidenceProvider> extends AbstractClassBuild
 
         @Override
         Renderable definition() {
-            return new Renderable() {
-                @Override
-                public Renderer createRenderer(final RendererContext context) {
-                    return new Renderer() {
-                        @Override
-                        public void render() {
-                            context.appendText(name);
-                            Iterator<? extends Expression> iterator = constructorArguments.iterator();
-                            if (iterator.hasNext()) {
-                                context.appendText("(");
-                                context.appendRenderable(iterator.next());
-                                while (iterator.hasNext()) {
-                                    context.appendText(", ");
-                                    context.appendRenderable(iterator.next());
-                                }
-                                context.appendText(")");
-                            }
-                            if (!(members.fields().isEmpty() && members.methods().isEmpty())) {
-                                context.appendWhiteSpace();
-                                context.appendRenderable(members);
-                            }
+            return (RendererContext context) -> {
+                return () -> {
+                    context.appendText(name);
+                    Iterator<? extends Expression> iterator = constructorArguments.iterator();
+                    if (iterator.hasNext()) {
+                        context.appendText("(");
+                        context.appendRenderable(iterator.next());
+                        while (iterator.hasNext()) {
+                            context.appendText(", ");
+                            context.appendRenderable(iterator.next());
                         }
-                    };
-                }
+                        context.appendText(")");
+                    }
+                    if (!(members.fields().isEmpty() && members.methods().isEmpty())) {
+                        context.appendWhiteSpace();
+                        context.appendRenderable(members);
+                    }
+                };
             };
         }
 

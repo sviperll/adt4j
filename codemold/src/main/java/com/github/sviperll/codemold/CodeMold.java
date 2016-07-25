@@ -31,12 +31,11 @@
 package com.github.sviperll.codemold;
 
 import com.github.sviperll.codemold.util.Collections2;
-import com.github.sviperll.codemold.util.OnMissing;
-import com.github.sviperll.codemold.util.Optionality;
 import java.lang.reflect.GenericArrayType;
 import java.lang.reflect.ParameterizedType;
 import java.util.List;
 import java.util.Locale;
+import java.util.Optional;
 import javax.annotation.Nonnull;
 import javax.annotation.ParametersAreNonnullByDefault;
 
@@ -67,8 +66,7 @@ public final class CodeMold {
     @Nonnull
     public ObjectType objectType() {
         if (objectType == null) {
-            ObjectDefinition javaLangObjectDefinition = getReference(Object.class.getName(),
-                    OnMissing.<ObjectDefinition>throwIllegalStateException("java.lang.Object is not loadable class!"));
+            ObjectDefinition javaLangObjectDefinition = getReference(Object.class.getName()).orElseThrow(() -> new IllegalStateException("java.lang.Object is not loadable class!"));
             objectType = javaLangObjectDefinition.rawType();
         }
         return objectType;
@@ -84,8 +82,8 @@ public final class CodeMold {
         return defaultPackage;
     }
 
-    public <T> T getReference(String qualifiedName, Optionality<ObjectDefinition, T> optionality) {
-        return defaultPackage.getReference(qualifiedName, optionality);
+    public Optional<ObjectDefinition> getReference(String qualifiedName) {
+        return defaultPackage.getReference(qualifiedName);
     }
 
     @Nonnull
@@ -127,7 +125,7 @@ public final class CodeMold {
             } else if (reflectedType.isArray()) {
                 return Types.arrayOf(readReflectedType(reflectedType.getComponentType())).asAny();
             } else {
-                ObjectDefinition definition = getReference(reflectedType.getName(), OnMissing.<ObjectDefinition>throwIllegalStateException("java.lang.reflect.Type references unexisting type: " + reflectedType.getName()));
+                ObjectDefinition definition = getReference(reflectedType.getName()).orElseThrow(() -> new IllegalStateException("java.lang.reflect.Type references unexisting type: " + reflectedType.getName()));
                 return definition.rawType().asAny();
             }
         } else

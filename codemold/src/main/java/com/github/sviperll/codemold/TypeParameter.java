@@ -30,7 +30,6 @@
 
 package com.github.sviperll.codemold;
 
-import com.github.sviperll.codemold.util.OnMissing;
 import java.text.MessageFormat;
 import javax.annotation.Nonnull;
 import javax.annotation.ParametersAreNonnullByDefault;
@@ -51,7 +50,7 @@ public abstract class TypeParameter {
      * Return bound or bounds of this type-wrapVariableType as single type.
      *
      * If there are several bounds then IntersectionType type is returned.
-     * 
+     *
      * @return bound or bounds of this type-variable as single type.
      */
     @Nonnull
@@ -65,8 +64,8 @@ public abstract class TypeParameter {
         TypeParameters environment = declaredIn().typeParameters().preventCycle(name());
         AnyType bound = bound();
         if (bound.isTypeVariable()) {
-            TypeParameter typeParameter = environment.get(bound.getVariableDetails().name(),
-                    OnMissing.<TypeParameter>throwIllegalStateException(
+            TypeParameter typeParameter = environment.get(bound.getVariableDetails().name()).orElseThrow(() ->
+                    new IllegalStateException(
                             MessageFormat.format(
                                 "Type parameter {0} is bound by unknown type-variable: {1}",
                                 name(),

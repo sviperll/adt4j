@@ -48,8 +48,7 @@ import com.github.sviperll.codemold.PackageLevelBuilder;
 import com.github.sviperll.codemold.Types;
 import com.github.sviperll.codemold.render.RendererContexts;
 import com.github.sviperll.codemold.util.Collections2;
-import com.github.sviperll.codemold.util.Consumer;
-import com.github.sviperll.codemold.util.OnMissing;
+import java.util.Optional;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import static org.junit.Assert.*;
@@ -65,7 +64,7 @@ public class ObjectDefinitionTest {
         CodeMold.Builder builder = CodeMold.createBuilder();
         CodeMold codeModel = builder.build();
         StringBuilder builder1 = new StringBuilder();
-        RendererContexts.createInstance(builder1).appendRenderable(codeModel.getReference(String.class.getName(), OnMissing.<ObjectDefinition>throwNullPointerException()));
+        RendererContexts.createInstance(builder1).appendRenderable(codeModel.getReference(String.class.getName()).orElseThrow(() -> new NullPointerException()));
     }
 
     @Test
@@ -144,8 +143,28 @@ public class ObjectDefinitionTest {
         method.addParameter(Types.intType(), "param1");
         method.body().returnStatement(Expression.variable("param1").plus(Expression.variable("field1")));
 
-        test1.constant("TEST1_1", new Test11EnumConstantBlueprint());
-        test1.constant("TEST1_2", new Test12EnumConstantBlueprint());
+        test1.constant("TEST1_1", (AnonymousClassBuilder builder1) -> {
+            try {
+                MethodBuilder method1 = builder1.method("test");
+                method1.setAccessLevel(MemberAccess.PUBLIC);
+                method1.resultType(Types.intType());
+                method1.addParameter(Types.intType(), "param1");
+                method1.body().returnStatement(Expression.variable("param1").plus(Expression.variable("field1")).plus(Expression.literal(1)));
+            } catch (CodeMoldException ex) {
+                Logger.getLogger(ObjectDefinitionTest.class.getName()).log(Level.SEVERE, null, ex);
+            }
+        });
+        test1.constant("TEST1_2", (AnonymousClassBuilder builder1) -> {
+            try {
+                MethodBuilder method1 = builder1.method("test");
+                method1.setAccessLevel(MemberAccess.PUBLIC);
+                method1.resultType(Types.intType());
+                method1.addParameter(Types.intType(), "param1");
+                method1.body().returnStatement(Expression.variable("param1").plus(Expression.variable("field1")).plus(Expression.literal(2)));
+            }catch (CodeMoldException ex) {
+                Logger.getLogger(ObjectDefinitionTest.class.getName()).log(Level.SEVERE, null, ex);
+            }
+        });
 
         String result =
             "enum Test1 {\n"
@@ -190,7 +209,7 @@ public class ObjectDefinitionTest {
     public void smokeNarrowedTypes() throws CodeMoldException {
         ObjectDefinition test1 = buildClass();
         CodeMold codeModel = test1.getCodeModel();
-        ObjectDefinition stringDefinition = codeModel.getReference(String.class.getName(), OnMissing.<ObjectDefinition>throwNullPointerException());
+        ObjectDefinition stringDefinition = codeModel.getReference(String.class.getName()).orElseThrow(() -> new NullPointerException());
         ObjectType stringType = stringDefinition.rawType();
 
         ObjectType test1Type = test1.rawType().narrow(Collections2.listOf(stringType));
@@ -210,32 +229,28 @@ public class ObjectDefinitionTest {
         CodeMold codeModel = test1.getCodeModel();
 
         ObjectType test1Type = test1.rawType();
-        for (MethodType method: test1Type.methods()) {
-            if (method.definition().name().equals("test2")) {
-                assertTrue(codeModel.objectType().sameDefinition(method.returnType().getObjectDetails()));
-            }
-            if (method.definition().name().equals("test3")) {
-                assertTrue(codeModel.objectType().sameDefinition(method.returnType().getObjectDetails().typeArguments().get(0).getObjectDetails()));
-            }
-        }
+        Optional<? extends MethodType> test2Method = test1Type.methods().stream().filter(method -> method.definition().name().equals("test2")).findAny();
+        Optional<? extends MethodType> test3Method = test1Type.methods().stream().filter(method -> method.definition().name().equals("test3")).findAny();
+        assertTrue(test2Method.isPresent());
+        assertTrue(codeModel.objectType().sameDefinition(test2Method.get().returnType().getObjectDetails()));
+        assertTrue(test3Method.isPresent());
+        assertTrue(codeModel.objectType().sameDefinition(test3Method.get().returnType().getObjectDetails().typeArguments().get(0).getObjectDetails()));
     }
 
     @Test
     public void smokeNarrowedMethodTypes() throws CodeMoldException {
         ObjectDefinition test1 = buildClass();
         CodeMold codeModel = test1.getCodeModel();
-        ObjectDefinition stringDefinition = codeModel.getReference(String.class.getName(), OnMissing.<ObjectDefinition>throwNullPointerException());
+        ObjectDefinition stringDefinition = codeModel.getReference(String.class.getName()).orElseThrow(() -> new NullPointerException());
         ObjectType stringType = stringDefinition.rawType();
 
         ObjectType test1Type = test1.rawType().narrow(Collections2.listOf(stringType));
-        for (MethodType method: test1Type.methods()) {
-            if (method.definition().name().equals("test2")) {
-                assertTrue(stringType.sameDefinition(method.returnType().getObjectDetails()));
-            }
-            if (method.definition().name().equals("test3")) {
-                assertTrue(stringType.sameDefinition(method.returnType().getObjectDetails().typeArguments().get(0).getObjectDetails()));
-            }
-        }
+        Optional<? extends MethodType> test2Method = test1Type.methods().stream().filter(method -> method.definition().name().equals("test2")).findAny();
+        Optional<? extends MethodType> test3Method = test1Type.methods().stream().filter(method -> method.definition().name().equals("test3")).findAny();
+        assertTrue(test2Method.isPresent());
+        assertTrue(stringType.sameDefinition(test2Method.get().returnType().getObjectDetails()));
+        assertTrue(test3Method.isPresent());
+        assertTrue(stringType.sameDefinition(test3Method.get().returnType().getObjectDetails().typeArguments().get(0).getObjectDetails()));
     }
 
     private ObjectDefinition buildClass() throws CodeMoldException {
@@ -270,35 +285,5 @@ public class ObjectDefinitionTest {
         method3.body().returnStatement(Expression.nullExpression());
 
         return test1.definition();
-    }
-
-    private static class Test11EnumConstantBlueprint implements Consumer<AnonymousClassBuilder> {
-        @Override
-        public void accept(AnonymousClassBuilder builder) {
-            try {
-                MethodBuilder method1 = builder.method("test");
-                method1.setAccessLevel(MemberAccess.PUBLIC);
-                method1.resultType(Types.intType());
-                method1.addParameter(Types.intType(), "param1");
-                method1.body().returnStatement(Expression.variable("param1").plus(Expression.variable("field1")).plus(Expression.literal(1)));
-            } catch (CodeMoldException ex) {
-                Logger.getLogger(ObjectDefinitionTest.class.getName()).log(Level.SEVERE, null, ex);
-            }
-        }
-    }
-
-    private static class Test12EnumConstantBlueprint implements Consumer<AnonymousClassBuilder> {
-        @Override
-        public void accept(AnonymousClassBuilder builder) {
-            try {
-                MethodBuilder method1 = builder.method("test");
-                method1.setAccessLevel(MemberAccess.PUBLIC);
-                method1.resultType(Types.intType());
-                method1.addParameter(Types.intType(), "param1");
-                method1.body().returnStatement(Expression.variable("param1").plus(Expression.variable("field1")).plus(Expression.literal(2)));
-            } catch (CodeMoldException ex) {
-                Logger.getLogger(ObjectDefinitionTest.class.getName()).log(Level.SEVERE, null, ex);
-            }
-        }
     }
 }

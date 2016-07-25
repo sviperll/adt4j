@@ -31,17 +31,16 @@
 package com.github.sviperll.codemold;
 
 import com.github.sviperll.codemold.expression.Precedence;
-import com.github.sviperll.codemold.expression.PrecedenceAwareRenderable;
-import com.github.sviperll.codemold.expression.PrecedenceAwareRendererContext;
 import com.github.sviperll.codemold.expression.PrecedenceRenderable;
 import com.github.sviperll.codemold.render.Renderable;
 import com.github.sviperll.codemold.render.Renderer;
 import com.github.sviperll.codemold.render.RendererContext;
-import com.github.sviperll.codemold.util.Consumer;
+import com.github.sviperll.codemold.util.Strings;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
+import java.util.function.Consumer;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;
@@ -73,179 +72,119 @@ public class Expression implements Renderable {
 
     @Nonnull
     public static final Expression literal(final String s) {
-        return new Expression(TOP.createRenderable(new PrecedenceAwareRenderable() {
-            @Override
-            public Renderer createPrecedenceAwareRenderer(final PrecedenceAwareRendererContext context) {
-                return new Renderer() {
-                    @Override
-                    public void render() {
-                        context.appendText("\"");
-                        context.appendText(s.replace("\\", "\\\\").replace("\"", "\\\"").replace("\r", "\\r").replace("\n", "\\n"));
-                        context.appendText("\"");
-                    }
-                };
-            }
+        return new Expression(TOP.createRenderable(context -> {
+            return () -> {
+                context.appendText("\"");
+                context.appendText(Strings.escape(s));
+                context.appendText("\"");
+            };
         }));
     }
 
     @Nonnull
     public static final Expression nullExpression() {
-        return new Expression(TOP.createRenderable(new PrecedenceAwareRenderable() {
-            @Override
-            public Renderer createPrecedenceAwareRenderer(final PrecedenceAwareRendererContext context) {
-                return new Renderer() {
-                    @Override
-                    public void render() {
-                        context.appendText("null");
-                    }
-                };
-            }
+        return new Expression(TOP.createRenderable(context -> {
+            return () -> {
+                context.appendText("null");
+            };
         }));
     }
 
     public static Expression classLiteral(final ObjectDefinition klass) {
-        return new Expression(TOP.createRenderable(new PrecedenceAwareRenderable() {
-            @Override
-            public Renderer createPrecedenceAwareRenderer(final PrecedenceAwareRendererContext context) {
-                return new Renderer() {
-                    @Override
-                    public void render() {
-                        context.appendFreeStandingRenderable(klass.rawType());
-                        context.appendText(".class");
-                    }
-                };
-            }
+        return new Expression(TOP.createRenderable(context -> {
+            return () -> {
+                context.appendFreeStandingRenderable(klass.rawType());
+                context.appendText(".class");
+            };
         }));
     }
 
     @Nonnull
     public static final Expression literal(final int i) {
-        return new Expression(TOP.createRenderable(new PrecedenceAwareRenderable() {
-            @Override
-            public Renderer createPrecedenceAwareRenderer(final PrecedenceAwareRendererContext context) {
-                return new Renderer() {
-                    @Override
-                    public void render() {
-                        context.appendText(Integer.toString(i));
-                    }
-                };
-            }
+        return new Expression(TOP.createRenderable(context -> {
+            return () -> {
+                context.appendText(Integer.toString(i));
+            };
         }));
     }
 
     @Nonnull
     public static final Expression literal(final long i) {
-        return new Expression(TOP.createRenderable(new PrecedenceAwareRenderable() {
-            @Override
-            public Renderer createPrecedenceAwareRenderer(final PrecedenceAwareRendererContext context) {
-                return new Renderer() {
-                    @Override
-                    public void render() {
-                        context.appendText(Long.toString(i));
-                        context.appendText("L");
-                    }
-                };
-            }
+        return new Expression(TOP.createRenderable(context -> {
+            return () -> {
+                context.appendText(Long.toString(i));
+                context.appendText("L");
+            };
         }));
     }
 
     @Nonnull
     public static final Expression literal(final double i) {
-        return new Expression(TOP.createRenderable(new PrecedenceAwareRenderable() {
-            @Override
-            public Renderer createPrecedenceAwareRenderer(final PrecedenceAwareRendererContext context) {
-                return new Renderer() {
-                    @Override
-                    public void render() {
-                        context.appendText(Double.toString(i));
-                    }
-                };
-            }
+        return new Expression(TOP.createRenderable(context -> {
+            return () -> {
+                context.appendText(Double.toString(i));
+            };
         }));
     }
 
     @Nonnull
     public static final Expression literal(final float f) {
-        return new Expression(TOP.createRenderable(new PrecedenceAwareRenderable() {
-            @Override
-            public Renderer createPrecedenceAwareRenderer(final PrecedenceAwareRendererContext context) {
-                return new Renderer() {
-                    @Override
-                    public void render() {
-                        context.appendText(Float.toString(f));
-                        context.appendText("F");
-                    }
-                };
-            }
+        return new Expression(TOP.createRenderable(context -> {
+            return () -> {
+                context.appendText(Float.toString(f));
+                context.appendText("F");
+            };
         }));
     }
 
     @Nonnull
     public static Expression variable(final String name) throws CodeMoldException {
         CodeMold.validateSimpleName(name);
-        return new Expression(TOP.createRenderable(new PrecedenceAwareRenderable() {
-            @Override
-            public Renderer createPrecedenceAwareRenderer(final PrecedenceAwareRendererContext context) {
-                return new Renderer() {
-                    @Override
-                    public void render() {
-                        context.appendText(name);
-                    }
-                };
-            }
+        return new Expression(TOP.createRenderable(context -> {
+            return () -> {
+                context.appendText(name);
+            };
         }));
     }
 
     @Nonnull
     public static Expression staticInvocation(final MethodType method, final List<? extends Expression> arguments) {
-        return new Expression(TOP.createRenderable(new PrecedenceAwareRenderable() {
-            @Override
-            public Renderer createPrecedenceAwareRenderer(final PrecedenceAwareRendererContext context) {
-                return new Renderer() {
-                    @Override
-                    public void render() {
-                        context.appendFreeStandingRenderable(method.definition().parent().rawType());
-                        context.appendFreeStandingRenderable(invocationWithoutReceiver(method, arguments));
-                    }
-                };
-            }
+        return new Expression(TOP.createRenderable(context -> {
+            return () -> {
+                context.appendFreeStandingRenderable(method.definition().parent().rawType());
+                context.appendFreeStandingRenderable(invocationWithoutReceiver(method, arguments));
+            };
         }));
     }
 
 
     @Nonnull
     private static Expression invocationWithoutReceiver(final MethodType method, final List<? extends Expression> arguments) {
-        return new Expression(TOP.createRenderable(new PrecedenceAwareRenderable() {
-            @Override
-            public Renderer createPrecedenceAwareRenderer(final PrecedenceAwareRendererContext context) {
-                return new Renderer() {
-                    @Override
-                    public void render() {
-                        context.appendText(".");
-                        Iterator<? extends AnyType> typeArgumentIterator = method.typeArguments().iterator();
-                        if (typeArgumentIterator.hasNext()) {
-                            context.appendText("<");
-                            context.appendFreeStandingRenderable(typeArgumentIterator.next());
-                            while (typeArgumentIterator.hasNext()) {
-                                context.appendText(", ");
-                                context.appendFreeStandingRenderable(typeArgumentIterator.next());
-                            }
-                            context.appendText(">");
-                        }
-                        context.appendText(method.name());
-                        context.appendText("(");
-                        Iterator<? extends Expression> iterator = arguments.iterator();
-                        if (iterator.hasNext()) {
-                            context.appendFreeStandingRenderable(iterator.next());
-                            while (iterator.hasNext()) {
-                                context.appendText(", ");
-                                context.appendFreeStandingRenderable(iterator.next());
-                            }
-                        }
-                        context.appendText(")");
+        return new Expression(TOP.createRenderable(context -> {
+            return () -> {
+                context.appendText(".");
+                Iterator<? extends AnyType> typeArgumentIterator = method.typeArguments().iterator();
+                if (typeArgumentIterator.hasNext()) {
+                    context.appendText("<");
+                    context.appendFreeStandingRenderable(typeArgumentIterator.next());
+                    while (typeArgumentIterator.hasNext()) {
+                        context.appendText(", ");
+                        context.appendFreeStandingRenderable(typeArgumentIterator.next());
                     }
-                };
-            }
+                    context.appendText(">");
+                }
+                context.appendText(method.name());
+                context.appendText("(");
+                Iterator<? extends Expression> iterator = arguments.iterator();
+                if (iterator.hasNext()) {
+                    context.appendFreeStandingRenderable(iterator.next());
+                    while (iterator.hasNext()) {
+                        context.appendText(", ");
+                        context.appendFreeStandingRenderable(iterator.next());
+                    }
+                }
+                context.appendText(")");
+            };
         }));
     }
 
@@ -355,43 +294,37 @@ public class Expression implements Renderable {
             definition = builder.definition();
         }
 
-        return new Expression(TOP.createRenderable(new PrecedenceAwareRenderable() {
-            @Override
-            public Renderer createPrecedenceAwareRenderer(final PrecedenceAwareRendererContext context) {
-                return new Renderer() {
-                    @Override
-                    public void render() {
-                        Iterator<? extends AnyType> iterator = typeArguments.iterator();
-                        if (iterator.hasNext()) {
-                            context.appendText("<");
-                            context.appendFreeStandingRenderable(iterator.next());
-                            while (iterator.hasNext()) {
-                                context.appendText(", ");
-                                context.appendFreeStandingRenderable(iterator.next());
-                            }
-                            context.appendText(">");
-                        }
-                        context.appendText("new ");
-                        context.appendFreeStandingRenderable(objectType);
-                        if (objectType.isRaw() && !objectType.definition().typeParameters().all().isEmpty() && !asRaw)
-                            context.appendText("<>");
-                        context.appendText("(");
-                        Iterator<? extends Expression> argumentIterator = arguments.iterator();
-                        if (argumentIterator.hasNext()) {
-                            context.appendFreeStandingRenderable(argumentIterator.next());
-                            while (argumentIterator.hasNext()) {
-                                context.appendText(", ");
-                                context.appendFreeStandingRenderable(argumentIterator.next());
-                            }
-                        }
-                        context.appendText(")");
-                        if (definition != null) {
-                            context.appendText(" ");
-                            context.appendFreeStandingRenderable(definition);
-                        }
+        return new Expression(TOP.createRenderable(context1 -> {
+            return () -> {
+                Iterator<? extends AnyType> iterator = typeArguments.iterator();
+                if (iterator.hasNext()) {
+                    context1.appendText("<");
+                    context1.appendFreeStandingRenderable(iterator.next());
+                    while (iterator.hasNext()) {
+                        context1.appendText(", ");
+                        context1.appendFreeStandingRenderable(iterator.next());
                     }
-                };
-            }
+                    context1.appendText(">");
+                }
+                context1.appendText("new ");
+                context1.appendFreeStandingRenderable(objectType);
+                if (objectType.isRaw() && !objectType.definition().typeParameters().all().isEmpty() && !asRaw)
+                    context1.appendText("<>");
+                context1.appendText("(");
+                Iterator<? extends Expression> argumentIterator = arguments.iterator();
+                if (argumentIterator.hasNext()) {
+                    context1.appendFreeStandingRenderable(argumentIterator.next());
+                    while (argumentIterator.hasNext()) {
+                        context1.appendText(", ");
+                        context1.appendFreeStandingRenderable(argumentIterator.next());
+                    }
+                }
+                context1.appendText(")");
+                if (definition != null) {
+                    context1.appendText(" ");
+                    context1.appendFreeStandingRenderable(definition);
+                }
+            };
         }));
     }
 
@@ -454,18 +387,12 @@ public class Expression implements Renderable {
     public Expression instanceofOp(final ObjectType type) throws CodeMoldException {
         if (!type.isRaw())
             throw new CodeMoldException("Only raw object types allowed here");
-        return new Expression(RELATIONAL.createRenderable(new PrecedenceAwareRenderable() {
-            @Override
-            public Renderer createPrecedenceAwareRenderer(final PrecedenceAwareRendererContext context) {
-                return new Renderer() {
-                    @Override
-                    public void render() {
-                        context.appendHigherPrecedenceRenderable(renderable);
-                        context.appendText(" instanceof ");
-                        context.appendFreeStandingRenderable(type);
-                    }
-                };
-            }
+        return new Expression(RELATIONAL.createRenderable(context -> {
+            return () -> {
+                context.appendHigherPrecedenceRenderable(renderable);
+                context.appendText(" instanceof ");
+                context.appendFreeStandingRenderable(type);
+            };
         }));
     }
     @Nonnull
@@ -484,17 +411,11 @@ public class Expression implements Renderable {
 
     @Nonnull
     public final Expression invocation(final MethodType method, final List<? extends Expression> arguments) {
-        return new Expression(TOP.createRenderable(new PrecedenceAwareRenderable() {
-            @Override
-            public Renderer createPrecedenceAwareRenderer(final PrecedenceAwareRendererContext context) {
-                return new Renderer() {
-                    @Override
-                    public void render() {
-                        context.appendSamePrecedenceRenderable(renderable);
-                        context.appendFreeStandingRenderable(invocationWithoutReceiver(method, arguments));
-                    }
-                };
-            }
+        return new Expression(TOP.createRenderable(context -> {
+            return () -> {
+                context.appendSamePrecedenceRenderable(renderable);
+                context.appendFreeStandingRenderable(invocationWithoutReceiver(method, arguments));
+            };
         }));
     }
 

@@ -31,9 +31,9 @@
 package com.github.sviperll.codemold;
 
 import com.github.sviperll.codemold.util.Collections2;
-import com.github.sviperll.codemold.util.Optionality;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.TreeMap;
 import javax.annotation.Nonnull;
 import javax.annotation.ParametersAreNonnullByDefault;
@@ -90,15 +90,15 @@ public abstract class GenericDefinitionBuilder<B extends ResidenceProvider, T ex
         }
 
         @Override
-        public final <T> T get(String name, Optionality<TypeParameter, T> optionality) {
+        public final Optional<TypeParameter>get(String name) {
             TypeParameter result = typeParametersMap.get(name);
             if (result != null)
-                return optionality.present(result);
+                return Optional.of(result);
             else {
                 if (!residence.residence().hasContextDefintion())
-                    return optionality.missing();
+                    return Optional.empty();
                 else {
-                    return residence.residence().getContextDefinition().typeParameters().get(name, optionality);
+                    return residence.residence().getContextDefinition().typeParameters().get(name);
                 }
             }
         }

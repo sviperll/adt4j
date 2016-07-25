@@ -30,13 +30,12 @@
 
 package com.github.sviperll.codemold;
 
-import com.github.sviperll.codemold.render.Renderable;
 import com.github.sviperll.codemold.render.Renderer;
 import com.github.sviperll.codemold.render.RendererContext;
-import com.github.sviperll.codemold.util.Optionality;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Optional;
 import javax.annotation.Nonnull;
 import javax.annotation.ParametersAreNonnullByDefault;
 
@@ -125,20 +124,12 @@ public abstract class ObjectDefinition extends GenericDefinition<ObjectType, Obj
     }
 
     public final boolean extendsOrImplements(ObjectDefinition objectDefinition) {
-        if (this.extendsClass().definition() == objectDefinition
-                || this.extendsClass().definition().extendsOrImplements(objectDefinition))
-            return true;
-        else {
-            for (ObjectType implementedInterface: implementsInterfaces()) {
-                if (implementedInterface.definition() == objectDefinition
-                        || implementedInterface.definition().extendsOrImplements(objectDefinition))
-                    return true;
-            }
-            return false;
-        }
+        return this == objectDefinition
+               || this.extendsClass().definition().extendsOrImplements(objectDefinition)
+               || implementsInterfaces().stream().map(ObjectType::definition).anyMatch(iface -> iface.extendsOrImplements(objectDefinition));
     }
 
-    final <T> T getReference(String relativelyQualifiedName, Optionality<ObjectDefinition, T> optionality) {
+    final Optional<ObjectDefinition> getReference(String relativelyQualifiedName) {
         int index = relativelyQualifiedName.indexOf('.');
         if (index == 0)
             throw new IllegalArgumentException(relativelyQualifiedName + " illegal name");
@@ -147,113 +138,102 @@ public abstract class ObjectDefinition extends GenericDefinition<ObjectType, Obj
         for (ObjectDefinition innerClass: innerClasses()) {
             if (innerClass.simpleTypeName().equals(simpleName)) {
                 if (!needsToGoDeeper)
-                    return optionality.present(innerClass);
+                    return Optional.of(innerClass);
                 else
-                    return innerClass.getReference(relativelyQualifiedName.substring(simpleName.length() + 1), optionality);
+                    return innerClass.getReference(relativelyQualifiedName.substring(simpleName.length() + 1));
             }
         }
-        return optionality.missing();
+        return Optional.empty();
     }
 
     @Override
     public final Renderer createRenderer(final RendererContext context) {
         if (isJavaLangObject())
             throw new IllegalStateException("java.lang.Object class definition is not renderable");
-        return new Renderer() {
-            @Override
-            public void render() {
-                if (!isAnonymous()) {
-                    context.appendRenderable(residence().forObjectKind(kind()));
-                    context.appendWhiteSpace();
-                    if (!kind().implicitlyFinal() && isFinal())
-                        context.appendText("final");
-                    context.appendWhiteSpace();
-                    context.appendRenderable(kind());
-                    context.appendWhiteSpace();
-                    context.appendText(simpleTypeName());
-                    context.appendRenderable(typeParameters());
-                    if (kind().extendsSomeClass() && !extendsClass().isJavaLangObject()) {
-                        context.appendText(" extends ");
-                        context.appendRenderable(extendsClass());
-                    }
-                    if (kind().implementsSomeInterfaces()) {
-                        Iterator<? extends ObjectType> interfaces = implementsInterfaces().iterator();
-                        if (interfaces.hasNext()) {
-                            if (kind().isInterface())
-                                context.appendText(" extends ");
-                            else
-                                context.appendText(" implements ");
-                            ObjectType implementedInterface = interfaces.next();
+        return () -> {
+            if (!isAnonymous()) {
+                context.appendRenderable(residence().forObjectKind(kind()));
+                context.appendWhiteSpace();
+                if (!kind().implicitlyFinal() && isFinal())
+                    context.appendText("final");
+                context.appendWhiteSpace();
+                context.appendRenderable(kind());
+                context.appendWhiteSpace();
+                context.appendText(simpleTypeName());
+                context.appendRenderable(typeParameters());
+                if (kind().extendsSomeClass() && !extendsClass().isJavaLangObject()) {
+                    context.appendText(" extends ");
+                    context.appendRenderable(extendsClass());
+                }
+                if (kind().implementsSomeInterfaces()) {
+                    Iterator<? extends ObjectType> interfaces = implementsInterfaces().iterator();
+                    if (interfaces.hasNext()) {
+                        if (kind().isInterface())
+                            context.appendText(" extends ");
+                        else
+                            context.appendText(" implements ");
+                        ObjectType implementedInterface = interfaces.next();
+                        context.appendRenderable(implementedInterface);
+                        while (interfaces.hasNext()) {
+                            context.appendText(", ");
+                            implementedInterface = interfaces.next();
                             context.appendRenderable(implementedInterface);
-                            while (interfaces.hasNext()) {
-                                context.appendText(", ");
-                                implementedInterface = interfaces.next();
-                                context.appendRenderable(implementedInterface);
-                            }
                         }
                     }
-                    context.appendWhiteSpace();
                 }
-                context.appendText("{");
-                context.appendLineBreak();
-                RendererContext nestedContext = context.indented();
-
-                if (kind().isEnum()) {
-                    Iterator<? extends EnumConstant> iterator = enumConstants().iterator();
-                    nestedContext.appendRenderable(iterator.next().definition());
-                    while (iterator.hasNext()) {
-                        nestedContext.appendText(", ");
-                        nestedContext.appendRenderable(iterator.next().definition());
-                    }
-                    nestedContext.appendText(";");
-                    nestedContext.appendLineBreak();
-                }
-
-                for (ObjectInitializationElement element: staticInitializationElements()) {
-                    nestedContext.appendRenderable(element);
-                }
-
-                for (MethodDefinition method: methods()) {
-                    if (method.isStatic()) {
-                        nestedContext.appendEmptyLine();
-                        nestedContext.appendRenderable(method);
-                    }
-                }
-
-                for (ObjectInitializationElement element: instanceInitializationElements()) {
-                    nestedContext.appendRenderable(element);
-                }
-
-                if (declaresConstructors()) {
-                    for (ConstructorDefinition constructor: constructors()) {
-                        nestedContext.appendEmptyLine();
-                        nestedContext.appendRenderable(constructor);
-                    }
-                }
-
-                for (MethodDefinition method: methods()) {
-                    if (!method.isStatic()) {
-                        nestedContext.appendEmptyLine();
-                        nestedContext.appendRenderable(method);
-                    }
-                }
-
-                for (ObjectDefinition innerClass: innerClasses()) {
-                    if (!innerClass.residence().getNesting().isStatic()) {
-                        nestedContext.appendEmptyLine();
-                        nestedContext.appendRenderable(innerClass);
-                    }
-                }
-
-                for (ObjectDefinition innerClass: innerClasses()) {
-                    if (innerClass.residence().getNesting().isStatic()) {
-                        nestedContext.appendEmptyLine();
-                        nestedContext.appendRenderable(innerClass);
-                    }
-                }
-
-                context.appendText("}");
+                context.appendWhiteSpace();
             }
+            context.appendText("{");
+            context.appendLineBreak();
+            RendererContext nestedContext = context.indented();
+
+            if (kind().isEnum()) {
+                Iterator<? extends EnumConstant> iterator = enumConstants().iterator();
+                nestedContext.appendRenderable(iterator.next().definition());
+                while (iterator.hasNext()) {
+                    nestedContext.appendText(", ");
+                    nestedContext.appendRenderable(iterator.next().definition());
+                }
+                nestedContext.appendText(";");
+                nestedContext.appendLineBreak();
+            }
+
+            staticInitializationElements().stream().forEach((element) -> {
+                nestedContext.appendRenderable(element);
+            });
+
+            methods().stream().filter(MethodDefinition::isStatic).forEach((method) -> {
+                nestedContext.appendEmptyLine();
+                nestedContext.appendRenderable(method);
+            });
+
+            instanceInitializationElements().stream().forEach((element) -> {
+                nestedContext.appendRenderable(element);
+            });
+
+            if (declaresConstructors()) {
+                constructors().stream().forEach((constructor) -> {
+                    nestedContext.appendEmptyLine();
+                    nestedContext.appendRenderable(constructor);
+                });
+            }
+
+            methods().stream().filter(method -> !method.isStatic()).forEach((method) -> {
+                nestedContext.appendEmptyLine();
+                nestedContext.appendRenderable(method);
+            });
+
+            innerClasses().stream().filter(innerClass -> !innerClass.residence().getNesting().isStatic()).forEach((innerClass) -> {
+                nestedContext.appendEmptyLine();
+                nestedContext.appendRenderable(innerClass);
+            });
+
+            innerClasses().stream().filter(innerClass -> innerClass.residence().getNesting().isStatic()).forEach((innerClass) -> {
+                nestedContext.appendEmptyLine();
+                nestedContext.appendRenderable(innerClass);
+            });
+
+            context.appendText("}");
         };
     }
 }

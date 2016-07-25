@@ -46,8 +46,6 @@ import com.github.sviperll.codemold.PackageLevelBuilder;
 import com.github.sviperll.codemold.Types;
 import com.github.sviperll.codemold.VariableDeclaration;
 import com.github.sviperll.codemold.render.RendererContexts;
-import com.github.sviperll.codemold.util.Consumer;
-import com.github.sviperll.codemold.util.OnMissing;
 import java.util.Arrays;
 import java.util.Comparator;
 import static org.junit.Assert.*;
@@ -62,32 +60,29 @@ public class ExpressionContextTest {
     public void smokeAnonymousClass() throws CodeMoldException {
         CodeMold.Builder builder = CodeMold.createBuilder();
         CodeMold codeModel = builder.build();
-        final ObjectType stringType = codeModel.getReference(String.class.getName(), OnMissing.<ObjectDefinition>throwNullPointerException()).rawType();
-        ObjectDefinition comparatorDefinition = codeModel.getReference(Comparator.class.getName(), OnMissing.<ObjectDefinition>throwNullPointerException());
+        ObjectType stringType = codeModel.getReference(String.class.getName()).map(ObjectDefinition::rawType).orElseThrow(() -> new NullPointerException());
+        ObjectDefinition comparatorDefinition = codeModel.getReference(Comparator.class.getName()).orElseThrow(() -> new NullPointerException());
         ObjectType stringComparatorType = comparatorDefinition.rawType().narrow(Arrays.asList(stringType));
 
         Package pkg = codeModel.getPackage("com.github.sviperll.test.generated");
         ClassBuilder<PackageLevelBuilder> testA = pkg.createClass("TestA");
         MethodBuilder method = testA.method("test1");
         BlockBuilder body = method.body();
-        body.variable(stringComparatorType, "comparator", stringComparatorType.instantiation(Expression.emptyList(), body, new Consumer<AnonymousClassBuilder>() {
-            @Override
-            public void accept(AnonymousClassBuilder builder) {
-                try {
-                    MethodBuilder compareMethod = builder.method("compare");
-                    VariableDeclaration a = compareMethod.addParameter(stringType, "a");
-                    VariableDeclaration b = compareMethod.addParameter(stringType, "b");
-                    compareMethod.resultType(Types.intType());
-                    compareMethod.setAccessLevel(MemberAccess.PUBLIC);
-                    MethodType compareToMethod = null;
-                    for (MethodType method: stringType.methods()) {
-                        if (method.name().equals("compareTo"))
-                            compareToMethod = method;
-                    }
-                    compareMethod.body().returnStatement(Expression.variable(a.name()).invocation(compareToMethod, Arrays.asList(Expression.variable(b.name()))));
-                } catch (CodeMoldException ex) {
-                    throw new RuntimeException(ex);
+        body.variable(stringComparatorType, "comparator", stringComparatorType.instantiation(Expression.emptyList(), body, (AnonymousClassBuilder builder1) -> {
+            try {
+                MethodBuilder compareMethod = builder1.method("compare");
+                VariableDeclaration a = compareMethod.addParameter(stringType, "a");
+                VariableDeclaration b = compareMethod.addParameter(stringType, "b");
+                compareMethod.resultType(Types.intType());
+                compareMethod.setAccessLevel(MemberAccess.PUBLIC);
+                MethodType compareToMethod = null;
+                for (MethodType method1 : stringType.methods()) {
+                    if (method1.name().equals("compareTo"))
+                        compareToMethod = method1;
                 }
+                compareMethod.body().returnStatement(Expression.variable(a.name()).invocation(compareToMethod, Arrays.asList(Expression.variable(b.name()))));
+            }catch (CodeMoldException ex) {
+                throw new RuntimeException(ex);
             }
         }));
         String expected =

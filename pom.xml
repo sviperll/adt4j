@@ -12,7 +12,7 @@
     <url>http://maven.apache.org</url>
     <name>adt4j-maven-parent</name>
     <properties>
-        <parent.profile.activate>!java6,!pitest-report,java7,nexus-deploy</parent.profile.activate>
+        <parent.profile.activate>!java6,!pitest-report,java8,nexus-deploy</parent.profile.activate>
         <netbeans.hint.license>BSD3</netbeans.hint.license>
 
         <!--
@@ -74,6 +74,15 @@
     </dependencies>
     <build>
         <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <configuration>
+                    <!-- Explicit version for IDE -->
+                    <source>1.8</source>
+                    <target>1.8</target>
+                </configuration>
+            </plugin>
             <plugin>
                 <groupId>com.github.sviperll</groupId>
                 <artifactId>mustache-maven-plugin</artifactId>
@@ -137,8 +146,6 @@
                     <releaseVersion>${release.version}</releaseVersion>
                     <developmentVersion>${release.version}-successor-SNAPSHOT</developmentVersion>
                     <tagNameFormat>adt4j-@{project.version}</tagNameFormat>
-                    <useReleaseProfile>false</useReleaseProfile>
-                    <arguments>-Pattach-sources,attach-javadocs,sign-artifacts,findbugs-check</arguments>
                     <preparationGoals>-Pcommit-version-infromation clean versioning:update-file verify scm:checkin</preparationGoals>
                 </configuration>
             </plugin>

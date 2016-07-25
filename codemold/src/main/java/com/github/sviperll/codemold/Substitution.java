@@ -31,10 +31,9 @@
 package com.github.sviperll.codemold;
 
 import com.github.sviperll.codemold.util.Collections2;
-import com.github.sviperll.codemold.util.OnMissing;
-import com.github.sviperll.codemold.util.Optionality;
 import com.github.sviperll.codemold.util.Snapshot;
 import java.util.Map;
+import java.util.Optional;
 import javax.annotation.Nonnull;
 import javax.annotation.ParametersAreNonnullByDefault;
 
@@ -54,7 +53,7 @@ abstract class Substitution {
     private Substitution() {
     }
 
-    abstract <T> T get(String name, Optionality<AnyType, T> optionality);
+    abstract Optional<AnyType> get(String name);
 
     @Nonnull
     final Substitution andThen(Substitution that) {
@@ -84,12 +83,8 @@ abstract class Substitution {
             this.map = map;
         }
         @Override
-        <T> T get(String name, Optionality<AnyType, T> optionality) {
-            AnyType value = map.get(name);
-            if (value == null)
-                return optionality.missing();
-            else
-                return optionality.present(value);
+        Optional<AnyType> get(String name) {
+            return Optional.ofNullable(map.get(name));
         }
     }
 
@@ -99,8 +94,8 @@ abstract class Substitution {
         }
 
         @Override
-        <T> T get(String name, Optionality<AnyType, T> optionality) {
-            return optionality.missing();
+        Optional<AnyType> get(String name) {
+            return Optional.empty();
         }
     }
     private static class AndThenSubstitution extends Substitution {
@@ -114,9 +109,9 @@ abstract class Substitution {
         }
 
         @Override
-        <T> T get(String name, Optionality<AnyType, T> optionality) {
-            AnyType value = first.get(name, OnMissing.<AnyType>returnNull());
-            return value != null ? optionality.present(value) : second.get(name, optionality);
+        Optional<AnyType> get(String name) {
+            Optional<AnyType> value = first.get(name);
+            return value.isPresent() ? value : second.get(name);
         }
     }
 }

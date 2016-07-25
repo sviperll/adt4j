@@ -30,8 +30,8 @@
 
 package com.github.sviperll.codemold;
 
-import com.github.sviperll.codemold.util.Consumer;
 import java.util.List;
+import java.util.function.Consumer;
 import javax.annotation.Nonnull;
 import javax.annotation.ParametersAreNonnullByDefault;
 

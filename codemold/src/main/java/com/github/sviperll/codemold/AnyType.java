@@ -34,7 +34,6 @@ import com.github.sviperll.codemold.render.Renderable;
 import com.github.sviperll.codemold.render.Renderer;
 import com.github.sviperll.codemold.render.RendererContext;
 import com.github.sviperll.codemold.util.Collections2;
-import com.github.sviperll.codemold.util.OnMissing;
 import com.github.sviperll.codemold.util.Snapshot;
 import java.util.Collection;
 import java.util.Collections;
@@ -90,7 +89,7 @@ public abstract class AnyType implements Renderable, Type {
     @Nonnull
     AnyType substitute(Substitution environment) {
         if (isTypeVariable()) {
-            return environment.get(getVariableDetails().name(), OnMissing.returnDefault(this));
+            return environment.get(getVariableDetails().name()).orElse(this);
         } else if (isObjectType()) {
             return getObjectDetails().substitute(environment).asAny();
         } else if (isArray()) {
@@ -237,32 +236,30 @@ public abstract class AnyType implements Renderable, Type {
             return Collections.singletonList(this);
         else {
             List<AnyType> result = Collections2.newArrayList();
-            for (ObjectType type: getIntersectionDetails().intersectedTypes())
+            getIntersectionDetails().intersectedTypes().stream().forEach((type) -> {
                 result.add(type.asAny());
+            });
             return Snapshot.of(result);
         }
     }
 
     @Override
     public Renderer createRenderer(final RendererContext context) {
-        return new Renderer() {
-            @Override
-            public void render() {
-                if (isArray()) {
-                    context.appendRenderable(getArrayDetails());
-                } else if (isIntersection()) {
-                    context.appendRenderable(getIntersectionDetails());
-                } else if (isVoid()) {
-                    context.appendText("void");
-                } else if (isPrimitive()) {
-                    context.appendRenderable(getPrimitiveDetails());
-                } else if (isTypeVariable()) {
-                    context.appendRenderable(getVariableDetails());
-                } else if (isWildcard()) {
-                    context.appendRenderable(getWildcardDetails());
-                } else if (isObjectType()) {
-                    context.appendRenderable(getObjectDetails());
-                }
+        return () -> {
+            if (isArray()) {
+                context.appendRenderable(getArrayDetails());
+            } else if (isIntersection()) {
+                context.appendRenderable(getIntersectionDetails());
+            } else if (isVoid()) {
+                context.appendText("void");
+            } else if (isPrimitive()) {
+                context.appendRenderable(getPrimitiveDetails());
+            } else if (isTypeVariable()) {
+                context.appendRenderable(getVariableDetails());
+            } else if (isWildcard()) {
+                context.appendRenderable(getWildcardDetails());
+            } else if (isObjectType()) {
+                context.appendRenderable(getObjectDetails());
             }
         };
     }

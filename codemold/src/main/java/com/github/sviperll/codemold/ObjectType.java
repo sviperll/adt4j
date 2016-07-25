@@ -34,7 +34,6 @@ import com.github.sviperll.codemold.render.Renderable;
 import com.github.sviperll.codemold.render.Renderer;
 import com.github.sviperll.codemold.render.RendererContext;
 import com.github.sviperll.codemold.util.Collections2;
-import com.github.sviperll.codemold.util.Consumer;
 import com.github.sviperll.codemold.util.Snapshot;
 import java.util.Arrays;
 import java.util.Collection;
@@ -42,6 +41,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Consumer;
 import javax.annotation.Nonnull;
 import javax.annotation.ParametersAreNonnullByDefault;
 
@@ -95,19 +95,19 @@ public class ObjectType extends GenericType<ObjectType, ObjectDefinition>
     public final Collection<? extends MethodType> methods() {
         if (methods == null) {
             Map<MethodSignature, MethodType> methodsBuilder = new HashMap<>();
-            for (ObjectType supertype: interfaces()) {
-                for (MethodType method: supertype.methods())
+            interfaces().stream().forEach((supertype) -> {
+                supertype.methods().stream().forEach((method) -> {
                     methodsBuilder.put(method.signature(), method);
-            }
+                });
+            });
             if (!isJavaLangObject()) {
-                for (MethodType method: superClass().methods()) {
+                superClass().methods().stream().forEach((method) -> {
                     methodsBuilder.put(method.signature(), method);
-                }
+                });
             }
-            for (MethodDefinition definition: definition().methods()) {
-                MethodType method = definition.isStatic() ? definition.rawType() : definition.rawType(this);
+            definition().methods().stream().map(definition -> definition.isStatic() ? definition.rawType() : definition.rawType(this)).forEach((method) -> {
                 methodsBuilder.put(method.signature(), method);
-            }
+            });
             methods = Snapshot.of(methodsBuilder);
         }
         return Snapshot.of(methods.values());
@@ -122,17 +122,17 @@ public class ObjectType extends GenericType<ObjectType, ObjectDefinition>
         if (interfaces == null) {
             Map<ObjectDefinition, ObjectType> interfacesBuilder = new HashMap<>();
             if (!isJavaLangObject()) {
-                for (ObjectType iface: superClass().interfaces()) {
+                superClass().interfaces().stream().forEach((iface) -> {
                     interfacesBuilder.put(iface.definition(), iface);
-                }
+                });
             }
-            for (ObjectType declaredInterface: definition().implementsInterfaces()) {
+            definition().implementsInterfaces().forEach(declaredInterface -> {
                 ObjectType iface = declaredInterface.substitute(definitionEnvironment());
                 interfacesBuilder.put(iface.definition(), iface);
-                for (ObjectType subinterface: iface.interfaces()) {
+                iface.interfaces().forEach((subinterface) -> {
                     interfacesBuilder.put(subinterface.definition(), subinterface);
-                }
-            }
+                });
+            });
             interfaces = Snapshot.of(interfacesBuilder);
         }
         return Snapshot.of(interfaces.values());
@@ -165,9 +165,9 @@ public class ObjectType extends GenericType<ObjectType, ObjectDefinition>
                 if (!isJavaLangObject()) {
                     supertypesBuilder.add(superClass());
                 }
-                for (ObjectType iface: definition().implementsInterfaces()) {
+                definition().implementsInterfaces().forEach((iface) -> {
                     supertypesBuilder.add(iface.substitute(definitionEnvironment()));
-                }
+                });
             }
             supertypes = Snapshot.of(supertypesBuilder);
         }
@@ -178,9 +178,9 @@ public class ObjectType extends GenericType<ObjectType, ObjectDefinition>
     public final Collection<? extends ConstructorType> constructors() {
         if (constructors == null) {
             List<ConstructorType> constructorsBuilder = Collections2.newArrayList();
-            for (final ConstructorDefinition definition: definition().constructors()) {
+            definition().constructors().forEach((definition) -> {
                 constructorsBuilder.add(definition.rawType(this));
-            }
+            });
             constructors = Snapshot.of(constructorsBuilder);
         }
         return Snapshot.of(constructors);
@@ -239,23 +239,20 @@ public class ObjectType extends GenericType<ObjectType, ObjectDefinition>
 
     @Override
     public Renderer createRenderer(final RendererContext context) {
-        return new Renderer() {
-            @Override
-            public void render() {
-                if (isRaw())
-                    context.appendQualifiedClassName(definition().qualifiedTypeName());
-                else {
-                    context.appendRenderable(erasure());
-                    Iterator<? extends AnyType> iterator = typeArguments().iterator();
-                    if (iterator.hasNext()) {
-                        context.appendText("<");
+        return () -> {
+            if (isRaw())
+                context.appendQualifiedClassName(definition().qualifiedTypeName());
+            else {
+                context.appendRenderable(erasure());
+                Iterator<? extends AnyType> iterator = typeArguments().iterator();
+                if (iterator.hasNext()) {
+                    context.appendText("<");
+                    context.appendRenderable(iterator.next());
+                    while (iterator.hasNext()) {
+                        context.appendText(", ");
                         context.appendRenderable(iterator.next());
-                        while (iterator.hasNext()) {
-                            context.appendText(", ");
-                            context.appendRenderable(iterator.next());
-                        }
-                        context.appendText(">");
                     }
+                    context.appendText(">");
                 }
             }
         };
