@@ -3,7 +3,7 @@
     <parent>
         <groupId>com.github.sviperll</groupId>
         <artifactId>adt4j-maven-parent</artifactId>
-        <version>3.2-beta1-successor-SNAPSHOT</version>
+        <version>3.2-beta2-successor-SNAPSHOT</version>
     </parent>
     <artifactId>adt4j</artifactId>
     <name>adt4j</name>
@@ -15,7 +15,7 @@
         <dependency>
             <groupId>com.helger</groupId>
             <artifactId>jcodemodel</artifactId>
-            <version>2.8.4</version>
+            <version>2.8.6</version>
         </dependency>
         <dependency>
             <groupId>com.google.code.findbugs</groupId>
