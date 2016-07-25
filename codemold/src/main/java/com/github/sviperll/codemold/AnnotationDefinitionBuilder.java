@@ -30,8 +30,6 @@
 
 package com.github.sviperll.codemold;
 
-import com.github.sviperll.codemold.util.Collections2;
-import com.github.sviperll.codemold.util.Snapshot;
 import java.util.Collections;
 import java.util.List;
 import javax.annotation.ParametersAreNonnullByDefault;

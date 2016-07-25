@@ -87,7 +87,7 @@ public class AnnotationValues {
         return AnyAnnotationValue.of(definition);
     }
 
-    public static AnnotationValue of(Annotation annotation) {
+    public static AnyAnnotationValue of(Annotation annotation) {
         return AnyAnnotationValue.of(annotation);
     }
 
