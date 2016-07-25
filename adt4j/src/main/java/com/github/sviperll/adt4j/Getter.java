@@ -38,7 +38,7 @@ import java.lang.annotation.Target;
 /**
  * Generates getter for specified method argument.
  * <p>
- * For example, <tt>getHead</tt> and <tt>getTail</tt> getters can be used to access sigle-linked list head and tail.
+ * For example, <tt>getHead</tt> and <tt>getTail</tt> getters can be used to access single-linked list head and tail.
  *
  * @author Victor Nazarov &lt;asviraspossible@gmail.com&gt;
  */
