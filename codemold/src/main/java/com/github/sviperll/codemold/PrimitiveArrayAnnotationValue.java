@@ -30,14 +30,19 @@
 
 package com.github.sviperll.codemold;
 
+import com.github.sviperll.codemold.render.Renderable;
+import com.github.sviperll.codemold.render.Renderer;
+import com.github.sviperll.codemold.render.RendererContext;
+import com.github.sviperll.codemold.util.Characters;
 import com.github.sviperll.codemold.util.Snapshot;
+import java.util.Iterator;
 import java.util.List;
 
 /**
  *
  * @author Victor Nazarov &lt;asviraspossible@gmail.com&gt;
  */
-public class PrimitiveArrayAnnotationValue implements AnnotationValue {
+public class PrimitiveArrayAnnotationValue implements AnnotationValue, Renderable {
     static PrimitiveArrayAnnotationValue ofBytes(List<? extends Byte> bytes) {
         return new PrimitiveArrayAnnotationValue(PrimitiveType.BYTE, bytes);
     }
@@ -142,5 +147,34 @@ public class PrimitiveArrayAnnotationValue implements AnnotationValue {
     @Override
     public AnyAnnotationValue asAny() {
         return array.asAny();
+    }
+
+    @Override
+    public Renderer createRenderer(RendererContext context) {
+        return new Renderer() {
+            @Override
+            public void render() {
+                if (elements.size() != 1)
+                    context.appendText("{");
+                Iterator<?> iterator = elements.iterator();
+                if (iterator.hasNext()) {
+                    Object value = iterator.next();
+                    if (value instanceof Character)
+                        context.appendText(Characters.quote((Character)value));
+                    else
+                        context.appendText(value.toString());
+                    while (iterator.hasNext()) {
+                        context.appendText(", ");
+                        value = iterator.next();
+                        if (value instanceof Character)
+                            context.appendText(Characters.quote((Character)value));
+                        else
+                            context.appendText(value.toString());
+                    }
+                }
+                if (elements.size() != 1)
+                    context.appendText("}");
+            }
+        };
     }
 }

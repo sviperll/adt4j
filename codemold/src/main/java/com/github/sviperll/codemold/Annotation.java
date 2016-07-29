@@ -33,6 +33,11 @@ package com.github.sviperll.codemold;
 import com.github.sviperll.codemold.render.Renderable;
 import com.github.sviperll.codemold.render.Renderer;
 import com.github.sviperll.codemold.render.RendererContext;
+import com.github.sviperll.codemold.util.Collections2;
+import com.github.sviperll.codemold.util.Snapshot;
+import java.text.MessageFormat;
+import java.util.Iterator;
+import java.util.Map;
 import javax.annotation.ParametersAreNonnullByDefault;
 
 /**
@@ -41,12 +46,72 @@ import javax.annotation.ParametersAreNonnullByDefault;
  */
 @ParametersAreNonnullByDefault
 public class Annotation implements Renderable {
-    private Annotation() {
+    public static Annotation createInstance(ObjectDefinition definition, AnnotationValue value) {
+        Builder builder = createBuilder(definition);
+        builder.set("value", value);
+        return builder.build();
+    }
 
+    public static Builder createBuilder(ObjectDefinition definition) {
+        return new Builder(definition);
+    }
+
+    private final ObjectDefinition definition;
+    private final Map<? extends String, ? extends AnyAnnotationValue> valueMap;
+
+    private Annotation(ObjectDefinition definition, Map<String, AnyAnnotationValue> valueMap) {
+        this.definition = definition;
+        this.valueMap = Snapshot.of(valueMap);
     }
 
     @Override
     public Renderer createRenderer(RendererContext context) {
-        throw new UnsupportedOperationException("Not supported yet.");
+        return () -> {
+            context.appendText("@");
+            context.appendQualifiedClassName(definition.qualifiedTypeName());
+            if (valueMap.size() == 1 && valueMap.containsKey("value")) {
+                context.appendText("(");
+                context.appendRenderable(valueMap.get("value"));
+                context.appendText(")");
+            } else {
+                Iterator<? extends Map.Entry<? extends String, ? extends AnyAnnotationValue>> iterator;
+                iterator = valueMap.entrySet().iterator();
+                if (iterator.hasNext()) {
+                    context.appendText("(");
+                    Map.Entry<? extends String, ? extends AnyAnnotationValue> entry = iterator.next();
+                    context.appendText(entry.getKey());
+                    context.appendText(" = ");
+                    context.appendRenderable(entry.getValue());
+                    while (iterator.hasNext()) {
+                        context.appendText(", ");
+                        entry = iterator.next();
+                        context.appendText(entry.getKey());
+                        context.appendText(" = ");
+                        context.appendRenderable(entry.getValue());
+                    }
+                    context.appendText(")");
+                }
+            }
+        };
+    }
+
+    public static class Builder {
+
+        private final ObjectDefinition definition;
+        private final Map<String, AnyAnnotationValue> valueMap = Collections2.newTreeMap();
+
+        private Builder(ObjectDefinition definition) {
+            if (!definition.kind().isAnnotation())
+                throw new IllegalArgumentException(MessageFormat.format("{0} definition is not annotation", definition));
+            this.definition = definition;
+        }
+
+        public void set(String name, AnnotationValue value) {
+            valueMap.put(name, value.asAny());
+        }
+
+        public Annotation build() {
+            return new Annotation(definition, valueMap);
+        }
     }
 }

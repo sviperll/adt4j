@@ -34,6 +34,8 @@ import com.github.sviperll.codemold.render.Renderable;
 import com.github.sviperll.codemold.render.Renderer;
 import com.github.sviperll.codemold.render.RendererContext;
 import com.github.sviperll.codemold.util.Snapshot;
+import com.github.sviperll.codemold.util.Strings;
+import java.util.Iterator;
 import java.util.List;
 import javax.annotation.ParametersAreNonnullByDefault;
 
@@ -133,12 +135,89 @@ public abstract class ArrayAnnotationValue implements AnnotationValue, Renderabl
 
     @Override
     public Renderer createRenderer(final RendererContext context) {
-        return new Renderer() {
-            @Override
-            public void render() {
-                throw new UnsupportedOperationException();
+        if (elementKind.isPrimitive())
+            return () -> context.appendRenderable(getPrimitives());
+        else if (elementKind.isAnnotation()) {
+            return new ArrayRenderer<Annotation>(context) {
+                @Override
+                List<? extends Annotation> getList() {
+                    return getAnnotations();
+                }
+                @Override
+                void renderValue(Annotation value) {
+                    context.appendRenderable(value);
+                }
+
+            };
+        } else if (elementKind.isArray()) {
+            throw new IllegalStateException("Arrays of arrays are not supported in annotations");
+        } else if (elementKind.isEnumConstant()) {
+            return new ArrayRenderer<EnumConstant>(context) {
+                @Override
+                List<? extends EnumConstant> getList() {
+                    return getEnumConstants();
+                }
+                @Override
+                void renderValue(EnumConstant value) {
+                    context.appendRenderable(value.enumDefinition().rawType());
+                    context.appendText(".");
+                    context.appendText(value.name());
+                }
+            };
+        } else if (elementKind.isObjectDefinition()) {
+            return new ArrayRenderer<ObjectDefinition>(context) {
+                @Override
+                List<? extends ObjectDefinition> getList() {
+                    return getObjectDefinitions();
+                }
+                @Override
+                void renderValue(ObjectDefinition value) {
+                    context.appendRenderable(value.classLiteral());
+                }
+            };
+        } else if (elementKind.isString()) {
+            return new ArrayRenderer<String>(context) {
+                @Override
+                List<? extends String> getList() {
+                    return getStrings();
+                }
+                @Override
+                void renderValue(String value) {
+                    context.appendText(Strings.quote(value));
+                }
+            };
+        } else
+            throw new UnsupportedOperationException("Unsupported kind " + elementKind);
+    }
+
+    private static abstract class ArrayRenderer<T> implements Renderer {
+
+        private final RendererContext context;
+        ArrayRenderer(RendererContext context) {
+            this.context = context;
+        }
+
+        abstract List<? extends T> getList();
+        abstract void renderValue(T value);
+
+        @Override
+        public void render() {
+            List<? extends T> list = getList();
+            if (list.size() != 1)
+                context.appendText("{");
+            Iterator<? extends T> iterator = list.iterator();
+            if (iterator.hasNext()) {
+                T value = iterator.next();
+                renderValue(value);
+                while (iterator.hasNext()) {
+                    context.appendText(", ");
+                    value = iterator.next();
+                    renderValue(value);
+                }
             }
-        };
+            if (list.size() != 1)
+                context.appendText("}");
+        }
     }
 
     private static class PrimitiveArrayAnnotationValueWrapper extends ArrayAnnotationValue {
