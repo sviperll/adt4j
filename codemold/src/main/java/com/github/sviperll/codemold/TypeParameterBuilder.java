@@ -30,7 +30,7 @@
 
 package com.github.sviperll.codemold;
 
-import com.github.sviperll.codemold.util.Collections2;
+import com.github.sviperll.codemold.util.CMCollections;
 import java.util.Collection;
 import java.util.List;
 import javax.annotation.Nonnull;
@@ -45,13 +45,13 @@ public class TypeParameterBuilder {
     private final BuiltTypeParameter declaration = new BuiltTypeParameter();
     private final GenericDefinition<?, ?> declaredIn;
     private final String name;
-    private final List<ObjectType> bounds = Collections2.newArrayList();
+    private final List<ObjectType> bounds = CMCollections.newArrayList();
     private AnyType effectiveBound;
 
     TypeParameterBuilder(GenericDefinition<?, ?> declaredIn, String name) {
         this.declaredIn = declaredIn;
         this.name = name;
-        effectiveBound = declaredIn.getCodeModel().objectType().asAny();
+        effectiveBound = declaredIn.getCodeMold().objectType().asAny();
     }
 
     @Nonnull

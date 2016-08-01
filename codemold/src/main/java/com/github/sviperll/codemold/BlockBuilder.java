@@ -33,7 +33,7 @@ package com.github.sviperll.codemold;
 import com.github.sviperll.codemold.render.Renderable;
 import com.github.sviperll.codemold.render.Renderer;
 import com.github.sviperll.codemold.render.RendererContext;
-import com.github.sviperll.codemold.util.Collections2;
+import com.github.sviperll.codemold.util.CMCollections;
 import java.util.Iterator;
 import java.util.List;
 import javax.annotation.Nonnull;
@@ -52,7 +52,7 @@ public class BlockBuilder implements Renderable, ExpressionContext {
         return new BlockBuilder(expressionContext, scope, false);
     }
 
-    private final List<Statement> statements = Collections2.newArrayList();
+    private final List<Statement> statements = CMCollections.newArrayList();
     private final ExpressionContextDefinition expressionContext;
     private final VariableScope scope;
     private final boolean braces;

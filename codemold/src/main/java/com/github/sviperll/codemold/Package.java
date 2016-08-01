@@ -114,6 +114,16 @@ public final class Package implements Model {
         return result;
     }
 
+    @Nonnull
+    public AnnotationDefinitionBuilder<PackageLevelBuilder> createAnnotationDefinition(String className) throws CodeMoldException {
+        if (getReference(className).isPresent())
+            throw new CodeMoldException(packageAsNamePrefix() + className + " already defined");
+        PackageLevelBuilder membershipBuilder = new PackageLevelBuilder(this);
+        AnnotationDefinitionBuilder<PackageLevelBuilder> result = new AnnotationDefinitionBuilder<>(membershipBuilder, className);
+        classes.put(className, result.definition());
+        return result;
+    }
+
     Optional<ObjectDefinition> getReference(String relativelyQualifiedName) {
         int index = relativelyQualifiedName.indexOf('.');
         if (index == 0)
@@ -179,7 +189,7 @@ public final class Package implements Model {
     }
 
     @Override
-    public CodeMold getCodeModel() {
+    public CodeMold getCodeMold() {
         return codeModel;
     }
 

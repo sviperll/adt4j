@@ -40,7 +40,7 @@ import java.util.Map;
  *
  * @author Victor Nazarov &lt;asviraspossible@gmail.com&gt;
  */
-public class Collections2 {
+public class CMCollections {
     public static <T> List<T> newArrayList() {
         return new SnapshotableArrayList<>();
     }
@@ -107,6 +107,6 @@ public class Collections2 {
         return Snapshot.markedAsKnownToBeImmutableList(Collections.unmodifiableList(list));
     }
 
-    private Collections2() {
+    private CMCollections() {
     }
 }

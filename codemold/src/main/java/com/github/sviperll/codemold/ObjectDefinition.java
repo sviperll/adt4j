@@ -30,6 +30,7 @@
 
 package com.github.sviperll.codemold;
 
+import com.github.sviperll.codemold.render.Renderable;
 import com.github.sviperll.codemold.render.Renderer;
 import com.github.sviperll.codemold.render.RendererContext;
 import java.util.Collection;
@@ -44,7 +45,9 @@ import javax.annotation.ParametersAreNonnullByDefault;
  * @author Victor Nazarov &lt;asviraspossible@gmail.com&gt;
  */
 @ParametersAreNonnullByDefault
-public abstract class ObjectDefinition extends GenericDefinition<ObjectType, ObjectDefinition> {
+public abstract class ObjectDefinition
+        extends GenericDefinition<ObjectType, ObjectDefinition>
+        implements Annotated {
 
     ObjectDefinition() {
     }
@@ -91,10 +94,10 @@ public abstract class ObjectDefinition extends GenericDefinition<ObjectType, Obj
     public abstract boolean isAnonymous();
 
     @Nonnull
-    abstract List<? extends ObjectInitializationElement> staticInitializationElements();
+    abstract List<? extends Renderable> staticInitializationElements();
 
     @Nonnull
-    abstract List<? extends ObjectInitializationElement> instanceInitializationElements();
+    abstract List<? extends Renderable> instanceInitializationElements();
 
     @Nonnull
     public final String qualifiedTypeName() {
@@ -102,7 +105,7 @@ public abstract class ObjectDefinition extends GenericDefinition<ObjectType, Obj
     }
 
     public final boolean isJavaLangObject() {
-        return this == getCodeModel().objectType().definition();
+        return this == getCodeMold().objectType().definition();
     }
 
     public boolean declaresConstructors() {
@@ -152,6 +155,10 @@ public abstract class ObjectDefinition extends GenericDefinition<ObjectType, Obj
             throw new IllegalStateException("java.lang.Object class definition is not renderable");
         return () -> {
             if (!isAnonymous()) {
+                allAnnotations().forEach(annotation -> {
+                    context.appendRenderable(annotation);
+                    context.appendLineBreak();
+                });
                 context.appendRenderable(residence().forObjectKind(kind()));
                 context.appendWhiteSpace();
                 if (!kind().implicitlyFinal() && isFinal())

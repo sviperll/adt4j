@@ -30,7 +30,6 @@
 
 package com.github.sviperll.codemold;
 
-import javax.annotation.Nonnull;
 import javax.annotation.ParametersAreNonnullByDefault;
 
 /**
@@ -38,7 +37,6 @@ import javax.annotation.ParametersAreNonnullByDefault;
  * @author Victor Nazarov &lt;asviraspossible@gmail.com&gt;
  */
 @ParametersAreNonnullByDefault
-public interface Model {
-    @Nonnull
-    CodeMold getCodeMold();
+public interface CompileTimeValue {
+    AnyCompileTimeValue asAny();
 }

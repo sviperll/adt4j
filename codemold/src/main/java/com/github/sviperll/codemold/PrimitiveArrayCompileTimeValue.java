@@ -42,44 +42,44 @@ import java.util.List;
  *
  * @author Victor Nazarov &lt;asviraspossible@gmail.com&gt;
  */
-public class PrimitiveArrayAnnotationValue implements AnnotationValue, Renderable {
-    static PrimitiveArrayAnnotationValue ofBytes(List<? extends Byte> bytes) {
-        return new PrimitiveArrayAnnotationValue(PrimitiveType.BYTE, bytes);
+public class PrimitiveArrayCompileTimeValue implements CompileTimeValue, Renderable {
+    static PrimitiveArrayCompileTimeValue ofBytes(List<? extends Byte> bytes) {
+        return new PrimitiveArrayCompileTimeValue(PrimitiveType.BYTE, bytes);
     }
 
-    static PrimitiveArrayAnnotationValue ofShorts(List<? extends Short> shorts) {
-        return new PrimitiveArrayAnnotationValue(PrimitiveType.SHORT, shorts);
+    static PrimitiveArrayCompileTimeValue ofShorts(List<? extends Short> shorts) {
+        return new PrimitiveArrayCompileTimeValue(PrimitiveType.SHORT, shorts);
     }
 
-    static PrimitiveArrayAnnotationValue ofIntegers(List<? extends Integer> integes) {
-        return new PrimitiveArrayAnnotationValue(PrimitiveType.INT, integes);
+    static PrimitiveArrayCompileTimeValue ofIntegers(List<? extends Integer> integes) {
+        return new PrimitiveArrayCompileTimeValue(PrimitiveType.INT, integes);
     }
 
-    static PrimitiveArrayAnnotationValue ofLongs(List<? extends Long> longs) {
-        return new PrimitiveArrayAnnotationValue(PrimitiveType.LONG, longs);
+    static PrimitiveArrayCompileTimeValue ofLongs(List<? extends Long> longs) {
+        return new PrimitiveArrayCompileTimeValue(PrimitiveType.LONG, longs);
     }
 
-    static PrimitiveArrayAnnotationValue ofFloats(List<? extends Float> floats) {
-        return new PrimitiveArrayAnnotationValue(PrimitiveType.FLOAT, floats);
+    static PrimitiveArrayCompileTimeValue ofFloats(List<? extends Float> floats) {
+        return new PrimitiveArrayCompileTimeValue(PrimitiveType.FLOAT, floats);
     }
 
-    static PrimitiveArrayAnnotationValue ofDoubles(List<? extends Double> doubles) {
-        return new PrimitiveArrayAnnotationValue(PrimitiveType.DOUBLE, doubles);
+    static PrimitiveArrayCompileTimeValue ofDoubles(List<? extends Double> doubles) {
+        return new PrimitiveArrayCompileTimeValue(PrimitiveType.DOUBLE, doubles);
     }
 
-    static PrimitiveArrayAnnotationValue ofBooleans(List<? extends Boolean> booleans) {
-        return new PrimitiveArrayAnnotationValue(PrimitiveType.BOOLEAN, booleans);
+    static PrimitiveArrayCompileTimeValue ofBooleans(List<? extends Boolean> booleans) {
+        return new PrimitiveArrayCompileTimeValue(PrimitiveType.BOOLEAN, booleans);
     }
 
-    static PrimitiveArrayAnnotationValue ofCharacters(List<? extends Character> characters) {
-        return new PrimitiveArrayAnnotationValue(PrimitiveType.CHAR, characters);
+    static PrimitiveArrayCompileTimeValue ofCharacters(List<? extends Character> characters) {
+        return new PrimitiveArrayCompileTimeValue(PrimitiveType.CHAR, characters);
     }
 
-    private final ArrayAnnotationValue array = ArrayAnnotationValue.wrapPrimitive(this);
+    private final ArrayCompileTimeValue array = ArrayCompileTimeValue.wrapPrimitive(this);
     private final PrimitiveType elementType;
     private final List<?> elements;
 
-    private PrimitiveArrayAnnotationValue(PrimitiveType elementType, List<?> elements) {
+    private PrimitiveArrayCompileTimeValue(PrimitiveType elementType, List<?> elements) {
         this.elementType = elementType;
         this.elements = Snapshot.of(elements);
     }
@@ -145,7 +145,7 @@ public class PrimitiveArrayAnnotationValue implements AnnotationValue, Renderabl
     }
 
     @Override
-    public AnyAnnotationValue asAny() {
+    public AnyCompileTimeValue asAny() {
         return array.asAny();
     }
 

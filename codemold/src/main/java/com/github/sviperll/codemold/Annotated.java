@@ -30,15 +30,15 @@
 
 package com.github.sviperll.codemold;
 
-import javax.annotation.Nonnull;
-import javax.annotation.ParametersAreNonnullByDefault;
+import java.util.Collection;
+import java.util.List;
+import java.util.Optional;
 
 /**
  *
  * @author Victor Nazarov &lt;asviraspossible@gmail.com&gt;
  */
-@ParametersAreNonnullByDefault
-public interface Model {
-    @Nonnull
-    CodeMold getCodeMold();
+public interface Annotated {
+    List<? extends Annotation> getAnnotation(ObjectDefinition definition);
+    Collection<? extends Annotation> allAnnotations();
 }

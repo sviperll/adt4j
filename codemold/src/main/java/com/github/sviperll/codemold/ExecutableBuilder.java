@@ -31,9 +31,12 @@
 package com.github.sviperll.codemold;
 
 import com.github.sviperll.codemold.render.Renderable;
-import com.github.sviperll.codemold.util.Collections2;
+import com.github.sviperll.codemold.util.CMCollections;
 import com.github.sviperll.codemold.util.Snapshot;
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
+import java.util.Optional;
 import javax.annotation.Nonnull;
 import javax.annotation.ParametersAreNonnullByDefault;
 
@@ -45,10 +48,13 @@ import javax.annotation.ParametersAreNonnullByDefault;
  */
 @ParametersAreNonnullByDefault
 public abstract class ExecutableBuilder<T extends ExecutableType<T, D>, D extends ExecutableDefinition<T, D>>
-        extends GenericDefinitionBuilder<NestingBuilder, T, D> {
+        extends GenericDefinitionBuilder<NestingBuilder, T, D>
+        implements AnnotatableBuilder {
+
+    private final AnnotationCollection annotations = new AnnotationCollection();
     private final VariableScope scope = VariableScope.createTopLevel();
-    private final List<VariableDeclaration> parameters = Collections2.newArrayList();
-    private final List<AnyType> throwsList = Collections2.newArrayList();
+    private final List<VariableDeclaration> parameters = CMCollections.newArrayList();
+    private final List<AnyType> throwsList = CMCollections.newArrayList();
     private final NestingBuilder residence;
     private BlockBuilder body = null;
 
@@ -72,7 +78,7 @@ public abstract class ExecutableBuilder<T extends ExecutableType<T, D>, D extend
 
     @Override
     final D createDefinition(TypeParameters typeParameters) {
-        return createDefinition(new BuiltExecutableDefinition(typeParameters));
+        return createDefinition(new BuiltExecutableDefinition(typeParameters, annotations));
     }
 
     @Override
@@ -115,11 +121,23 @@ public abstract class ExecutableBuilder<T extends ExecutableType<T, D>, D extend
         return body;
     }
 
-    private class BuiltExecutableDefinition implements ExecutableDefinition.Implementation<T, D> {
+    @Override
+    public void annotate(Annotation annotation) {
+        annotations.annotate(annotation);
+    }
+
+    public void annotateSuppressWarnings(String... warnings) {
+        annotate(Annotation.createInstance(getCodeMold().getReference(SuppressWarnings.class), CompileTimeValues.ofStrings(Arrays.asList(warnings))));
+    }
+
+    private class BuiltExecutableDefinition
+            implements ExecutableDefinition.Implementation<T, D>, Annotated {
 
         private final TypeParameters typeParameters;
-        BuiltExecutableDefinition(TypeParameters typeParameters) {
+        private final Annotated annotations;
+        BuiltExecutableDefinition(TypeParameters typeParameters, Annotated annotations) {
             this.typeParameters = typeParameters;
+            this.annotations = annotations;
         }
         @Override
         public final List<? extends VariableDeclaration> parameters() {
@@ -146,6 +164,15 @@ public abstract class ExecutableBuilder<T extends ExecutableType<T, D>, D extend
             return typeParameters;
         }
 
+        @Override
+        public List<? extends Annotation> getAnnotation(ObjectDefinition definition) {
+            return annotations.getAnnotation(definition);
+        }
+
+        @Override
+        public Collection<? extends Annotation> allAnnotations() {
+            return annotations.allAnnotations();
+        }
     }
 
     private static class Parameter extends VariableDeclaration {

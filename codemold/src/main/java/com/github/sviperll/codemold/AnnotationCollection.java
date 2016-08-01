@@ -30,7 +30,14 @@
 
 package com.github.sviperll.codemold;
 
-import javax.annotation.Nonnull;
+import com.github.sviperll.codemold.util.CMCollections;
+import com.github.sviperll.codemold.util.CMCollectors;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 import javax.annotation.ParametersAreNonnullByDefault;
 
 /**
@@ -38,7 +45,27 @@ import javax.annotation.ParametersAreNonnullByDefault;
  * @author Victor Nazarov &lt;asviraspossible@gmail.com&gt;
  */
 @ParametersAreNonnullByDefault
-public interface Model {
-    @Nonnull
-    CodeMold getCodeMold();
+class AnnotationCollection implements Annotated {
+    private final Map<String, List<Annotation>> annotationMap = CMCollections.newTreeMap();
+    AnnotationCollection() {
+    }
+
+    public void annotate(Annotation annotation) {
+        String key = annotation.definition().qualifiedTypeName();
+        Optional<List<Annotation>> current = Optional.ofNullable(annotationMap.get(key));
+        List<Annotation> value = current.orElseGet(ArrayList::new);
+        value.add(annotation);
+        if (!current.isPresent())
+            annotationMap.put(key, value);
+    }
+
+    @Override
+    public List<? extends Annotation> getAnnotation(ObjectDefinition definition) {
+        return Optional.ofNullable(annotationMap.get(definition.qualifiedTypeName())).orElseGet(Collections::emptyList);
+    }
+
+    @Override
+    public Collection<? extends Annotation> allAnnotations() {
+        return annotationMap.values().stream().flatMap(List::stream).collect(CMCollectors.toImmutableList());
+    }
 }

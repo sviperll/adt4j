@@ -47,11 +47,11 @@ public final class WildcardType implements Renderable, Type {
     private final AnyType type = AnyType.wrapWildcardType(this);
     private final BoundKind boundKind;
     private final AnyType bound;
-    WildcardType(BoundKind boundKind, AnyType bound) {
-        if (!bound.canBeTypeVariableBound())
-            throw new IllegalArgumentException(bound.kind() + " can't be wildcard bound");
+    WildcardType(BoundKind boundKind, Type bound) {
+        if (!bound.asAny().canBeTypeVariableBound())
+            throw new IllegalArgumentException(bound.asAny().kind() + " can't be wildcard bound");
         this.boundKind = boundKind;
-        this.bound = bound;
+        this.bound = bound.asAny();
     }
 
     @Nonnull

@@ -30,6 +30,9 @@
 
 package com.github.sviperll.codemold;
 
+import java.util.Collection;
+import java.util.List;
+import javax.annotation.Generated;
 import javax.annotation.ParametersAreNonnullByDefault;
 
 /**
@@ -38,8 +41,10 @@ import javax.annotation.ParametersAreNonnullByDefault;
  */
 @ParametersAreNonnullByDefault
 abstract class NamedObjectBuilder<B extends ResidenceProvider, MB extends ExecutableBuilder<MethodType, MethodDefinition>>
-        extends ObjectBuilder<B, MB> {
+        extends ObjectBuilder<B, MB>
+        implements AnnotatableBuilder {
     private final String name;
+    private final AnnotationCollection annotations = new AnnotationCollection();
 
     NamedObjectBuilder(ObjectKind kind, B residence, String name) {
         super(kind, residence);
@@ -76,7 +81,24 @@ abstract class NamedObjectBuilder<B extends ResidenceProvider, MB extends Execut
         return super.nestedEnum(name);
     }
 
-    abstract class BuiltDefinition extends ObjectBuilder<B, MB>.BuiltDefinition {
+    @Override
+    public void annotate(Annotation annotation) {
+        annotations.annotate(annotation);
+    }
+
+    /**
+     * Annotate with @lit{@}Generated annotation
+     * @param generatorName
+     */
+    public void annotateGenerated(String generatorName) {
+        annotations.annotate(Annotation.createInstance(
+                getCodeMold().getReference(Generated.class),
+                CompileTimeValues.of(generatorName)));
+    }
+
+    abstract class BuiltDefinition
+            extends ObjectBuilder<B, MB>.BuiltDefinition
+            implements Annotated {
         BuiltDefinition(TypeParameters typeParameters) {
             super(typeParameters);
         }
@@ -89,6 +111,16 @@ abstract class NamedObjectBuilder<B extends ResidenceProvider, MB extends Execut
         @Override
         public final boolean isAnonymous() {
             return false;
+        }
+
+        @Override
+        public List<? extends Annotation> getAnnotation(ObjectDefinition definition) {
+            return annotations.getAnnotation(definition);
+        }
+
+        @Override
+        public Collection<? extends Annotation> allAnnotations() {
+            return annotations.allAnnotations();
         }
     }
 

@@ -103,17 +103,17 @@ public class Types {
         return new IntersectionType(bounds);
     }
     @Nonnull
-    public static ArrayType arrayOf(AnyType componentType) {
+    public static ArrayType arrayOf(Type componentType) {
         return new ArrayType(componentType);
     }
 
     @Nonnull
-    public static WildcardType wildcardExtends(AnyType bound) {
+    public static WildcardType wildcardExtends(Type bound) {
         return new WildcardType(WildcardType.BoundKind.EXTENDS, bound);
     }
 
     @Nonnull
-    public static WildcardType wildcardSuper(AnyType bound) {
+    public static WildcardType wildcardSuper(Type bound) {
         return new WildcardType(WildcardType.BoundKind.SUPER, bound);
     }
 

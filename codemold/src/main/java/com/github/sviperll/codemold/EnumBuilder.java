@@ -32,7 +32,7 @@ package com.github.sviperll.codemold;
 
 import com.github.sviperll.codemold.render.Renderable;
 import com.github.sviperll.codemold.render.RendererContext;
-import com.github.sviperll.codemold.util.Collections2;
+import com.github.sviperll.codemold.util.CMCollections;
 import com.github.sviperll.codemold.util.Snapshot;
 import java.util.Collections;
 import java.util.Iterator;
@@ -48,7 +48,7 @@ import javax.annotation.ParametersAreNonnullByDefault;
 @ParametersAreNonnullByDefault
 public class EnumBuilder<B extends ResidenceProvider> extends AbstractClassBuilder<B> {
     private static final NoOpConsumer NO_OP_CONSUMER = new NoOpConsumer();
-    private final List<EnumConstant> constants = Collections2.newArrayList();
+    private final List<EnumConstant> constants = CMCollections.newArrayList();
     public EnumBuilder(B residence, String name) {
         super(ObjectKind.ENUM, residence, name);
     }
@@ -92,7 +92,7 @@ public class EnumBuilder<B extends ResidenceProvider> extends AbstractClassBuild
 
         @Override
         public ObjectType extendsClass() {
-            return getCodeModel().objectType();
+            return getCodeMold().objectType();
         }
 
         @Override

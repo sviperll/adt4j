@@ -33,7 +33,7 @@ package com.github.sviperll.codemold;
 import com.github.sviperll.codemold.render.Renderable;
 import com.github.sviperll.codemold.render.Renderer;
 import com.github.sviperll.codemold.render.RendererContext;
-import com.github.sviperll.codemold.util.Collections2;
+import com.github.sviperll.codemold.util.CMCollections;
 import com.github.sviperll.codemold.util.Snapshot;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
@@ -71,7 +71,7 @@ class ReflectedObjectDefinition<T> extends ObjectDefinition {
 
     @Override
     public ObjectKind kind() {
-        if (klass.isInterface()) {
+        if (klass.isInterface() && !klass.isAnnotation()) {
             return ObjectKind.INTERFACE;
         } else if (klass.isEnum()) {
             return ObjectKind.ENUM;
@@ -98,7 +98,7 @@ class ReflectedObjectDefinition<T> extends ObjectDefinition {
     @Override
     public List<? extends ObjectType> implementsInterfaces() {
         if (implementsInterfaces == null) {
-            List<ObjectType> implementsInterfacesBuilder = Collections2.newArrayList();
+            List<ObjectType> implementsInterfacesBuilder = CMCollections.newArrayList();
             for (java.lang.reflect.Type reflectedInterface: klass.getGenericInterfaces()) {
                 implementsInterfacesBuilder.add(codeModel.readReflectedType(reflectedInterface).getObjectDetails());
             }
@@ -110,7 +110,7 @@ class ReflectedObjectDefinition<T> extends ObjectDefinition {
     @Override
     public List<? extends MethodDefinition> methods() {
         if (methods == null) {
-            List<MethodDefinition> methodsBuilder = Collections2.newArrayList();
+            List<MethodDefinition> methodsBuilder = CMCollections.newArrayList();
             for (final Method method: klass.getDeclaredMethods()) {
                 Nesting methodResidence = new ReflectedNesting(method.getModifiers(), this);
                 methodsBuilder.add(ReflectedMethodDefinition.createInstance(codeModel, methodResidence, method));
@@ -123,7 +123,7 @@ class ReflectedObjectDefinition<T> extends ObjectDefinition {
     @Override
     public Collection<? extends ObjectDefinition> innerClasses() {
         if (innerClasses == null) {
-            List<ObjectDefinition> innerClassesBuilder = Collections2.newArrayList();
+            List<ObjectDefinition> innerClassesBuilder = CMCollections.newArrayList();
             for (final Class<?> innerClass: klass.getDeclaredClasses()) {
                 Residence innerClassResidence = new ReflectedNesting(innerClass.getModifiers(), this).residence();
                 innerClassesBuilder.add(new ReflectedObjectDefinition<>(codeModel, innerClassResidence, innerClass));
@@ -149,7 +149,7 @@ class ReflectedObjectDefinition<T> extends ObjectDefinition {
     }
 
     @Override
-    public CodeMold getCodeModel() {
+    public CodeMold getCodeMold() {
         return codeModel;
     }
 
@@ -181,6 +181,16 @@ class ReflectedObjectDefinition<T> extends ObjectDefinition {
     @Override
     public TypeParameters typeParameters() {
         return typeParameters;
+    }
+
+    @Override
+    public List<? extends Annotation> getAnnotation(ObjectDefinition definition) {
+        throw new UnsupportedOperationException("Not supported yet.");
+    }
+
+    @Override
+    public Collection<? extends Annotation> allAnnotations() {
+        throw new UnsupportedOperationException("Not supported yet.");
     }
 
 

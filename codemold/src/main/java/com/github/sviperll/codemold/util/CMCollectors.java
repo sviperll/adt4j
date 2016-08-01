@@ -28,17 +28,22 @@
  *  EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.github.sviperll.codemold;
+package com.github.sviperll.codemold.util;
 
-import javax.annotation.Nonnull;
+import java.util.Collections;
+import java.util.List;
+import java.util.stream.Collector;
+import java.util.stream.Collectors;
 import javax.annotation.ParametersAreNonnullByDefault;
+import javax.annotation.Nonnull;
 
 /**
  *
  * @author Victor Nazarov &lt;asviraspossible@gmail.com&gt;
  */
 @ParametersAreNonnullByDefault
-public interface Model {
-    @Nonnull
-    CodeMold getCodeMold();
+public class CMCollectors {
+    public static <T> Collector<T, ?, List<? extends T>> toImmutableList() {
+        return Collectors.collectingAndThen(Collectors.toList(), l -> Snapshot.markedAsKnownToBeImmutableList(Collections.unmodifiableList(l)));
+    }
 }

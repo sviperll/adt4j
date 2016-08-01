@@ -30,7 +30,7 @@
 
 package com.github.sviperll.codemold;
 
-import com.github.sviperll.codemold.util.Collections2;
+import com.github.sviperll.codemold.util.CMCollections;
 import java.lang.reflect.TypeVariable;
 import java.util.List;
 
@@ -59,11 +59,11 @@ import java.util.List;
         if (bound == null) {
             java.lang.reflect.Type[] reflectedBounds = reflectedTypeParameter.getBounds();
             if (reflectedBounds.length == 1) {
-                bound = declaredIn.getCodeModel().readReflectedType(reflectedBounds[0]);
+                bound = declaredIn.getCodeMold().readReflectedType(reflectedBounds[0]);
             } else {
-                List<ObjectType> bounds = Collections2.newArrayList();
+                List<ObjectType> bounds = CMCollections.newArrayList();
                 for (java.lang.reflect.Type reflectedBound : reflectedBounds) {
-                    ObjectType partialBound = declaredIn.getCodeModel().readReflectedType(reflectedBound).getObjectDetails();
+                    ObjectType partialBound = declaredIn.getCodeMold().readReflectedType(reflectedBound).getObjectDetails();
                     bounds.add(partialBound);
                 }
                 bound = new IntersectionType(bounds).asAny();

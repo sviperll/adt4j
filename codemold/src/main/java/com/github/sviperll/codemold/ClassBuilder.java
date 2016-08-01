@@ -86,7 +86,7 @@ public class ClassBuilder<B extends ResidenceProvider>
 
         @Override
         final public ObjectType extendsClass() {
-            return extendsClass != null ? extendsClass : getCodeModel().objectType();
+            return extendsClass != null ? extendsClass : getCodeMold().objectType();
         }
 
         @Override

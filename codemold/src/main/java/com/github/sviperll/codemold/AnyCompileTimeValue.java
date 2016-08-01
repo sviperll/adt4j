@@ -41,36 +41,36 @@ import javax.annotation.ParametersAreNonnullByDefault;
  * @author Victor Nazarov &lt;asviraspossible@gmail.com&gt;
  */
 @ParametersAreNonnullByDefault
-public abstract class AnyAnnotationValue
-        implements AnnotationValue, Renderable {
+public abstract class AnyCompileTimeValue
+        implements CompileTimeValue, Renderable {
 
-    static AnyAnnotationValue wrapPrimitive(PrimitiveAnnotationValue value) {
+    static AnyCompileTimeValue wrapPrimitive(PrimitiveCompileTimeValue value) {
         return new PrimitiveAnnotationValueWrapper(value);
     }
 
-    static AnyAnnotationValue of(String value) {
+    static AnyCompileTimeValue of(String value) {
         return new StringAnnotationValueWrapper(value);
     }
 
-    static AnyAnnotationValue of(EnumConstant value) {
+    static AnyCompileTimeValue of(EnumConstant value) {
         return new EnumConstantAnnotationValueWrapper(value);
     }
 
-    static AnyAnnotationValue of(ObjectDefinition value) {
+    static AnyCompileTimeValue of(ObjectDefinition value) {
         return new ObjectDefinitionAnnotationValueWrapper(value);
     }
 
-    static AnyAnnotationValue of(Annotation value) {
+    static AnyCompileTimeValue of(Annotation value) {
         return new AnnotationAnnotationValueWrapper(value);
     }
 
-    static AnyAnnotationValue wrapArray(ArrayAnnotationValue value) {
+    static AnyCompileTimeValue wrapArray(ArrayCompileTimeValue value) {
         return new AnyAnnotationValueWrapper(value);
     }
 
     private final Kind kind;
 
-    private AnyAnnotationValue(Kind kind) {
+    private AnyCompileTimeValue(Kind kind) {
         this.kind = kind;
     }
 
@@ -78,7 +78,7 @@ public abstract class AnyAnnotationValue
         return kind;
     }
 
-    public PrimitiveAnnotationValue getPrimitive() {
+    public PrimitiveCompileTimeValue getPrimitive() {
         throw new UnsupportedOperationException("Is not primitive");
     }
 
@@ -98,12 +98,12 @@ public abstract class AnyAnnotationValue
         throw new UnsupportedOperationException("Is not Annotation");
     }
 
-    public ArrayAnnotationValue getArray() {
+    public ArrayCompileTimeValue getArray() {
         throw new UnsupportedOperationException("Is not array");
     }
 
     @Override
-    public AnyAnnotationValue asAny() {
+    public AnyCompileTimeValue asAny() {
         return this;
     }
 
@@ -165,22 +165,22 @@ public abstract class AnyAnnotationValue
         }
     }
 
-    private static class PrimitiveAnnotationValueWrapper extends AnyAnnotationValue {
+    private static class PrimitiveAnnotationValueWrapper extends AnyCompileTimeValue {
 
-        private final PrimitiveAnnotationValue value;
+        private final PrimitiveCompileTimeValue value;
 
-        PrimitiveAnnotationValueWrapper(PrimitiveAnnotationValue value) {
+        PrimitiveAnnotationValueWrapper(PrimitiveCompileTimeValue value) {
             super(Kind.PRIMITIVE);
             this.value = value;
         }
 
         @Override
-        public PrimitiveAnnotationValue getPrimitive() {
+        public PrimitiveCompileTimeValue getPrimitive() {
             return value;
         }
     }
 
-    private static class StringAnnotationValueWrapper extends AnyAnnotationValue {
+    private static class StringAnnotationValueWrapper extends AnyCompileTimeValue {
         private final String value;
 
         public StringAnnotationValueWrapper(String value) {
@@ -194,7 +194,7 @@ public abstract class AnyAnnotationValue
         }
     }
 
-    private static class EnumConstantAnnotationValueWrapper extends AnyAnnotationValue {
+    private static class EnumConstantAnnotationValueWrapper extends AnyCompileTimeValue {
 
         private final EnumConstant value;
 
@@ -208,7 +208,7 @@ public abstract class AnyAnnotationValue
         }
     }
 
-    private static class ObjectDefinitionAnnotationValueWrapper extends AnyAnnotationValue {
+    private static class ObjectDefinitionAnnotationValueWrapper extends AnyCompileTimeValue {
 
         private final ObjectDefinition value;
 
@@ -222,7 +222,7 @@ public abstract class AnyAnnotationValue
         }
     }
 
-    private static class AnnotationAnnotationValueWrapper extends AnyAnnotationValue {
+    private static class AnnotationAnnotationValueWrapper extends AnyCompileTimeValue {
 
         private final Annotation value;
 
@@ -237,17 +237,17 @@ public abstract class AnyAnnotationValue
         }
     }
 
-    private static class AnyAnnotationValueWrapper extends AnyAnnotationValue {
+    private static class AnyAnnotationValueWrapper extends AnyCompileTimeValue {
 
-        private final ArrayAnnotationValue value;
+        private final ArrayCompileTimeValue value;
 
-        public AnyAnnotationValueWrapper(ArrayAnnotationValue value) {
+        public AnyAnnotationValueWrapper(ArrayCompileTimeValue value) {
             super(Kind.ARRAY);
             this.value = value;
         }
 
         @Override
-        public ArrayAnnotationValue getArray() {
+        public ArrayCompileTimeValue getArray() {
             return value;
         }
     }

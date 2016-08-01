@@ -32,6 +32,7 @@ package com.github.sviperll.codemold;
 
 import com.github.sviperll.codemold.render.Renderer;
 import com.github.sviperll.codemold.render.RendererContext;
+import java.util.Collection;
 import javax.annotation.Nonnull;
 import javax.annotation.ParametersAreNonnullByDefault;
 
@@ -40,7 +41,7 @@ import javax.annotation.ParametersAreNonnullByDefault;
  * @author Victor Nazarov &lt;asviraspossible@gmail.com&gt;
  */
 @ParametersAreNonnullByDefault
-public abstract class FieldDeclaration extends VariableDeclaration {
+public abstract class FieldDeclaration extends VariableDeclaration implements Annotated {
     FieldDeclaration() {
     }
 
@@ -62,11 +63,21 @@ public abstract class FieldDeclaration extends VariableDeclaration {
         return new Renderer() {
             @Override
             public void render() {
+                Collection<? extends Annotation> annotations = allAnnotations();
+                if (!annotations.isEmpty())
+                    context.appendEmptyLine();
+                annotations.forEach(annotation -> {
+                    context.appendRenderable(annotation);
+                    context.appendLineBreak();
+                });
                 context.appendRenderable(nesting());
                 context.appendWhiteSpace();
                 simpleRenderer.render();
                 context.appendText(";");
-                context.appendLineBreak();
+                if (annotations.isEmpty())
+                    context.appendLineBreak();
+                else
+                    context.appendEmptyLine();
             }
         };
     }

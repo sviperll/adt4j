@@ -44,8 +44,8 @@ import javax.annotation.ParametersAreNonnullByDefault;
 public class ArrayType implements Renderable, Type {
     private final AnyType type = AnyType.wrapArrayType(this);
     private final AnyType elementType;
-    ArrayType(AnyType elementType) {
-        this.elementType = elementType;
+    ArrayType(Type elementType) {
+        this.elementType = elementType.asAny();
     }
 
     @Nonnull

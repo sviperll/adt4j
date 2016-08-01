@@ -30,7 +30,7 @@
 
 package com.github.sviperll.codemold;
 
-import com.github.sviperll.codemold.util.Collections2;
+import com.github.sviperll.codemold.util.CMCollections;
 import com.github.sviperll.codemold.util.Snapshot;
 import java.util.List;
 import javax.annotation.ParametersAreNonnullByDefault;
@@ -59,7 +59,7 @@ public class MethodType extends ExecutableType<MethodType, MethodDefinition> {
     }
     public final MethodSignature signature() {
         if (signature == null) {
-            List<AnyType> parameterTypes = Collections2.newArrayList();
+            List<AnyType> parameterTypes = CMCollections.newArrayList();
             for (VariableDeclaration declaration: parameters()) {
                 parameterTypes.add(declaration.type().substitute(definitionEnvironment()));
             }

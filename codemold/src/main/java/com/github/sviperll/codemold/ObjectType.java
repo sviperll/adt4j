@@ -33,7 +33,7 @@ package com.github.sviperll.codemold;
 import com.github.sviperll.codemold.render.Renderable;
 import com.github.sviperll.codemold.render.Renderer;
 import com.github.sviperll.codemold.render.RendererContext;
-import com.github.sviperll.codemold.util.Collections2;
+import com.github.sviperll.codemold.util.CMCollections;
 import com.github.sviperll.codemold.util.Snapshot;
 import java.util.Arrays;
 import java.util.Collection;
@@ -158,9 +158,9 @@ public class ObjectType extends GenericType<ObjectType, ObjectDefinition>
      */
     public Collection<? extends ObjectType> supertypes() {
         if (supertypes == null) {
-            List<ObjectType> supertypesBuilder = Collections2.newArrayList();
+            List<ObjectType> supertypesBuilder = CMCollections.newArrayList();
             if (definition().kind().isInterface() && definition().implementsInterfaces().isEmpty()) {
-                supertypesBuilder.add(definition().getCodeModel().objectType());
+                supertypesBuilder.add(definition().getCodeMold().objectType());
             } else {
                 if (!isJavaLangObject()) {
                     supertypesBuilder.add(superClass());
@@ -177,7 +177,7 @@ public class ObjectType extends GenericType<ObjectType, ObjectDefinition>
     @Nonnull
     public final Collection<? extends ConstructorType> constructors() {
         if (constructors == null) {
-            List<ConstructorType> constructorsBuilder = Collections2.newArrayList();
+            List<ConstructorType> constructorsBuilder = CMCollections.newArrayList();
             definition().constructors().forEach((definition) -> {
                 constructorsBuilder.add(definition.rawType(this));
             });

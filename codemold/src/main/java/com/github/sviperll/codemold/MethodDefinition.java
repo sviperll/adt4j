@@ -59,7 +59,7 @@ public abstract class MethodDefinition extends ExecutableDefinition<MethodType, 
     public abstract boolean hasDefaultValue();
 
     @Nonnull
-    public abstract AnyAnnotationValue defaultValue();
+    public abstract AnyCompileTimeValue defaultValue();
 
     @Override
     final MethodType createType(ExecutableType.Implementation<MethodType, MethodDefinition> implementation) {
@@ -76,6 +76,10 @@ public abstract class MethodDefinition extends ExecutableDefinition<MethodType, 
         return new Renderer() {
             @Override
             public void render() {
+                allAnnotations().forEach(annotation -> {
+                    context.appendRenderable(annotation);
+                    context.appendLineBreak();
+                });
                 context.appendRenderable(nesting());
                 context.appendWhiteSpace();
                 if (isFinal()) {

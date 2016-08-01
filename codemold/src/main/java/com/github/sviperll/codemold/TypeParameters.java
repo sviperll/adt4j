@@ -33,7 +33,7 @@ package com.github.sviperll.codemold;
 import com.github.sviperll.codemold.render.Renderable;
 import com.github.sviperll.codemold.render.Renderer;
 import com.github.sviperll.codemold.render.RendererContext;
-import com.github.sviperll.codemold.util.Collections2;
+import com.github.sviperll.codemold.util.CMCollections;
 import com.github.sviperll.codemold.util.Snapshot;
 import java.util.Iterator;
 import java.util.List;
@@ -62,7 +62,7 @@ public abstract class TypeParameters implements Renderable {
     public Optional<TypeParameter> get(String name) {
         if (map == null) {
             List<? extends TypeParameter> all = all();
-            Map<String, TypeParameter> mapBuilder = Collections2.newTreeMap();
+            Map<String, TypeParameter> mapBuilder = CMCollections.newTreeMap();
             all.stream().forEach((typeParameter) -> {
                 mapBuilder.put(typeParameter.name(), typeParameter);
             });
@@ -83,7 +83,7 @@ public abstract class TypeParameters implements Renderable {
     @Nonnull
     final List<? extends AnyType> asInternalTypeArguments() {
         if (asInternalTypeArguments == null) {
-            List<AnyType> internalTypeArgumentsBuilder = Collections2.newArrayList();
+            List<AnyType> internalTypeArgumentsBuilder = CMCollections.newArrayList();
             List<? extends TypeParameter> all = all();
             all.stream().forEach((typeParameter) -> {
                 internalTypeArgumentsBuilder.add(Types.variable(typeParameter.name()).asAny());

@@ -30,9 +30,10 @@
 
 package com.github.sviperll.codemold;
 
-import com.github.sviperll.codemold.util.Collections2;
+import com.github.sviperll.codemold.util.CMCollections;
 import java.lang.reflect.GenericArrayType;
 import java.lang.reflect.ParameterizedType;
+import java.text.MessageFormat;
 import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
@@ -86,12 +87,20 @@ public final class CodeMold {
         return defaultPackage.getReference(qualifiedName);
     }
 
+    public ObjectDefinition getReference(Class<?> klass) {
+        if (klass.isPrimitive() || klass.isArray())
+            throw new IllegalArgumentException(MessageFormat.format("{0} class should be object definition", klass));
+        return defaultPackage.getReference(klass.getName()).orElseThrow(() -> {
+            return new IllegalStateException(MessageFormat.format("{0} class is not accessible as object definition", klass));
+        });
+    }
+
     @Nonnull
     AnyType readReflectedType(java.lang.reflect.Type genericReflectedType) {
         if (genericReflectedType instanceof ParameterizedType) {
             ParameterizedType reflectedType = (ParameterizedType)genericReflectedType;
             ObjectType rawType = readReflectedType(reflectedType.getRawType()).getObjectDetails();
-            List<AnyType> arguments = Collections2.newArrayList();
+            List<AnyType> arguments = CMCollections.newArrayList();
             for (java.lang.reflect.Type reflectedArgumentType: reflectedType.getActualTypeArguments()) {
                 arguments.add(readReflectedType(reflectedArgumentType));
             }

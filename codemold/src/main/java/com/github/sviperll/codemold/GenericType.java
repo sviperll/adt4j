@@ -30,7 +30,7 @@
 
 package com.github.sviperll.codemold;
 
-import com.github.sviperll.codemold.util.Collections2;
+import com.github.sviperll.codemold.util.CMCollections;
 import com.github.sviperll.codemold.util.Snapshot;
 import java.util.Iterator;
 import java.util.List;
@@ -224,7 +224,7 @@ public abstract class GenericType<T extends GenericType<T, D>, D extends Generic
         @Override
         List<? extends AnyType> typeArguments() {
             if (typeArguments == null) {
-                List<AnyType> typeArgumentsBuilder = Collections2.newArrayList();
+                List<AnyType> typeArgumentsBuilder = CMCollections.newArrayList();
                 for (AnyType type: original.typeArguments()) {
                     typeArgumentsBuilder.add(type.substitute(substitution));
                 }
@@ -260,7 +260,7 @@ public abstract class GenericType<T extends GenericType<T, D>, D extends Generic
 
         @Override
         final T narrow(List<? extends Type> typeArguments) {
-            List<AnyType> castedTypeArguments = Collections2.newArrayList();
+            List<AnyType> castedTypeArguments = CMCollections.newArrayList();
             for (Type type: typeArguments) {
                 AnyType anyType = type.asAny();
                 if (!anyType.canBeTypeArgument())
@@ -288,13 +288,13 @@ public abstract class GenericType<T extends GenericType<T, D>, D extends Generic
         @Override
         final List<? extends AnyType> typeArguments() {
             if (typeArguments == null) {
-                List<AnyType> typeArgumentsBuilder = Collections2.newArrayList();
+                List<AnyType> typeArgumentsBuilder = CMCollections.newArrayList();
                 for (TypeParameter typeParameter: definition().typeParameters().all()) {
                     AnyType lowerRawBound;
                     try {
                         lowerRawBound = typeParameter.lowerRawBound();
                     } catch (CodeMoldException ex) {
-                        lowerRawBound = definition().residence().getCodeModel().objectType().asAny();
+                        lowerRawBound = definition().residence().getCodeMold().objectType().asAny();
                     }
                     typeArgumentsBuilder.add(lowerRawBound);
                 }

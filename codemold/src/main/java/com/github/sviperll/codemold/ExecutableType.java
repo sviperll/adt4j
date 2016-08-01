@@ -30,7 +30,7 @@
 
 package com.github.sviperll.codemold;
 
-import com.github.sviperll.codemold.util.Collections2;
+import com.github.sviperll.codemold.util.CMCollections;
 import com.github.sviperll.codemold.util.Snapshot;
 import java.util.Collection;
 import java.util.List;
@@ -55,7 +55,7 @@ public abstract class ExecutableType<T extends ExecutableType<T, D>, D extends E
 
     public List<? extends VariableDeclaration> parameters() {
         if (parameters == null) {
-            List<VariableDeclaration> parametersBuilder = Collections2.newArrayList();
+            List<VariableDeclaration> parametersBuilder = CMCollections.newArrayList();
             for (VariableDeclaration declaration: definition().parameters()) {
                 parametersBuilder.add(declaration.substitute(definitionEnvironment()));
             }
@@ -66,7 +66,7 @@ public abstract class ExecutableType<T extends ExecutableType<T, D>, D extends E
 
     public Collection<? extends AnyType> throwsList() {
         if (throwsList == null) {
-            List<AnyType> throwsListBuilder = Collections2.newArrayList();
+            List<AnyType> throwsListBuilder = CMCollections.newArrayList();
             for (AnyType type: definition().throwsList()) {
                 throwsListBuilder.add(type.substitute(definitionEnvironment()));
             }

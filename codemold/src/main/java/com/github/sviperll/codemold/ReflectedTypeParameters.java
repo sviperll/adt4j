@@ -30,7 +30,7 @@
 
 package com.github.sviperll.codemold;
 
-import com.github.sviperll.codemold.util.Collections2;
+import com.github.sviperll.codemold.util.CMCollections;
 import com.github.sviperll.codemold.util.Snapshot;
 import java.lang.reflect.TypeVariable;
 import java.util.List;
@@ -53,7 +53,7 @@ class ReflectedTypeParameters<T extends java.lang.reflect.GenericDeclaration> ex
     @Override
     public List<? extends TypeParameter> all() {
         if (allTypeParameters == null) {
-            List<TypeParameter> allTypeParametersBuilder = Collections2.newArrayList();
+            List<TypeParameter> allTypeParametersBuilder = CMCollections.newArrayList();
             for (final TypeVariable<T> reflectedTypeParameter : reflectedTypeParameters) {
                 TypeParameter parameter = new ReflectedTypeParameter<>(definition, reflectedTypeParameter);
                 allTypeParametersBuilder.add(parameter);

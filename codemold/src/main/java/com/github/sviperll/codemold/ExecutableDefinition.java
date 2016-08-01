@@ -31,7 +31,9 @@
 package com.github.sviperll.codemold;
 
 import com.github.sviperll.codemold.render.Renderable;
+import java.util.Collection;
 import java.util.List;
+import java.util.Optional;
 import javax.annotation.Nonnull;
 import javax.annotation.ParametersAreNonnullByDefault;
 
@@ -43,7 +45,8 @@ import javax.annotation.ParametersAreNonnullByDefault;
  */
 @ParametersAreNonnullByDefault
 public abstract class ExecutableDefinition<T extends ExecutableType<T, D>, D extends ExecutableDefinition<T, D>>
-        extends GenericDefinition<T, D> {
+        extends GenericDefinition<T, D>
+        implements Annotated {
 
     private final Implementation<T, D> implementation;
     ExecutableDefinition(Implementation<T, D> implementation) {
@@ -75,9 +78,8 @@ public abstract class ExecutableDefinition<T extends ExecutableType<T, D>, D ext
         return nesting().residence();
     }
 
-    @Override
-    public final CodeMold getCodeModel() {
-        return residence().getCodeModel();
+    public final CodeMold getCodeMold() {
+        return residence().getCodeMold();
     }
 
     @Nonnull
@@ -99,7 +101,18 @@ public abstract class ExecutableDefinition<T extends ExecutableType<T, D>, D ext
         return nesting().parent();
     }
 
-    interface Implementation<T extends ExecutableType<T, D>, D extends ExecutableDefinition<T, D>> {
+    @Override
+    public List<? extends Annotation> getAnnotation(ObjectDefinition definition) {
+        return implementation.getAnnotation(definition);
+    }
+
+    @Override
+    public Collection<? extends Annotation> allAnnotations() {
+        return implementation.allAnnotations();
+    }
+
+    interface Implementation<T extends ExecutableType<T, D>, D extends ExecutableDefinition<T, D>>
+            extends Annotated {
 
         @Nonnull
         TypeParameters typeParameters();

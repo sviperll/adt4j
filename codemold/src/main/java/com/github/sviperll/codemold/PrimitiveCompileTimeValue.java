@@ -41,45 +41,45 @@ import javax.annotation.ParametersAreNonnullByDefault;
  * @author Victor Nazarov &lt;asviraspossible@gmail.com&gt;
  */
 @ParametersAreNonnullByDefault
-public class PrimitiveAnnotationValue implements AnnotationValue, Renderable {
+public class PrimitiveCompileTimeValue implements CompileTimeValue, Renderable {
 
-    public static PrimitiveAnnotationValue of(byte value) {
-        return new PrimitiveAnnotationValue(PrimitiveType.BYTE, value);
+    public static PrimitiveCompileTimeValue of(byte value) {
+        return new PrimitiveCompileTimeValue(PrimitiveType.BYTE, value);
     }
 
-    public static PrimitiveAnnotationValue of(short value) {
-        return new PrimitiveAnnotationValue(PrimitiveType.SHORT, value);
+    public static PrimitiveCompileTimeValue of(short value) {
+        return new PrimitiveCompileTimeValue(PrimitiveType.SHORT, value);
     }
 
-    public static PrimitiveAnnotationValue of(int value) {
-        return new PrimitiveAnnotationValue(PrimitiveType.INT, value);
+    public static PrimitiveCompileTimeValue of(int value) {
+        return new PrimitiveCompileTimeValue(PrimitiveType.INT, value);
     }
 
-    public static PrimitiveAnnotationValue of(long value) {
-        return new PrimitiveAnnotationValue(PrimitiveType.LONG, value);
+    public static PrimitiveCompileTimeValue of(long value) {
+        return new PrimitiveCompileTimeValue(PrimitiveType.LONG, value);
     }
 
-    public static PrimitiveAnnotationValue of(float value) {
-        return new PrimitiveAnnotationValue(PrimitiveType.FLOAT, value);
+    public static PrimitiveCompileTimeValue of(float value) {
+        return new PrimitiveCompileTimeValue(PrimitiveType.FLOAT, value);
     }
 
-    public static PrimitiveAnnotationValue of(double value) {
-        return new PrimitiveAnnotationValue(PrimitiveType.DOUBLE, value);
+    public static PrimitiveCompileTimeValue of(double value) {
+        return new PrimitiveCompileTimeValue(PrimitiveType.DOUBLE, value);
     }
 
-    public static PrimitiveAnnotationValue of(char value) {
-        return new PrimitiveAnnotationValue(PrimitiveType.CHAR, value);
+    public static PrimitiveCompileTimeValue of(char value) {
+        return new PrimitiveCompileTimeValue(PrimitiveType.CHAR, value);
     }
 
-    public static PrimitiveAnnotationValue of(boolean value) {
-        return new PrimitiveAnnotationValue(PrimitiveType.BOOLEAN, value);
+    public static PrimitiveCompileTimeValue of(boolean value) {
+        return new PrimitiveCompileTimeValue(PrimitiveType.BOOLEAN, value);
     }
 
-    private final AnyAnnotationValue any = AnyAnnotationValue.wrapPrimitive(this);
+    private final AnyCompileTimeValue any = AnyCompileTimeValue.wrapPrimitive(this);
     private final PrimitiveType type;
     private final Object value;
 
-    private PrimitiveAnnotationValue(PrimitiveType type, Object value) {
+    private PrimitiveCompileTimeValue(PrimitiveType type, Object value) {
         this.type = type;
         this.value = value;
     }
@@ -137,7 +137,7 @@ public class PrimitiveAnnotationValue implements AnnotationValue, Renderable {
     }
 
     @Override
-    public AnyAnnotationValue asAny() {
+    public AnyCompileTimeValue asAny() {
         return any;
     }
 

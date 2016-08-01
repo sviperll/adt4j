@@ -31,12 +31,12 @@
 package com.github.sviperll.codemold;
 
 import javax.annotation.ParametersAreNonnullByDefault;
+import javax.annotation.Nonnull;
 
 /**
  *
  * @author Victor Nazarov &lt;asviraspossible@gmail.com&gt;
  */
-@ParametersAreNonnullByDefault
-public interface AnnotationValue {
-    AnyAnnotationValue asAny();
+public interface AnnotatableBuilder {
+    void annotate(Annotation annotation);
 }

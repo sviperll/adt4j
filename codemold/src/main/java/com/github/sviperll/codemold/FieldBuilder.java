@@ -31,6 +31,10 @@
 package com.github.sviperll.codemold;
 
 import com.github.sviperll.codemold.render.Renderable;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.List;
+import java.util.Optional;
 import javax.annotation.Nonnull;
 import javax.annotation.ParametersAreNonnullByDefault;
 
@@ -39,8 +43,9 @@ import javax.annotation.ParametersAreNonnullByDefault;
  * @author Victor Nazarov &lt;asviraspossible@gmail.com&gt;
  */
 @ParametersAreNonnullByDefault
-public class FieldBuilder implements ExpressionContext {
+public class FieldBuilder implements ExpressionContext, AnnotatableBuilder, Model {
 
+    private final AnnotationCollection annotations = new AnnotationCollection();
     private final FieldDeclaration declaration = new BuiltFieldDeclaration();
     private final NestingBuilder residence;
     private final AnyType type;
@@ -59,8 +64,24 @@ public class FieldBuilder implements ExpressionContext {
         this.name = name;
     }
 
+    @Override
+    public CodeMold getCodeMold() {
+        return residence.residence().getCodeMold();
+    }
+
     public void setAccessLevel(MemberAccess accessLevel) {
         residence.setAccessLevel(accessLevel);
+    }
+
+    @Override
+    public void annotate(Annotation annotation) {
+        annotations.annotate(annotation);
+    }
+
+    public void annotateSuppressWarnings(String... warnings) {
+        annotate(Annotation.createInstance(
+                getCodeMold().getReference(SuppressWarnings.class),
+                CompileTimeValues.ofStrings(Arrays.asList(warnings))));
     }
 
     @Nonnull
@@ -118,6 +139,16 @@ public class FieldBuilder implements ExpressionContext {
                 throw new UnsupportedOperationException("Field is not initialized. Use isInitialized method for check");
             else
                 return initializer;
+        }
+
+        @Override
+        public List<? extends Annotation> getAnnotation(ObjectDefinition definition) {
+            return annotations.getAnnotation(definition);
+        }
+
+        @Override
+        public Collection<? extends Annotation> allAnnotations() {
+            return annotations.allAnnotations();
         }
     }
 }

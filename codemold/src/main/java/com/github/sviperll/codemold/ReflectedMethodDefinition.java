@@ -33,12 +33,14 @@ package com.github.sviperll.codemold;
 import com.github.sviperll.codemold.render.Renderable;
 import com.github.sviperll.codemold.render.Renderer;
 import com.github.sviperll.codemold.render.RendererContext;
-import com.github.sviperll.codemold.util.Collections2;
+import com.github.sviperll.codemold.util.CMCollections;
 import com.github.sviperll.codemold.util.Snapshot;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.lang.reflect.Parameter;
+import java.util.Collection;
 import java.util.List;
+import java.util.Optional;
 
 /**
  *
@@ -89,11 +91,11 @@ import java.util.List;
     }
 
     @Override
-    public AnyAnnotationValue defaultValue() {
+    public AnyCompileTimeValue defaultValue() {
         if (!hasDefaultValue()) {
             throw new UnsupportedOperationException("No default value");
         }
-        return AnnotationValues.ofObject(method.getDefaultValue());
+        return CompileTimeValues.ofObject(method.getDefaultValue());
     }
 
     private static class ReflectedExecutableDefinitionImplementation implements ExecutableDefinition.Implementation<MethodType, MethodDefinition> {
@@ -127,7 +129,7 @@ import java.util.List;
         @Override
         public List<? extends VariableDeclaration> parameters() {
             if (parameters == null) {
-                List<VariableDeclaration> parametersBuilder = Collections2.newArrayList();
+                List<VariableDeclaration> parametersBuilder = CMCollections.newArrayList();
                 Parameter[] reflectedParameters = method.getParameters();
                 for (Parameter parameter : reflectedParameters) {
                     parametersBuilder.add(new ReflectedParameter(codeModel, parameter));
@@ -140,7 +142,7 @@ import java.util.List;
         @Override
         public List<? extends AnyType> throwsList() {
             if (throwsList == null) {
-                List<AnyType> throwsListBuilder = Collections2.newArrayList();
+                List<AnyType> throwsListBuilder = CMCollections.newArrayList();
                 for (java.lang.reflect.Type exceptionType : method.getGenericExceptionTypes()) {
                     throwsListBuilder.add(codeModel.readReflectedType(exceptionType));
                 }
@@ -157,6 +159,16 @@ import java.util.List;
         @Override
         public Nesting nesting() {
             return nesting;
+        }
+
+        @Override
+        public List<? extends Annotation> getAnnotation(ObjectDefinition definition) {
+            throw new UnsupportedOperationException("Not supported yet.");
+        }
+
+        @Override
+        public Collection<? extends Annotation> allAnnotations() {
+            throw new UnsupportedOperationException("Not supported yet.");
         }
     }
 

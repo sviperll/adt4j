@@ -30,15 +30,44 @@
 
 package com.github.sviperll.codemold;
 
-import javax.annotation.Nonnull;
 import javax.annotation.ParametersAreNonnullByDefault;
+import javax.annotation.Nonnull;
 
 /**
  *
  * @author Victor Nazarov &lt;asviraspossible@gmail.com&gt;
  */
 @ParametersAreNonnullByDefault
-public interface Model {
-    @Nonnull
-    CodeMold getCodeMold();
+public abstract class CallableDefinitionBuilder extends ExecutableBuilder<MethodType, MethodDefinition> {
+    private final String name;
+    private AnyType resultType = AnyType.voidType();
+
+    CallableDefinitionBuilder(NestingBuilder residence, String name) {
+        super(residence);
+        this.name = name;
+    }
+
+    public void resultType(Type resultType) {
+        AnyType type = resultType.asAny();
+        if (!type.canBeMethodResult())
+            throw new IllegalArgumentException(type.kind() + " is not allowed here");
+        this.resultType = type;
+    }
+
+    abstract class BuiltDefinition extends MethodDefinition {
+        BuiltDefinition(ExecutableDefinition.Implementation<MethodType, MethodDefinition> implementation) {
+            super(implementation);
+        }
+
+        @Override
+        public String name() {
+            return name;
+        }
+
+        @Override
+        public AnyType returnType() {
+            return resultType;
+        }
+
+    }
 }

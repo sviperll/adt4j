@@ -44,71 +44,71 @@ import javax.annotation.ParametersAreNonnullByDefault;
  * @author Victor Nazarov &lt;asviraspossible@gmail.com&gt;
  */
 @ParametersAreNonnullByDefault
-public abstract class ArrayAnnotationValue implements AnnotationValue, Renderable {
-    static PrimitiveArrayAnnotationValue ofBytes(List<? extends Byte> bytes) {
-        return PrimitiveArrayAnnotationValue.ofBytes(bytes);
+public abstract class ArrayCompileTimeValue implements CompileTimeValue, Renderable {
+    static PrimitiveArrayCompileTimeValue ofBytes(List<? extends Byte> bytes) {
+        return PrimitiveArrayCompileTimeValue.ofBytes(bytes);
     }
 
-    static PrimitiveArrayAnnotationValue ofShorts(List<? extends Short> shorts) {
-        return PrimitiveArrayAnnotationValue.ofShorts(shorts);
+    static PrimitiveArrayCompileTimeValue ofShorts(List<? extends Short> shorts) {
+        return PrimitiveArrayCompileTimeValue.ofShorts(shorts);
     }
 
-    static PrimitiveArrayAnnotationValue ofIntegers(List<? extends Integer> integes) {
-        return PrimitiveArrayAnnotationValue.ofIntegers(integes);
+    static PrimitiveArrayCompileTimeValue ofIntegers(List<? extends Integer> integes) {
+        return PrimitiveArrayCompileTimeValue.ofIntegers(integes);
     }
 
-    static PrimitiveArrayAnnotationValue ofLongs(List<? extends Long> longs) {
-        return PrimitiveArrayAnnotationValue.ofLongs(longs);
+    static PrimitiveArrayCompileTimeValue ofLongs(List<? extends Long> longs) {
+        return PrimitiveArrayCompileTimeValue.ofLongs(longs);
     }
 
-    static PrimitiveArrayAnnotationValue ofFloats(List<? extends Float> floats) {
-        return PrimitiveArrayAnnotationValue.ofFloats(floats);
+    static PrimitiveArrayCompileTimeValue ofFloats(List<? extends Float> floats) {
+        return PrimitiveArrayCompileTimeValue.ofFloats(floats);
     }
 
-    static PrimitiveArrayAnnotationValue ofDoubles(List<? extends Double> doubles) {
-        return PrimitiveArrayAnnotationValue.ofDoubles(doubles);
+    static PrimitiveArrayCompileTimeValue ofDoubles(List<? extends Double> doubles) {
+        return PrimitiveArrayCompileTimeValue.ofDoubles(doubles);
     }
 
-    static PrimitiveArrayAnnotationValue ofBooleans(List<? extends Boolean> booleans) {
-        return PrimitiveArrayAnnotationValue.ofBooleans(booleans);
+    static PrimitiveArrayCompileTimeValue ofBooleans(List<? extends Boolean> booleans) {
+        return PrimitiveArrayCompileTimeValue.ofBooleans(booleans);
     }
 
-    static PrimitiveArrayAnnotationValue ofCharacters(List<? extends Character> characters) {
-        return PrimitiveArrayAnnotationValue.ofCharacters(characters);
+    static PrimitiveArrayCompileTimeValue ofCharacters(List<? extends Character> characters) {
+        return PrimitiveArrayCompileTimeValue.ofCharacters(characters);
     }
 
-    static ArrayAnnotationValue ofStrings(List<? extends String> strings) {
+    static ArrayCompileTimeValue ofStrings(List<? extends String> strings) {
         return new StringArrayAnnotationValueWrappper(strings);
     }
 
-    static ArrayAnnotationValue ofEnumConstants(List<? extends EnumConstant> enumConstants) {
+    static ArrayCompileTimeValue ofEnumConstants(List<? extends EnumConstant> enumConstants) {
         return new EnumConstantArrayAnnotationValueWrappper(enumConstants);
     }
 
-    static ArrayAnnotationValue ofObjectDefinitions(List<? extends ObjectDefinition> objectDefinitions) {
+    static ArrayCompileTimeValue ofObjectDefinitions(List<? extends ObjectDefinition> objectDefinitions) {
         return new ObjectDefinitionArrayAnnotationValueWrappper(objectDefinitions);
     }
 
-    static ArrayAnnotationValue ofAnnotations(List<? extends Annotation> annotations) {
+    static ArrayCompileTimeValue ofAnnotations(List<? extends Annotation> annotations) {
         return new AnnotationArrayAnnotationValueWrappper(annotations);
     }
 
-    static ArrayAnnotationValue wrapPrimitive(PrimitiveArrayAnnotationValue value) {
+    static ArrayCompileTimeValue wrapPrimitive(PrimitiveArrayCompileTimeValue value) {
         return new PrimitiveArrayAnnotationValueWrapper(value);
     }
 
-    private final AnyAnnotationValue any = AnyAnnotationValue.wrapArray(this);
-    private final AnyAnnotationValue.Kind elementKind;
+    private final AnyCompileTimeValue any = AnyCompileTimeValue.wrapArray(this);
+    private final AnyCompileTimeValue.Kind elementKind;
 
-    private ArrayAnnotationValue(AnyAnnotationValue.Kind elementKind) {
+    private ArrayCompileTimeValue(AnyCompileTimeValue.Kind elementKind) {
         this.elementKind = elementKind;
     }
 
-    public AnyAnnotationValue.Kind elementKind() {
+    public AnyCompileTimeValue.Kind elementKind() {
         return elementKind;
     }
 
-    public PrimitiveArrayAnnotationValue getPrimitives() {
+    public PrimitiveArrayCompileTimeValue getPrimitives() {
         throw new UnsupportedOperationException("Is not primitive");
     }
 
@@ -129,7 +129,7 @@ public abstract class ArrayAnnotationValue implements AnnotationValue, Renderabl
     }
 
     @Override
-    public AnyAnnotationValue asAny() {
+    public AnyCompileTimeValue asAny() {
         return any;
     }
 
@@ -220,27 +220,27 @@ public abstract class ArrayAnnotationValue implements AnnotationValue, Renderabl
         }
     }
 
-    private static class PrimitiveArrayAnnotationValueWrapper extends ArrayAnnotationValue {
+    private static class PrimitiveArrayAnnotationValueWrapper extends ArrayCompileTimeValue {
 
-        private final PrimitiveArrayAnnotationValue value;
+        private final PrimitiveArrayCompileTimeValue value;
 
-        public PrimitiveArrayAnnotationValueWrapper(PrimitiveArrayAnnotationValue value) {
-            super(AnyAnnotationValue.Kind.PRIMITIVE);
+        public PrimitiveArrayAnnotationValueWrapper(PrimitiveArrayCompileTimeValue value) {
+            super(AnyCompileTimeValue.Kind.PRIMITIVE);
             this.value = value;
         }
 
         @Override
-        public PrimitiveArrayAnnotationValue getPrimitives() {
+        public PrimitiveArrayCompileTimeValue getPrimitives() {
             return value;
         }
     }
 
-    private static class StringArrayAnnotationValueWrappper extends ArrayAnnotationValue {
+    private static class StringArrayAnnotationValueWrappper extends ArrayCompileTimeValue {
 
         private final List<? extends String> strings;
 
         public StringArrayAnnotationValueWrappper(List<? extends String> strings) {
-            super(AnyAnnotationValue.Kind.STRING);
+            super(AnyCompileTimeValue.Kind.STRING);
             this.strings = Snapshot.of(strings);
         }
 
@@ -250,12 +250,12 @@ public abstract class ArrayAnnotationValue implements AnnotationValue, Renderabl
         }
     }
 
-    private static class EnumConstantArrayAnnotationValueWrappper extends ArrayAnnotationValue {
+    private static class EnumConstantArrayAnnotationValueWrappper extends ArrayCompileTimeValue {
 
         private final List<? extends EnumConstant> enumConstants;
 
         public EnumConstantArrayAnnotationValueWrappper(List<? extends EnumConstant> enumConstants) {
-            super(AnyAnnotationValue.Kind.ENUM_CONSTANT);
+            super(AnyCompileTimeValue.Kind.ENUM_CONSTANT);
             this.enumConstants = Snapshot.of(enumConstants);
         }
 
@@ -265,12 +265,12 @@ public abstract class ArrayAnnotationValue implements AnnotationValue, Renderabl
         }
     }
 
-    private static class ObjectDefinitionArrayAnnotationValueWrappper extends ArrayAnnotationValue {
+    private static class ObjectDefinitionArrayAnnotationValueWrappper extends ArrayCompileTimeValue {
 
         private final List<? extends ObjectDefinition> objectDefinitions;
 
         public ObjectDefinitionArrayAnnotationValueWrappper(List<? extends ObjectDefinition> objectDefinitions) {
-            super(AnyAnnotationValue.Kind.OBJECT_DEFINITION);
+            super(AnyCompileTimeValue.Kind.OBJECT_DEFINITION);
             this.objectDefinitions = Snapshot.of(objectDefinitions);
         }
 
@@ -280,12 +280,12 @@ public abstract class ArrayAnnotationValue implements AnnotationValue, Renderabl
         }
     }
 
-    private static class AnnotationArrayAnnotationValueWrappper extends ArrayAnnotationValue {
+    private static class AnnotationArrayAnnotationValueWrappper extends ArrayCompileTimeValue {
 
         private final List<? extends Annotation> annotations;
 
         public AnnotationArrayAnnotationValueWrappper(List<? extends Annotation> annotations) {
-            super(AnyAnnotationValue.Kind.ANNOTATION);
+            super(AnyCompileTimeValue.Kind.ANNOTATION);
             this.annotations = Snapshot.of(annotations);
         }
 

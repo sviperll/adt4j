@@ -30,6 +30,7 @@
 
 package com.github.sviperll.codemold;
 
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import javax.annotation.ParametersAreNonnullByDefault;
@@ -112,6 +113,16 @@ public class AnonymousClassBuilder extends ObjectBuilder<ExpressionContextDefini
         @Override
         public List<? extends EnumConstant> enumConstants() {
             throw new UnsupportedOperationException("Enum constants are listed for enum definitions only. Use kind() method to check for object kind.");
+        }
+
+        @Override
+        public List<? extends Annotation> getAnnotation(ObjectDefinition definition) {
+            return Collections.emptyList();
+        }
+
+        @Override
+        public Collection<? extends Annotation> allAnnotations() {
+            return Collections.emptyList();
         }
     }
 }

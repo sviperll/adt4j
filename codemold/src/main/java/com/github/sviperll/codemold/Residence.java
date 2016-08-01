@@ -171,8 +171,8 @@ public abstract class Residence implements Renderable, ResidenceProvider, Model 
     }
 
     @Override
-    public CodeMold getCodeModel() {
-        return getPackage().getCodeModel();
+    public CodeMold getCodeMold() {
+        return getPackage().getCodeMold();
     }
 
     public enum Kind {

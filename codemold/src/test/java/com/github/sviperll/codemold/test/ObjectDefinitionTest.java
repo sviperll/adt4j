@@ -29,6 +29,10 @@
  */
 package com.github.sviperll.codemold.test;
 
+import com.github.sviperll.codemold.Annotation;
+import com.github.sviperll.codemold.AnnotationDefinitionBuilder;
+import com.github.sviperll.codemold.AnnotationMethodBuilder;
+import com.github.sviperll.codemold.CompileTimeValues;
 import com.github.sviperll.codemold.AnonymousClassBuilder;
 import com.github.sviperll.codemold.AnyType;
 import com.github.sviperll.codemold.ClassBuilder;
@@ -47,10 +51,11 @@ import com.github.sviperll.codemold.Package;
 import com.github.sviperll.codemold.PackageLevelBuilder;
 import com.github.sviperll.codemold.Types;
 import com.github.sviperll.codemold.render.RendererContexts;
-import com.github.sviperll.codemold.util.Collections2;
+import com.github.sviperll.codemold.util.CMCollections;
 import java.util.Optional;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.annotation.Nullable;
 import static org.junit.Assert.*;
 import org.junit.Test;
 
@@ -64,32 +69,7 @@ public class ObjectDefinitionTest {
         CodeMold.Builder builder = CodeMold.createBuilder();
         CodeMold codeModel = builder.build();
         StringBuilder builder1 = new StringBuilder();
-        RendererContexts.createInstance(builder1).appendRenderable(codeModel.getReference(String.class.getName()).orElseThrow(() -> new NullPointerException()));
-    }
-
-    @Test
-    public void smokePrettyPrintingClass() throws CodeMoldException {
-        ObjectDefinition test1 = buildClass();
-        String result =
-            "class Test1<T> {\n" +
-            "    private int field1;\n" +
-            "    protected T field2;\n" +
-            "\n" +
-            "    public int test(int param1) {\n" +
-            "        return param1 + field1;\n" +
-            "    }\n" +
-            "\n" +
-            "    public T test2(T param1) {\n" +
-            "        return field2;\n" +
-            "    }\n" +
-            "\n" +
-            "    public com.github.sviperll.codemodel.test.Test1<T> test3(T param1) {\n" +
-            "        return null;\n" +
-            "    }\n" +
-            "}";
-        StringBuilder builder = new StringBuilder();
-        RendererContexts.createInstance(builder).appendRenderable(test1);
-        assertEquals(result, builder.toString());
+        RendererContexts.createInstance(builder1).appendRenderable(codeModel.getReference(String.class));
     }
 
     @Test
@@ -126,6 +106,53 @@ public class ObjectDefinitionTest {
         assertEquals(result, stringBuilder.toString());
     }
 
+    @Test
+    public void smokePrettyPrintingAnnotationDefinition() throws CodeMoldException {
+        CodeMold.Builder builder = CodeMold.createBuilder();
+        CodeMold codeModel = builder.build();
+        Package pkg = codeModel.getPackage("com.github.sviperll.codemodel.test");
+        AnnotationDefinitionBuilder<PackageLevelBuilder> test1 = pkg.createAnnotationDefinition("Test1");
+        ObjectType stringType = codeModel.getReference(String.class).rawType();
+
+        FieldBuilder field1 = test1.staticField(Types.intType(), "field1");
+        field1.setAccessLevel(MemberAccess.PUBLIC);
+        field1.initialize(Expression.literal(1));
+
+        AnnotationMethodBuilder method = test1.method("test");
+        method.setAccessLevel(MemberAccess.PUBLIC);
+        method.resultType(Types.intType());
+
+        AnnotationMethodBuilder method2 = test1.method("test2");
+        method2.setAccessLevel(MemberAccess.PUBLIC);
+        method2.resultType(stringType);
+        method2.setDefaultValue(CompileTimeValues.of("test2"));
+
+        AnnotationMethodBuilder method3 = test1.method("test3");
+        method3.setAccessLevel(MemberAccess.PUBLIC);
+        method3.resultType(Types.arrayOf(stringType));
+        method3.setDefaultValue(CompileTimeValues.ofStrings(CMCollections.listOf("test1", "test2")));
+
+        AnnotationMethodBuilder method4 = test1.method("test4");
+        method4.setAccessLevel(MemberAccess.PUBLIC);
+        method4.resultType(Types.arrayOf(stringType));
+        method4.setDefaultValue(CompileTimeValues.ofStrings(CMCollections.listOf("test1")));
+
+        String result =
+            "@interface Test1 {\n" +
+            "    public static int field1 = 1;\n" +
+            "\n" +
+            "    public int test();\n" +
+            "\n" +
+            "    public java.lang.String test2() default \"test2\";\n" +
+            "\n" +
+            "    public java.lang.String[] test3() default {\"test1\", \"test2\"};\n" +
+            "\n" +
+            "    public java.lang.String[] test4() default \"test1\";\n" +
+            "}";
+        StringBuilder stringBuilder = new StringBuilder();
+        RendererContexts.createInstance(stringBuilder).appendRenderable(test1.definition());
+        assertEquals(result, stringBuilder.toString());
+    }
 
     @Test
     public void smokePrettyPrintingEnum() throws CodeMoldException {
@@ -191,9 +218,40 @@ public class ObjectDefinitionTest {
     }
 
     @Test
+    public void smokePrettyPrintingClass() throws CodeMoldException {
+        ObjectDefinition test1 = buildClass();
+        String result =
+            "@javax.annotation.Generated(\"com.github.sviperll.codemold.test.ObjectDefinitionTest\")\n" +
+            "class Test1<T> {\n" +
+            "\n" +
+            "    @javax.annotation.Nullable\n" +
+            "    private int field1;\n" +
+            "\n" +
+            "    protected T field2;\n" +
+            "    private int field3;\n" +
+            "\n" +
+            "    @java.lang.SuppressWarnings(\"null\")\n" +
+            "    public int test(int param1) {\n" +
+            "        return param1 + field1;\n" +
+            "    }\n" +
+            "\n" +
+            "    public T test2(T param1) {\n" +
+            "        return field2;\n" +
+            "    }\n" +
+            "\n" +
+            "    public com.github.sviperll.codemodel.test.Test1<T> test3(T param1) {\n" +
+            "        return null;\n" +
+            "    }\n" +
+            "}";
+        StringBuilder builder = new StringBuilder();
+        RendererContexts.createInstance(builder).appendRenderable(test1);
+        assertEquals(result, builder.toString());
+    }
+
+    @Test
     public void smokeRawTypes() throws CodeMoldException {
         ObjectDefinition test1 = buildClass();
-        CodeMold codeModel = test1.getCodeModel();
+        CodeMold codeModel = test1.getCodeMold();
 
         ObjectType test1Type = test1.rawType();
         assertEquals(test1, test1Type.definition());
@@ -208,11 +266,11 @@ public class ObjectDefinitionTest {
     @Test
     public void smokeNarrowedTypes() throws CodeMoldException {
         ObjectDefinition test1 = buildClass();
-        CodeMold codeModel = test1.getCodeModel();
-        ObjectDefinition stringDefinition = codeModel.getReference(String.class.getName()).orElseThrow(() -> new NullPointerException());
+        CodeMold codeModel = test1.getCodeMold();
+        ObjectDefinition stringDefinition = codeModel.getReference(String.class);
         ObjectType stringType = stringDefinition.rawType();
 
-        ObjectType test1Type = test1.rawType().narrow(Collections2.listOf(stringType));
+        ObjectType test1Type = test1.rawType().narrow(CMCollections.listOf(stringType));
         assertEquals(test1, test1Type.definition());
         assertFalse(test1Type.isRaw());
         assertTrue(test1Type.isNarrowed());
@@ -226,7 +284,7 @@ public class ObjectDefinitionTest {
     @Test
     public void smokeRawMethodTypes() throws CodeMoldException {
         ObjectDefinition test1 = buildClass();
-        CodeMold codeModel = test1.getCodeModel();
+        CodeMold codeModel = test1.getCodeMold();
 
         ObjectType test1Type = test1.rawType();
         Optional<? extends MethodType> test2Method = test1Type.methods().stream().filter(method -> method.definition().name().equals("test2")).findAny();
@@ -240,11 +298,10 @@ public class ObjectDefinitionTest {
     @Test
     public void smokeNarrowedMethodTypes() throws CodeMoldException {
         ObjectDefinition test1 = buildClass();
-        CodeMold codeModel = test1.getCodeModel();
-        ObjectDefinition stringDefinition = codeModel.getReference(String.class.getName()).orElseThrow(() -> new NullPointerException());
-        ObjectType stringType = stringDefinition.rawType();
+        CodeMold codeModel = test1.getCodeMold();
+        ObjectType stringType = codeModel.getReference(String.class).rawType();
 
-        ObjectType test1Type = test1.rawType().narrow(Collections2.listOf(stringType));
+        ObjectType test1Type = test1.rawType().narrow(CMCollections.listOf(stringType));
         Optional<? extends MethodType> test2Method = test1Type.methods().stream().filter(method -> method.definition().name().equals("test2")).findAny();
         Optional<? extends MethodType> test3Method = test1Type.methods().stream().filter(method -> method.definition().name().equals("test3")).findAny();
         assertTrue(test2Method.isPresent());
@@ -256,19 +313,26 @@ public class ObjectDefinitionTest {
     private ObjectDefinition buildClass() throws CodeMoldException {
         CodeMold.Builder builder = CodeMold.createBuilder();
         CodeMold codeModel = builder.build();
+        Annotation nullable = Annotation.createInstance(codeModel.getReference(Nullable.class));
         Package pkg = codeModel.getPackage("com.github.sviperll.codemodel.test");
         ClassBuilder<PackageLevelBuilder> test1 = pkg.createClass("Test1");
+        test1.annotateGenerated(ObjectDefinitionTest.class.getName());
         test1.typeParameter("T");
 
         FieldBuilder field1 = test1.field(Types.intType(), "field1");
         field1.setAccessLevel(MemberAccess.PRIVATE);
+        field1.annotate(nullable);
 
         FieldBuilder field2 = test1.field(Types.variable("T"), "field2");
         field2.setAccessLevel(MemberAccess.PROTECTED);
 
+        FieldBuilder field3 = test1.field(Types.intType(), "field3");
+        field3.setAccessLevel(MemberAccess.PRIVATE);
+
         MethodBuilder method = test1.method("test");
         method.setAccessLevel(MemberAccess.PUBLIC);
         method.resultType(Types.intType());
+        method.annotateSuppressWarnings("null");
         method.addParameter(Types.intType(), "param1");
         method.body().returnStatement(Expression.variable("param1").plus(Expression.variable("field1")));
 

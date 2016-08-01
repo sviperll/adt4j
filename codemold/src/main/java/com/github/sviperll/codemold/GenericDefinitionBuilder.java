@@ -30,7 +30,7 @@
 
 package com.github.sviperll.codemold;
 
-import com.github.sviperll.codemold.util.Collections2;
+import com.github.sviperll.codemold.util.CMCollections;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -46,14 +46,20 @@ import javax.annotation.ParametersAreNonnullByDefault;
  * @param <D>
  */
 @ParametersAreNonnullByDefault
-public abstract class GenericDefinitionBuilder<B extends ResidenceProvider, T extends GenericType<T, D>, D extends GenericDefinition<T, D>> {
-    private final List<TypeParameter> typeParameters = Collections2.newArrayList();
+public abstract class GenericDefinitionBuilder<B extends ResidenceProvider, T extends GenericType<T, D>, D extends GenericDefinition<T, D>>
+        implements Model {
+
+    private final List<TypeParameter> typeParameters = CMCollections.newArrayList();
     private final Map<String, TypeParameter> typeParametersMap = new TreeMap<>();
     private final B residence;
     private D definition = null;
 
     GenericDefinitionBuilder(B residence) {
         this.residence = residence;
+    }
+
+    public final CodeMold getCodeMold() {
+        return residence.residence().getCodeMold();
     }
 
     @Nonnull

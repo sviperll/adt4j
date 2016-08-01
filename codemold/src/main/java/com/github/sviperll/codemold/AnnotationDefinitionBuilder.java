@@ -85,7 +85,7 @@ public class AnnotationDefinitionBuilder<B extends ResidenceProvider>
 
         @Override
         public ObjectType extendsClass() {
-            return getCodeModel().objectType();
+            return getCodeMold().objectType();
         }
 
         @Override

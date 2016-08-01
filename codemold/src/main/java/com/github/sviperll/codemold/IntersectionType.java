@@ -33,7 +33,7 @@ package com.github.sviperll.codemold;
 import com.github.sviperll.codemold.render.Renderable;
 import com.github.sviperll.codemold.render.Renderer;
 import com.github.sviperll.codemold.render.RendererContext;
-import com.github.sviperll.codemold.util.Collections2;
+import com.github.sviperll.codemold.util.CMCollections;
 import com.github.sviperll.codemold.util.Snapshot;
 import java.util.Collection;
 import java.util.Iterator;
@@ -67,7 +67,7 @@ public class IntersectionType implements Renderable, Type {
 
     @Nonnull
     AnyType substitute(Substitution environment) {
-        List<ObjectType> substituted = Collections2.newArrayList();
+        List<ObjectType> substituted = CMCollections.newArrayList();
         for (ObjectType bound: bounds) {
             substituted.add(bound.substitute(environment));
         }

@@ -46,6 +46,7 @@ import com.github.sviperll.codemold.PackageLevelBuilder;
 import com.github.sviperll.codemold.Types;
 import com.github.sviperll.codemold.VariableDeclaration;
 import com.github.sviperll.codemold.render.RendererContexts;
+import com.github.sviperll.codemold.util.CMCollections;
 import java.util.Arrays;
 import java.util.Comparator;
 import static org.junit.Assert.*;
@@ -60,9 +61,9 @@ public class ExpressionContextTest {
     public void smokeAnonymousClass() throws CodeMoldException {
         CodeMold.Builder builder = CodeMold.createBuilder();
         CodeMold codeModel = builder.build();
-        ObjectType stringType = codeModel.getReference(String.class.getName()).map(ObjectDefinition::rawType).orElseThrow(() -> new NullPointerException());
-        ObjectDefinition comparatorDefinition = codeModel.getReference(Comparator.class.getName()).orElseThrow(() -> new NullPointerException());
-        ObjectType stringComparatorType = comparatorDefinition.rawType().narrow(Arrays.asList(stringType));
+        ObjectType stringType = codeModel.getReference(String.class).rawType();
+        ObjectDefinition comparatorDefinition = codeModel.getReference(Comparator.class);
+        ObjectType stringComparatorType = comparatorDefinition.rawType().narrow(CMCollections.listOf(stringType));
 
         Package pkg = codeModel.getPackage("com.github.sviperll.test.generated");
         ClassBuilder<PackageLevelBuilder> testA = pkg.createClass("TestA");

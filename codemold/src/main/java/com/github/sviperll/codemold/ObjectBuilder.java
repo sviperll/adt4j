@@ -30,7 +30,8 @@
 
 package com.github.sviperll.codemold;
 
-import com.github.sviperll.codemold.util.Collections2;
+import com.github.sviperll.codemold.render.Renderable;
+import com.github.sviperll.codemold.util.CMCollections;
 import com.github.sviperll.codemold.util.Snapshot;
 import java.util.Collection;
 import java.util.List;
@@ -47,10 +48,10 @@ import javax.annotation.ParametersAreNonnullByDefault;
 @ParametersAreNonnullByDefault
 abstract class ObjectBuilder<B extends ResidenceProvider, MB extends ExecutableBuilder<MethodType, MethodDefinition>>
         extends GenericDefinitionBuilder<B, ObjectType, ObjectDefinition> {
-    private final List<MethodDefinition> methods = Collections2.newArrayList();
+    private final List<MethodDefinition> methods = CMCollections.newArrayList();
     private final Map<String, FieldDeclaration> fields = new TreeMap<>();
-    private final List<ObjectInitializationElement> staticInitOrdering = Collections2.newArrayList();
-    private final List<ObjectInitializationElement> instanceInitOrdering = Collections2.newArrayList();
+    private final List<ObjectInitializationElement> staticInitOrdering = CMCollections.newArrayList();
+    private final List<ObjectInitializationElement> instanceInitOrdering = CMCollections.newArrayList();
     private final Map<String, ObjectDefinition> innerClasses = new TreeMap<>();
 
     private final B residence;
@@ -219,8 +220,8 @@ abstract class ObjectBuilder<B extends ResidenceProvider, MB extends ExecutableB
         }
 
         @Override
-        public final CodeMold getCodeModel() {
-            return residence().getCodeModel();
+        public final CodeMold getCodeMold() {
+            return residence().getCodeMold();
         }
 
         @Override
@@ -229,12 +230,12 @@ abstract class ObjectBuilder<B extends ResidenceProvider, MB extends ExecutableB
         }
 
         @Override
-        final List<? extends ObjectInitializationElement> staticInitializationElements() {
+        final List<? extends Renderable> staticInitializationElements() {
             return staticInitOrdering;
         }
 
         @Override
-        final List<? extends ObjectInitializationElement> instanceInitializationElements() {
+        final List<? extends Renderable> instanceInitializationElements() {
             return instanceInitOrdering;
         }
 

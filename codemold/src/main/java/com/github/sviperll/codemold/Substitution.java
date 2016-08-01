@@ -30,7 +30,7 @@
 
 package com.github.sviperll.codemold;
 
-import com.github.sviperll.codemold.util.Collections2;
+import com.github.sviperll.codemold.util.CMCollections;
 import com.github.sviperll.codemold.util.Snapshot;
 import java.util.Map;
 import java.util.Optional;
@@ -61,7 +61,7 @@ abstract class Substitution {
     }
 
     static class Builder {
-        private final Map<String, AnyType> map = Collections2.newTreeMap();
+        private final Map<String, AnyType> map = CMCollections.newTreeMap();
 
         private Builder() {
         }

@@ -30,7 +30,7 @@
 
 package com.github.sviperll.codemold;
 
-import com.github.sviperll.codemold.util.Collections2;
+import com.github.sviperll.codemold.util.CMCollections;
 import com.github.sviperll.codemold.util.Snapshot;
 import java.util.List;
 import javax.annotation.ParametersAreNonnullByDefault;
@@ -43,8 +43,9 @@ import javax.annotation.ParametersAreNonnullByDefault;
 @ParametersAreNonnullByDefault
 abstract class AbstractClassBuilder<B extends ResidenceProvider>
         extends NamedObjectBuilder<B, MethodBuilder> {
-    private final List<ObjectType> interfaces = Collections2.newArrayList();
-    private final List<ConstructorDefinition> constructors = Collections2.newArrayList();
+
+    private final List<ObjectType> interfaces = CMCollections.newArrayList();
+    private final List<ConstructorDefinition> constructors = CMCollections.newArrayList();
 
     AbstractClassBuilder(ObjectKind kind, B residence, String name) {
         super(kind, residence, name);

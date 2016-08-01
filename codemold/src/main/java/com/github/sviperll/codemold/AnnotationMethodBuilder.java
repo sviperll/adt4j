@@ -37,24 +37,14 @@ import javax.annotation.ParametersAreNonnullByDefault;
  * @author Victor Nazarov &lt;asviraspossible@gmail.com&gt;
  */
 @ParametersAreNonnullByDefault
-public class AnnotationMethodBuilder extends ExecutableBuilder<MethodType, MethodDefinition> {
-    private final String name;
-    private AnyType resultType = AnyType.voidType();
-    private AnyAnnotationValue defaultValue = null;
+public class AnnotationMethodBuilder extends CallableDefinitionBuilder {
+    private AnyCompileTimeValue defaultValue = null;
 
     AnnotationMethodBuilder(NestingBuilder residence, String name) {
-        super(residence);
-        this.name = name;
+        super(residence, name);
     }
 
-    public void resultType(Type resultType) {
-        AnyType type = resultType.asAny();
-        if (!type.canBeMethodResult())
-            throw new IllegalArgumentException(type.kind() + " is not allowed here");
-        this.resultType = type;
-    }
-
-    public void setDefaultValue(AnnotationValue defaultValue) {
+    public void setDefaultValue(CompileTimeValue defaultValue) {
         this.defaultValue = defaultValue.asAny();
     }
 
@@ -63,24 +53,14 @@ public class AnnotationMethodBuilder extends ExecutableBuilder<MethodType, Metho
         return new BuiltDefinition(implementation);
     }
 
-    private class BuiltDefinition extends MethodDefinition {
+    private class BuiltDefinition extends CallableDefinitionBuilder.BuiltDefinition {
         BuiltDefinition(ExecutableDefinition.Implementation<MethodType, MethodDefinition> implementation) {
             super(implementation);
         }
 
         @Override
-        public String name() {
-            return name;
-        }
-
-        @Override
         public boolean isFinal() {
             return false;
-        }
-
-        @Override
-        public AnyType returnType() {
-            return resultType;
         }
 
         @Override
@@ -94,7 +74,7 @@ public class AnnotationMethodBuilder extends ExecutableBuilder<MethodType, Metho
         }
 
         @Override
-        public AnyAnnotationValue defaultValue() {
+        public AnyCompileTimeValue defaultValue() {
             if (defaultValue == null)
                 throw new UnsupportedOperationException("Method has no default value. Use hasDefaultValue to check");
             else
