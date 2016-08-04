@@ -52,7 +52,7 @@ public class PackageLevelBuilder implements ResidenceProvider {
 
     @Override
     public Residence residence() {
-        return residence.asResidence();
+        return residence.residence();
     }
 
     private class BuiltMembership extends PackageLevelResidence {

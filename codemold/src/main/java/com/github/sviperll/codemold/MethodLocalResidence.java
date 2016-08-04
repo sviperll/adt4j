@@ -43,7 +43,7 @@ import javax.annotation.ParametersAreNonnullByDefault;
 @ParametersAreNonnullByDefault
 public class MethodLocalResidence implements Renderable, ResidenceProvider {
     private static final NoOpRenderer NO_OP_RENDERER = new NoOpRenderer();
-    private final Residence residence = Residence.local(this);
+    private Residence residence = null;
     private final ExecutableDefinition<?, ?> parent;
     MethodLocalResidence(ExecutableDefinition<?, ?> parent) {
         this.parent = parent;
@@ -66,7 +66,17 @@ public class MethodLocalResidence implements Renderable, ResidenceProvider {
 
     @Override
     public final Residence residence() {
+        if (residence == null)
+            residence = Residence.wrapLocal(new Wrappable());
         return residence;
+    }
+
+    class Wrappable {
+        private Wrappable() {
+        }
+        MethodLocalResidence value() {
+            return MethodLocalResidence.this;
+        }
     }
 
     private static class NoOpRenderer implements Renderer {

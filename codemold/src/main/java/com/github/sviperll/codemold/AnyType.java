@@ -55,33 +55,33 @@ public abstract class AnyType implements Renderable, Type {
     }
 
     @Nonnull
-    static AnyType wrapVariableType(TypeVariable details) {
-        return new TypeVariableWrapper(details);
+    static AnyType wrapVariableType(TypeVariable.Wrappable wrappable) {
+        return new TypeVariableWrapper(wrappable.value());
     }
 
     @Nonnull
-    static AnyType wrapIntersectionType(IntersectionType details) {
-        return new IntersectionTypeWrapper(details);
+    static AnyType wrapIntersectionType(IntersectionType.Wrappable wrappable) {
+        return new IntersectionTypeWrapper(wrappable.value());
     }
 
     @Nonnull
-    static AnyType wrapObjectType(ObjectType typeDetails) {
-        return new ObjectTypeWrapper(typeDetails);
+    static AnyType wrapObjectType(ObjectType.Wrappable wrappable) {
+        return new ObjectTypeWrapper(wrappable.value());
     }
 
     @Nonnull
-    static AnyType wrapArrayType(ArrayType details) {
-        return new ArrayTypeWrapper(details);
+    static AnyType wrapArrayType(ArrayType.Wrappable wrappable) {
+        return new ArrayTypeWrapper(wrappable.value());
     }
 
     @Nonnull
-    static AnyType wrapWildcardType(WildcardType details) {
-        return new WildcardTypeWrapper(details);
+    static AnyType wrapWildcardType(WildcardType.Wrappable wrappable) {
+        return new WildcardTypeWrapper(wrappable.value());
     }
 
     @Nonnull
-    static AnyType wrapPrimitiveType(final PrimitiveType details) {
-        return new PrimitiveTypeWrapper(details);
+    static AnyType wrapPrimitiveType(PrimitiveType.Wrappable wrappable) {
+        return new PrimitiveTypeWrapper(wrappable.value());
     }
 
     private AnyType() {

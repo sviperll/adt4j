@@ -44,8 +44,8 @@ import javax.annotation.ParametersAreNonnullByDefault;
 public abstract class AnyCompileTimeValue
         implements CompileTimeValue, Renderable {
 
-    static AnyCompileTimeValue wrapPrimitive(PrimitiveCompileTimeValue value) {
-        return new PrimitiveAnnotationValueWrapper(value);
+    static AnyCompileTimeValue wrapPrimitive(PrimitiveCompileTimeValue.Wrappable wrappable) {
+        return new PrimitiveAnnotationValueWrapper(wrappable.value());
     }
 
     static AnyCompileTimeValue of(String value) {
@@ -64,8 +64,8 @@ public abstract class AnyCompileTimeValue
         return new AnnotationAnnotationValueWrapper(value);
     }
 
-    static AnyCompileTimeValue wrapArray(ArrayCompileTimeValue value) {
-        return new AnyAnnotationValueWrapper(value);
+    static AnyCompileTimeValue wrapArray(ArrayCompileTimeValue.Wrappable wrappable) {
+        return new AnyAnnotationValueWrapper(wrappable.value());
     }
 
     private final Kind kind;

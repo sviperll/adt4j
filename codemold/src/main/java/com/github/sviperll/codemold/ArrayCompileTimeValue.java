@@ -93,11 +93,11 @@ public abstract class ArrayCompileTimeValue implements CompileTimeValue, Rendera
         return new AnnotationArrayAnnotationValueWrappper(annotations);
     }
 
-    static ArrayCompileTimeValue wrapPrimitive(PrimitiveArrayCompileTimeValue value) {
-        return new PrimitiveArrayAnnotationValueWrapper(value);
+    static ArrayCompileTimeValue wrapPrimitive(PrimitiveArrayCompileTimeValue.Wrappable wrappable) {
+        return new PrimitiveArrayAnnotationValueWrapper(wrappable.value());
     }
 
-    private final AnyCompileTimeValue any = AnyCompileTimeValue.wrapArray(this);
+    private AnyCompileTimeValue any = null;
     private final AnyCompileTimeValue.Kind elementKind;
 
     private ArrayCompileTimeValue(AnyCompileTimeValue.Kind elementKind) {
@@ -130,6 +130,8 @@ public abstract class ArrayCompileTimeValue implements CompileTimeValue, Rendera
 
     @Override
     public AnyCompileTimeValue asAny() {
+        if (any == null)
+            any = AnyCompileTimeValue.wrapArray(new Wrappable());
         return any;
     }
 
@@ -292,6 +294,14 @@ public abstract class ArrayCompileTimeValue implements CompileTimeValue, Rendera
         @Override
         public List<? extends Annotation> getAnnotations() {
             return Snapshot.of(annotations);
+        }
+    }
+
+    class Wrappable {
+        private Wrappable() {
+        }
+        ArrayCompileTimeValue value() {
+            return ArrayCompileTimeValue.this;
         }
     }
 }

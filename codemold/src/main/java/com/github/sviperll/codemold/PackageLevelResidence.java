@@ -41,8 +41,8 @@ import javax.annotation.ParametersAreNonnullByDefault;
  * @author Victor Nazarov &lt;asviraspossible@gmail.com&gt;
  */
 @ParametersAreNonnullByDefault
-public abstract class PackageLevelResidence implements Renderable {
-    private final Residence residence = Residence.packageLevel(this);
+public abstract class PackageLevelResidence implements Renderable, ResidenceProvider {
+    private Residence residence = null;
 
     PackageLevelResidence() {
     }
@@ -52,8 +52,10 @@ public abstract class PackageLevelResidence implements Renderable {
     @Nonnull
     public abstract Package getPackage();
 
-    @Nonnull
-    public final Residence asResidence() {
+    @Override
+    public final Residence residence() {
+        if (residence == null)
+            residence = Residence.wrapPackageLevel(new Wrappable());
         return residence;
     }
 
@@ -70,5 +72,13 @@ public abstract class PackageLevelResidence implements Renderable {
 
     Renderable forObjectKind(ObjectKind kind) {
         return this;
+    }
+
+    class Wrappable {
+        private Wrappable() {
+        }
+        PackageLevelResidence value() {
+            return PackageLevelResidence.this;
+        }
     }
 }

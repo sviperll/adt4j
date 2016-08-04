@@ -42,18 +42,18 @@ import javax.annotation.Nonnull;
 public abstract class Residence implements Renderable, ResidenceProvider, Model {
 
     @Nonnull
-    static Residence packageLevel(final PackageLevelResidence details) {
-        return new PackageLevelResidenceWrapper(details);
+    static Residence wrapPackageLevel(PackageLevelResidence.Wrappable wrappable) {
+        return new PackageLevelResidenceWrapper(wrappable.value());
     }
 
     @Nonnull
-    static Residence nested(Nesting details) {
-        return new NestedResidenceWrapper(details);
+    static Residence wrapNested(Nesting.Wrappable wrappable) {
+        return new NestedResidenceWrapper(wrappable.value());
     }
 
     @Nonnull
-    static Residence local(MethodLocalResidence details) {
-        return new MethodLocalResidenceWrapper(details);
+    static Residence wrapLocal(MethodLocalResidence.Wrappable wrappable) {
+        return new MethodLocalResidenceWrapper(wrappable.value());
     }
 
     private Residence() {
@@ -85,11 +85,11 @@ public abstract class Residence implements Renderable, ResidenceProvider, Model 
     }
 
     /**
-     * Details about nested definitions.
-     * Throws UnsupportedOperationException for other than nested definitions (i. e. top-level and method local).
+     * Details about wrapNested definitions.
+     * Throws UnsupportedOperationException for other than wrapNested definitions (i. e. top-level and method wrapLocal).
      * @see Residence#isNested()
      * @throws UnsupportedOperationException
-     * @return Details about nested definitions..
+     * @return Details about wrapNested definitions..
      */
     @Nonnull
     public Nesting getNesting() {
@@ -97,11 +97,11 @@ public abstract class Residence implements Renderable, ResidenceProvider, Model 
     }
 
     /**
-     * Details about method-local definitions.
-     * Throws UnsupportedOperationException for other than method-local definitions (i. e. top-level and nested).
+     * Details about method-wrapLocal definitions.
+     * Throws UnsupportedOperationException for other than method-wrapLocal definitions (i. e. top-level and wrapNested).
      * @see Residence#isLocal()
      * @throws UnsupportedOperationException
-     * @return Details about method-local definitions.
+     * @return Details about method-wrapLocal definitions.
      */
     @Nonnull
     public MethodLocalResidence getLocalDetails() {

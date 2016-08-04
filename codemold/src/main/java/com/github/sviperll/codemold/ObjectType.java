@@ -52,7 +52,7 @@ import javax.annotation.ParametersAreNonnullByDefault;
 @ParametersAreNonnullByDefault
 public class ObjectType extends GenericType<ObjectType, ObjectDefinition>
         implements Renderable, Type {
-    private final AnyType type = AnyType.wrapObjectType(this);
+    private AnyType type = null;
     private Map<? extends MethodSignature, ? extends MethodType> methods = null;
     private Map<? extends ObjectDefinition, ? extends ObjectType> interfaces = null;
     private List<? extends ConstructorType> constructors = null;
@@ -65,6 +65,8 @@ public class ObjectType extends GenericType<ObjectType, ObjectDefinition>
 
     @Override
     public final AnyType asAny() {
+        if (type == null)
+            type = AnyType.wrapObjectType(new Wrappable());
         return type;
     }
 
@@ -258,4 +260,11 @@ public class ObjectType extends GenericType<ObjectType, ObjectDefinition>
         };
     }
 
+    class Wrappable {
+        private Wrappable() {
+        }
+        ObjectType value() {
+            return ObjectType.this;
+        }
+    }
 }

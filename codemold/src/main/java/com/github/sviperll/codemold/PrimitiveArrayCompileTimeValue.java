@@ -75,7 +75,7 @@ public class PrimitiveArrayCompileTimeValue implements CompileTimeValue, Rendera
         return new PrimitiveArrayCompileTimeValue(PrimitiveType.CHAR, characters);
     }
 
-    private final ArrayCompileTimeValue array = ArrayCompileTimeValue.wrapPrimitive(this);
+    private ArrayCompileTimeValue array = null;
     private final PrimitiveType elementType;
     private final List<?> elements;
 
@@ -146,6 +146,8 @@ public class PrimitiveArrayCompileTimeValue implements CompileTimeValue, Rendera
 
     @Override
     public AnyCompileTimeValue asAny() {
+        if (array == null)
+            array = ArrayCompileTimeValue.wrapPrimitive(new Wrappable());
         return array.asAny();
     }
 
@@ -176,5 +178,13 @@ public class PrimitiveArrayCompileTimeValue implements CompileTimeValue, Rendera
                     context.appendText("}");
             }
         };
+    }
+
+    class Wrappable {
+        private Wrappable() {
+        }
+        PrimitiveArrayCompileTimeValue value() {
+            return PrimitiveArrayCompileTimeValue.this;
+        }
     }
 }

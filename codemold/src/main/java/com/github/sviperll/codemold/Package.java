@@ -153,7 +153,7 @@ public final class Package implements Model {
                             return Package.this;
                         }
                     };
-                    result = new ReflectedObjectDefinition<>(codeModel, residence.asResidence(), klass);
+                    result = new ReflectedObjectDefinition<>(codeModel, residence, klass);
                 } catch (CodeMoldException ex) {
                     throw new RuntimeException("Should never happen");
                 }

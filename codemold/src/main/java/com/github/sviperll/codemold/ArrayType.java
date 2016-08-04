@@ -42,7 +42,7 @@ import javax.annotation.ParametersAreNonnullByDefault;
  */
 @ParametersAreNonnullByDefault
 public class ArrayType implements Renderable, Type {
-    private final AnyType type = AnyType.wrapArrayType(this);
+    private AnyType type = null;
     private final AnyType elementType;
     ArrayType(Type elementType) {
         this.elementType = elementType.asAny();
@@ -60,6 +60,8 @@ public class ArrayType implements Renderable, Type {
 
     @Override
     public AnyType asAny() {
+        if (type == null)
+            type = AnyType.wrapArrayType(new Wrappable());
         return type;
     }
 
@@ -72,6 +74,14 @@ public class ArrayType implements Renderable, Type {
                 context.appendText("[]");
             }
         };
+    }
+
+    class Wrappable {
+        private Wrappable() {
+        }
+        ArrayType value() {
+            return ArrayType.this;
+        }
     }
 
 }

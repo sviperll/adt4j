@@ -75,7 +75,7 @@ public class PrimitiveCompileTimeValue implements CompileTimeValue, Renderable {
         return new PrimitiveCompileTimeValue(PrimitiveType.BOOLEAN, value);
     }
 
-    private final AnyCompileTimeValue any = AnyCompileTimeValue.wrapPrimitive(this);
+    private AnyCompileTimeValue any = null;
     private final PrimitiveType type;
     private final Object value;
 
@@ -138,6 +138,8 @@ public class PrimitiveCompileTimeValue implements CompileTimeValue, Renderable {
 
     @Override
     public AnyCompileTimeValue asAny() {
+        if (any == null)
+            any = AnyCompileTimeValue.wrapPrimitive(new Wrappable());
         return any;
     }
 
@@ -152,5 +154,13 @@ public class PrimitiveCompileTimeValue implements CompileTimeValue, Renderable {
                     context.appendText(value.toString());
             }
         };
+    }
+
+    class Wrappable {
+        private Wrappable() {
+        }
+        PrimitiveCompileTimeValue value() {
+            return PrimitiveCompileTimeValue.this;
+        }
     }
 }

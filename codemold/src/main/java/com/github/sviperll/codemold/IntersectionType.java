@@ -48,7 +48,7 @@ import javax.annotation.ParametersAreNonnullByDefault;
 @ParametersAreNonnullByDefault
 public class IntersectionType implements Renderable, Type {
 
-    private final AnyType type = AnyType.wrapIntersectionType(this);
+    private AnyType type = null;
     private final Collection<? extends ObjectType> bounds;
 
     IntersectionType(Collection<? extends ObjectType> bounds) {
@@ -62,6 +62,8 @@ public class IntersectionType implements Renderable, Type {
 
     @Override
     public AnyType asAny() {
+        if (type == null)
+            type = AnyType.wrapIntersectionType(new Wrappable());
         return type;
     }
 
@@ -91,5 +93,11 @@ public class IntersectionType implements Renderable, Type {
         };
     }
 
-
+    class Wrappable {
+        private Wrappable() {
+        }
+        IntersectionType value() {
+            return IntersectionType.this;
+        }
+    }
 }

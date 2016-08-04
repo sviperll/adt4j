@@ -57,9 +57,9 @@ class ReflectedObjectDefinition<T> extends ObjectDefinition {
     private List<? extends ObjectType> implementsInterfaces = null;
     private ObjectType extendsClass = null;
 
-    ReflectedObjectDefinition(CodeMold codeModel, Residence residence, Class<T> klass) {
+    ReflectedObjectDefinition(CodeMold codeModel, ResidenceProvider residence, Class<T> klass) {
         this.codeModel = codeModel;
-        this.residence = residence;
+        this.residence = residence.residence();
         this.klass = klass;
         typeParameters = new ReflectedTypeParameters<>(this, klass.getTypeParameters());
     }

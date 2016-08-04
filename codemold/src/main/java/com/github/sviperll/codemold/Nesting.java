@@ -40,7 +40,7 @@ import javax.annotation.Nonnull;
  * @author Victor Nazarov &lt;asviraspossible@gmail.com&gt;
  */
 public abstract class Nesting implements Renderable, ResidenceProvider {
-    private final Residence residence = Residence.nested(this);
+    private Residence residence = null;
     private final RenderableNesting defaultRenderable = new RenderableNesting(false);
     private final RenderableNesting implicitlyStaticRenderable = new RenderableNesting(true);
     Nesting() {
@@ -56,6 +56,8 @@ public abstract class Nesting implements Renderable, ResidenceProvider {
 
     @Override
     public final Residence residence() {
+        if (residence == null)
+            residence = Residence.wrapNested(new Wrappable());
         return residence;
     }
 
@@ -69,6 +71,14 @@ public abstract class Nesting implements Renderable, ResidenceProvider {
             return implicitlyStaticRenderable;
         else
             return defaultRenderable;
+    }
+
+    class Wrappable {
+        private Wrappable() {
+        }
+        Nesting value() {
+            return Nesting.this;
+        }
     }
 
     class RenderableNesting implements Renderable {

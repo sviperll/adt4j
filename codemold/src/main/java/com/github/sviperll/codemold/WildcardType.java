@@ -44,7 +44,7 @@ import javax.annotation.ParametersAreNonnullByDefault;
 @ParametersAreNonnullByDefault
 public final class WildcardType implements Renderable, Type {
 
-    private final AnyType type = AnyType.wrapWildcardType(this);
+    private AnyType type = null;
     private final BoundKind boundKind;
     private final AnyType bound;
     WildcardType(BoundKind boundKind, Type bound) {
@@ -71,6 +71,8 @@ public final class WildcardType implements Renderable, Type {
 
     @Override
     public AnyType asAny() {
+        if (type == null)
+            type = AnyType.wrapWildcardType(new Wrappable());
         return type;
     }
 
@@ -91,4 +93,13 @@ public final class WildcardType implements Renderable, Type {
     public enum BoundKind {
         SUPER, EXTENDS
     }
+
+    class Wrappable {
+        private Wrappable() {
+        }
+        WildcardType value() {
+            return WildcardType.this;
+        }
+    }
+
 }

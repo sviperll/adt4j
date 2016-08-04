@@ -47,7 +47,7 @@ public enum PrimitiveType implements Renderable, Type {
     CHAR,
     BOOLEAN;
 
-    private final AnyType type = AnyType.wrapPrimitiveType(this);
+    private AnyType type = null;
 
 
     public boolean isByte() {
@@ -84,6 +84,8 @@ public enum PrimitiveType implements Renderable, Type {
 
     @Override
     public AnyType asAny() {
+        if (type == null)
+            type = AnyType.wrapPrimitiveType(new Wrappable());
         return type;
     }
 
@@ -96,4 +98,13 @@ public enum PrimitiveType implements Renderable, Type {
             }
         };
     }
+
+    class Wrappable {
+        private Wrappable() {
+        }
+        PrimitiveType value() {
+            return PrimitiveType.this;
+        }
+    }
+
 }
