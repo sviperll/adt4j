@@ -39,7 +39,7 @@ import javax.annotation.ParametersAreNonnullByDefault;
  */
 @ParametersAreNonnullByDefault
 public class CompileTimeValues {
-    static AnyCompileTimeValue ofObject(Object defaultValue) {
+    static AnyCompileTimeValue fromObject(Object defaultValue) {
         throw new UnsupportedOperationException("Not supported yet.");
     }
 

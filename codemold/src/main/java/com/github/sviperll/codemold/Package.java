@@ -135,7 +135,7 @@ public final class Package implements Model {
             try {
                 Class<?> klass = Class.forName(packageAsNamePrefix() + simpleName);
                 try {
-                    assert klass.getEnclosingClass() == null;
+                    assert klass.isSynthetic() || klass.getEnclosingClass() == null;
                     assert klass.getPackage().getName().equals(qualifiedName());
                     String className = klass.getSimpleName();
                     if (classes.containsKey(className))
@@ -153,7 +153,7 @@ public final class Package implements Model {
                             return Package.this;
                         }
                     };
-                    result = new ReflectedObjectDefinition<>(codeModel, residence, klass);
+                    result = new ReflectedObjectDefinition<>(new Reflection(codeModel), residence, klass);
                 } catch (CodeMoldException ex) {
                     throw new RuntimeException("Should never happen");
                 }

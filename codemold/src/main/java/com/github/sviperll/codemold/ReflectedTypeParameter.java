@@ -40,11 +40,13 @@ import java.util.List;
  */
  class ReflectedTypeParameter<T extends java.lang.reflect.GenericDeclaration> extends TypeParameter {
 
+    private final Reflection reflection;
     private final GenericDefinition<?, ?> declaredIn;
     private final TypeVariable<T> reflectedTypeParameter;
     private AnyType bound = null;
 
-    ReflectedTypeParameter(GenericDefinition<?, ?> declaredIn, TypeVariable<T> reflectedTypeParameter) {
+    ReflectedTypeParameter(Reflection reflection, GenericDefinition<?, ?> declaredIn, TypeVariable<T> reflectedTypeParameter) {
+        this.reflection = reflection;
         this.declaredIn = declaredIn;
         this.reflectedTypeParameter = reflectedTypeParameter;
     }
@@ -59,11 +61,11 @@ import java.util.List;
         if (bound == null) {
             java.lang.reflect.Type[] reflectedBounds = reflectedTypeParameter.getBounds();
             if (reflectedBounds.length == 1) {
-                bound = declaredIn.getCodeMold().readReflectedType(reflectedBounds[0]);
+                bound = reflection.readReflectedType(reflectedBounds[0]);
             } else {
                 List<ObjectType> bounds = CMCollections.newArrayList();
                 for (java.lang.reflect.Type reflectedBound : reflectedBounds) {
-                    ObjectType partialBound = declaredIn.getCodeMold().readReflectedType(reflectedBound).getObjectDetails();
+                    ObjectType partialBound = reflection.readReflectedType(reflectedBound).getObjectDetails();
                     bounds.add(partialBound);
                 }
                 bound = new IntersectionType(bounds).asAny();

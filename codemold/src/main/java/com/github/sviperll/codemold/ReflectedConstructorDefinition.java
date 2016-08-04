@@ -31,95 +31,50 @@
 package com.github.sviperll.codemold;
 
 import com.github.sviperll.codemold.render.Renderable;
-import com.github.sviperll.codemold.render.Renderer;
-import com.github.sviperll.codemold.render.RendererContext;
 import com.github.sviperll.codemold.util.CMCollections;
 import com.github.sviperll.codemold.util.Snapshot;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-import java.lang.reflect.Modifier;
+import java.lang.reflect.Constructor;
 import java.lang.reflect.Parameter;
 import java.util.Collection;
 import java.util.List;
-import java.util.Optional;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import javax.annotation.ParametersAreNonnullByDefault;
+import javax.annotation.Nonnull;
 
 /**
  *
  * @author Victor Nazarov &lt;asviraspossible@gmail.com&gt;
  */
- class ReflectedMethodDefinition extends MethodDefinition {
+@ParametersAreNonnullByDefault
+public class ReflectedConstructorDefinition<T> extends ConstructorDefinition {
 
-    static ReflectedMethodDefinition createInstance(Reflection reflection, Nesting nesting, Method method) {
-        ReflectedExecutableDefinitionImplementation executable = new ReflectedExecutableDefinitionImplementation(reflection, nesting, method);
+    static <T> ReflectedConstructorDefinition<T> createInstance(Reflection reflection, Nesting nesting, Constructor<T> constructor) {
+        ReflectedExecutableDefinitionImplementation<T> executable = new ReflectedExecutableDefinitionImplementation<>(reflection, nesting, constructor);
         return executable.definition();
     }
-    private final Reflection reflection;
-    private final Method method;
-    private AnyType returnType = null;
-
-    ReflectedMethodDefinition(Reflection reflection, ReflectedExecutableDefinitionImplementation executable, Method method) {
+    ReflectedConstructorDefinition(ReflectedExecutableDefinitionImplementation<T> executable) {
         super(executable);
-        this.reflection = reflection;
-        this.method = method;
     }
 
-    @Override
-    public boolean isFinal() {
-        return Modifier.isFinal(method.getModifiers());
-    }
+    private static class ReflectedExecutableDefinitionImplementation<T> implements ExecutableDefinition.Implementation<ConstructorType, ConstructorDefinition> {
 
-    @Override
-    public AnyType returnType() {
-        if (returnType == null) {
-            returnType = reflection.readReflectedType(method.getGenericReturnType());
-        }
-        return returnType;
-    }
-
-    @Override
-    public String name() {
-        return method.getName();
-    }
-
-    @Override
-    public boolean isAbstract() {
-        return Modifier.isAbstract(method.getModifiers());
-    }
-
-    @Override
-    public boolean hasDefaultValue() {
-        return method.getDefaultValue() != null;
-    }
-
-    @Override
-    public AnyCompileTimeValue defaultValue() {
-        if (!hasDefaultValue()) {
-            throw new UnsupportedOperationException("No default value");
-        }
-        return CompileTimeValues.fromObject(method.getDefaultValue());
-    }
-
-    private static class ReflectedExecutableDefinitionImplementation implements ExecutableDefinition.Implementation<MethodType, MethodDefinition> {
+        private ReflectedConstructorDefinition<T> definition = null;
         private final Reflection reflection;
         private final Nesting nesting;
-        private final Method method;
-        private ReflectedMethodDefinition definition = null;
+        private final Constructor<T> constructor;
+        private TypeParameters typeParameters = null;
         private List<? extends VariableDeclaration> parameters = null;
         private List<? extends AnyType> throwsList = null;
         private AnnotationCollection annotations = null;
-        private TypeParameters typeParameters = null;
 
-        private ReflectedExecutableDefinitionImplementation(Reflection reflection, Nesting nesting, Method method) {
+        private ReflectedExecutableDefinitionImplementation(Reflection reflection, Nesting nesting, Constructor<T> constructor) {
             this.reflection = reflection;
             this.nesting = nesting;
-            this.method = method;
+            this.constructor = constructor;
         }
 
-        ReflectedMethodDefinition definition() {
+        private ReflectedConstructorDefinition<T> definition() {
             if (definition == null) {
-                definition = new ReflectedMethodDefinition(reflection, this, method);
+                definition = new ReflectedConstructorDefinition<>(this);
             }
             return definition;
         }
@@ -127,7 +82,7 @@ import java.util.logging.Logger;
         @Override
         public TypeParameters typeParameters() {
             if (typeParameters == null) {
-                typeParameters = new ReflectedTypeParameters<>(reflection, definition(), method.getTypeParameters());
+                typeParameters = new ReflectedTypeParameters<>(reflection, definition(), constructor.getTypeParameters());
             }
             return typeParameters;
         }
@@ -135,7 +90,7 @@ import java.util.logging.Logger;
         @Override
         public List<? extends VariableDeclaration> parameters() {
             if (parameters == null) {
-                parameters = Snapshot.of(reflection.createParameterList(method.getParameters()));
+                parameters = Snapshot.of(reflection.createParameterList(constructor.getParameters()));
             }
             return Snapshot.of(parameters);
         }
@@ -143,7 +98,7 @@ import java.util.logging.Logger;
         @Override
         public List<? extends AnyType> throwsList() {
             if (throwsList == null) {
-                throwsList = Snapshot.of(reflection.buildTypesFromReflections(method.getGenericExceptionTypes()));
+                throwsList = Snapshot.of(reflection.buildTypesFromReflections(constructor.getGenericExceptionTypes()));
             }
             return Snapshot.of(throwsList);
         }
@@ -172,10 +127,9 @@ import java.util.logging.Logger;
 
         private void initAnnotations() {
             if (annotations == null) {
-                annotations = reflection.readAnnotationCollection(method.getDeclaredAnnotations());
+                annotations = reflection.readAnnotationCollection(constructor.getDeclaredAnnotations());
             }
         }
+
     }
-
-
 }

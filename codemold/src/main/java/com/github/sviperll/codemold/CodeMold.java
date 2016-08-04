@@ -90,55 +90,22 @@ public final class CodeMold {
     public ObjectDefinition getReference(Class<?> klass) {
         if (klass.isPrimitive() || klass.isArray())
             throw new IllegalArgumentException(MessageFormat.format("{0} class should be object definition", klass));
-        return defaultPackage.getReference(klass.getName()).orElseThrow(() -> {
-            return new IllegalStateException(MessageFormat.format("{0} class is not accessible as object definition", klass));
-        });
-    }
-
-    @Nonnull
-    AnyType readReflectedType(java.lang.reflect.Type genericReflectedType) {
-        if (genericReflectedType instanceof ParameterizedType) {
-            ParameterizedType reflectedType = (ParameterizedType)genericReflectedType;
-            ObjectType rawType = readReflectedType(reflectedType.getRawType()).getObjectDetails();
-            List<AnyType> arguments = CMCollections.newArrayList();
-            for (java.lang.reflect.Type reflectedArgumentType: reflectedType.getActualTypeArguments()) {
-                arguments.add(readReflectedType(reflectedArgumentType));
+        if (klass.isLocalClass() || (klass.isAnonymousClass() && !klass.isSynthetic()))
+            throw new UnsupportedOperationException(MessageFormat.format("{0} you can't get references to local classes", klass));
+        if (!klass.isMemberClass()) {
+            try {
+                return defaultPackage.getReference(klass.getName()).orElseThrow(() -> {
+                    return new IllegalStateException(MessageFormat.format("{0} class is not accessible as object definition", klass));
+                });
+            } catch (AssertionError error) {
+                throw new AssertionError(MessageFormat.format("Unable to read reflected class: {0}", klass.getName()), error);
             }
-            return rawType.narrow(arguments).asAny();
-        } else if (genericReflectedType instanceof GenericArrayType) {
-            GenericArrayType reflectedType = (GenericArrayType)genericReflectedType;
-            AnyType componentType = readReflectedType(reflectedType.getGenericComponentType());
-            return Types.arrayOf(componentType).asAny();
-        } else if (genericReflectedType instanceof java.lang.reflect.WildcardType) {
-            java.lang.reflect.WildcardType reflectedType = (java.lang.reflect.WildcardType)genericReflectedType;
-            java.lang.reflect.Type[] reflectedLowerBounds = reflectedType.getLowerBounds();
-            if (reflectedLowerBounds.length != 0) {
-                AnyType bound = readReflectedType(reflectedLowerBounds[0]);
-                return Types.wildcardSuper(bound).asAny();
-            } else {
-                java.lang.reflect.Type[] reflectedUpperBounds = reflectedType.getUpperBounds();
-                AnyType bound = readReflectedType(reflectedUpperBounds[0]);
-                return Types.wildcardExtends(bound).asAny();
-            }
-        } else if (genericReflectedType instanceof java.lang.reflect.TypeVariable) {
-            java.lang.reflect.TypeVariable<?> reflectedType = (java.lang.reflect.TypeVariable<?>)genericReflectedType;
-            return Types.variable(reflectedType.getName()).asAny();
-        } else if (genericReflectedType instanceof Class) {
-            Class<?> reflectedType = (Class<?>)genericReflectedType;
-            if (reflectedType.isPrimitive()) {
-                String name = reflectedType.getName();
-                if (name.equals("void"))
-                    return AnyType.voidType();
-                else
-                    return PrimitiveType.valueOf(name.toUpperCase(Locale.US)).asAny();
-            } else if (reflectedType.isArray()) {
-                return Types.arrayOf(readReflectedType(reflectedType.getComponentType())).asAny();
-            } else {
-                ObjectDefinition definition = getReference(reflectedType.getName()).orElseThrow(() -> new IllegalStateException("java.lang.reflect.Type references unexisting type: " + reflectedType.getName()));
-                return definition.rawType().asAny();
-            }
-        } else
-            throw new UnsupportedOperationException("Can't read " + genericReflectedType);
+        } else {
+            ObjectDefinition enclosing = getReference(klass.getEnclosingClass());
+            return enclosing.innerClasses().stream().filter(d -> d.qualifiedTypeName().equals(klass.getName())).findFirst().orElseThrow(() -> {
+                return new IllegalStateException(MessageFormat.format("{0} class is not accessible as object definition", klass));
+            });
+        }
     }
 
     public static class Builder {

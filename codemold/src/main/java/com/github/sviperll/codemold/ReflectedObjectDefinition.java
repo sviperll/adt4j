@@ -34,7 +34,10 @@ import com.github.sviperll.codemold.render.Renderable;
 import com.github.sviperll.codemold.render.Renderer;
 import com.github.sviperll.codemold.render.RendererContext;
 import com.github.sviperll.codemold.util.CMCollections;
+import com.github.sviperll.codemold.util.CMCollectors;
 import com.github.sviperll.codemold.util.Snapshot;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.lang.reflect.Parameter;
@@ -42,26 +45,33 @@ import java.lang.reflect.TypeVariable;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  *
  * @author Victor Nazarov &lt;asviraspossible@gmail.com&gt;
  */
 class ReflectedObjectDefinition<T> extends ObjectDefinition {
-    private final CodeMold codeModel;
+    private static final Logger logger = Logger.getLogger(ReflectedObjectDefinition.class.getName());
+
+    private final Reflection reflection;
     private final Residence residence;
     private final Class<T> klass;
     private List<? extends ObjectDefinition> innerClasses = null;
     private List<? extends MethodDefinition> methods = null;
-    private final TypeParameters typeParameters;
+    private List<? extends ConstructorDefinition> constructors = null;
+    private TypeParameters typeParameters = null;
     private List<? extends ObjectType> implementsInterfaces = null;
     private ObjectType extendsClass = null;
+    private AnnotationCollection annotations = null;
 
-    ReflectedObjectDefinition(CodeMold codeModel, ResidenceProvider residence, Class<T> klass) {
-        this.codeModel = codeModel;
+    ReflectedObjectDefinition(Reflection reflection, ResidenceProvider residence, Class<T> klass) {
+        this.reflection = reflection;
         this.residence = residence.residence();
         this.klass = klass;
-        typeParameters = new ReflectedTypeParameters<>(this, klass.getTypeParameters());
     }
 
     @Override
@@ -88,9 +98,9 @@ class ReflectedObjectDefinition<T> extends ObjectDefinition {
             throw new UnsupportedOperationException("java.lang.Object super class is undefined");
         if (extendsClass == null) {
             if (kind().isInterface())
-                extendsClass = codeModel.objectType();
+                extendsClass = reflection.getCodeMold().objectType();
             else
-                extendsClass = codeModel.readReflectedType(klass.getGenericSuperclass()).getObjectDetails();
+                extendsClass = reflection.readReflectedType(klass.getGenericSuperclass()).getObjectDetails();
         }
         return extendsClass;
     }
@@ -100,7 +110,7 @@ class ReflectedObjectDefinition<T> extends ObjectDefinition {
         if (implementsInterfaces == null) {
             List<ObjectType> implementsInterfacesBuilder = CMCollections.newArrayList();
             for (java.lang.reflect.Type reflectedInterface: klass.getGenericInterfaces()) {
-                implementsInterfacesBuilder.add(codeModel.readReflectedType(reflectedInterface).getObjectDetails());
+                implementsInterfacesBuilder.add(reflection.readReflectedType(reflectedInterface).getObjectDetails());
             }
             implementsInterfaces = Snapshot.of(implementsInterfacesBuilder);
         }
@@ -113,7 +123,7 @@ class ReflectedObjectDefinition<T> extends ObjectDefinition {
             List<MethodDefinition> methodsBuilder = CMCollections.newArrayList();
             for (final Method method: klass.getDeclaredMethods()) {
                 Nesting methodResidence = new ReflectedNesting(method.getModifiers(), this);
-                methodsBuilder.add(ReflectedMethodDefinition.createInstance(codeModel, methodResidence, method));
+                methodsBuilder.add(ReflectedMethodDefinition.createInstance(reflection, methodResidence, method));
             }
             methods = Snapshot.of(methodsBuilder);
         }
@@ -126,7 +136,7 @@ class ReflectedObjectDefinition<T> extends ObjectDefinition {
             List<ObjectDefinition> innerClassesBuilder = CMCollections.newArrayList();
             for (final Class<?> innerClass: klass.getDeclaredClasses()) {
                 Residence innerClassResidence = new ReflectedNesting(innerClass.getModifiers(), this).residence();
-                innerClassesBuilder.add(new ReflectedObjectDefinition<>(codeModel, innerClassResidence, innerClass));
+                innerClassesBuilder.add(new ReflectedObjectDefinition<>(reflection, innerClassResidence, innerClass));
             }
             innerClasses = Snapshot.of(innerClassesBuilder);
         }
@@ -140,7 +150,13 @@ class ReflectedObjectDefinition<T> extends ObjectDefinition {
 
     @Override
     public String simpleTypeName() {
-        return klass.getSimpleName();
+        if (!klass.isSynthetic())
+            return klass.getSimpleName();
+        else {
+            String name = klass.getName();
+            int i = name.lastIndexOf('.');
+            return name.substring(i + 1);
+        }
     }
 
     @Override
@@ -150,7 +166,7 @@ class ReflectedObjectDefinition<T> extends ObjectDefinition {
 
     @Override
     public CodeMold getCodeMold() {
-        return codeModel;
+        return reflection.getCodeMold();
     }
 
     @Override
@@ -165,7 +181,15 @@ class ReflectedObjectDefinition<T> extends ObjectDefinition {
 
     @Override
     public List<? extends ConstructorDefinition> constructors() {
-        throw new UnsupportedOperationException("Not supported yet.");
+        if (constructors == null) {
+            List<ConstructorDefinition> constructorsBuilder = CMCollections.newArrayList();
+            for (final Constructor<?> constructor: klass.getDeclaredConstructors()) {
+                Nesting constructorResidence = new ReflectedNesting(constructor.getModifiers(), this);
+                constructorsBuilder.add(ReflectedConstructorDefinition.createInstance(reflection, constructorResidence, constructor));
+            }
+            constructors = Snapshot.of(constructorsBuilder);
+        }
+        return Snapshot.of(constructors);
     }
 
     @Override
@@ -180,17 +204,27 @@ class ReflectedObjectDefinition<T> extends ObjectDefinition {
 
     @Override
     public TypeParameters typeParameters() {
+        if (typeParameters == null)
+            typeParameters = new ReflectedTypeParameters<>(reflection, this, klass.getTypeParameters());
         return typeParameters;
     }
 
     @Override
     public List<? extends Annotation> getAnnotation(ObjectDefinition definition) {
-        throw new UnsupportedOperationException("Not supported yet.");
+        initAnnotationMap();
+        return annotations.getAnnotation(definition);
     }
 
     @Override
     public Collection<? extends Annotation> allAnnotations() {
-        throw new UnsupportedOperationException("Not supported yet.");
+        initAnnotationMap();
+        return annotations.allAnnotations();
+    }
+
+    private void initAnnotationMap() {
+        if (annotations == null) {
+            annotations = reflection.readAnnotationCollection(klass.getDeclaredAnnotations());
+        }
     }
 
 

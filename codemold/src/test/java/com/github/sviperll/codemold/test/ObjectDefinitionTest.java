@@ -65,14 +65,6 @@ import org.junit.Test;
  */
 public class ObjectDefinitionTest {
     @Test
-    public void smokeReflectedObjectShouldBePrintable() throws CodeMoldException {
-        CodeMold.Builder builder = CodeMold.createBuilder();
-        CodeMold codeModel = builder.build();
-        StringBuilder builder1 = new StringBuilder();
-        RendererContexts.createInstance(builder1).appendRenderable(codeModel.getReference(String.class));
-    }
-
-    @Test
     public void smokePrettyPrintingInterface() throws CodeMoldException {
         CodeMold.Builder builder = CodeMold.createBuilder();
         CodeMold codeModel = builder.build();

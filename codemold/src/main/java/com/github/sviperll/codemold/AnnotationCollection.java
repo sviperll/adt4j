@@ -32,6 +32,7 @@ package com.github.sviperll.codemold;
 
 import com.github.sviperll.codemold.util.CMCollections;
 import com.github.sviperll.codemold.util.CMCollectors;
+import com.github.sviperll.codemold.util.Snapshot;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -53,7 +54,7 @@ class AnnotationCollection implements Annotated {
     public void annotate(Annotation annotation) {
         String key = annotation.definition().qualifiedTypeName();
         Optional<List<Annotation>> current = Optional.ofNullable(annotationMap.get(key));
-        List<Annotation> value = current.orElseGet(ArrayList::new);
+        List<Annotation> value = current.orElseGet(CMCollections::newArrayList);
         value.add(annotation);
         if (!current.isPresent())
             annotationMap.put(key, value);
@@ -61,7 +62,7 @@ class AnnotationCollection implements Annotated {
 
     @Override
     public List<? extends Annotation> getAnnotation(ObjectDefinition definition) {
-        return Optional.ofNullable(annotationMap.get(definition.qualifiedTypeName())).orElseGet(Collections::emptyList);
+        return Optional.ofNullable(annotationMap.get(definition.qualifiedTypeName())).map(Snapshot::of).orElseGet(Collections::emptyList);
     }
 
     @Override

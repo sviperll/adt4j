@@ -30,44 +30,57 @@
 
 package com.github.sviperll.codemold;
 
+import com.github.sviperll.codemold.render.Renderable;
 import com.github.sviperll.codemold.util.CMCollections;
 import com.github.sviperll.codemold.util.Snapshot;
-import java.lang.reflect.TypeVariable;
+import java.lang.reflect.Parameter;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import javax.annotation.ParametersAreNonnullByDefault;
+import javax.annotation.Nonnull;
 
 /**
  *
  * @author Victor Nazarov &lt;asviraspossible@gmail.com&gt;
  */
-class ReflectedTypeParameters<T extends java.lang.reflect.GenericDeclaration> extends TypeParameters {
-
-    private List<? extends TypeParameter> allTypeParameters = null;
+class ReflectedParameter extends VariableDeclaration {
+    private static final Logger logger = Logger.getLogger(ReflectedParameter.class.getName());
     private final Reflection reflection;
-    private final GenericDefinition<?, ?> definition;
-    private final TypeVariable<T>[] reflectedTypeParameters;
+    private final Parameter parameter;
+    private AnyType type = null;
 
-    ReflectedTypeParameters(Reflection reflection, GenericDefinition<?, ?> definition, TypeVariable<T>[] reflectedTypeParameters) {
+    ReflectedParameter(Reflection reflection, Parameter parameter) {
         this.reflection = reflection;
-        this.definition = definition;
-        this.reflectedTypeParameters = reflectedTypeParameters;
+        this.parameter = parameter;
     }
 
     @Override
-    public List<? extends TypeParameter> all() {
-        if (allTypeParameters == null) {
-            List<TypeParameter> allTypeParametersBuilder = CMCollections.newArrayList();
-            for (final TypeVariable<T> reflectedTypeParameter : reflectedTypeParameters) {
-                TypeParameter parameter = new ReflectedTypeParameter<>(reflection, definition, reflectedTypeParameter);
-                allTypeParametersBuilder.add(parameter);
-            }
-            allTypeParameters = Snapshot.of(allTypeParametersBuilder);
+    public boolean isFinal() {
+        return false;
+    }
+
+    @Override
+    public AnyType type() {
+        if (type == null) {
+            type = reflection.readReflectedType(parameter.getParameterizedType());
         }
-        return Snapshot.of(allTypeParameters);
+        return type;
     }
 
     @Override
-    public Residence residence() {
-        return definition.residence();
+    public String name() {
+        return parameter.getName();
+    }
+
+    @Override
+    public boolean isInitialized() {
+        return false;
+    }
+
+    @Override
+    Renderable getInitialValue() {
+        throw new UnsupportedOperationException();
     }
 
 }

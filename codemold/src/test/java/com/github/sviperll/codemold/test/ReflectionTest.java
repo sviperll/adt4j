@@ -28,46 +28,27 @@
  *  EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.github.sviperll.codemold;
+package com.github.sviperll.codemold.test;
 
-import com.github.sviperll.codemold.util.CMCollections;
-import com.github.sviperll.codemold.util.Snapshot;
-import java.lang.reflect.TypeVariable;
-import java.util.List;
+import com.github.sviperll.codemold.CodeMold;
+import com.github.sviperll.codemold.CodeMoldException;
+import com.github.sviperll.codemold.render.RendererContexts;
+import javax.annotation.ParametersAreNonnullByDefault;
+import javax.annotation.Nonnull;
+import org.junit.Test;
 
 /**
  *
  * @author Victor Nazarov &lt;asviraspossible@gmail.com&gt;
  */
-class ReflectedTypeParameters<T extends java.lang.reflect.GenericDeclaration> extends TypeParameters {
-
-    private List<? extends TypeParameter> allTypeParameters = null;
-    private final Reflection reflection;
-    private final GenericDefinition<?, ?> definition;
-    private final TypeVariable<T>[] reflectedTypeParameters;
-
-    ReflectedTypeParameters(Reflection reflection, GenericDefinition<?, ?> definition, TypeVariable<T>[] reflectedTypeParameters) {
-        this.reflection = reflection;
-        this.definition = definition;
-        this.reflectedTypeParameters = reflectedTypeParameters;
+@ParametersAreNonnullByDefault
+public class ReflectionTest {
+    @Test
+    public void smokeReflectedObjectShouldBePrintable() throws CodeMoldException {
+        CodeMold.Builder builder = CodeMold.createBuilder();
+        CodeMold codeModel = builder.build();
+        StringBuilder builder1 = new StringBuilder();
+        RendererContexts.createInstance(builder1).appendRenderable(codeModel.getReference(String.class));
+        System.out.println(builder1.toString());
     }
-
-    @Override
-    public List<? extends TypeParameter> all() {
-        if (allTypeParameters == null) {
-            List<TypeParameter> allTypeParametersBuilder = CMCollections.newArrayList();
-            for (final TypeVariable<T> reflectedTypeParameter : reflectedTypeParameters) {
-                TypeParameter parameter = new ReflectedTypeParameter<>(reflection, definition, reflectedTypeParameter);
-                allTypeParametersBuilder.add(parameter);
-            }
-            allTypeParameters = Snapshot.of(allTypeParametersBuilder);
-        }
-        return Snapshot.of(allTypeParameters);
-    }
-
-    @Override
-    public Residence residence() {
-        return definition.residence();
-    }
-
 }
