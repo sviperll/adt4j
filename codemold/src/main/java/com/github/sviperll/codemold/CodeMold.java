@@ -90,21 +90,12 @@ public final class CodeMold {
     public ObjectDefinition getReference(Class<?> klass) {
         if (klass.isPrimitive() || klass.isArray())
             throw new IllegalArgumentException(MessageFormat.format("{0} class should be object definition", klass));
-        if (klass.isLocalClass() || (klass.isAnonymousClass() && !klass.isSynthetic()))
-            throw new UnsupportedOperationException(MessageFormat.format("{0} you can't get references to local classes", klass));
-        if (!klass.isMemberClass()) {
-            try {
-                return defaultPackage.getReference(klass.getName()).orElseThrow(() -> {
-                    return new IllegalStateException(MessageFormat.format("{0} class is not accessible as object definition", klass));
-                });
-            } catch (AssertionError error) {
-                throw new AssertionError(MessageFormat.format("Unable to read reflected class: {0}", klass.getName()), error);
-            }
-        } else {
-            ObjectDefinition enclosing = getReference(klass.getEnclosingClass());
-            return enclosing.innerClasses().stream().filter(d -> d.qualifiedTypeName().equals(klass.getName())).findFirst().orElseThrow(() -> {
+        try {
+            return defaultPackage.getReference(klass.getName()).orElseThrow(() -> {
                 return new IllegalStateException(MessageFormat.format("{0} class is not accessible as object definition", klass));
             });
+        } catch (AssertionError error) {
+            throw new AssertionError(MessageFormat.format("Unable to read reflected class: {0}", klass.getName()), error);
         }
     }
 

@@ -30,12 +30,20 @@
 
 package com.github.sviperll.codemold.test;
 
+import com.github.sviperll.codemold.Type;
+import com.github.sviperll.codemold.AnyType;
 import com.github.sviperll.codemold.CodeMold;
 import com.github.sviperll.codemold.CodeMoldException;
+import com.github.sviperll.codemold.ConstructorDefinition;
+import com.github.sviperll.codemold.MethodDefinition;
+import com.github.sviperll.codemold.ObjectDefinition;
+import com.github.sviperll.codemold.TypeParameter;
 import com.github.sviperll.codemold.render.RendererContexts;
+import java.util.Optional;
+import java.util.function.Predicate;
 import javax.annotation.ParametersAreNonnullByDefault;
-import javax.annotation.Nonnull;
 import org.junit.Test;
+import static org.junit.Assert.*;
 
 /**
  *
@@ -44,11 +52,103 @@ import org.junit.Test;
 @ParametersAreNonnullByDefault
 public class ReflectionTest {
     @Test
-    public void smokeReflectedObjectShouldBePrintable() throws CodeMoldException {
+    public void smokeReflectedObject() throws CodeMoldException {
         CodeMold.Builder builder = CodeMold.createBuilder();
         CodeMold codeModel = builder.build();
-        StringBuilder builder1 = new StringBuilder();
-        RendererContexts.createInstance(builder1).appendRenderable(codeModel.getReference(String.class));
-        System.out.println(builder1.toString());
+        ObjectDefinition stringDefinition = codeModel.getReference(String.class);
+        StringBuilder stringBuilder = new StringBuilder();
+        RendererContexts.createInstance(stringBuilder).appendRenderable(stringDefinition);
+
+        assertTrue(stringDefinition.kind().isClass());
+
+        assertTrue(stringDefinition.typeParameters().all().size() == 0);
+
+        Predicate<MethodDefinition> isValueOfIntMethod = (definition) -> {
+            return definition.name().equals("valueOf")
+                        && definition.isStatic()
+                        && definition.parameters().size() == 1
+                        && isInt(definition.parameters().get(0).type());
+        };
+        Optional<? extends MethodDefinition> optionalValueOfDefinition;
+        optionalValueOfDefinition = stringDefinition.methods().stream().filter(isValueOfIntMethod).findFirst();
+        assertTrue(optionalValueOfDefinition.isPresent());
+        MethodDefinition valueOfDefinition = optionalValueOfDefinition.orElseThrow(() -> new IllegalStateException());
+        assertTrue(isString(valueOfDefinition.returnType()));
+
+        Predicate<ConstructorDefinition> isConstructorOfCharArray = (constructor) -> {
+            return constructor.parameters().size() == 1
+                    && isArrayOfChars(constructor.parameters().get(0).type());
+        };
+        Optional<? extends ConstructorDefinition> constructorOfCharArray;
+        constructorOfCharArray = stringDefinition.constructors().stream().filter(isConstructorOfCharArray).findFirst();
+        assertTrue(constructorOfCharArray.isPresent());
+
+        Predicate<MethodDefinition> isCharAt = (definition) -> {
+            return definition.name().equals("charAt")
+                        && !definition.isStatic()
+                        && definition.parameters().size() == 1
+                        && isInt(definition.parameters().get(0).type());
+        };
+        Optional<? extends MethodDefinition> optionalCharAtDefinition;
+        optionalCharAtDefinition = stringDefinition.methods().stream().filter(isCharAt).findFirst();
+        assertTrue(optionalCharAtDefinition.isPresent());
+        MethodDefinition charAtDefinition = optionalCharAtDefinition.orElseThrow(() -> new IllegalStateException());
+        assertTrue(isChar(charAtDefinition.returnType()));
     }
+
+    @Test
+    public void smokeReflectedInterface() throws CodeMoldException {
+        CodeMold.Builder builder = CodeMold.createBuilder();
+        CodeMold codeModel = builder.build();
+        ObjectDefinition comparableDefinition = codeModel.getReference(Comparable.class);
+        StringBuilder stringBuilder = new StringBuilder();
+        RendererContexts.createInstance(stringBuilder).appendRenderable(comparableDefinition);
+        System.out.println(stringBuilder.toString());
+
+        assertTrue(comparableDefinition.kind().isInterface());
+
+        assertTrue(comparableDefinition.typeParameters().all().size() == 1);
+        TypeParameter typeParameter = comparableDefinition.typeParameters().all().get(0);
+        Predicate<Type> isUsedTypeParameter = (type) -> {
+            AnyType any = type.asAny();
+            return any.isTypeVariable() && any.getVariableDetails().name().equals(typeParameter.name());
+        };
+        Predicate<MethodDefinition> isCompareTo = (definition) -> {
+            return definition.name().equals("compareTo")
+                        && !definition.isStatic()
+                        && definition.parameters().size() == 1
+                        && isUsedTypeParameter.test(definition.parameters().get(0).type());
+        };
+        Optional<? extends MethodDefinition> optionalCompareToDefinition;
+        optionalCompareToDefinition = comparableDefinition.methods().stream().filter(isCompareTo).findFirst();
+        assertTrue(optionalCompareToDefinition.isPresent());
+        MethodDefinition compareToDefinition = optionalCompareToDefinition.orElseThrow(() -> new IllegalStateException());
+        assertTrue(isInt(compareToDefinition.returnType()));
+    }
+
+    private boolean isInt(Type type) {
+        AnyType any = type.asAny();
+        return any.isPrimitive() && any.getPrimitiveDetails().isInteger();
+    }
+
+    private boolean isChar(Type type) {
+        AnyType any = type.asAny();
+        return any.isPrimitive() && any.getPrimitiveDetails().isCharacter();
+    }
+
+    private boolean isArrayOfChars(Type type) {
+        AnyType any = type.asAny();
+        return any.isArray() && isChar(any.getArrayDetails().elementType());
+    }
+
+    private boolean isString(Type type) {
+        AnyType any = type.asAny();
+        if (!any.isObjectType())
+            return false;
+        else {
+            ObjectDefinition definition = any.getObjectDetails().definition();
+            return definition == definition.getCodeMold().getReference(String.class);
+        }
+    }
+
 }
