@@ -44,7 +44,7 @@ abstract class NamedObjectBuilder<B extends ResidenceProvider, MB extends Execut
         extends ObjectBuilder<B, MB>
         implements AnnotatableBuilder {
     private final String name;
-    private final AnnotationCollection annotations = new AnnotationCollection();
+    private final AnnotationCollection.Builder annotations = AnnotationCollection.createBuilder();
 
     NamedObjectBuilder(ObjectKind kind, B residence, String name) {
         super(kind, residence);
@@ -115,12 +115,12 @@ abstract class NamedObjectBuilder<B extends ResidenceProvider, MB extends Execut
 
         @Override
         public List<? extends Annotation> getAnnotation(ObjectDefinition definition) {
-            return annotations.getAnnotation(definition);
+            return annotations.build().getAnnotation(definition);
         }
 
         @Override
         public Collection<? extends Annotation> allAnnotations() {
-            return annotations.allAnnotations();
+            return annotations.build().allAnnotations();
         }
     }
 

@@ -45,7 +45,7 @@ import javax.annotation.ParametersAreNonnullByDefault;
 @ParametersAreNonnullByDefault
 public class FieldBuilder implements ExpressionContext, AnnotatableBuilder, Model {
 
-    private final AnnotationCollection annotations = new AnnotationCollection();
+    private final AnnotationCollection.Builder annotations = AnnotationCollection.createBuilder();
     private final FieldDeclaration declaration = new BuiltFieldDeclaration();
     private final NestingBuilder residence;
     private final AnyType type;
@@ -143,12 +143,12 @@ public class FieldBuilder implements ExpressionContext, AnnotatableBuilder, Mode
 
         @Override
         public List<? extends Annotation> getAnnotation(ObjectDefinition definition) {
-            return annotations.getAnnotation(definition);
+            return annotations.build().getAnnotation(definition);
         }
 
         @Override
         public Collection<? extends Annotation> allAnnotations() {
-            return annotations.allAnnotations();
+            return annotations.build().allAnnotations();
         }
     }
 }

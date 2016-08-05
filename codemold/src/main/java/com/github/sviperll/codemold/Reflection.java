@@ -69,7 +69,6 @@ class Reflection implements Model {
 
     @Nonnull
     AnyType readReflectedType(java.lang.reflect.Type genericReflectedType) {
-        // logger.log(Level.INFO, "readReflectedType({0})", genericReflectedType);
         if (genericReflectedType instanceof ParameterizedType) {
             ParameterizedType reflectedType = (ParameterizedType)genericReflectedType;
             ObjectType rawType = readReflectedType(reflectedType.getRawType()).getObjectDetails();
@@ -113,7 +112,6 @@ class Reflection implements Model {
             throw new UnsupportedOperationException("Can't read " + genericReflectedType);
     }
 
-
     List<? extends AnyType> buildTypesFromReflections(java.lang.reflect.Type[] types) {
         List<AnyType> throwsListBuilder = CMCollections.newArrayList();
         for (java.lang.reflect.Type exceptionType : types) {
@@ -139,7 +137,7 @@ class Reflection implements Model {
     }
 
     AnnotationCollection readAnnotationCollection(java.lang.annotation.Annotation[] reflectionAnnotations) {
-        AnnotationCollection collection = new AnnotationCollection();
+        AnnotationCollection.Builder collection = AnnotationCollection.createBuilder();
         for(java.lang.annotation.Annotation reflectionAnnotation: reflectionAnnotations) {
             Class<? extends java.lang.annotation.Annotation> reflectionAnnotationType = reflectionAnnotation.annotationType();
             ObjectDefinition annotationType = getReference(reflectionAnnotationType);
@@ -159,7 +157,7 @@ class Reflection implements Model {
             }
             collection.annotate(builder.build());
         }
-        return collection;
+        return collection.build();
     }
 
     private static class RenderableUnaccessibleCode implements Renderable {

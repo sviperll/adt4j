@@ -51,7 +51,7 @@ public abstract class ExecutableBuilder<T extends ExecutableType<T, D>, D extend
         extends GenericDefinitionBuilder<NestingBuilder, T, D>
         implements AnnotatableBuilder {
 
-    private final AnnotationCollection annotations = new AnnotationCollection();
+    private final AnnotationCollection.Builder annotations = AnnotationCollection.createBuilder();
     private final VariableScope scope = VariableScope.createTopLevel();
     private final List<VariableDeclaration> parameters = CMCollections.newArrayList();
     private final List<AnyType> throwsList = CMCollections.newArrayList();
@@ -134,8 +134,8 @@ public abstract class ExecutableBuilder<T extends ExecutableType<T, D>, D extend
             implements ExecutableDefinition.Implementation<T, D>, Annotated {
 
         private final TypeParameters typeParameters;
-        private final Annotated annotations;
-        BuiltExecutableDefinition(TypeParameters typeParameters, Annotated annotations) {
+        private final AnnotationCollection.Builder annotations;
+        BuiltExecutableDefinition(TypeParameters typeParameters, AnnotationCollection.Builder annotations) {
             this.typeParameters = typeParameters;
             this.annotations = annotations;
         }
@@ -166,12 +166,12 @@ public abstract class ExecutableBuilder<T extends ExecutableType<T, D>, D extend
 
         @Override
         public List<? extends Annotation> getAnnotation(ObjectDefinition definition) {
-            return annotations.getAnnotation(definition);
+            return annotations.build().getAnnotation(definition);
         }
 
         @Override
         public Collection<? extends Annotation> allAnnotations() {
-            return annotations.allAnnotations();
+            return annotations.build().allAnnotations();
         }
     }
 

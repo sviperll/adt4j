@@ -39,6 +39,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Stream;
 import javax.annotation.ParametersAreNonnullByDefault;
 
 /**
@@ -47,17 +48,13 @@ import javax.annotation.ParametersAreNonnullByDefault;
  */
 @ParametersAreNonnullByDefault
 class AnnotationCollection implements Annotated {
-    private final Map<String, List<Annotation>> annotationMap = CMCollections.newTreeMap();
-    AnnotationCollection() {
+    public static Builder createBuilder() {
+        return new Builder();
     }
 
-    public void annotate(Annotation annotation) {
-        String key = annotation.definition().qualifiedTypeName();
-        Optional<List<Annotation>> current = Optional.ofNullable(annotationMap.get(key));
-        List<Annotation> value = current.orElseGet(CMCollections::newArrayList);
-        value.add(annotation);
-        if (!current.isPresent())
-            annotationMap.put(key, value);
+    private final Map<? extends String, ? extends List<? extends Annotation>> annotationMap;
+    private AnnotationCollection(Map<? extends String, ? extends List<? extends Annotation>> annotationMap) {
+        this.annotationMap = Snapshot.of(annotationMap);
     }
 
     @Override
@@ -67,6 +64,25 @@ class AnnotationCollection implements Annotated {
 
     @Override
     public Collection<? extends Annotation> allAnnotations() {
-        return annotationMap.values().stream().flatMap(List::stream).collect(CMCollectors.toImmutableList());
+        return annotationMap.values().stream().flatMap(list -> list.stream()).collect(CMCollectors.toImmutableList());
+    }
+
+    static class Builder {
+        private final Map<String, List<Annotation>> annotationMap = CMCollections.newTreeMap();
+        private Builder() {
+        }
+
+        public void annotate(Annotation annotation) {
+            String key = annotation.definition().qualifiedTypeName();
+            Optional<List<Annotation>> current = Optional.ofNullable(annotationMap.get(key));
+            List<Annotation> value = current.orElseGet(CMCollections::newArrayList);
+            value.add(annotation);
+            if (!current.isPresent())
+                annotationMap.put(key, value);
+        }
+
+        public AnnotationCollection build() {
+            return new AnnotationCollection(Snapshot.of(annotationMap));
+        }
     }
 }
