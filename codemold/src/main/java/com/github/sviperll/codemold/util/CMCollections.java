@@ -42,11 +42,11 @@ import java.util.Map;
  */
 public class CMCollections {
     public static <T> List<T> newArrayList() {
-        return new SnapshotableArrayList<>();
+        return new SnapshotableList<>(ListFactories.arrayList());
     }
 
     public static <T> List<T> newArrayList(Collection<? extends T> c) {
-        return new SnapshotableArrayList<>(c);
+        return new SnapshotableList<>(ListFactories.arrayList(), c);
     }
 
     public static <K, V> Map<K, V> newHashMap() {

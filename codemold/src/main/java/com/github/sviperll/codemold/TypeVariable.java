@@ -62,11 +62,8 @@ public class TypeVariable implements Renderable, Type {
 
     @Override
     public Renderer createRenderer(final RendererContext context) {
-        return new Renderer() {
-            @Override
-            public void render() {
-                context.appendText(name());
-            }
+        return () -> {
+            context.appendText(name());
         };
     }
 

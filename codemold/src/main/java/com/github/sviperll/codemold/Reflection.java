@@ -149,9 +149,7 @@ class Reflection implements Model {
                 builder.set(parameterName, readCompileTimeValue(reflectionValue));
             } catch (IllegalAccessException ex) {
                 logger.log(Level.SEVERE, null, ex);
-            } catch (IllegalArgumentException ex) {
-                throw new IllegalStateException(ex);
-            } catch (InvocationTargetException ex) {
+            } catch (IllegalArgumentException | InvocationTargetException ex) {
                 throw new IllegalStateException(ex);
             }
         }

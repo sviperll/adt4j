@@ -53,26 +53,28 @@ public class MapFactories {
     public static <K, V> MapFactory<K, V> hashMap() {
         return HASH_MAP;
     }
+    private MapFactories() {
+    }
 
     private static class TreeMapFactory<K extends Comparable<? super K>, V> implements MapFactory<K, V> {
         @Override
-        public Map<K, V> createEmptyMap() {
+        public Map<K, V> createInitialMap() {
             return new TreeMap<>();
         }
 
         @Override
-        public Map<K, V> createPreinitializedMap(Map<? extends K, ? extends V> values) {
+        public Map<K, V> createCopyOf(Map<? extends K, ? extends V> values) {
             return new TreeMap<>(values);
         }
     }
     private static class HashMapFactory<K, V> implements MapFactory<K, V> {
         @Override
-        public Map<K, V> createEmptyMap() {
+        public Map<K, V> createInitialMap() {
             return new HashMap<>();
         }
 
         @Override
-        public Map<K, V> createPreinitializedMap(Map<? extends K, ? extends V> values) {
+        public Map<K, V> createCopyOf(Map<? extends K, ? extends V> values) {
             return new HashMap<>(values);
         }
     }

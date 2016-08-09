@@ -30,9 +30,11 @@
 
 package com.github.sviperll.codemold.util;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import java.util.AbstractList;
 import java.util.List;
+import java.util.RandomAccess;
 import javax.annotation.ParametersAreNonnullByDefault;
-import javax.annotation.Nonnull;
 
 /**
  *
@@ -41,61 +43,498 @@ import javax.annotation.Nonnull;
 @ParametersAreNonnullByDefault
 public class CMArrays {
     public static List<Byte> asList(byte... values) {
-        List<Byte> result = CMCollections.newArrayList();
-        for (byte value: values) {
-            result.add(value);
-        }
-        return result;
+        return new ByteArrayAsList(values);
     }
     public static List<Short> asList(short... values) {
-        List<Short> result = CMCollections.newArrayList();
-        for (short value: values) {
-            result.add(value);
-        }
-        return result;
+        return new ShortArrayAsList(values);
     }
     public static List<Integer> asList(int... values) {
-        List<Integer> result = CMCollections.newArrayList();
-        for (int value: values) {
-            result.add(value);
-        }
-        return result;
+        return new IntArrayAsList(values);
     }
     public static List<Long> asList(long... values) {
-        List<Long> result = CMCollections.newArrayList();
-        for (long value: values) {
-            result.add(value);
-        }
-        return result;
+        return new LongArrayAsList(values);
     }
     public static List<Float> asList(float... values) {
-        List<Float> result = CMCollections.newArrayList();
-        for (float value: values) {
-            result.add(value);
-        }
-        return result;
+        return new FloatArrayAsList(values);
     }
     public static List<Double> asList(double... values) {
-        List<Double> result = CMCollections.newArrayList();
-        for (double value: values) {
-            result.add(value);
-        }
-        return result;
+        return new DoubleArrayAsList(values);
     }
     public static List<Character> asList(char... values) {
-        List<Character> result = CMCollections.newArrayList();
-        for (char value: values) {
-            result.add(value);
-        }
-        return result;
+        return new CharArrayAsList(values);
     }
     public static List<Boolean> asList(boolean... values) {
-        List<Boolean> result = CMCollections.newArrayList();
-        for (boolean value: values) {
-            result.add(value);
-        }
-        return result;
+        return new BooleanArrayAsList(values);
     }
     private CMArrays() {
+    }
+
+    private static class ByteArrayAsList extends AbstractList<Byte>
+            implements RandomAccess {
+
+        private final byte[] values;
+        ByteArrayAsList(byte[] values) {
+            this.values = values;
+        }
+
+        @Override
+        public Byte get(int index) {
+            return values[index];
+        }
+
+        @Override
+        public int size() {
+            return values.length;
+        }
+
+        @Override
+        public boolean contains(Object o) {
+            return indexOf(o) >= 0;
+        }
+
+        @Override
+        public Byte set(int index, Byte newValue) {
+            Byte oldValue = values[index];
+            values[index] = newValue;
+            return oldValue;
+        }
+
+        @Override
+        public int indexOf(Object o) {
+            if (o == null || !(o instanceof Byte))
+                return -1;
+            else {
+                byte v = (Byte)o;
+                for (int i = 0; i < values.length; i++)
+                    if (v == values[i])
+                        return i;
+                return -1;
+            }
+        }
+
+        @Override
+        public int lastIndexOf(Object o) {
+            if (o == null || !(o instanceof Byte))
+                return -1;
+            else {
+                byte v = (Byte)o;
+                for (int i = values.length - 1; i >= 0; i--)
+                    if (v == values[i])
+                        return i;
+                return -1;
+            }
+        }
+    }
+
+    private static class ShortArrayAsList extends AbstractList<Short>
+            implements RandomAccess {
+
+        private final short[] values;
+        ShortArrayAsList(short[] values) {
+            this.values = values;
+        }
+
+        @Override
+        public Short get(int index) {
+            return values[index];
+        }
+
+        @Override
+        public int size() {
+            return values.length;
+        }
+
+        @Override
+        public boolean contains(Object o) {
+            return indexOf(o) >= 0;
+        }
+
+        @Override
+        public Short set(int index, Short newValue) {
+            Short oldValue = values[index];
+            values[index] = newValue;
+            return oldValue;
+        }
+
+        @Override
+        public int indexOf(Object o) {
+            if (o == null || !(o instanceof Short))
+                return -1;
+            else {
+                short v = (Short)o;
+                for (int i = 0; i < values.length; i++)
+                    if (v == values[i])
+                        return i;
+                return -1;
+            }
+        }
+
+        @Override
+        public int lastIndexOf(Object o) {
+            if (o == null || !(o instanceof Short))
+                return -1;
+            else {
+                short v = (Short)o;
+                for (int i = values.length - 1; i >= 0; i--)
+                    if (v == values[i])
+                        return i;
+                return -1;
+            }
+        }
+    }
+
+    private static class IntArrayAsList extends AbstractList<Integer>
+            implements RandomAccess {
+
+        private final int[] values;
+        IntArrayAsList(int[] values) {
+            this.values = values;
+        }
+
+        @Override
+        public Integer get(int index) {
+            return values[index];
+        }
+
+        @Override
+        public int size() {
+            return values.length;
+        }
+
+        @Override
+        public boolean contains(Object o) {
+            return indexOf(o) >= 0;
+        }
+
+        @Override
+        public Integer set(int index, Integer newValue) {
+            Integer oldValue = values[index];
+            values[index] = newValue;
+            return oldValue;
+        }
+
+        @Override
+        public int indexOf(Object o) {
+            if (o == null || !(o instanceof Integer))
+                return -1;
+            else {
+                int v = (Integer)o;
+                for (int i = 0; i < values.length; i++)
+                    if (v == values[i])
+                        return i;
+                return -1;
+            }
+        }
+
+        @Override
+        public int lastIndexOf(Object o) {
+            if (o == null || !(o instanceof Integer))
+                return -1;
+            else {
+                int v = (Integer)o;
+                for (int i = values.length - 1; i >= 0; i--)
+                    if (v == values[i])
+                        return i;
+                return -1;
+            }
+        }
+    }
+
+    private static class LongArrayAsList extends AbstractList<Long>
+            implements RandomAccess {
+
+        private final long[] values;
+        LongArrayAsList(long[] values) {
+            this.values = values;
+        }
+
+        @Override
+        public Long get(int index) {
+            return values[index];
+        }
+
+        @Override
+        public int size() {
+            return values.length;
+        }
+
+        @Override
+        public boolean contains(Object o) {
+            return indexOf(o) >= 0;
+        }
+
+        @Override
+        public Long set(int index, Long newValue) {
+            Long oldValue = values[index];
+            values[index] = newValue;
+            return oldValue;
+        }
+
+        @Override
+        public int indexOf(Object o) {
+            if (o == null || !(o instanceof Long))
+                return -1;
+            else {
+                long v = (Long)o;
+                for (int i = 0; i < values.length; i++)
+                    if (v == values[i])
+                        return i;
+                return -1;
+            }
+        }
+
+        @Override
+        public int lastIndexOf(Object o) {
+            if (o == null || !(o instanceof Long))
+                return -1;
+            else {
+                long v = (Long)o;
+                for (int i = values.length - 1; i >= 0; i--)
+                    if (v == values[i])
+                        return i;
+                return -1;
+            }
+        }
+    }
+
+
+    private static class FloatArrayAsList extends AbstractList<Float>
+            implements RandomAccess {
+
+        private final float[] values;
+        FloatArrayAsList(float[] values) {
+            this.values = values;
+        }
+
+        @Override
+        public Float get(int index) {
+            return values[index];
+        }
+
+        @Override
+        public int size() {
+            return values.length;
+        }
+
+        @Override
+        public boolean contains(Object o) {
+            return indexOf(o) >= 0;
+        }
+
+        @Override
+        public Float set(int index, Float newValue) {
+            Float oldValue = values[index];
+            values[index] = newValue;
+            return oldValue;
+        }
+
+        @SuppressFBWarnings(
+            value="FE_FLOATING_POINT_EQUALITY",
+            justification="Required by indexOf sematics")
+        @Override
+        public int indexOf(Object o) {
+            if (o == null || !(o instanceof Float))
+                return -1;
+            else {
+                float v = (Float)o;
+                for (int i = 0; i < values.length; i++)
+                    if (v == values[i])
+                        return i;
+                return -1;
+            }
+        }
+
+        @SuppressFBWarnings(
+            value="FE_FLOATING_POINT_EQUALITY",
+            justification="Required by indexOf sematics")
+        @Override
+        public int lastIndexOf(Object o) {
+            if (o == null || !(o instanceof Float))
+                return -1;
+            else {
+                float v = (Float)o;
+                for (int i = values.length - 1; i >= 0; i--)
+                    if (v == values[i])
+                        return i;
+                return -1;
+            }
+        }
+    }
+
+    private static class DoubleArrayAsList extends AbstractList<Double>
+            implements RandomAccess {
+
+        private final double[] values;
+        DoubleArrayAsList(double[] values) {
+            this.values = values;
+        }
+
+        @Override
+        public Double get(int index) {
+            return values[index];
+        }
+
+        @Override
+        public int size() {
+            return values.length;
+        }
+
+        @Override
+        public boolean contains(Object o) {
+            return indexOf(o) >= 0;
+        }
+
+        @Override
+        public Double set(int index, Double newValue) {
+            Double oldValue = values[index];
+            values[index] = newValue;
+            return oldValue;
+        }
+
+        @SuppressFBWarnings(
+            value="FE_FLOATING_POINT_EQUALITY",
+            justification="Required by indexOf sematics")
+        @Override
+        public int indexOf(Object o) {
+            if (o == null || !(o instanceof Double))
+                return -1;
+            else {
+                double v = (Double)o;
+                for (int i = 0; i < values.length; i++)
+                    if (v == values[i])
+                        return i;
+                return -1;
+            }
+        }
+
+        @SuppressFBWarnings(
+            value="FE_FLOATING_POINT_EQUALITY",
+            justification="Required by indexOf sematics")
+        @Override
+        public int lastIndexOf(Object o) {
+            if (o == null || !(o instanceof Double))
+                return -1;
+            else {
+                double v = (Double)o;
+                for (int i = values.length - 1; i >= 0; i--)
+                    if (v == values[i])
+                        return i;
+                return -1;
+            }
+        }
+    }
+
+    private static class CharArrayAsList extends AbstractList<Character>
+            implements RandomAccess {
+
+        private final char[] values;
+        CharArrayAsList(char[] values) {
+            this.values = values;
+        }
+
+        @Override
+        public Character get(int index) {
+            return values[index];
+        }
+
+        @Override
+        public int size() {
+            return values.length;
+        }
+
+        @Override
+        public boolean contains(Object o) {
+            return indexOf(o) >= 0;
+        }
+
+        @Override
+        public Character set(int index, Character newValue) {
+            Character oldValue = values[index];
+            values[index] = newValue;
+            return oldValue;
+        }
+
+        @Override
+        public int indexOf(Object o) {
+            if (o == null || !(o instanceof Character))
+                return -1;
+            else {
+                char v = (Character)o;
+                for (int i = 0; i < values.length; i++)
+                    if (v == values[i])
+                        return i;
+                return -1;
+            }
+        }
+
+        @Override
+        public int lastIndexOf(Object o) {
+            if (o == null || !(o instanceof Character))
+                return -1;
+            else {
+                char v = (Character)o;
+                for (int i = values.length - 1; i >= 0; i--)
+                    if (v == values[i])
+                        return i;
+                return -1;
+            }
+        }
+    }
+
+    private static class BooleanArrayAsList extends AbstractList<Boolean>
+            implements RandomAccess {
+
+        private final boolean[] values;
+        BooleanArrayAsList(boolean[] values) {
+            this.values = values;
+        }
+
+        @Override
+        public Boolean get(int index) {
+            return values[index];
+        }
+
+        @Override
+        public int size() {
+            return values.length;
+        }
+
+        @Override
+        public boolean contains(Object o) {
+            return indexOf(o) >= 0;
+        }
+
+        @Override
+        public Boolean set(int index, Boolean newValue) {
+            Boolean oldValue = values[index];
+            values[index] = newValue;
+            return oldValue;
+        }
+
+        @Override
+        public int indexOf(Object o) {
+            if (o == null || !(o instanceof Boolean))
+                return -1;
+            else {
+                boolean v = (Boolean)o;
+                for (int i = 0; i < values.length; i++)
+                    if (v == values[i])
+                        return i;
+                return -1;
+            }
+        }
+
+        @Override
+        public int lastIndexOf(Object o) {
+            if (o == null || !(o instanceof Boolean))
+                return -1;
+            else {
+                boolean v = (Boolean)o;
+                for (int i = values.length - 1; i >= 0; i--)
+                    if (v == values[i])
+                        return i;
+                return -1;
+            }
+        }
     }
 }

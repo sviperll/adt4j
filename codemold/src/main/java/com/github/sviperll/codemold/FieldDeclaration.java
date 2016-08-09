@@ -60,25 +60,22 @@ public abstract class FieldDeclaration extends VariableDeclaration implements An
     @Override
     public Renderer createRenderer(final RendererContext context) {
         final Renderer simpleRenderer = super.createRenderer(context);
-        return new Renderer() {
-            @Override
-            public void render() {
-                Collection<? extends Annotation> annotations = allAnnotations();
-                if (!annotations.isEmpty())
-                    context.appendEmptyLine();
-                annotations.forEach(annotation -> {
-                    context.appendRenderable(annotation);
-                    context.appendLineBreak();
-                });
-                context.appendRenderable(nesting());
-                context.appendWhiteSpace();
-                simpleRenderer.render();
-                context.appendText(";");
-                if (annotations.isEmpty())
-                    context.appendLineBreak();
-                else
-                    context.appendEmptyLine();
-            }
+        return () -> {
+            Collection<? extends Annotation> annotations = allAnnotations();
+            if (!annotations.isEmpty())
+                context.appendEmptyLine();
+            annotations.forEach(annotation -> {
+                context.appendRenderable(annotation);
+                context.appendLineBreak();
+            });
+            context.appendRenderable(nesting());
+            context.appendWhiteSpace();
+            simpleRenderer.render();
+            context.appendText(";");
+            if (annotations.isEmpty())
+                context.appendLineBreak();
+            else
+                context.appendEmptyLine();
         };
     }
 

@@ -30,10 +30,6 @@
 
 package com.github.sviperll.codemold;
 
-import com.github.sviperll.codemold.util.CMArrays;
-import com.github.sviperll.codemold.util.CMCollections;
-import java.text.MessageFormat;
-import java.util.Arrays;
 import java.util.List;
 import javax.annotation.ParametersAreNonnullByDefault;
 

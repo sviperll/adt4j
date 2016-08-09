@@ -93,8 +93,8 @@ public class Snapshot {
     private static <T> List<? extends T> preciseTypeSnapshotOf(List<T> argument) {
         if (isKnownToBeImmutable(argument)) {
             return argument;
-        } else if (argument instanceof SnapshotableArrayList) {
-            SnapshotableArrayList<T> snapshotable = (SnapshotableArrayList<T>)argument;
+        } else if (argument instanceof SnapshotableList) {
+            SnapshotableList<T> snapshotable = (SnapshotableList<T>)argument;
             return snapshotable.snapshot();
         } else {
             return markedAsKnownToBeImmutableList(Collections.unmodifiableList(new ArrayList<>(argument)));

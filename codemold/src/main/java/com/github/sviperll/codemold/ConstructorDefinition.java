@@ -58,44 +58,41 @@ public abstract class ConstructorDefinition extends ExecutableDefinition<Constru
 
     @Override
     public Renderer createRenderer(final RendererContext context) {
-        return new Renderer() {
-            @Override
-            public void render() {
-                context.appendRenderable(nesting());
-                context.appendWhiteSpace();
-                context.appendWhiteSpace();
-                context.appendRenderable(typeParameters());
-                context.appendWhiteSpace();
-                context.appendText(nesting().parent().simpleTypeName());
-                context.appendText("(");
-                Iterator<? extends VariableDeclaration> parameters = parameters().iterator();
-                if (parameters.hasNext()) {
-                    VariableDeclaration parameter = parameters.next();
+        return () -> {
+            context.appendRenderable(nesting());
+            context.appendWhiteSpace();
+            context.appendWhiteSpace();
+            context.appendRenderable(typeParameters());
+            context.appendWhiteSpace();
+            context.appendText(nesting().parent().simpleTypeName());
+            context.appendText("(");
+            Iterator<? extends VariableDeclaration> parameters = parameters().iterator();
+            if (parameters.hasNext()) {
+                VariableDeclaration parameter = parameters.next();
+                context.appendRenderable(parameter);
+                while (parameters.hasNext()) {
+                    context.appendText(", ");
+                    parameter = parameters.next();
                     context.appendRenderable(parameter);
-                    while (parameters.hasNext()) {
-                        context.appendText(", ");
-                        parameter = parameters.next();
-                        context.appendRenderable(parameter);
-                    }
                 }
-                context.appendText(")");
-                Iterator<? extends AnyType> throwsExceptions = throwsList().iterator();
-                if (throwsExceptions.hasNext()) {
-                    AnyType exceptionType = throwsExceptions.next();
-                    context.appendWhiteSpace();
-                    context.appendText("throws");
-                    context.appendWhiteSpace();
-                    context.appendRenderable(exceptionType);
-                    while (throwsExceptions.hasNext()) {
-                        exceptionType = throwsExceptions.next();
-                        context.appendText(", ");
-                        context.appendRenderable(exceptionType);
-                    }
-                }
-                context.appendWhiteSpace();
-                context.appendRenderable(body());
-                context.appendLineBreak();
             }
+            context.appendText(")");
+            Iterator<? extends AnyType> throwsExceptions = throwsList().iterator();
+            if (throwsExceptions.hasNext()) {
+                AnyType exceptionType = throwsExceptions.next();
+                context.appendWhiteSpace();
+                context.appendText("throws");
+                context.appendWhiteSpace();
+                context.appendRenderable(exceptionType);
+                while (throwsExceptions.hasNext()) {
+                    exceptionType = throwsExceptions.next();
+                    context.appendText(", ");
+                    context.appendRenderable(exceptionType);
+                }
+            }
+            context.appendWhiteSpace();
+            context.appendRenderable(body());
+            context.appendLineBreak();
         };
     }
 }

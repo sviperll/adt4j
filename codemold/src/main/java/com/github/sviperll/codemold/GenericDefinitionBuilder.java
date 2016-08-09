@@ -58,6 +58,7 @@ public abstract class GenericDefinitionBuilder<B extends ResidenceProvider, T ex
         this.residence = residence;
     }
 
+    @Override
     public final CodeMold getCodeMold() {
         return residence.residence().getCodeMold();
     }

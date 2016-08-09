@@ -33,7 +33,7 @@ package com.github.sviperll.codemold;
 import com.github.sviperll.codemold.render.Renderable;
 import com.github.sviperll.codemold.render.Renderer;
 import com.github.sviperll.codemold.render.RendererContext;
-import com.github.sviperll.codemold.util.CMCollections;
+import com.github.sviperll.codemold.util.CMCollectors;
 import com.github.sviperll.codemold.util.Snapshot;
 import java.util.Collection;
 import java.util.Iterator;
@@ -69,25 +69,21 @@ public class IntersectionType implements Renderable, Type {
 
     @Nonnull
     AnyType substitute(Substitution environment) {
-        List<ObjectType> substituted = CMCollections.newArrayList();
-        for (ObjectType bound: bounds) {
-            substituted.add(bound.substitute(environment));
-        }
-        return new IntersectionType(Snapshot.of(substituted)).asAny();
+        List<? extends ObjectType> substituted = bounds.stream()
+                .map(bound -> bound.substitute(environment))
+                .collect(CMCollectors.toImmutableList());
+        return new IntersectionType(substituted).asAny();
     }
 
     @Override
     public Renderer createRenderer(final RendererContext context) {
-        return new Renderer() {
-            @Override
-            public void render() {
-                Iterator<? extends ObjectType> iterator = intersectedTypes().iterator();
-                if (iterator.hasNext()) {
+        return () -> {
+            Iterator<? extends ObjectType> iterator = intersectedTypes().iterator();
+            if (iterator.hasNext()) {
+                context.appendRenderable(iterator.next());
+                while (iterator.hasNext()) {
+                    context.appendText(" & ");
                     context.appendRenderable(iterator.next());
-                    while (iterator.hasNext()) {
-                        context.appendText(" & ");
-                        context.appendRenderable(iterator.next());
-                    }
                 }
             }
         };

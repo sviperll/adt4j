@@ -30,8 +30,8 @@
 
 package com.github.sviperll.codemold;
 
-import com.github.sviperll.codemold.render.Renderable;
 import com.github.sviperll.codemold.util.CMCollections;
+import com.github.sviperll.codemold.util.CMCollectors;
 import com.github.sviperll.codemold.util.Snapshot;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
@@ -40,6 +40,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.logging.Logger;
+import java.util.stream.Stream;
 
 /**
  *
@@ -192,14 +193,11 @@ class ReflectedObjectDefinition<T> extends ObjectDefinition {
     @Override
     public List<? extends EnumConstant> enumConstants() {
         if (enumConstants == null) {
-            List<EnumConstant> builder = CMCollections.newArrayList();
-            for (T enumValueObject: klass.getEnumConstants()) {
-                Enum<?> enumValue = (Enum<?>)enumValueObject;
-                builder.add(new ReflectedEnumConstant(this, enumValue.name()));
-            }
-            enumConstants = Snapshot.of(builder);
+            enumConstants = Stream.of(klass.getEnumConstants())
+                    .map(e -> new ReflectedEnumConstant(this, ((Enum<?>)e).name()))
+                    .collect(CMCollectors.toImmutableList());
         }
-        return enumConstants;
+        return Snapshot.of(enumConstants);
     }
 
     @Override

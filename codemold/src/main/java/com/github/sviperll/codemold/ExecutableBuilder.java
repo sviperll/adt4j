@@ -36,7 +36,6 @@ import com.github.sviperll.codemold.util.Snapshot;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
-import java.util.Optional;
 import javax.annotation.Nonnull;
 import javax.annotation.ParametersAreNonnullByDefault;
 
@@ -61,7 +60,7 @@ public abstract class ExecutableBuilder<T extends ExecutableType<T, D>, D extend
     ExecutableBuilder(NestingBuilder residence) {
         super(residence);
         this.residence = residence;
-        
+
     }
 
     public void setAccessLevel(MemberAccess accessLevel) {

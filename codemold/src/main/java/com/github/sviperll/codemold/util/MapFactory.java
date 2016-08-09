@@ -34,8 +34,10 @@ import java.util.Map;
 /**
  *
  * @author vir
+ * @param <K>
+ * @param <V>
  */
 public interface MapFactory<K, V> {
-    Map<K, V> createEmptyMap();
-    Map<K, V> createPreinitializedMap(Map<? extends K, ? extends V> values);
+    Map<K, V> createInitialMap();
+    Map<K, V> createCopyOf(Map<? extends K, ? extends V> values);
 }

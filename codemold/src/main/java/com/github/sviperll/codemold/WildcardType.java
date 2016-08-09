@@ -78,15 +78,12 @@ public final class WildcardType implements Renderable, Type {
 
     @Override
     public Renderer createRenderer(final RendererContext context) {
-        return new Renderer() {
-            @Override
-            public void render() {
-                context.appendText("?");
-                context.appendWhiteSpace();
-                context.appendText(boundKind().name().toLowerCase(Locale.US));
-                context.appendWhiteSpace();
-                context.appendRenderable(bound());
-            }
+        return () -> {
+            context.appendText("?");
+            context.appendWhiteSpace();
+            context.appendText(boundKind().name().toLowerCase(Locale.US));
+            context.appendWhiteSpace();
+            context.appendRenderable(bound());
         };
     }
 

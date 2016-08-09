@@ -60,9 +60,9 @@ public class TypeParameterBuilder {
     }
 
     public void addAllBounds(Collection<? extends AnyType> bounds) {
-        for (AnyType type: bounds) {
+        bounds.stream().forEach((type) -> {
             addBound(type);
-        }
+        });
     }
     public void addBound(AnyType bound) {
         if (!(bound.canBeTypeVariableBound()))

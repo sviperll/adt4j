@@ -31,10 +31,8 @@
 package com.github.sviperll.codemold;
 
 import com.github.sviperll.codemold.render.Renderable;
-import com.github.sviperll.codemold.render.Renderer;
 import com.github.sviperll.codemold.render.RendererContext;
 import javax.annotation.ParametersAreNonnullByDefault;
-import javax.annotation.Nonnull;
 
 /**
  *
@@ -62,14 +60,9 @@ class ReflectedEnumConstant extends EnumConstant {
 
     @Override
     Renderable definition() {
-        return new Renderable() {
-            @Override
-            public Renderer createRenderer(RendererContext context) {
-                return () -> {
-                    context.appendText(name);
-                    context.appendText("(/* Unknown arguments */)");
-                };
-            }
+        return (RendererContext context) -> () -> {
+            context.appendText(name);
+            context.appendText("(/* Unknown arguments */)");
         };
     }
 }

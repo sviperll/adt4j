@@ -66,7 +66,7 @@ public class ReflectionSmokeTest {
 
         assertTrue(stringDefinition.kind().isClass());
 
-        assertTrue(stringDefinition.typeParameters().all().size() == 0);
+        assertEquals(0, stringDefinition.typeParameters().all().size());
 
         Predicate<MethodDefinition> isValueOfIntMethod = (definition) -> {
             return definition.name().equals("valueOf")
@@ -77,7 +77,9 @@ public class ReflectionSmokeTest {
         Optional<? extends MethodDefinition> optionalValueOfDefinition;
         optionalValueOfDefinition = stringDefinition.methods().stream().filter(isValueOfIntMethod).findFirst();
         assertTrue(optionalValueOfDefinition.isPresent());
-        MethodDefinition valueOfDefinition = optionalValueOfDefinition.orElseThrow(() -> new IllegalStateException());
+        MethodDefinition valueOfDefinition = optionalValueOfDefinition.orElseThrow(() -> {
+            return new IllegalStateException();
+        });
         assertTrue(isString(valueOfDefinition.returnType()));
 
         Predicate<ConstructorDefinition> isConstructorOfCharArray = (constructor) -> {
@@ -97,7 +99,9 @@ public class ReflectionSmokeTest {
         Optional<? extends MethodDefinition> optionalCharAtDefinition;
         optionalCharAtDefinition = stringDefinition.methods().stream().filter(isCharAt).findFirst();
         assertTrue(optionalCharAtDefinition.isPresent());
-        MethodDefinition charAtDefinition = optionalCharAtDefinition.orElseThrow(() -> new IllegalStateException());
+        MethodDefinition charAtDefinition = optionalCharAtDefinition.orElseThrow(() -> {
+            return new IllegalStateException();
+        });
         assertTrue(isChar(charAtDefinition.returnType()));
     }
 
@@ -126,7 +130,9 @@ public class ReflectionSmokeTest {
         Optional<? extends MethodDefinition> optionalCompareToDefinition;
         optionalCompareToDefinition = comparableDefinition.methods().stream().filter(isCompareTo).findFirst();
         assertTrue(optionalCompareToDefinition.isPresent());
-        MethodDefinition compareToDefinition = optionalCompareToDefinition.orElseThrow(() -> new IllegalStateException());
+        MethodDefinition compareToDefinition = optionalCompareToDefinition.orElseThrow(() -> {
+            return new IllegalStateException();
+        });
         assertTrue(isInt(compareToDefinition.returnType()));
     }
 
@@ -154,7 +160,9 @@ public class ReflectionSmokeTest {
         Annotation retention = retentions.get(0);
         Optional<AnyCompileTimeValue> optional = retention.getValue("value");
         assertTrue(optional.isPresent());
-        AnyCompileTimeValue anyValue = optional.orElseThrow(() -> new IllegalStateException());
+        AnyCompileTimeValue anyValue = optional.orElseThrow(() -> {
+            return new IllegalStateException();
+        });
         assertTrue(anyValue.kind().isEnumConstant());
         EnumConstant value = anyValue.getEnumConstant();
         assertEquals("RUNTIME", value.name());

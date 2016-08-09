@@ -31,6 +31,7 @@
 package com.github.sviperll.codemold;
 
 import com.github.sviperll.codemold.util.CMCollections;
+import com.github.sviperll.codemold.util.CMCollectors;
 import com.github.sviperll.codemold.util.Snapshot;
 import java.util.Iterator;
 import java.util.List;
@@ -224,11 +225,9 @@ public abstract class GenericType<T extends GenericType<T, D>, D extends Generic
         @Override
         List<? extends AnyType> typeArguments() {
             if (typeArguments == null) {
-                List<AnyType> typeArgumentsBuilder = CMCollections.newArrayList();
-                for (AnyType type: original.typeArguments()) {
-                    typeArgumentsBuilder.add(type.substitute(substitution));
-                }
-                typeArguments = Snapshot.of(typeArgumentsBuilder);
+                typeArguments = original.typeArguments().stream()
+                        .map(ta -> ta.substitute(substitution))
+                        .collect(CMCollectors.toImmutableList());
             }
             return Snapshot.of(typeArguments);
         }
@@ -288,17 +287,15 @@ public abstract class GenericType<T extends GenericType<T, D>, D extends Generic
         @Override
         final List<? extends AnyType> typeArguments() {
             if (typeArguments == null) {
-                List<AnyType> typeArgumentsBuilder = CMCollections.newArrayList();
-                for (TypeParameter typeParameter: definition().typeParameters().all()) {
-                    AnyType lowerRawBound;
-                    try {
-                        lowerRawBound = typeParameter.lowerRawBound();
-                    } catch (CodeMoldException ex) {
-                        lowerRawBound = definition().residence().getCodeMold().objectType().asAny();
-                    }
-                    typeArgumentsBuilder.add(lowerRawBound);
-                }
-                typeArguments = Snapshot.of(typeArgumentsBuilder);
+                typeArguments = definition().typeParameters().all().stream()
+                        .map((TypeParameter typeParameter) -> {
+                            AnyType lowerRawBound;
+                            try {
+                                return typeParameter.lowerRawBound();
+                            } catch (CodeMoldException ex) {
+                                return definition().residence().getCodeMold().objectType().asAny();
+                            }
+                        }).collect(CMCollectors.toImmutableList());
             }
             return Snapshot.of(typeArguments);
         }

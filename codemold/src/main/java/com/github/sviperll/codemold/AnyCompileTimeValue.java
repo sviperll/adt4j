@@ -109,26 +109,23 @@ public abstract class AnyCompileTimeValue
 
     @Override
     public Renderer createRenderer(final RendererContext context) {
-        return new Renderer() {
-            @Override
-            public void render() {
-                if (kind.isAnnotation())
-                    context.appendRenderable(getAnnotation());
-                else if (kind.isArray())
-                    context.appendRenderable(getArray());
-                else if (kind.isEnumConstant()) {
-                    context.appendRenderable(getEnumConstant().enumDefinition().rawType());
-                    context.appendText(".");
-                    context.appendText(getEnumConstant().name());
-                } else if (kind.isObjectDefinition())
-                    context.appendRenderable(getObjectDefinition().classLiteral());
-                else if (kind.isPrimitive())
-                    context.appendRenderable(getPrimitive());
-                else if (kind.isString())
-                    context.appendText(Strings.quote(getString()));
-                else
-                    throw new UnsupportedOperationException("Unsupported kind " + kind);
-            }
+        return () -> {
+            if (kind.isAnnotation())
+                context.appendRenderable(getAnnotation());
+            else if (kind.isArray())
+                context.appendRenderable(getArray());
+            else if (kind.isEnumConstant()) {
+                context.appendRenderable(getEnumConstant().enumDefinition().rawType());
+                context.appendText(".");
+                context.appendText(getEnumConstant().name());
+            } else if (kind.isObjectDefinition())
+                context.appendRenderable(getObjectDefinition().classLiteral());
+            else if (kind.isPrimitive())
+                context.appendRenderable(getPrimitive());
+            else if (kind.isString())
+                context.appendText(Strings.quote(getString()));
+            else
+                throw new UnsupportedOperationException("Unsupported kind " + kind);
         };
     }
 
@@ -183,7 +180,7 @@ public abstract class AnyCompileTimeValue
     private static class StringAnnotationValueWrapper extends AnyCompileTimeValue {
         private final String value;
 
-        public StringAnnotationValueWrapper(String value) {
+        StringAnnotationValueWrapper(String value) {
             super(Kind.STRING);
             this.value = value;
         }
@@ -198,7 +195,7 @@ public abstract class AnyCompileTimeValue
 
         private final EnumConstant value;
 
-        public EnumConstantAnnotationValueWrapper(EnumConstant value) {
+        EnumConstantAnnotationValueWrapper(EnumConstant value) {
             super(Kind.ENUM_CONSTANT);
             this.value = value;
         }
@@ -212,7 +209,7 @@ public abstract class AnyCompileTimeValue
 
         private final ObjectDefinition value;
 
-        public ObjectDefinitionAnnotationValueWrapper(ObjectDefinition value) {
+        ObjectDefinitionAnnotationValueWrapper(ObjectDefinition value) {
             super(Kind.OBJECT_DEFINITION);
             this.value = value;
         }
@@ -226,7 +223,7 @@ public abstract class AnyCompileTimeValue
 
         private final Annotation value;
 
-        public AnnotationAnnotationValueWrapper(Annotation value) {
+        AnnotationAnnotationValueWrapper(Annotation value) {
             super(Kind.ANNOTATION);
             this.value = value;
         }
@@ -241,7 +238,7 @@ public abstract class AnyCompileTimeValue
 
         private final ArrayCompileTimeValue value;
 
-        public AnyAnnotationValueWrapper(ArrayCompileTimeValue value) {
+        AnyAnnotationValueWrapper(ArrayCompileTimeValue value) {
             super(Kind.ARRAY);
             this.value = value;
         }

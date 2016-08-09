@@ -49,16 +49,13 @@ public class PrecedenceRenderable {
 
     Renderer createKnownPrecedenceRenderer(final PrecedenceAwareRendererContext context) {
         final Renderer effectiveRenderer = renderable.createPrecedenceAwareRenderer(context.withPrecedence(precedence));
-        return new Renderer() {
-            @Override
-            public void render() {
-                if (context.precedence() >= precedence) {
-                    effectiveRenderer.render();
-                } else {
-                    context.appendText("(");
-                    effectiveRenderer.render();
-                    context.appendText(")");
-                }
+        return () -> {
+            if (context.precedence() >= precedence) {
+                effectiveRenderer.render();
+            } else {
+                context.appendText("(");
+                effectiveRenderer.render();
+                context.appendText(")");
             }
         };
     }

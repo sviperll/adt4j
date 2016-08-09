@@ -67,12 +67,9 @@ public class ArrayType implements Renderable, Type {
 
     @Override
     public Renderer createRenderer(final RendererContext context) {
-        return new Renderer() {
-            @Override
-            public void render() {
-                context.appendRenderable(elementType());
-                context.appendText("[]");
-            }
+        return () -> {
+            context.appendRenderable(elementType());
+            context.appendText("[]");
         };
     }
 

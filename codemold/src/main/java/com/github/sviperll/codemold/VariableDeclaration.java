@@ -67,20 +67,17 @@ public abstract class VariableDeclaration implements Renderable {
 
     @Override
     public Renderer createRenderer(final RendererContext context) {
-        return new Renderer() {
-            @Override
-            public void render() {
-                if (isFinal()) {
-                    context.appendText("final");
-                    context.appendWhiteSpace();
-                }
-                context.appendRenderable(type());
+        return () -> {
+            if (isFinal()) {
+                context.appendText("final");
                 context.appendWhiteSpace();
-                context.appendText(name());
-                if (isInitialized()) {
-                    context.appendText(" = ");
-                    context.appendRenderable(getInitialValue());
-                }
+            }
+            context.appendRenderable(type());
+            context.appendWhiteSpace();
+            context.appendText(name());
+            if (isInitialized()) {
+                context.appendText(" = ");
+                context.appendRenderable(getInitialValue());
             }
         };
     }

@@ -33,7 +33,6 @@ package com.github.sviperll.codemold;
 import com.github.sviperll.codemold.render.Renderable;
 import java.util.Collection;
 import java.util.List;
-import java.util.Optional;
 import javax.annotation.Nonnull;
 import javax.annotation.ParametersAreNonnullByDefault;
 
@@ -78,6 +77,7 @@ public abstract class ExecutableDefinition<T extends ExecutableType<T, D>, D ext
         return nesting().residence();
     }
 
+    @Override
     public final CodeMold getCodeMold() {
         return residence().getCodeMold();
     }

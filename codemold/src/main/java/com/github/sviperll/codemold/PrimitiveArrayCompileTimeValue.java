@@ -153,30 +153,27 @@ public class PrimitiveArrayCompileTimeValue implements CompileTimeValue, Rendera
 
     @Override
     public Renderer createRenderer(RendererContext context) {
-        return new Renderer() {
-            @Override
-            public void render() {
-                if (elements.size() != 1)
-                    context.appendText("{");
-                Iterator<?> iterator = elements.iterator();
-                if (iterator.hasNext()) {
-                    Object value = iterator.next();
+        return () -> {
+            if (elements.size() != 1)
+                context.appendText("{");
+            Iterator<?> iterator = elements.iterator();
+            if (iterator.hasNext()) {
+                Object value = iterator.next();
+                if (value instanceof Character)
+                    context.appendText(Characters.quote((Character)value));
+                else
+                    context.appendText(value.toString());
+                while (iterator.hasNext()) {
+                    context.appendText(", ");
+                    value = iterator.next();
                     if (value instanceof Character)
                         context.appendText(Characters.quote((Character)value));
                     else
                         context.appendText(value.toString());
-                    while (iterator.hasNext()) {
-                        context.appendText(", ");
-                        value = iterator.next();
-                        if (value instanceof Character)
-                            context.appendText(Characters.quote((Character)value));
-                        else
-                            context.appendText(value.toString());
-                    }
                 }
-                if (elements.size() != 1)
-                    context.appendText("}");
             }
+            if (elements.size() != 1)
+                context.appendText("}");
         };
     }
 

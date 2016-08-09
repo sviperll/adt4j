@@ -30,8 +30,6 @@
 
 package com.github.sviperll.codemold;
 
-import java.text.MessageFormat;
-import java.util.Arrays;
 import javax.annotation.ParametersAreNonnullByDefault;
 
 /**

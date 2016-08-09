@@ -62,7 +62,9 @@ public final class CodeMold {
     @Nonnull
     public ObjectType objectType() {
         if (objectType == null) {
-            ObjectDefinition javaLangObjectDefinition = getReference(Object.class.getName()).orElseThrow(() -> new IllegalStateException("java.lang.Object is not loadable class!"));
+            ObjectDefinition javaLangObjectDefinition = getReference(Object.class.getName()).orElseThrow(() -> {
+                return new IllegalStateException("java.lang.Object is not loadable class!");
+            });
             objectType = javaLangObjectDefinition.rawType();
         }
         return objectType;

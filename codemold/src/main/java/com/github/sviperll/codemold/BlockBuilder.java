@@ -76,47 +76,39 @@ public class BlockBuilder implements Renderable, ExpressionContext {
 
     @Nonnull
     Renderable withBraces() {
-        return new Renderable() {
-            @Override
-            public Renderer createRenderer(RendererContext context) {
-                return createBlockRenderer(context, braces);
-            }
-        };
+        return (RendererContext context) -> createBlockRenderer(context, braces);
     }
 
     @Nonnull
     private Renderer createBlockRenderer(final RendererContext context, final boolean forceBraces) {
-        return new Renderer() {
-            @Override
-            public void render() {
-                boolean useBraces = inBraces() || forceBraces;
-                RendererContext statementContext;
-                if (!useBraces) {
-                    statementContext = context;
-                } else {
-                    context.appendText("{");
-                    context.appendLineBreak();
-                    statementContext = context.indented();
-                }
-                Iterator<Statement> iterator = statements.iterator();
-                if (!iterator.hasNext()) {
-                    if (!useBraces)
-                        statementContext.appendText(";");
-                } else {
-                    Statement statement = iterator.next();
-                    Renderer statementRenderer = statement.createStatementRenderer(statementContext);
+        return () -> {
+            boolean useBraces = inBraces() || forceBraces;
+            RendererContext statementContext;
+            if (!useBraces) {
+                statementContext = context;
+            } else {
+                context.appendText("{");
+                context.appendLineBreak();
+                statementContext = context.indented();
+            }
+            Iterator<Statement> iterator = statements.iterator();
+            if (!iterator.hasNext()) {
+                if (!useBraces)
+                    statementContext.appendText(";");
+            } else {
+                Statement statement = iterator.next();
+                Renderer statementRenderer = statement.createStatementRenderer(statementContext);
+                statementRenderer.render();
+                while (iterator.hasNext()) {
+                    statementContext.appendLineBreak();
+                    statement = iterator.next();
+                    statementRenderer = statement.createStatementRenderer(statementContext);
                     statementRenderer.render();
-                    while (iterator.hasNext()) {
-                        statementContext.appendLineBreak();
-                        statement = iterator.next();
-                        statementRenderer = statement.createStatementRenderer(statementContext);
-                        statementRenderer.render();
-                    }
                 }
-                if (useBraces) {
-                    context.appendLineBreak();
-                    context.appendText("}");
-                }
+            }
+            if (useBraces) {
+                context.appendLineBreak();
+                context.appendText("}");
             }
         };
     }
@@ -212,13 +204,10 @@ public class BlockBuilder implements Renderable, ExpressionContext {
         statements.add(new Statement.Simple() {
             @Override
             Renderer createSimpleStatementRenderer(final RendererContext context) {
-                return new Renderer() {
-                    @Override
-                    public void render() {
-                        context.appendText("return");
-                        context.appendWhiteSpace();
-                        context.appendRenderable(result);
-                    }
+                return () -> {
+                    context.appendText("return");
+                    context.appendWhiteSpace();
+                    context.appendRenderable(result);
                 };
             }
         });

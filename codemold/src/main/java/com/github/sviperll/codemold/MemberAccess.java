@@ -36,7 +36,7 @@ import java.util.Locale;
 
 /**
  * Denotes access level to class' members: methods, fields and inner-classes
- * 
+ *
  * @author Victor Nazarov &lt;asviraspossible@gmail.com&gt;
  */
 public enum MemberAccess implements Renderable {
@@ -44,12 +44,9 @@ public enum MemberAccess implements Renderable {
 
     @Override
     public Renderer createRenderer(final RendererContext context) {
-        return new Renderer() {
-            @Override
-            public void render() {
-                if (MemberAccess.this != PACKAGE)
-                    context.appendText(name().toLowerCase(Locale.US));
-            }
+        return () -> {
+            if (MemberAccess.this != PACKAGE)
+                context.appendText(name().toLowerCase(Locale.US));
         };
     }
 }

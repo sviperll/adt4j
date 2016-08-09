@@ -75,15 +75,12 @@ public class Precedence {
 
         @Override
         public Renderer createPrecedenceAwareRenderer(final PrecedenceAwareRendererContext context) {
-            return new Renderer() {
-                @Override
-                public void render() {
-                    context.appendSamePrecedenceRenderable(left);
-                    context.appendWhiteSpace();
-                    context.appendText(op);
-                    context.appendWhiteSpace();
-                    context.appendHigherPrecedenceRenderable(right);
-                }
+            return () -> {
+                context.appendSamePrecedenceRenderable(left);
+                context.appendWhiteSpace();
+                context.appendText(op);
+                context.appendWhiteSpace();
+                context.appendHigherPrecedenceRenderable(right);
             };
         }
     }
@@ -103,15 +100,12 @@ public class Precedence {
 
         @Override
         public Renderer createPrecedenceAwareRenderer(final PrecedenceAwareRendererContext context) {
-            return new Renderer() {
-                @Override
-                public void render() {
-                    context.appendHigherPrecedenceRenderable(left);
-                    context.appendWhiteSpace();
-                    context.appendText(op);
-                    context.appendWhiteSpace();
-                    context.appendSamePrecedenceRenderable(right);
-                }
+            return () -> {
+                context.appendHigherPrecedenceRenderable(left);
+                context.appendWhiteSpace();
+                context.appendText(op);
+                context.appendWhiteSpace();
+                context.appendSamePrecedenceRenderable(right);
             };
         }
     }

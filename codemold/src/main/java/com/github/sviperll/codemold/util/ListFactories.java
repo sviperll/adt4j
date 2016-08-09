@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016, Victor Nazarov &lt;asviraspossible@gmail.com&gt;
+ * Copyright (c) 2016, vir
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -27,51 +27,39 @@
  *  (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
  *  EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package com.github.sviperll.codemold.util;
 
-package com.github.sviperll.codemold;
-
-import com.github.sviperll.codemold.util.CMCollectors;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
-import javax.annotation.ParametersAreNonnullByDefault;
 
 /**
  *
- * @author Victor Nazarov &lt;asviraspossible@gmail.com&gt;
+ * @author vir
  */
-@ParametersAreNonnullByDefault
-public class MethodType extends ExecutableType<MethodType, MethodDefinition> {
-    private AnyType returnType = null;
-    private MethodSignature signature = null;
+public class ListFactories {
+    @SuppressWarnings("rawtypes")
+    private static final ListFactory ARRAY_LIST = new ArrayListFactory();
 
-    MethodType(ExecutableType.Implementation<MethodType, MethodDefinition> implementation) {
-        super(implementation);
+    @SuppressWarnings("unchecked")
+    public static <T> ListFactory<T> arrayList() {
+        return ARRAY_LIST;
+    }
+    private ListFactories() {
     }
 
-    public final AnyType returnType() {
-        if (returnType == null) {
-            returnType = definition().returnType().substitute(definitionEnvironment());
+    private static class ArrayListFactory<T> implements ListFactory<T> {
+        ArrayListFactory() {
         }
-        return returnType;
-    }
-    public final String name() {
-        return definition().name();
-    }
-    public final MethodSignature signature() {
-        if (signature == null) {
-            List<? extends AnyType> parameterTypes = parameters().stream()
-                    .map(decl -> decl.type().substitute(definitionEnvironment()))
-                    .collect(CMCollectors.toImmutableList());
-            signature = new MethodSignature(name(), parameterTypes);
 
+        @Override
+        public List<T> createInitialList() {
+            return new ArrayList<>();
         }
-        return signature;
-    }
 
-    public final Expression staticInvocation(final List<? extends Expression> arguments) {
-        return Expression.staticInvocation(this, arguments);
-    }
-
-    public final Expression invocation(Expression thisObject, final List<? extends Expression> arguments) {
-        return thisObject.invocation(this, arguments);
+        @Override
+        public List<T> createCopyOf(Collection<? extends T> values) {
+            return new ArrayList<>(values);
+        }
     }
 }

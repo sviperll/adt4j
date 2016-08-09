@@ -226,7 +226,7 @@ public abstract class ArrayCompileTimeValue implements CompileTimeValue, Rendera
 
         private final PrimitiveArrayCompileTimeValue value;
 
-        public PrimitiveArrayAnnotationValueWrapper(PrimitiveArrayCompileTimeValue value) {
+        PrimitiveArrayAnnotationValueWrapper(PrimitiveArrayCompileTimeValue value) {
             super(AnyCompileTimeValue.Kind.PRIMITIVE);
             this.value = value;
         }
@@ -241,7 +241,7 @@ public abstract class ArrayCompileTimeValue implements CompileTimeValue, Rendera
 
         private final List<? extends String> strings;
 
-        public StringArrayAnnotationValueWrappper(List<? extends String> strings) {
+        StringArrayAnnotationValueWrappper(List<? extends String> strings) {
             super(AnyCompileTimeValue.Kind.STRING);
             this.strings = Snapshot.of(strings);
         }
@@ -256,7 +256,7 @@ public abstract class ArrayCompileTimeValue implements CompileTimeValue, Rendera
 
         private final List<? extends EnumConstant> enumConstants;
 
-        public EnumConstantArrayAnnotationValueWrappper(List<? extends EnumConstant> enumConstants) {
+        EnumConstantArrayAnnotationValueWrappper(List<? extends EnumConstant> enumConstants) {
             super(AnyCompileTimeValue.Kind.ENUM_CONSTANT);
             this.enumConstants = Snapshot.of(enumConstants);
         }
@@ -271,7 +271,7 @@ public abstract class ArrayCompileTimeValue implements CompileTimeValue, Rendera
 
         private final List<? extends ObjectDefinition> objectDefinitions;
 
-        public ObjectDefinitionArrayAnnotationValueWrappper(List<? extends ObjectDefinition> objectDefinitions) {
+        ObjectDefinitionArrayAnnotationValueWrappper(List<? extends ObjectDefinition> objectDefinitions) {
             super(AnyCompileTimeValue.Kind.OBJECT_DEFINITION);
             this.objectDefinitions = Snapshot.of(objectDefinitions);
         }
@@ -286,7 +286,7 @@ public abstract class ArrayCompileTimeValue implements CompileTimeValue, Rendera
 
         private final List<? extends Annotation> annotations;
 
-        public AnnotationArrayAnnotationValueWrappper(List<? extends Annotation> annotations) {
+        AnnotationArrayAnnotationValueWrappper(List<? extends Annotation> annotations) {
             super(AnyCompileTimeValue.Kind.ANNOTATION);
             this.annotations = Snapshot.of(annotations);
         }

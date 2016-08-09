@@ -59,14 +59,11 @@ public enum ObjectKind implements Renderable {
 
     @Override
     public Renderer createRenderer(final RendererContext context) {
-        return new Renderer() {
-            @Override
-            public void render() {
-                if (ObjectKind.this == ANNOTATION)
-                    context.appendText("@interface");
-                else
-                    context.appendText(name().toLowerCase(Locale.US));
-            }
+        return () -> {
+            if (ObjectKind.this == ANNOTATION)
+                context.appendText("@interface");
+            else
+                context.appendText(name().toLowerCase(Locale.US));
         };
     }
 

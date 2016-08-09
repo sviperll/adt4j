@@ -91,11 +91,8 @@ public enum PrimitiveType implements Renderable, Type {
 
     @Override
     public Renderer createRenderer(final RendererContext context) {
-        return new Renderer() {
-            @Override
-            public void render() {
-                context.appendText(name().toLowerCase(Locale.US));
-            }
+        return () -> {
+            context.appendText(name().toLowerCase(Locale.US));
         };
     }
 

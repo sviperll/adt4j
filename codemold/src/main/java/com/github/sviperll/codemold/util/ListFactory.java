@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016, Victor Nazarov &lt;asviraspossible@gmail.com&gt;
+ * Copyright (c) 2016, vir
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -27,55 +27,17 @@
  *  (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
  *  EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package com.github.sviperll.codemold.util;
 
-package com.github.sviperll.codemold;
-
-import com.github.sviperll.codemold.render.Renderable;
-import com.github.sviperll.codemold.render.Renderer;
-import com.github.sviperll.codemold.render.RendererContext;
-import javax.annotation.Nonnull;
-import javax.annotation.ParametersAreNonnullByDefault;
+import java.util.Collection;
+import java.util.List;
 
 /**
  *
- * @author Victor Nazarov &lt;asviraspossible@gmail.com&gt;
+ * @author vir
+ * @param <T>
  */
-@ParametersAreNonnullByDefault
-public abstract class PackageLevelResidence implements Renderable, ResidenceProvider {
-    private Residence residence = null;
-
-    PackageLevelResidence() {
-    }
-
-    public abstract boolean isPublic();
-
-    @Nonnull
-    public abstract Package getPackage();
-
-    @Override
-    public final Residence residence() {
-        if (residence == null)
-            residence = Residence.wrapPackageLevel(new Wrappable());
-        return residence;
-    }
-
-    @Override
-    public Renderer createRenderer(final RendererContext context) {
-        return () -> {
-            if (isPublic())
-                context.appendText("public");
-        };
-    }
-
-    Renderable forObjectKind(ObjectKind kind) {
-        return this;
-    }
-
-    class Wrappable {
-        private Wrappable() {
-        }
-        PackageLevelResidence value() {
-            return PackageLevelResidence.this;
-        }
-    }
+public interface ListFactory<T> {
+    List<T> createInitialList();
+    List<T> createCopyOf(Collection<? extends T> values);
 }

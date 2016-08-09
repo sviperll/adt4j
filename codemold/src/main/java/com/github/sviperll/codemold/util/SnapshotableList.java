@@ -32,7 +32,6 @@ package com.github.sviperll.codemold.util;
 
 import java.text.MessageFormat;
 import java.util.AbstractList;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
@@ -41,17 +40,19 @@ import java.util.List;
  *
  * @author Victor Nazarov &lt;asviraspossible@gmail.com&gt;
  */
-class SnapshotableArrayList<T> extends AbstractList<T> {
+class SnapshotableList<T> extends AbstractList<T> {
 
     private List<T> list;
     private boolean shouldCopyOnWrite = false;
+    private ListFactory<T> factory;
 
-    SnapshotableArrayList() {
-        list = new ArrayList<>();
+    SnapshotableList(ListFactory<T> factory) {
+        this.factory = factory;
+        list = factory.createInitialList();
     }
 
-    SnapshotableArrayList(Collection<? extends T> c) {
-        list = new ArrayList<>(c);
+    SnapshotableList(ListFactory<T> factory, Collection<? extends T> c) {
+        list = factory.createCopyOf(c);
     }
 
     @SuppressWarnings("ReturnOfCollectionOrArrayField")
@@ -137,7 +138,7 @@ class SnapshotableArrayList<T> extends AbstractList<T> {
 
     private void copyOnWrite() {
         if (shouldCopyOnWrite) {
-            list = new ArrayList<>(list);
+            list = factory.createCopyOf(list);
             shouldCopyOnWrite = false;
         }
     }

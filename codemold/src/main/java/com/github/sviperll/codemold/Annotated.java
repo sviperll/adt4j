@@ -32,7 +32,6 @@ package com.github.sviperll.codemold;
 
 import java.util.Collection;
 import java.util.List;
-import java.util.Optional;
 
 /**
  *

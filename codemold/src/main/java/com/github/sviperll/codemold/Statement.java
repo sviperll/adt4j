@@ -54,13 +54,10 @@ abstract class Statement {
 
         @Override
         final Renderer createStatementRenderer(final RendererContext context) {
-            return new Renderer() {
-                @Override
-                public void render() {
-                    Renderer simple = createSimpleStatementRenderer(context);
-                    simple.render();
-                    context.appendText(";");
-                }
+            return () -> {
+                Renderer simple = createSimpleStatementRenderer(context);
+                simple.render();
+                context.appendText(";");
             };
         }
     }

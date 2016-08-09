@@ -90,14 +90,11 @@ public abstract class Nesting implements Renderable, ResidenceProvider {
 
         @Override
         public Renderer createRenderer(final RendererContext context) {
-            return new Renderer() {
-                @Override
-                public void render() {
-                    context.appendRenderable(accessLevel());
-                    context.appendWhiteSpace();
-                    if (isStatic() && !implicitlyStatic)
-                        context.appendText("static");
-                }
+            return () -> {
+                context.appendRenderable(accessLevel());
+                context.appendWhiteSpace();
+                if (isStatic() && !implicitlyStatic)
+                    context.appendText("static");
             };
         }
     }

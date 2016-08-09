@@ -145,14 +145,11 @@ public class PrimitiveCompileTimeValue implements CompileTimeValue, Renderable {
 
     @Override
     public Renderer createRenderer(final RendererContext context) {
-        return new Renderer() {
-            @Override
-            public void render() {
-                if (type.isCharacter())
-                    context.appendText(Characters.quote(getCharacter()));
-                else
-                    context.appendText(value.toString());
-            }
+        return () -> {
+            if (type.isCharacter())
+                context.appendText(Characters.quote(getCharacter()));
+            else
+                context.appendText(value.toString());
         };
     }
 

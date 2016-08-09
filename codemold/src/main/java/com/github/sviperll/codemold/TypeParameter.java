@@ -64,12 +64,13 @@ public abstract class TypeParameter {
         TypeParameters environment = declaredIn().typeParameters().preventCycle(name());
         AnyType bound = bound();
         if (bound.isTypeVariable()) {
-            TypeParameter typeParameter = environment.get(bound.getVariableDetails().name()).orElseThrow(() ->
-                    new IllegalStateException(
-                            MessageFormat.format(
+            TypeParameter typeParameter = environment.get(bound.getVariableDetails().name()).orElseThrow(() -> {
+                return new IllegalStateException(
+                        MessageFormat.format(
                                 "Type parameter {0} is bound by unknown type-variable: {1}",
                                 name(),
-                                bound.getVariableDetails().name())));
+                                bound.getVariableDetails().name()));
+            });
             return typeParameter.lowerRawBound();
         } else {
             ObjectType lower = null;

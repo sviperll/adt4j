@@ -33,13 +33,11 @@ package com.github.sviperll.codemold;
 import com.github.sviperll.codemold.util.CMCollections;
 import com.github.sviperll.codemold.util.CMCollectors;
 import com.github.sviperll.codemold.util.Snapshot;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.stream.Stream;
 import javax.annotation.ParametersAreNonnullByDefault;
 
 /**

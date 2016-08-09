@@ -67,31 +67,28 @@ public class IfBuilder {
         return new Statement() {
             @Override
             Renderer createStatementRenderer(final RendererContext context) {
-                return new Renderer() {
-                    @Override
-                    public void render() {
-                        context.appendText("if (");
-                        context.appendRenderable(condition);
-                        context.appendText(")");
-                        if (thenBlock.inBraces()
-                                || (thenBlock.isSingleIf() && thenBlock.getSingleIfStatement().elseBlock().isEmpty() && !elseBlock.isEmpty())) {
+                return () -> {
+                    context.appendText("if (");
+                    context.appendRenderable(condition);
+                    context.appendText(")");
+                    if (thenBlock.inBraces()
+                            || (thenBlock.isSingleIf() && thenBlock.getSingleIfStatement().elseBlock().isEmpty() && !elseBlock.isEmpty())) {
+                        context.appendText(" ");
+                        context.appendRenderable(thenBlock.withBraces());
+                    } else {
+                        context.appendLineBreak();
+                        context.indented().appendRenderable(thenBlock);
+                    }
+                    if (!elseBlock.isEmpty()) {
+                        context.appendText(" else");
+                        if (elseBlock.inBraces())
                             context.appendText(" ");
-                            context.appendRenderable(thenBlock.withBraces());
-                        } else {
+                        else
                             context.appendLineBreak();
-                            context.indented().appendRenderable(thenBlock);
-                        }
-                        if (!elseBlock.isEmpty()) {
-                            context.appendText(" else");
-                            if (elseBlock.inBraces())
-                                context.appendText(" ");
-                            else
-                                context.appendLineBreak();
-                            if (elseBlock.inBraces() || elseBlock.isSingleIf())
-                                context.appendRenderable(elseBlock);
-                            else
-                                context.indented().appendRenderable(elseBlock);
-                        }
+                        if (elseBlock.inBraces() || elseBlock.isSingleIf())
+                            context.appendRenderable(elseBlock);
+                        else
+                            context.indented().appendRenderable(elseBlock);
                     }
                 };
             }

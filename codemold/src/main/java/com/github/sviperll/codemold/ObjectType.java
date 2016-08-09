@@ -96,7 +96,7 @@ public class ObjectType extends GenericType<ObjectType, ObjectDefinition>
     @Nonnull
     public final Collection<? extends MethodType> methods() {
         if (methods == null) {
-            Map<MethodSignature, MethodType> methodsBuilder = new HashMap<>();
+            Map<MethodSignature, MethodType> methodsBuilder = CMCollections.newHashMap();
             interfaces().stream().forEach((supertype) -> {
                 supertype.methods().stream().forEach((method) -> {
                     methodsBuilder.put(method.signature(), method);

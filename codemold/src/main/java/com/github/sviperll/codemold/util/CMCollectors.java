@@ -35,7 +35,6 @@ import java.util.List;
 import java.util.stream.Collector;
 import java.util.stream.Collectors;
 import javax.annotation.ParametersAreNonnullByDefault;
-import javax.annotation.Nonnull;
 
 /**
  *
@@ -45,5 +44,7 @@ import javax.annotation.Nonnull;
 public class CMCollectors {
     public static <T> Collector<T, ?, List<? extends T>> toImmutableList() {
         return Collectors.collectingAndThen(Collectors.toList(), l -> Snapshot.markedAsKnownToBeImmutableList(Collections.unmodifiableList(l)));
+    }
+    private CMCollectors() {
     }
 }

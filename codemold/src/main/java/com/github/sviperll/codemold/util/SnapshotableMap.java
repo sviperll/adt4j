@@ -50,12 +50,12 @@ import java.util.Set;
 
     SnapshotableMap(MapFactory<K, V> factory) {
         this.factory = factory;
-        map = factory.createEmptyMap();
+        map = factory.createInitialMap();
     }
 
     SnapshotableMap(MapFactory<K, V> factory, Map<? extends K, ? extends V> m) {
         this.factory = factory;
-        map = factory.createPreinitializedMap(m);
+        map = factory.createCopyOf(m);
     }
 
     @SuppressWarnings("ReturnOfCollectionOrArrayField")
@@ -70,7 +70,7 @@ import java.util.Set;
 
     private void copyOnWrite() {
         if (shouldCopyOnWrite) {
-            map = factory.createPreinitializedMap(map);
+            map = factory.createCopyOf(map);
             entrySet = null;
             shouldCopyOnWrite = false;
         }

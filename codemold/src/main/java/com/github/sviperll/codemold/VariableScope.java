@@ -97,11 +97,9 @@ class VariableScope {
     }
 
     private boolean isReservedByChildScope(String name) {
-        for (VariableScope child: childScopes) {
-            if (child.variables.contains(name) || child.isReservedByChildScope(name))
-                return true;
-        }
-        return false;
+        return childScopes.stream()
+                .anyMatch(child -> child.variables.contains(name)
+                                   || child.isReservedByChildScope(name));
     }
 
     private boolean isIntroduceable(String name) {

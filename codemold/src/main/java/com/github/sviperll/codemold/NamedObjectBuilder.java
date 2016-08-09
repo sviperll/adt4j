@@ -97,8 +97,7 @@ abstract class NamedObjectBuilder<B extends ResidenceProvider, MB extends Execut
     }
 
     abstract class BuiltDefinition
-            extends ObjectBuilder<B, MB>.BuiltDefinition
-            implements Annotated {
+            extends ObjectBuilder<B, MB>.BuiltDefinition {
         BuiltDefinition(TypeParameters typeParameters) {
             super(typeParameters);
         }

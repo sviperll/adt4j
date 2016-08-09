@@ -73,69 +73,66 @@ public abstract class MethodDefinition extends ExecutableDefinition<MethodType, 
 
     @Override
     public Renderer createRenderer(final RendererContext context) {
-        return new Renderer() {
-            @Override
-            public void render() {
-                allAnnotations().forEach(annotation -> {
-                    context.appendRenderable(annotation);
-                    context.appendLineBreak();
-                });
-                context.appendRenderable(nesting());
-                context.appendWhiteSpace();
-                if (isFinal()) {
-                    context.appendText("final");
-                }
-                context.appendWhiteSpace();
-                if (isAbstract() && !(parent().kind().isInterface() || parent().kind().isAnnotation())) {
-                    context.appendText("abstract");
-                } else if (!isAbstract() && (parent().kind().isInterface() || parent().kind().isAnnotation())) {
-                    context.appendText("default");
-                }
-                context.appendWhiteSpace();
-                context.appendRenderable(typeParameters());
-                context.appendWhiteSpace();
-                context.appendRenderable(returnType());
-                context.appendWhiteSpace();
-                context.appendText(name());
-                context.appendText("(");
-                Iterator<? extends VariableDeclaration> parameters = parameters().iterator();
-                if (parameters.hasNext()) {
-                    VariableDeclaration parameter = parameters.next();
-                    context.appendRenderable(parameter);
-                    while (parameters.hasNext()) {
-                        context.appendText(", ");
-                        parameter = parameters.next();
-                        context.appendRenderable(parameter);
-                    }
-                }
-                context.appendText(")");
-                if (hasDefaultValue()) {
-                    context.appendWhiteSpace();
-                    context.appendText("default");
-                    context.appendWhiteSpace();
-                    context.appendRenderable(defaultValue());
-                }
-                Iterator<? extends AnyType> throwsExceptions = throwsList().iterator();
-                if (throwsExceptions.hasNext()) {
-                    AnyType exceptionType = throwsExceptions.next();
-                    context.appendWhiteSpace();
-                    context.appendText("throws");
-                    context.appendWhiteSpace();
-                    context.appendRenderable(exceptionType);
-                    while (throwsExceptions.hasNext()) {
-                        exceptionType = throwsExceptions.next();
-                        context.appendText(", ");
-                        context.appendRenderable(exceptionType);
-                    }
-                }
-                if (isAbstract())
-                    context.appendText(";");
-                else {
-                    context.appendWhiteSpace();
-                    context.appendRenderable(body());
-                }
+        return () -> {
+            allAnnotations().forEach(annotation -> {
+                context.appendRenderable(annotation);
                 context.appendLineBreak();
+            });
+            context.appendRenderable(nesting());
+            context.appendWhiteSpace();
+            if (isFinal()) {
+                context.appendText("final");
             }
+            context.appendWhiteSpace();
+            if (isAbstract() && !(parent().kind().isInterface() || parent().kind().isAnnotation())) {
+                context.appendText("abstract");
+            } else if (!isAbstract() && (parent().kind().isInterface() || parent().kind().isAnnotation())) {
+                context.appendText("default");
+            }
+            context.appendWhiteSpace();
+            context.appendRenderable(typeParameters());
+            context.appendWhiteSpace();
+            context.appendRenderable(returnType());
+            context.appendWhiteSpace();
+            context.appendText(name());
+            context.appendText("(");
+            Iterator<? extends VariableDeclaration> parameters = parameters().iterator();
+            if (parameters.hasNext()) {
+                VariableDeclaration parameter = parameters.next();
+                context.appendRenderable(parameter);
+                while (parameters.hasNext()) {
+                    context.appendText(", ");
+                    parameter = parameters.next();
+                    context.appendRenderable(parameter);
+                }
+            }
+            context.appendText(")");
+            if (hasDefaultValue()) {
+                context.appendWhiteSpace();
+                context.appendText("default");
+                context.appendWhiteSpace();
+                context.appendRenderable(defaultValue());
+            }
+            Iterator<? extends AnyType> throwsExceptions = throwsList().iterator();
+            if (throwsExceptions.hasNext()) {
+                AnyType exceptionType = throwsExceptions.next();
+                context.appendWhiteSpace();
+                context.appendText("throws");
+                context.appendWhiteSpace();
+                context.appendRenderable(exceptionType);
+                while (throwsExceptions.hasNext()) {
+                    exceptionType = throwsExceptions.next();
+                    context.appendText(", ");
+                    context.appendRenderable(exceptionType);
+                }
+            }
+            if (isAbstract())
+                context.appendText(";");
+            else {
+                context.appendWhiteSpace();
+                context.appendRenderable(body());
+            }
+            context.appendLineBreak();
         };
     }
 }
