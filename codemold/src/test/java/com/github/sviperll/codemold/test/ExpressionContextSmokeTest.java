@@ -56,9 +56,9 @@ import org.junit.Test;
  *
  * @author Victor Nazarov &lt;asviraspossible@gmail.com&gt;
  */
-public class ExpressionContextTest {
+public class ExpressionContextSmokeTest {
     @Test
-    public void smokeAnonymousClass() throws CodeMoldException {
+    public void anonymousClass() throws CodeMoldException {
         CodeMold.Builder builder = CodeMold.createBuilder();
         CodeMold codeModel = builder.build();
         ObjectType stringType = codeModel.getReference(String.class).rawType();

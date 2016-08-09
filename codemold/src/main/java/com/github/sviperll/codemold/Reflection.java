@@ -33,14 +33,16 @@ package com.github.sviperll.codemold;
 import com.github.sviperll.codemold.render.Renderable;
 import com.github.sviperll.codemold.render.Renderer;
 import com.github.sviperll.codemold.render.RendererContext;
+import com.github.sviperll.codemold.util.CMArrays;
 import com.github.sviperll.codemold.util.CMCollections;
 import com.github.sviperll.codemold.util.Snapshot;
-import java.lang.annotation.Annotation;
 import java.lang.reflect.GenericArrayType;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
 import java.lang.reflect.ParameterizedType;
+import java.text.MessageFormat;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
 import java.util.logging.Level;
@@ -127,7 +129,7 @@ class Reflection implements Model {
         return Snapshot.of(parametersBuilder);
     }
 
-    ObjectDefinition getReference(Class<? extends Annotation> klass) {
+    ObjectDefinition getReference(Class<?> klass) {
         return codeMold.getReference(klass);
     }
 
@@ -136,28 +138,101 @@ class Reflection implements Model {
         return codeMold;
     }
 
+    Annotation readAnnotation(java.lang.annotation.Annotation reflectionAnnotation) {
+        Class<? extends java.lang.annotation.Annotation> reflectionAnnotationType = reflectionAnnotation.annotationType();
+        ObjectDefinition annotationType = getReference(reflectionAnnotationType);
+        com.github.sviperll.codemold.Annotation.Builder builder = com.github.sviperll.codemold.Annotation.createBuilder(annotationType);
+        for (Method method: reflectionAnnotationType.getDeclaredMethods()) {
+            String parameterName = method.getName();
+            try {
+                Object reflectionValue = method.invoke(reflectionAnnotation);
+                builder.set(parameterName, readCompileTimeValue(reflectionValue));
+            } catch (IllegalAccessException ex) {
+                logger.log(Level.SEVERE, null, ex);
+            } catch (IllegalArgumentException ex) {
+                throw new IllegalStateException(ex);
+            } catch (InvocationTargetException ex) {
+                throw new IllegalStateException(ex);
+            }
+        }
+        return builder.build();
+    }
+
     AnnotationCollection readAnnotationCollection(java.lang.annotation.Annotation[] reflectionAnnotations) {
         AnnotationCollection.Builder collection = AnnotationCollection.createBuilder();
         for(java.lang.annotation.Annotation reflectionAnnotation: reflectionAnnotations) {
-            Class<? extends java.lang.annotation.Annotation> reflectionAnnotationType = reflectionAnnotation.annotationType();
-            ObjectDefinition annotationType = getReference(reflectionAnnotationType);
-            com.github.sviperll.codemold.Annotation.Builder builder = com.github.sviperll.codemold.Annotation.createBuilder(annotationType);
-            for (Method method: reflectionAnnotationType.getDeclaredMethods()) {
-                String parameterName = method.getName();
-                try {
-                    Object reflectionValue = method.invoke(reflectionAnnotation);
-                    builder.set(parameterName, CompileTimeValues.fromObject(reflectionValue));
-                } catch (IllegalAccessException ex) {
-                    logger.log(Level.SEVERE, null, ex);
-                } catch (IllegalArgumentException ex) {
-                    throw new IllegalStateException(ex);
-                } catch (InvocationTargetException ex) {
-                    throw new IllegalStateException(ex);
-                }
-            }
-            collection.annotate(builder.build());
+            collection.annotate(readAnnotation(reflectionAnnotation));
         }
         return collection.build();
+    }
+
+    EnumConstant readEnumConstant(Enum<?> value) {
+        ObjectDefinition enumDefinition = getReference(value.getDeclaringClass());
+        return enumDefinition.enumConstants().stream().filter(c -> c.name().equals(value.name())).findFirst().orElseThrow(() -> {
+            return new IllegalStateException("Unable to get enum constant " + value.name() + " defined in " + enumDefinition.qualifiedTypeName());
+        });
+    }
+
+    AnyCompileTimeValue readCompileTimeValue(Object value) {
+        if (value instanceof Byte)
+            return CompileTimeValues.of((Byte)value).asAny();
+        else if (value instanceof Short)
+            return CompileTimeValues.of((Short)value).asAny();
+        else if (value instanceof Integer)
+            return CompileTimeValues.of((Integer)value).asAny();
+        else if (value instanceof Long)
+            return CompileTimeValues.of((Long)value).asAny();
+        else if (value instanceof Float)
+            return CompileTimeValues.of((Float)value).asAny();
+        else if (value instanceof Double)
+            return CompileTimeValues.of((Double)value).asAny();
+        else if (value instanceof Character)
+            return CompileTimeValues.of((Character)value).asAny();
+        else if (value instanceof Boolean)
+            return CompileTimeValues.of((Boolean)value).asAny();
+        else if (value instanceof String)
+            return CompileTimeValues.of((String)value).asAny();
+        else if (value instanceof Enum<?>)
+            return CompileTimeValues.of(readEnumConstant((Enum<?>)value));
+        else if (value instanceof Class<?>)
+            return CompileTimeValues.of(getReference((Class<?>)value));
+        else if (value instanceof java.lang.annotation.Annotation)
+            return CompileTimeValues.of(readAnnotation((java.lang.annotation.Annotation)value));
+        else if (value instanceof byte[])
+            return CompileTimeValues.ofBytes(CMArrays.asList((byte[])value)).asAny();
+        else if (value instanceof short[])
+            return CompileTimeValues.ofShorts(CMArrays.asList((short[])value)).asAny();
+        else if (value instanceof int[])
+            return CompileTimeValues.ofIntegers(CMArrays.asList((int[])value)).asAny();
+        else if (value instanceof long[])
+            return CompileTimeValues.ofLongs(CMArrays.asList((long[])value)).asAny();
+        else if (value instanceof float[])
+            return CompileTimeValues.ofFloats(CMArrays.asList((float[])value)).asAny();
+        else if (value instanceof double[])
+            return CompileTimeValues.ofDoubles(CMArrays.asList((double[])value)).asAny();
+        else if (value instanceof char[])
+            return CompileTimeValues.ofCharacters(CMArrays.asList((char[])value)).asAny();
+        else if (value instanceof boolean[])
+            return CompileTimeValues.ofBooleans(CMArrays.asList((boolean[])value)).asAny();
+        else if (value instanceof String[])
+            return CompileTimeValues.ofStrings(Arrays.asList((String[])value)).asAny();
+        else if (value instanceof Enum<?>[]) {
+            List<EnumConstant> enumConstants = CMCollections.newArrayList();
+            for (Enum<?> enumValue: (Enum<?>[])value)
+                enumConstants.add(readEnumConstant(enumValue));
+            return CompileTimeValues.ofEnumConstants(enumConstants).asAny();
+        } else if (value instanceof java.lang.annotation.Annotation[]) {
+            List<Annotation> annotations = CMCollections.newArrayList();
+            for (java.lang.annotation.Annotation reflectedAnnotation: (java.lang.annotation.Annotation[])value)
+                annotations.add(readAnnotation(reflectedAnnotation));
+            return CompileTimeValues.ofAnnotations(annotations).asAny();
+        } else if (value instanceof Class<?>[]) {
+            List<ObjectDefinition> definitions = CMCollections.newArrayList();
+            for (Class<?> reflectedDefinition: (Class<?>[])value)
+                definitions.add(getReference(reflectedDefinition));
+            return CompileTimeValues.ofObjectDefinitions(definitions).asAny();
+        } else
+            throw new UnsupportedOperationException(MessageFormat.format("Not supported yet. Value: {0} ({1})", value, value.getClass()));
     }
 
     private static class RenderableUnaccessibleCode implements Renderable {

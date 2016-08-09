@@ -42,7 +42,6 @@ import javax.annotation.ParametersAreNonnullByDefault;
  */
 @ParametersAreNonnullByDefault
 public class MethodLocalResidence implements Renderable, ResidenceProvider {
-    private static final NoOpRenderer NO_OP_RENDERER = new NoOpRenderer();
     private Residence residence = null;
     private final ExecutableDefinition<?, ?> parent;
     MethodLocalResidence(ExecutableDefinition<?, ?> parent) {
@@ -56,7 +55,7 @@ public class MethodLocalResidence implements Renderable, ResidenceProvider {
 
     @Override
     public final Renderer createRenderer(RendererContext context) {
-        return NO_OP_RENDERER;
+        return Renderer.BLANK;
     }
 
     @Nonnull
@@ -76,16 +75,6 @@ public class MethodLocalResidence implements Renderable, ResidenceProvider {
         }
         MethodLocalResidence value() {
             return MethodLocalResidence.this;
-        }
-    }
-
-    private static class NoOpRenderer implements Renderer {
-
-        NoOpRenderer() {
-        }
-
-        @Override
-        public void render() {
         }
     }
 }

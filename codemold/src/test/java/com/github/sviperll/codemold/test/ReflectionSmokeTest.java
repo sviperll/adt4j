@@ -30,16 +30,21 @@
 
 package com.github.sviperll.codemold.test;
 
+import com.github.sviperll.codemold.Annotation;
+import com.github.sviperll.codemold.AnyCompileTimeValue;
 import com.github.sviperll.codemold.Type;
 import com.github.sviperll.codemold.AnyType;
 import com.github.sviperll.codemold.CodeMold;
 import com.github.sviperll.codemold.CodeMoldException;
 import com.github.sviperll.codemold.ConstructorDefinition;
+import com.github.sviperll.codemold.EnumConstant;
 import com.github.sviperll.codemold.MethodDefinition;
 import com.github.sviperll.codemold.ObjectDefinition;
 import com.github.sviperll.codemold.TypeParameter;
 import com.github.sviperll.codemold.render.RendererContexts;
+import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Predicate;
 import javax.annotation.ParametersAreNonnullByDefault;
 import org.junit.Test;
@@ -50,9 +55,9 @@ import static org.junit.Assert.*;
  * @author Victor Nazarov &lt;asviraspossible@gmail.com&gt;
  */
 @ParametersAreNonnullByDefault
-public class ReflectionTest {
+public class ReflectionSmokeTest {
     @Test
-    public void smokeReflectedObject() throws CodeMoldException {
+    public void reflectedObject() throws CodeMoldException {
         CodeMold.Builder builder = CodeMold.createBuilder();
         CodeMold codeModel = builder.build();
         ObjectDefinition stringDefinition = codeModel.getReference(String.class);
@@ -97,13 +102,12 @@ public class ReflectionTest {
     }
 
     @Test
-    public void smokeReflectedInterface() throws CodeMoldException {
+    public void reflectedInterface() throws CodeMoldException {
         CodeMold.Builder builder = CodeMold.createBuilder();
         CodeMold codeModel = builder.build();
         ObjectDefinition comparableDefinition = codeModel.getReference(Comparable.class);
         StringBuilder stringBuilder = new StringBuilder();
         RendererContexts.createInstance(stringBuilder).appendRenderable(comparableDefinition);
-        System.out.println(stringBuilder.toString());
 
         assertTrue(comparableDefinition.kind().isInterface());
 
@@ -124,6 +128,36 @@ public class ReflectionTest {
         assertTrue(optionalCompareToDefinition.isPresent());
         MethodDefinition compareToDefinition = optionalCompareToDefinition.orElseThrow(() -> new IllegalStateException());
         assertTrue(isInt(compareToDefinition.returnType()));
+    }
+
+    @Test
+    public void reflectedEnum() throws CodeMoldException {
+        CodeMold.Builder builder = CodeMold.createBuilder();
+        CodeMold codeModel = builder.build();
+        ObjectDefinition timeUnitDefinition = codeModel.getReference(TimeUnit.class);
+        StringBuilder stringBuilder = new StringBuilder();
+        RendererContexts.createInstance(stringBuilder).appendRenderable(timeUnitDefinition);
+        Optional<? extends EnumConstant> millisConstantOptional;
+        millisConstantOptional = timeUnitDefinition.enumConstants().stream().filter(c -> c.name().equals("MILLISECONDS")).findFirst();
+        assertTrue(millisConstantOptional.isPresent());
+    }
+
+    @Test
+    public void reflectedAnnotation() throws CodeMoldException {
+        CodeMold.Builder builder = CodeMold.createBuilder();
+        CodeMold codeModel = builder.build();
+        ObjectDefinition supportedSourceVersionDefinition = codeModel.getReference(javax.annotation.processing.SupportedSourceVersion.class);
+        StringBuilder stringBuilder = new StringBuilder();
+        RendererContexts.createInstance(stringBuilder).appendRenderable(supportedSourceVersionDefinition);
+        List<? extends Annotation> retentions = supportedSourceVersionDefinition.getAnnotation(codeModel.getReference(java.lang.annotation.Retention.class));
+        assertEquals(1, retentions.size());
+        Annotation retention = retentions.get(0);
+        Optional<AnyCompileTimeValue> optional = retention.getValue("value");
+        assertTrue(optional.isPresent());
+        AnyCompileTimeValue anyValue = optional.orElseThrow(() -> new IllegalStateException());
+        assertTrue(anyValue.kind().isEnumConstant());
+        EnumConstant value = anyValue.getEnumConstant();
+        assertEquals("RUNTIME", value.name());
     }
 
     private boolean isInt(Type type) {

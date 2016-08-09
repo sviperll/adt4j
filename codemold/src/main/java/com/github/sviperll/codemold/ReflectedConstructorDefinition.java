@@ -31,21 +31,18 @@
 package com.github.sviperll.codemold;
 
 import com.github.sviperll.codemold.render.Renderable;
-import com.github.sviperll.codemold.util.CMCollections;
 import com.github.sviperll.codemold.util.Snapshot;
 import java.lang.reflect.Constructor;
-import java.lang.reflect.Parameter;
 import java.util.Collection;
 import java.util.List;
 import javax.annotation.ParametersAreNonnullByDefault;
-import javax.annotation.Nonnull;
 
 /**
  *
  * @author Victor Nazarov &lt;asviraspossible@gmail.com&gt;
  */
 @ParametersAreNonnullByDefault
-public class ReflectedConstructorDefinition<T> extends ConstructorDefinition {
+class ReflectedConstructorDefinition<T> extends ConstructorDefinition {
 
     static <T> ReflectedConstructorDefinition<T> createInstance(Reflection reflection, Nesting nesting, Constructor<T> constructor) {
         ReflectedExecutableDefinitionImplementation<T> executable = new ReflectedExecutableDefinitionImplementation<>(reflection, nesting, constructor);

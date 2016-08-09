@@ -30,6 +30,10 @@
 
 package com.github.sviperll.codemold;
 
+import com.github.sviperll.codemold.util.CMArrays;
+import com.github.sviperll.codemold.util.CMCollections;
+import java.text.MessageFormat;
+import java.util.Arrays;
 import java.util.List;
 import javax.annotation.ParametersAreNonnullByDefault;
 
@@ -39,9 +43,6 @@ import javax.annotation.ParametersAreNonnullByDefault;
  */
 @ParametersAreNonnullByDefault
 public class CompileTimeValues {
-    static AnyCompileTimeValue fromObject(Object defaultValue) {
-        throw new UnsupportedOperationException("Not supported yet.");
-    }
 
     public static PrimitiveCompileTimeValue of(byte value) {
         return PrimitiveCompileTimeValue.of(value);

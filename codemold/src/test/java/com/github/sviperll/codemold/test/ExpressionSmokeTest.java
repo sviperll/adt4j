@@ -27,46 +27,46 @@
  *  (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
  *  EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package com.github.sviperll.codemold.test;
 
-package com.github.sviperll.codemold;
-
-import java.lang.reflect.Modifier;
+import com.github.sviperll.codemold.CodeMold;
+import com.github.sviperll.codemold.CodeMoldException;
+import com.github.sviperll.codemold.Expression;
+import com.github.sviperll.codemold.render.RendererContexts;
+import static org.junit.Assert.*;
+import org.junit.Test;
+import static com.github.sviperll.codemold.Expression.literal;
 
 /**
  *
  * @author Victor Nazarov &lt;asviraspossible@gmail.com&gt;
  */
-class ReflectedNesting extends Nesting {
+public class ExpressionSmokeTest {
 
-    private final int modifiers;
-    private final ObjectDefinition parent;
-
-    ReflectedNesting(int modifiers, ObjectDefinition parent) {
-        this.modifiers = modifiers;
-        this.parent = parent;
+    /**
+     * Test of literal method, of class Expression.
+     */
+    @Test
+    public void basicPrecedence() {
+        Expression expression = literal(5).plus(literal(6)).times(literal(6).plus(literal(7)));
+        assertRendersAs("(5 + 6) * (6 + 7)", expression);
+    }
+    @Test
+    public void literalEscaping() {
+        Expression expression = literal("aa\nbb\"sdfsd\"sdfsd").plus(literal(5)).plus(literal(6)).times(literal(6).plus(literal(7)));
+        assertRendersAs("(\"aa\\nbb\\\"sdfsd\\\"sdfsd\" + 5 + 6) * (6 + 7)", expression);
+    }
+    @Test
+    public void instanceofTest() throws CodeMoldException {
+        CodeMold.Builder builder = CodeMold.createBuilder();
+        CodeMold codeModel = builder.build();
+        Expression expression = literal("aaa").instanceofOp(codeModel.objectType());
+        assertRendersAs("\"aaa\" instanceof java.lang.Object", expression);
     }
 
-    @Override
-    public MemberAccess accessLevel() {
-        if ((modifiers & Modifier.PUBLIC) != 0) {
-            return MemberAccess.PUBLIC;
-        } else if ((modifiers & Modifier.PROTECTED) != 0) {
-            return MemberAccess.PROTECTED;
-        } else if ((modifiers & Modifier.PRIVATE) != 0) {
-            return MemberAccess.PRIVATE;
-        } else {
-            return MemberAccess.PACKAGE;
-        }
+    private void assertRendersAs(String expected, Expression expression) {
+        StringBuilder builder = new StringBuilder();
+        RendererContexts.createInstance(builder).appendRenderable(expression);
+        assertEquals(expected, builder.toString());
     }
-
-    @Override
-    public boolean isStatic() {
-        return (modifiers & Modifier.STATIC) != 0;
-    }
-
-    @Override
-    public ObjectDefinition parent() {
-        return parent;
-    }
-
 }

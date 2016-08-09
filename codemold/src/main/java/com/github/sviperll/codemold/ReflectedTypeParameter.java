@@ -38,7 +38,7 @@ import java.util.List;
  *
  * @author Victor Nazarov &lt;asviraspossible@gmail.com&gt;
  */
- class ReflectedTypeParameter<T extends java.lang.reflect.GenericDeclaration> extends TypeParameter {
+class ReflectedTypeParameter<T extends java.lang.reflect.GenericDeclaration> extends TypeParameter {
 
     private final Reflection reflection;
     private final GenericDefinition<?, ?> declaredIn;

@@ -31,25 +31,17 @@
 package com.github.sviperll.codemold;
 
 import com.github.sviperll.codemold.render.Renderable;
-import com.github.sviperll.codemold.render.Renderer;
-import com.github.sviperll.codemold.render.RendererContext;
-import com.github.sviperll.codemold.util.CMCollections;
 import com.github.sviperll.codemold.util.Snapshot;
-import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
-import java.lang.reflect.Parameter;
 import java.util.Collection;
 import java.util.List;
-import java.util.Optional;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 /**
  *
  * @author Victor Nazarov &lt;asviraspossible@gmail.com&gt;
  */
- class ReflectedMethodDefinition extends MethodDefinition {
+class ReflectedMethodDefinition extends MethodDefinition {
 
     static ReflectedMethodDefinition createInstance(Reflection reflection, Nesting nesting, Method method) {
         ReflectedExecutableDefinitionImplementation executable = new ReflectedExecutableDefinitionImplementation(reflection, nesting, method);
@@ -98,7 +90,7 @@ import java.util.logging.Logger;
         if (!hasDefaultValue()) {
             throw new UnsupportedOperationException("No default value");
         }
-        return CompileTimeValues.fromObject(method.getDefaultValue());
+        return reflection.readCompileTimeValue(method.getDefaultValue());
     }
 
     private static class ReflectedExecutableDefinitionImplementation implements ExecutableDefinition.Implementation<MethodType, MethodDefinition> {

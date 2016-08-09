@@ -31,23 +31,14 @@
 package com.github.sviperll.codemold;
 
 import com.github.sviperll.codemold.render.Renderable;
-import com.github.sviperll.codemold.render.Renderer;
-import com.github.sviperll.codemold.render.RendererContext;
 import com.github.sviperll.codemold.util.CMCollections;
-import com.github.sviperll.codemold.util.CMCollectors;
 import com.github.sviperll.codemold.util.Snapshot;
 import java.lang.reflect.Constructor;
-import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
-import java.lang.reflect.Parameter;
-import java.lang.reflect.TypeVariable;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
@@ -67,6 +58,7 @@ class ReflectedObjectDefinition<T> extends ObjectDefinition {
     private List<? extends ObjectType> implementsInterfaces = null;
     private ObjectType extendsClass = null;
     private AnnotationCollection annotations = null;
+    private List<? extends EnumConstant> enumConstants = null;
 
     ReflectedObjectDefinition(Reflection reflection, ResidenceProvider residence, Class<T> klass) {
         this.reflection = reflection;
@@ -149,13 +141,18 @@ class ReflectedObjectDefinition<T> extends ObjectDefinition {
     }
 
     @Override
+    public boolean isAnonymous() {
+        return false;
+    }
+
+    @Override
     public String simpleTypeName() {
-        if (!klass.isSynthetic())
-            return klass.getSimpleName();
+        String simpleName = klass.getSimpleName();
+        if (!simpleName.isEmpty())
+            return simpleName;
         else {
             String name = klass.getName();
-            int i = name.lastIndexOf('.');
-            return name.substring(i + 1);
+            return name.substring(name.lastIndexOf('.') + 1);
         }
     }
 
@@ -194,12 +191,15 @@ class ReflectedObjectDefinition<T> extends ObjectDefinition {
 
     @Override
     public List<? extends EnumConstant> enumConstants() {
-        throw new UnsupportedOperationException("Not supported yet.");
-    }
-
-    @Override
-    public boolean isAnonymous() {
-        return false;
+        if (enumConstants == null) {
+            List<EnumConstant> builder = CMCollections.newArrayList();
+            for (T enumValueObject: klass.getEnumConstants()) {
+                Enum<?> enumValue = (Enum<?>)enumValueObject;
+                builder.add(new ReflectedEnumConstant(this, enumValue.name()));
+            }
+            enumConstants = Snapshot.of(builder);
+        }
+        return enumConstants;
     }
 
     @Override

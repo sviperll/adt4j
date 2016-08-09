@@ -30,12 +30,7 @@
 
 package com.github.sviperll.codemold;
 
-import com.github.sviperll.codemold.util.CMCollections;
-import java.lang.reflect.GenericArrayType;
-import java.lang.reflect.ParameterizedType;
 import java.text.MessageFormat;
-import java.util.List;
-import java.util.Locale;
 import java.util.Optional;
 import javax.annotation.Nonnull;
 import javax.annotation.ParametersAreNonnullByDefault;

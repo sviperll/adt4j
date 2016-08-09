@@ -38,5 +38,7 @@ import javax.annotation.ParametersAreNonnullByDefault;
  */
 @ParametersAreNonnullByDefault
 public interface Renderer {
+    public static final Renderer BLANK = () -> {};
+
     void render();
 }

@@ -63,9 +63,9 @@ import org.junit.Test;
  *
  * @author Victor Nazarov &lt;asviraspossible@gmail.com&gt;
  */
-public class ObjectDefinitionTest {
+public class ObjectDefinitionSmokeTest {
     @Test
-    public void smokePrettyPrintingInterface() throws CodeMoldException {
+    public void prettyPrintingInterface() throws CodeMoldException {
         CodeMold.Builder builder = CodeMold.createBuilder();
         CodeMold codeModel = builder.build();
         Package pkg = codeModel.getPackage("com.github.sviperll.codemodel.test");
@@ -99,7 +99,7 @@ public class ObjectDefinitionTest {
     }
 
     @Test
-    public void smokePrettyPrintingAnnotationDefinition() throws CodeMoldException {
+    public void prettyPrintingAnnotationDefinition() throws CodeMoldException {
         CodeMold.Builder builder = CodeMold.createBuilder();
         CodeMold codeModel = builder.build();
         Package pkg = codeModel.getPackage("com.github.sviperll.codemodel.test");
@@ -147,7 +147,7 @@ public class ObjectDefinitionTest {
     }
 
     @Test
-    public void smokePrettyPrintingEnum() throws CodeMoldException {
+    public void prettyPrintingEnum() throws CodeMoldException {
         CodeMold.Builder builder = CodeMold.createBuilder();
         CodeMold codeModel = builder.build();
         Package pkg = codeModel.getPackage("com.github.sviperll.codemodel.test");
@@ -170,7 +170,7 @@ public class ObjectDefinitionTest {
                 method1.addParameter(Types.intType(), "param1");
                 method1.body().returnStatement(Expression.variable("param1").plus(Expression.variable("field1")).plus(Expression.literal(1)));
             } catch (CodeMoldException ex) {
-                Logger.getLogger(ObjectDefinitionTest.class.getName()).log(Level.SEVERE, null, ex);
+                Logger.getLogger(ObjectDefinitionSmokeTest.class.getName()).log(Level.SEVERE, null, ex);
             }
         });
         test1.constant("TEST1_2", (AnonymousClassBuilder builder1) -> {
@@ -181,7 +181,7 @@ public class ObjectDefinitionTest {
                 method1.addParameter(Types.intType(), "param1");
                 method1.body().returnStatement(Expression.variable("param1").plus(Expression.variable("field1")).plus(Expression.literal(2)));
             }catch (CodeMoldException ex) {
-                Logger.getLogger(ObjectDefinitionTest.class.getName()).log(Level.SEVERE, null, ex);
+                Logger.getLogger(ObjectDefinitionSmokeTest.class.getName()).log(Level.SEVERE, null, ex);
             }
         });
 
@@ -210,10 +210,10 @@ public class ObjectDefinitionTest {
     }
 
     @Test
-    public void smokePrettyPrintingClass() throws CodeMoldException {
+    public void prettyPrintingClass() throws CodeMoldException {
         ObjectDefinition test1 = buildClass();
         String result =
-            "@javax.annotation.Generated(\"com.github.sviperll.codemold.test.ObjectDefinitionTest\")\n" +
+            "@javax.annotation.Generated(\"com.github.sviperll.codemold.test.ObjectDefinitionSmokeTest\")\n" +
             "class Test1<T> {\n" +
             "\n" +
             "    @javax.annotation.Nullable\n" +
@@ -241,7 +241,7 @@ public class ObjectDefinitionTest {
     }
 
     @Test
-    public void smokeRawTypes() throws CodeMoldException {
+    public void rawTypes() throws CodeMoldException {
         ObjectDefinition test1 = buildClass();
         CodeMold codeModel = test1.getCodeMold();
 
@@ -256,7 +256,7 @@ public class ObjectDefinitionTest {
     }
 
     @Test
-    public void smokeNarrowedTypes() throws CodeMoldException {
+    public void narrowedTypes() throws CodeMoldException {
         ObjectDefinition test1 = buildClass();
         CodeMold codeModel = test1.getCodeMold();
         ObjectDefinition stringDefinition = codeModel.getReference(String.class);
@@ -274,7 +274,7 @@ public class ObjectDefinitionTest {
     }
 
     @Test
-    public void smokeRawMethodTypes() throws CodeMoldException {
+    public void rawMethodTypes() throws CodeMoldException {
         ObjectDefinition test1 = buildClass();
         CodeMold codeModel = test1.getCodeMold();
 
@@ -288,7 +288,7 @@ public class ObjectDefinitionTest {
     }
 
     @Test
-    public void smokeNarrowedMethodTypes() throws CodeMoldException {
+    public void narrowedMethodTypes() throws CodeMoldException {
         ObjectDefinition test1 = buildClass();
         CodeMold codeModel = test1.getCodeMold();
         ObjectType stringType = codeModel.getReference(String.class).rawType();
@@ -308,7 +308,7 @@ public class ObjectDefinitionTest {
         Annotation nullable = Annotation.createInstance(codeModel.getReference(Nullable.class));
         Package pkg = codeModel.getPackage("com.github.sviperll.codemodel.test");
         ClassBuilder<PackageLevelBuilder> test1 = pkg.createClass("Test1");
-        test1.annotateGenerated(ObjectDefinitionTest.class.getName());
+        test1.annotateGenerated(ObjectDefinitionSmokeTest.class.getName());
         test1.typeParameter("T");
 
         FieldBuilder field1 = test1.field(Types.intType(), "field1");

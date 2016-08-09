@@ -31,14 +31,8 @@
 package com.github.sviperll.codemold;
 
 import com.github.sviperll.codemold.render.Renderable;
-import com.github.sviperll.codemold.util.CMCollections;
-import com.github.sviperll.codemold.util.Snapshot;
 import java.lang.reflect.Parameter;
-import java.util.List;
-import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.annotation.ParametersAreNonnullByDefault;
-import javax.annotation.Nonnull;
 
 /**
  *

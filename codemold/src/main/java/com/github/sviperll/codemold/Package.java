@@ -135,7 +135,7 @@ public final class Package implements Model {
             try {
                 Class<?> klass = Class.forName(packageAsNamePrefix() + simpleName);
                 try {
-                    assert klass.isSynthetic() || klass.getEnclosingClass() == null;
+                    // assert klass.isSynthetic() || klass.getEnclosingClass() == null;
                     assert klass.getPackage().getName().equals(qualifiedName());
                     String className = klass.getSimpleName();
                     if (classes.containsKey(className))
