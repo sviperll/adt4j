@@ -39,12 +39,14 @@ import com.github.sviperll.codemold.util.Snapshot;
 import java.lang.reflect.GenericArrayType;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
 import java.lang.reflect.Parameter;
 import java.lang.reflect.ParameterizedType;
 import java.text.MessageFormat;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
+import java.util.Optional;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.annotation.ParametersAreNonnullByDefault;
@@ -231,6 +233,31 @@ class Reflection implements Model {
             return CompileTimeValues.ofObjectDefinitions(definitions).asAny();
         } else
             throw new UnsupportedOperationException(MessageFormat.format("Not supported yet. Value: {0} ({1})", value, value.getClass()));
+    }
+
+    Optional<ObjectDefinition> createNewReflectedClassObjectDefinition(Package pkg, String qualifiedName) {
+        try {
+            Class<?> klass = Class.forName(qualifiedName);
+
+            // assert klass.isSynthetic() || klass.getEnclosingClass() == null;
+            assert klass.getPackage().getName().equals(pkg.qualifiedName());
+            int modifiers = klass.getModifiers();
+            final boolean isPublic = (modifiers & Modifier.PUBLIC) != 0;
+            PackageLevelResidence residence = new PackageLevelResidence() {
+                @Override
+                public boolean isPublic() {
+                    return isPublic;
+                }
+
+                @Override
+                public com.github.sviperll.codemold.Package getPackage() {
+                    return pkg;
+                }
+            };
+            return Optional.of(new ReflectedObjectDefinition<>(this, residence, klass));
+        } catch (ClassNotFoundException ex) {
+            return Optional.empty();
+        }
     }
 
     private static class RenderableUnaccessibleCode implements Renderable {

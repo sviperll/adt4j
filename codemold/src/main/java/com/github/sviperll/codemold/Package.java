@@ -37,6 +37,7 @@ import java.util.TreeMap;
 import java.util.logging.Logger;
 import javax.annotation.Nonnull;
 import javax.annotation.ParametersAreNonnullByDefault;
+import javax.lang.model.element.TypeElement;
 
 /**
  *
@@ -130,44 +131,26 @@ public final class Package implements Model {
             throw new IllegalArgumentException(packageAsNamePrefix() + relativelyQualifiedName + " illegal name");
         boolean needsToGoDeeper = index >= 0;
         String simpleName = !needsToGoDeeper ? relativelyQualifiedName : relativelyQualifiedName.substring(0, index);
-        ObjectDefinition result = classes.get(simpleName);
-        if (result == null) {
-            try {
-                Class<?> klass = Class.forName(packageAsNamePrefix() + simpleName);
-                try {
-                    // assert klass.isSynthetic() || klass.getEnclosingClass() == null;
-                    assert klass.getPackage().getName().equals(qualifiedName());
-                    String className = klass.getSimpleName();
-                    if (classes.containsKey(className))
-                        throw new CodeMoldException(packageAsNamePrefix() + className + " already defined");
-                    int modifiers = klass.getModifiers();
-                    final boolean isPublic = (modifiers & Modifier.PUBLIC) != 0;
-                    PackageLevelResidence residence = new PackageLevelResidence() {
-                        @Override
-                        public boolean isPublic() {
-                            return isPublic;
-                        }
-
-                        @Override
-                        public com.github.sviperll.codemold.Package getPackage() {
-                            return Package.this;
-                        }
-                    };
-                    result = new ReflectedObjectDefinition<>(new Reflection(codeModel), residence, klass);
-                } catch (CodeMoldException ex) {
-                    throw new RuntimeException("Should never happen");
-                }
-                classes.put(simpleName, result);
-            } catch (ClassNotFoundException ex) {
-            }
+        String qualifiedName = packageAsNamePrefix() + simpleName;
+        Optional<ObjectDefinition> optional = Optional.ofNullable(classes.get(simpleName));
+        if (!optional.isPresent()) {
+            Reflection reflection = new Reflection(codeModel);
+            optional = reflection.createNewReflectedClassObjectDefinition(this, qualifiedName);
         }
+        if (!optional.isPresent()) {
+            Optional<Mirror> optionalMirror = codeModel.createMirror();
+            optional = optionalMirror.flatMap(mirror -> mirror.createNewMirroredTypeObjectDefinition(this, qualifiedName));
+        }
+        optional.ifPresent(definition -> {
+            classes.put(simpleName, definition);
+        });
         if (!needsToGoDeeper) {
-            return Optional.ofNullable(result);
+            return optional;
         } else {
             String childRelativeName = relativelyQualifiedName.substring(simpleName.length() + 1);
-            if (result != null) {
-                return result.getReference(childRelativeName);
-            } else {
+            if (optional.isPresent())
+                return optional.flatMap(definition -> definition.getReference(childRelativeName));
+            else {
                 Package childPackage = packages.get(simpleName);
                 if (childPackage == null) {
                     childPackage = new Package(codeModel, packageAsNamePrefix() + simpleName, this);

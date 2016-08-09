@@ -34,6 +34,8 @@ import java.text.MessageFormat;
 import java.util.Optional;
 import javax.annotation.Nonnull;
 import javax.annotation.ParametersAreNonnullByDefault;
+import javax.lang.model.element.TypeElement;
+import javax.lang.model.util.Elements;
 
 /**
  * Facade-class for codemold library.
@@ -53,10 +55,12 @@ public final class CodeMold {
         return new Builder();
     }
 
-    private final Package defaultPackage = Package.createTopLevelPackage(this);
+    private final Optional<Elements> elements;
+    private Package defaultPackage = null;
     private ObjectType objectType = null;
 
-    private CodeMold() {
+    private CodeMold(Optional<Elements> elements) {
+        this.elements = elements;
     }
 
     @Nonnull
@@ -72,23 +76,25 @@ public final class CodeMold {
 
     @Nonnull
     public Package getPackage(String qualifiedName) throws CodeMoldException {
-        return defaultPackage.getChildPackageBySuffix(qualifiedName);
+        return defaultPackage().getChildPackageBySuffix(qualifiedName);
     }
 
     @Nonnull
     public Package defaultPackage() {
+        if (defaultPackage == null)
+            defaultPackage = Package.createTopLevelPackage(this);
         return defaultPackage;
     }
 
     public Optional<ObjectDefinition> getReference(String qualifiedName) {
-        return defaultPackage.getReference(qualifiedName);
+        return defaultPackage().getReference(qualifiedName);
     }
 
     public ObjectDefinition getReference(Class<?> klass) {
         if (klass.isPrimitive() || klass.isArray())
             throw new IllegalArgumentException(MessageFormat.format("{0} class should be object definition", klass));
         try {
-            return defaultPackage.getReference(klass.getName()).orElseThrow(() -> {
+            return defaultPackage().getReference(klass.getName()).orElseThrow(() -> {
                 return new IllegalStateException(MessageFormat.format("{0} class is not accessible as object definition", klass));
             });
         } catch (AssertionError error) {
@@ -96,13 +102,22 @@ public final class CodeMold {
         }
     }
 
+    Optional<Mirror> createMirror() {
+        return elements.map(elems -> new Mirror(this, elems));
+    }
+
     public static class Builder {
+        private Elements elements = null;
         public Builder() {
+        }
+
+        public void enableAccessToProcesseableElements(Elements elements) {
+            this.elements = elements;
         }
 
         @Nonnull
         public CodeMold build() {
-            return new CodeMold();
+            return new CodeMold(Optional.ofNullable(elements));
         }
     }
 
