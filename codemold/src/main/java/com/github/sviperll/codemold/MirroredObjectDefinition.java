@@ -30,11 +30,15 @@
 package com.github.sviperll.codemold;
 
 import com.github.sviperll.codemold.render.Renderable;
+import com.github.sviperll.codemold.util.CMCollectors;
 import java.util.Collection;
 import java.util.List;
-import java.util.Optional;
+import javax.lang.model.element.ElementKind;
+import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.Modifier;
 import javax.lang.model.element.TypeElement;
+import javax.lang.model.type.TypeKind;
+import javax.lang.model.type.TypeMirror;
 
 /**
  *
@@ -44,8 +48,12 @@ class MirroredObjectDefinition extends ObjectDefinition {
     private final Mirror mirror;
     private final Residence residence;
     private final TypeElement element;
+    private ObjectType extendsClass = null;
+    private List<? extends ObjectType> interfaces = null;
+    private List<? extends EnumConstant> enumConstants = null;
+    private List<? extends ConstructorDefinition> constructors = null;
 
-    public MirroredObjectDefinition(Mirror mirror, ResidenceProvider residence, TypeElement element) {
+    MirroredObjectDefinition(Mirror mirror, ResidenceProvider residence, TypeElement element) {
         this.mirror = mirror;
         this.residence = residence.residence();
         this.element = element;
@@ -53,7 +61,7 @@ class MirroredObjectDefinition extends ObjectDefinition {
 
     @Override
     public Residence residence() {
-        return residence();
+        return residence;
     }
 
     @Override
@@ -63,27 +71,59 @@ class MirroredObjectDefinition extends ObjectDefinition {
 
     @Override
     public ObjectKind kind() {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        if (element.getKind() == ElementKind.INTERFACE) {
+            return ObjectKind.INTERFACE;
+        } else if (element.getKind() == ElementKind.ENUM) {
+            return ObjectKind.ENUM;
+        } else if (element.getKind() == ElementKind.ANNOTATION_TYPE) {
+            return ObjectKind.ANNOTATION;
+        } else {
+            return ObjectKind.CLASS;
+        }
     }
 
     @Override
     public ObjectType extendsClass() {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        if (extendsClass == null) {
+            TypeMirror superclass = element.getSuperclass();
+            if (superclass.getKind() == TypeKind.NONE)
+                extendsClass = mirror.getCodeMold().objectType();
+            else
+                extendsClass = mirror.readMirroredType(superclass);
+        }
+        return extendsClass;
     }
 
     @Override
     public List<? extends ObjectType> implementsInterfaces() {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        if (interfaces == null) {
+            interfaces = element.getInterfaces().stream()
+                    .map(iface -> mirror.readMirroredType(iface))
+                    .collect(CMCollectors.toImmutableList());
+        }
+        return interfaces;
     }
 
     @Override
     public List<? extends EnumConstant> enumConstants() {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        if (enumConstants == null) {
+            enumConstants = element.getEnclosedElements().stream()
+                    .filter(elem -> elem.getKind() == ElementKind.ENUM_CONSTANT)
+                    .map(elem -> new MirroredEnumConstant(mirror, this, (TypeElement)elem))
+                    .collect(CMCollectors.toImmutableList());
+        }
+        return enumConstants;
     }
 
     @Override
     public List<? extends ConstructorDefinition> constructors() {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        if (constructors == null) {
+            constructors = element.getEnclosedElements().stream()
+                    .filter(elem -> elem.getKind() == ElementKind.CONSTRUCTOR)
+                    .map(elem -> MirroredConstructorDefinition.createInstance(mirror, (ExecutableElement)elem))
+                    .collect(CMCollectors.toImmutableList());
+        }
+        return constructors;
     }
 
     @Override

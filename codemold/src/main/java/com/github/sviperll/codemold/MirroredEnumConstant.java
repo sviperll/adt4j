@@ -29,53 +29,43 @@
  */
 package com.github.sviperll.codemold;
 
-import java.util.Optional;
-import java.util.Set;
-import javax.lang.model.element.Modifier;
+import com.github.sviperll.codemold.render.Renderable;
+import java.util.stream.Stream;
 import javax.lang.model.element.TypeElement;
-import javax.lang.model.type.TypeMirror;
-import javax.lang.model.util.Elements;
 
 /**
  *
  * @author vir
  */
-class Mirror {
-    private final CodeMold codeMold;
-    private final Elements elements;
+class MirroredEnumConstant extends EnumConstant {
+    private final Mirror mirror;
+    private final ObjectDefinition enumDefinition;
+    private final TypeElement element;
 
-    Mirror(CodeMold codeMold, Elements elements) {
-        this.codeMold = codeMold;
-        this.elements = elements;
+    MirroredEnumConstant(Mirror mirror, ObjectDefinition enumDefinition, TypeElement element) {
+        this.mirror = mirror;
+        this.enumDefinition = enumDefinition;
+        this.element = element;
     }
 
-    Optional<ObjectDefinition> createNewMirroredTypeObjectDefinition(Package pkg, String qualifiedName) {
-        Optional<TypeElement> optional = Optional.ofNullable(elements.getTypeElement(qualifiedName));
-        return optional.map(element -> {
-            Set<Modifier> modifiers = element.getModifiers();
-            final boolean isPublic = modifiers.contains(Modifier.PUBLIC);
-            PackageLevelResidence residence = new PackageLevelResidence() {
-                @Override
-                public boolean isPublic() {
-                    return isPublic;
-                }
+    @Override
+    public ObjectDefinition enumDefinition() {
+        return enumDefinition;
+    }
 
-                @Override
-                public com.github.sviperll.codemold.Package getPackage() {
-                    return pkg;
-                }
+    @Override
+    public String name() {
+        return element.getSimpleName().toString();
+    }
+
+    @Override
+    Renderable definition() {
+        return context -> {
+            return () -> {
+                context.appendText(name());
+                context.appendText("( /* Unaccessible arguments */ )");
             };
-            return new MirroredObjectDefinition(this, residence, element);
-        });
-
-    }
-
-    CodeMold getCodeMold() {
-        return codeMold;
-    }
-
-    ObjectType readMirroredType(TypeMirror superclass) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        };
     }
 
 }

@@ -30,14 +30,12 @@
 
 package com.github.sviperll.codemold;
 
-import java.lang.reflect.Modifier;
 import java.util.Map;
 import java.util.Optional;
 import java.util.TreeMap;
 import java.util.logging.Logger;
 import javax.annotation.Nonnull;
 import javax.annotation.ParametersAreNonnullByDefault;
-import javax.lang.model.element.TypeElement;
 
 /**
  *
@@ -132,24 +130,24 @@ public final class Package implements Model {
         boolean needsToGoDeeper = index >= 0;
         String simpleName = !needsToGoDeeper ? relativelyQualifiedName : relativelyQualifiedName.substring(0, index);
         String qualifiedName = packageAsNamePrefix() + simpleName;
-        Optional<ObjectDefinition> optional = Optional.ofNullable(classes.get(simpleName));
-        if (!optional.isPresent()) {
+        Optional<ObjectDefinition> result = Optional.ofNullable(classes.get(simpleName));
+        if (!result.isPresent()) {
             Reflection reflection = new Reflection(codeModel);
-            optional = reflection.createNewReflectedClassObjectDefinition(this, qualifiedName);
+            result = reflection.createNewReflectedClassObjectDefinition(this, qualifiedName);
         }
-        if (!optional.isPresent()) {
+        if (!result.isPresent()) {
             Optional<Mirror> optionalMirror = codeModel.createMirror();
-            optional = optionalMirror.flatMap(mirror -> mirror.createNewMirroredTypeObjectDefinition(this, qualifiedName));
+            result = optionalMirror.flatMap(mirror -> mirror.createNewMirroredTypeObjectDefinition(this, qualifiedName));
         }
-        optional.ifPresent(definition -> {
+        result.ifPresent(definition -> {
             classes.put(simpleName, definition);
         });
         if (!needsToGoDeeper) {
-            return optional;
+            return result;
         } else {
             String childRelativeName = relativelyQualifiedName.substring(simpleName.length() + 1);
-            if (optional.isPresent())
-                return optional.flatMap(definition -> definition.getReference(childRelativeName));
+            if (result.isPresent())
+                return result.flatMap(definition -> definition.getReference(childRelativeName));
             else {
                 Package childPackage = packages.get(simpleName);
                 if (childPackage == null) {

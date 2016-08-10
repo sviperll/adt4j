@@ -48,7 +48,7 @@ class ReflectedConstructorDefinition<T> extends ConstructorDefinition {
         ReflectedExecutableDefinitionImplementation<T> executable = new ReflectedExecutableDefinitionImplementation<>(reflection, nesting, constructor);
         return executable.definition();
     }
-    ReflectedConstructorDefinition(ReflectedExecutableDefinitionImplementation<T> executable) {
+    private ReflectedConstructorDefinition(ReflectedExecutableDefinitionImplementation<T> executable) {
         super(executable);
     }
 
