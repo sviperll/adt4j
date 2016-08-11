@@ -7,7 +7,7 @@ Changelog
 Since 3.2
 
  * Optimized updaters/withers: avoid unnecessary allocation
- * New @WrapsGeneratedValueClass annotation to support automatic wrapping, see Expression class README
+ * New @WrapsGeneratedValueClass annotation to support automatic wrapping, see Expression class in README.md file
  * Configurable floatEpsilon and doubleEpsilon for generated floating-point comparisons
 
 Since 3.1
