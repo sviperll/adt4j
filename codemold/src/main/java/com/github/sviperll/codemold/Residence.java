@@ -142,6 +142,7 @@ public abstract class Residence implements Renderable, ResidenceProvider, Model 
             throw new UnsupportedOperationException("No enclosing context here. Use hasContextDefintion method for check.");
     }
 
+    @Nonnull
     @Override
     public Renderer createRenderer(RendererContext context) {
         if (isLocal()) {
@@ -154,6 +155,7 @@ public abstract class Residence implements Renderable, ResidenceProvider, Model 
             throw new IllegalStateException("Rendering unsupported residence " + kind());
     }
 
+    @Nonnull
     Renderable forObjectKind(ObjectKind kind) {
         if (isLocal()) {
             return getLocalDetails().forObjectKind(kind);
@@ -165,11 +167,13 @@ public abstract class Residence implements Renderable, ResidenceProvider, Model 
             throw new IllegalStateException("Rendering unsupported residence " + kind());
     }
 
+    @Nonnull
     @Override
     public Residence residence() {
         return this;
     }
 
+    @Nonnull
     @Override
     public CodeMold getCodeMold() {
         return getPackage().getCodeMold();
@@ -187,11 +191,13 @@ public abstract class Residence implements Renderable, ResidenceProvider, Model 
             this.details = details;
         }
 
+        @Nonnull
         @Override
         public Kind kind() {
             return Kind.PACKAGE_LEVEL;
         }
 
+        @Nonnull
         @Override
         public PackageLevelResidence getPackageLevelDetails() {
             return details;
@@ -206,11 +212,13 @@ public abstract class Residence implements Renderable, ResidenceProvider, Model 
             this.details = details;
         }
 
+        @Nonnull
         @Override
         public Kind kind() {
             return Kind.NESTED;
         }
 
+        @Nonnull
         @Override
         public Nesting getNesting() {
             return details;
@@ -225,11 +233,13 @@ public abstract class Residence implements Renderable, ResidenceProvider, Model 
             this.details = details;
         }
 
+        @Nonnull
         @Override
         public Kind kind() {
             return Kind.LOCAL;
         }
 
+        @Nonnull
         @Override
         public MethodLocalResidence getLocalDetails() {
             return details;

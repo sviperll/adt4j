@@ -45,9 +45,11 @@ public abstract class FieldDeclaration extends VariableDeclaration implements An
     FieldDeclaration() {
     }
 
+    @Nonnull
     @Override
     public abstract String name();
 
+    @Nonnull
     @Override
     public abstract AnyType type();
 
@@ -57,6 +59,7 @@ public abstract class FieldDeclaration extends VariableDeclaration implements An
     @Nonnull
     public abstract Nesting nesting();
 
+    @Nonnull
     @Override
     public Renderer createRenderer(final RendererContext context) {
         final Renderer simpleRenderer = super.createRenderer(context);

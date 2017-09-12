@@ -33,6 +33,8 @@ package com.github.sviperll.codemold;
 import com.github.sviperll.codemold.render.Renderable;
 import com.github.sviperll.codemold.render.Renderer;
 import com.github.sviperll.codemold.render.RendererContext;
+
+import javax.annotation.Nonnull;
 import javax.annotation.ParametersAreNonnullByDefault;
 
 /**
@@ -54,6 +56,7 @@ class ObjectInitializationElement implements Renderable {
         FIELD, INITIALIZER
     }
 
+    @Nonnull
     @Override
     public Renderer createRenderer(RendererContext context) {
         if (kind == Kind.FIELD)

@@ -52,6 +52,7 @@ public abstract class PackageLevelResidence implements Renderable, ResidenceProv
     @Nonnull
     public abstract Package getPackage();
 
+    @Nonnull
     @Override
     public final Residence residence() {
         if (residence == null)
@@ -59,6 +60,7 @@ public abstract class PackageLevelResidence implements Renderable, ResidenceProv
         return residence;
     }
 
+    @Nonnull
     @Override
     public Renderer createRenderer(final RendererContext context) {
         return () -> {
@@ -67,6 +69,7 @@ public abstract class PackageLevelResidence implements Renderable, ResidenceProv
         };
     }
 
+    @Nonnull
     Renderable forObjectKind(ObjectKind kind) {
         return this;
     }

@@ -39,6 +39,7 @@ import java.text.MessageFormat;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Optional;
+import javax.annotation.Nonnull;
 import javax.annotation.ParametersAreNonnullByDefault;
 
 /**
@@ -47,6 +48,7 @@ import javax.annotation.ParametersAreNonnullByDefault;
  */
 @ParametersAreNonnullByDefault
 public class Annotation implements Renderable {
+    @Nonnull
     public static Annotation createInstance(ObjectDefinition definition, CompileTimeValue value) {
         Builder builder = createBuilder(definition);
         builder.set("value", value);
@@ -57,6 +59,7 @@ public class Annotation implements Renderable {
         return new Builder(definition);
     }
 
+    @Nonnull
     public static Annotation createInstance(ObjectDefinition definition) {
         Builder builder = createBuilder(definition);
         return builder.build();
@@ -70,10 +73,12 @@ public class Annotation implements Renderable {
         this.valueMap = Snapshot.of(valueMap);
     }
 
+    @Nonnull
     public ObjectDefinition definition() {
         return definition;
     }
 
+    @Nonnull
     public Optional<AnyCompileTimeValue> getValue(String name) {
         Optional<AnyCompileTimeValue> value = Optional.ofNullable(valueMap.get(name));
         if (value.isPresent())
@@ -84,6 +89,7 @@ public class Annotation implements Renderable {
         }
     }
 
+    @Nonnull
     @Override
     public Renderer createRenderer(RendererContext context) {
         return () -> {
@@ -130,6 +136,7 @@ public class Annotation implements Renderable {
             valueMap.put(name, value.asAny());
         }
 
+        @Nonnull
         public Annotation build() {
             return new Annotation(definition, valueMap);
         }

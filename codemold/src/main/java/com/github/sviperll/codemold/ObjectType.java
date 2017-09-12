@@ -63,6 +63,7 @@ public class ObjectType extends GenericType<ObjectType, ObjectDefinition>
         super(implementation);
     }
 
+    @Nonnull
     @Override
     public final AnyType asAny() {
         if (type == null)
@@ -239,6 +240,7 @@ public class ObjectType extends GenericType<ObjectType, ObjectDefinition>
         return definition().isJavaLangObject();
     }
 
+    @Nonnull
     @Override
     public Renderer createRenderer(final RendererContext context) {
         return () -> {

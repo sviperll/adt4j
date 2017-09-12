@@ -37,6 +37,7 @@ import com.github.sviperll.codemold.util.Snapshot;
 import com.github.sviperll.codemold.util.Strings;
 import java.util.Iterator;
 import java.util.List;
+import javax.annotation.Nonnull;
 import javax.annotation.ParametersAreNonnullByDefault;
 
 /**
@@ -104,30 +105,37 @@ public abstract class ArrayCompileTimeValue implements CompileTimeValue, Rendera
         this.elementKind = elementKind;
     }
 
+    @Nonnull
     public AnyCompileTimeValue.Kind elementKind() {
         return elementKind;
     }
 
+    @Nonnull
     public PrimitiveArrayCompileTimeValue getPrimitives() {
         throw new UnsupportedOperationException("Is not primitive");
     }
 
+    @Nonnull
     public List<? extends String> getStrings() {
         throw new UnsupportedOperationException("Is not string");
     }
 
+    @Nonnull
     public List<? extends EnumConstant> getEnumConstants() {
         throw new UnsupportedOperationException("Is not EnumConstant");
     }
 
+    @Nonnull
     public List<? extends ObjectDefinition> getObjectDefinitions() {
         throw new UnsupportedOperationException("Is not ObjectDefinition");
     }
 
+    @Nonnull
     public List<? extends Annotation> getAnnotations() {
         throw new UnsupportedOperationException("Is not Annotation");
     }
 
+    @Nonnull
     @Override
     public AnyCompileTimeValue asAny() {
         if (any == null)
@@ -135,12 +143,14 @@ public abstract class ArrayCompileTimeValue implements CompileTimeValue, Rendera
         return any;
     }
 
+    @Nonnull
     @Override
     public Renderer createRenderer(final RendererContext context) {
         if (elementKind.isPrimitive())
             return () -> context.appendRenderable(getPrimitives());
         else if (elementKind.isAnnotation()) {
             return new ArrayRenderer<Annotation>(context) {
+                @Nonnull
                 @Override
                 List<? extends Annotation> getList() {
                     return getAnnotations();
@@ -155,6 +165,7 @@ public abstract class ArrayCompileTimeValue implements CompileTimeValue, Rendera
             throw new IllegalStateException("Arrays of arrays are not supported in annotations");
         } else if (elementKind.isEnumConstant()) {
             return new ArrayRenderer<EnumConstant>(context) {
+                @Nonnull
                 @Override
                 List<? extends EnumConstant> getList() {
                     return getEnumConstants();
@@ -168,6 +179,7 @@ public abstract class ArrayCompileTimeValue implements CompileTimeValue, Rendera
             };
         } else if (elementKind.isObjectDefinition()) {
             return new ArrayRenderer<ObjectDefinition>(context) {
+                @Nonnull
                 @Override
                 List<? extends ObjectDefinition> getList() {
                     return getObjectDefinitions();
@@ -179,6 +191,7 @@ public abstract class ArrayCompileTimeValue implements CompileTimeValue, Rendera
             };
         } else if (elementKind.isString()) {
             return new ArrayRenderer<String>(context) {
+                @Nonnull
                 @Override
                 List<? extends String> getList() {
                     return getStrings();
@@ -199,6 +212,7 @@ public abstract class ArrayCompileTimeValue implements CompileTimeValue, Rendera
             this.context = context;
         }
 
+        @Nonnull
         abstract List<? extends T> getList();
         abstract void renderValue(T value);
 
@@ -231,6 +245,7 @@ public abstract class ArrayCompileTimeValue implements CompileTimeValue, Rendera
             this.value = value;
         }
 
+        @Nonnull
         @Override
         public PrimitiveArrayCompileTimeValue getPrimitives() {
             return value;
@@ -246,6 +261,7 @@ public abstract class ArrayCompileTimeValue implements CompileTimeValue, Rendera
             this.strings = Snapshot.of(strings);
         }
 
+        @Nonnull
         @Override
         public List<? extends String> getStrings() {
             return Snapshot.of(strings);
@@ -261,6 +277,7 @@ public abstract class ArrayCompileTimeValue implements CompileTimeValue, Rendera
             this.enumConstants = Snapshot.of(enumConstants);
         }
 
+        @Nonnull
         @Override
         public List<? extends EnumConstant> getEnumConstants() {
             return Snapshot.of(enumConstants);
@@ -276,6 +293,7 @@ public abstract class ArrayCompileTimeValue implements CompileTimeValue, Rendera
             this.objectDefinitions = Snapshot.of(objectDefinitions);
         }
 
+        @Nonnull
         @Override
         public List<? extends ObjectDefinition> getObjectDefinitions() {
             return Snapshot.of(objectDefinitions);
@@ -291,6 +309,7 @@ public abstract class ArrayCompileTimeValue implements CompileTimeValue, Rendera
             this.annotations = Snapshot.of(annotations);
         }
 
+        @Nonnull
         @Override
         public List<? extends Annotation> getAnnotations() {
             return Snapshot.of(annotations);
@@ -300,6 +319,7 @@ public abstract class ArrayCompileTimeValue implements CompileTimeValue, Rendera
     class Wrappable {
         private Wrappable() {
         }
+        @Nonnull
         ArrayCompileTimeValue value() {
             return ArrayCompileTimeValue.this;
         }

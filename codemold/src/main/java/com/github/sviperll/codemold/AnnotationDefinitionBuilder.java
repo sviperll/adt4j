@@ -32,6 +32,7 @@ package com.github.sviperll.codemold;
 
 import java.util.Collections;
 import java.util.List;
+import javax.annotation.Nonnull;
 import javax.annotation.ParametersAreNonnullByDefault;
 
 /**
@@ -47,26 +48,31 @@ public class AnnotationDefinitionBuilder<B extends ResidenceProvider>
         super(ObjectKind.ANNOTATION, residence, name);
     }
 
+    @Nonnull
     @Override
     public FieldBuilder staticField(Type type, String name) throws CodeMoldException {
         return super.staticField(type, name);
     }
 
+    @Nonnull
     @Override
     public FieldBuilder staticFinalField(Type type, String name) throws CodeMoldException {
         return super.staticFinalField(type, name);
     }
 
+    @Nonnull
     @Override
     public AnnotationMethodBuilder method(String name) throws CodeMoldException {
         return super.method(name);
     }
 
+    @Nonnull
     @Override
     AnnotationMethodBuilder createMethodBuilder(NestingBuilder methodResidence, String name) {
         return new AnnotationMethodBuilder(methodResidence, name);
     }
 
+    @Nonnull
     @Override
     ObjectDefinition createDefinition(TypeParameters typeParameters) {
         return new BuiltDefinition(typeParameters);
@@ -83,21 +89,25 @@ public class AnnotationDefinitionBuilder<B extends ResidenceProvider>
             return false;
         }
 
+        @Nonnull
         @Override
         public ObjectType extendsClass() {
             return getCodeMold().objectType();
         }
 
+        @Nonnull
         @Override
         public List<? extends ObjectType> implementsInterfaces() {
             return Collections.emptyList();
         }
 
+        @Nonnull
         @Override
         public List<? extends ConstructorDefinition> constructors() {
             throw new UnsupportedOperationException("Constructors are listed for class definitions only. Use kind() method to check for object kind.");
         }
 
+        @Nonnull
         @Override
         public List<? extends EnumConstant> enumConstants() {
             throw new UnsupportedOperationException("Enum constants are listed for enum definitions only. Use kind() method to check for object kind.");

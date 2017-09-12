@@ -34,6 +34,8 @@ import com.github.sviperll.codemold.render.Renderable;
 import com.github.sviperll.codemold.render.Renderer;
 import com.github.sviperll.codemold.render.RendererContext;
 import com.github.sviperll.codemold.util.Characters;
+
+import javax.annotation.Nonnull;
 import javax.annotation.ParametersAreNonnullByDefault;
 
 /**
@@ -143,6 +145,7 @@ public class PrimitiveCompileTimeValue implements CompileTimeValue, Renderable {
         return any;
     }
 
+    @Nonnull
     @Override
     public Renderer createRenderer(final RendererContext context) {
         return () -> {

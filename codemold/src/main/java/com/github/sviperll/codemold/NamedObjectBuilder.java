@@ -33,6 +33,7 @@ package com.github.sviperll.codemold;
 import java.util.Collection;
 import java.util.List;
 import javax.annotation.Generated;
+import javax.annotation.Nonnull;
 import javax.annotation.ParametersAreNonnullByDefault;
 
 /**
@@ -51,11 +52,13 @@ abstract class NamedObjectBuilder<B extends ResidenceProvider, MB extends Execut
         this.name = name;
     }
 
+    @Nonnull
     @Override
     public final B residence() {
         return super.residence();
     }
 
+    @Nonnull
     @Override
     public final ObjectDefinition definition() {
         return super.definition();
@@ -102,6 +105,7 @@ abstract class NamedObjectBuilder<B extends ResidenceProvider, MB extends Execut
             super(typeParameters);
         }
 
+        @Nonnull
         @Override
         public final String simpleTypeName() {
             return name;
@@ -112,11 +116,13 @@ abstract class NamedObjectBuilder<B extends ResidenceProvider, MB extends Execut
             return false;
         }
 
+        @Nonnull
         @Override
         public List<? extends Annotation> getAnnotation(ObjectDefinition definition) {
             return annotations.build().getAnnotation(definition);
         }
 
+        @Nonnull
         @Override
         public Collection<? extends Annotation> allAnnotations() {
             return annotations.build().allAnnotations();

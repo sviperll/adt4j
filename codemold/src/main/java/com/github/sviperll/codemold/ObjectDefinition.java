@@ -54,6 +54,7 @@ public abstract class ObjectDefinition
     ObjectDefinition() {
     }
 
+    @Nonnull
     @Override
     public abstract Residence residence();
 
@@ -87,7 +88,7 @@ public abstract class ObjectDefinition
      * Class' simple name.
      * Throws UnsupportedOperationException for anonymous classes.
      * @see ObjectDefinition#isAnonymous()
-     * @throws UnsupportedOperationException
+     * @throws UnsupportedOperationException for anonymous classes.
      * @return class' simple name
      */
     @Nonnull
@@ -118,11 +119,13 @@ public abstract class ObjectDefinition
         return Expression.classLiteral(this);
     }
 
+    @Nonnull
     @Override
     final ObjectType createType(GenericType.Implementation<ObjectType, ObjectDefinition> implementation) {
         return new ObjectType(implementation);
     }
 
+    @Nonnull
     @Override
     final ObjectDefinition fromGenericDefinition() {
         return this;
@@ -151,6 +154,7 @@ public abstract class ObjectDefinition
         return Optional.empty();
     }
 
+    @Nonnull
     @Override
     public final Renderer createRenderer(final RendererContext context) {
         if (isJavaLangObject())

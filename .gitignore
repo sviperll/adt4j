@@ -16,3 +16,9 @@
 /codemodel/nbproject/
 /codemold/nbproject/
 /codemold/target/
+/.idea
+/adt4j-examples/adt4j-examples.iml
+/adt4j-maven-parent.iml
+/adt4j-shaded/adt4j-shaded.iml
+/adt4j/adt4j.iml
+/codemold/codemold.iml

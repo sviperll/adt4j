@@ -35,6 +35,8 @@ import com.github.sviperll.codemold.render.Renderer;
 import com.github.sviperll.codemold.render.RendererContext;
 import com.github.sviperll.codemold.util.Characters;
 import com.github.sviperll.codemold.util.Snapshot;
+
+import javax.annotation.Nonnull;
 import java.util.Iterator;
 import java.util.List;
 
@@ -151,6 +153,7 @@ public class PrimitiveArrayCompileTimeValue implements CompileTimeValue, Rendera
         return array.asAny();
     }
 
+    @Nonnull
     @Override
     public Renderer createRenderer(RendererContext context) {
         return () -> {

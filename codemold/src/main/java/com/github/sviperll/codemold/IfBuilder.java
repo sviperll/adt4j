@@ -65,6 +65,7 @@ public class IfBuilder {
     @Nonnull
     Statement statement() {
         return new Statement() {
+            @Nonnull
             @Override
             Renderer createStatementRenderer(final RendererContext context) {
                 return () -> {

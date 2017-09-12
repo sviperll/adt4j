@@ -32,6 +32,8 @@ package com.github.sviperll.codemold;
 import com.github.sviperll.codemold.render.Renderable;
 import com.github.sviperll.codemold.render.Renderer;
 import com.github.sviperll.codemold.render.RendererContext;
+
+import javax.annotation.Nonnull;
 import java.util.Locale;
 
 /**
@@ -42,6 +44,7 @@ import java.util.Locale;
 public enum MemberAccess implements Renderable {
     PRIVATE, PACKAGE, PROTECTED, PUBLIC;
 
+    @Nonnull
     @Override
     public Renderer createRenderer(final RendererContext context) {
         return () -> {

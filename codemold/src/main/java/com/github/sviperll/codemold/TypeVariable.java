@@ -42,10 +42,11 @@ import javax.annotation.ParametersAreNonnullByDefault;
  */
 @ParametersAreNonnullByDefault
 public class TypeVariable implements Renderable, Type {
-    private AnyType type = null;
+    private final AnyType type;
     private final String name;
     TypeVariable(String name) {
         this.name = name;
+        this.type = AnyType.wrapVariableType(new Wrappable());
     }
 
     @Nonnull
@@ -53,13 +54,13 @@ public class TypeVariable implements Renderable, Type {
         return name;
     }
 
+    @Nonnull
     @Override
     public AnyType asAny() {
-        if (type == null)
-            type = AnyType.wrapVariableType(new Wrappable());
         return type;
     }
 
+    @Nonnull
     @Override
     public Renderer createRenderer(final RendererContext context) {
         return () -> {
@@ -70,6 +71,7 @@ public class TypeVariable implements Renderable, Type {
     class Wrappable {
         private Wrappable() {
         }
+        @Nonnull
         TypeVariable value() {
             return TypeVariable.this;
         }

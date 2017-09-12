@@ -35,6 +35,7 @@ import com.github.sviperll.codemold.util.Snapshot;
 import java.lang.reflect.Constructor;
 import java.util.Collection;
 import java.util.List;
+import javax.annotation.Nonnull;
 import javax.annotation.ParametersAreNonnullByDefault;
 
 /**
@@ -45,14 +46,19 @@ import javax.annotation.ParametersAreNonnullByDefault;
 class ReflectedConstructorDefinition<T> extends ConstructorDefinition {
 
     static <T> ReflectedConstructorDefinition<T> createInstance(Reflection reflection, Nesting nesting, Constructor<T> constructor) {
-        ReflectedExecutableDefinitionImplementation<T> executable = new ReflectedExecutableDefinitionImplementation<>(reflection, nesting, constructor);
-        return executable.definition();
+        return ReflectedExecutableDefinitionImplementation.createDefinition(reflection, nesting, constructor);
     }
     private ReflectedConstructorDefinition(ReflectedExecutableDefinitionImplementation<T> executable) {
         super(executable);
     }
 
     private static class ReflectedExecutableDefinitionImplementation<T> implements ExecutableDefinition.Implementation<ConstructorType, ConstructorDefinition> {
+        @Nonnull
+        private static <T> ReflectedConstructorDefinition<T> createDefinition(Reflection reflection, Nesting nesting, Constructor<T> constructor) {
+            ReflectedExecutableDefinitionImplementation<T> implementation
+                    = new ReflectedExecutableDefinitionImplementation<>(reflection, nesting, constructor);
+            return implementation.definition;
+        }
 
         private ReflectedConstructorDefinition<T> definition = null;
         private final Reflection reflection;
@@ -67,23 +73,19 @@ class ReflectedConstructorDefinition<T> extends ConstructorDefinition {
             this.reflection = reflection;
             this.nesting = nesting;
             this.constructor = constructor;
+            this.definition = new ReflectedConstructorDefinition<>(this);
         }
 
-        private ReflectedConstructorDefinition<T> definition() {
-            if (definition == null) {
-                definition = new ReflectedConstructorDefinition<>(this);
-            }
-            return definition;
-        }
-
+        @Nonnull
         @Override
         public TypeParameters typeParameters() {
             if (typeParameters == null) {
-                typeParameters = new ReflectedTypeParameters<>(reflection, definition(), constructor.getTypeParameters());
+                typeParameters = new ReflectedTypeParameters<>(reflection, definition, constructor.getTypeParameters());
             }
             return typeParameters;
         }
 
+        @Nonnull
         @Override
         public List<? extends VariableDeclaration> parameters() {
             if (parameters == null) {
@@ -92,6 +94,7 @@ class ReflectedConstructorDefinition<T> extends ConstructorDefinition {
             return Snapshot.of(parameters);
         }
 
+        @Nonnull
         @Override
         public List<? extends AnyType> throwsList() {
             if (throwsList == null) {
@@ -100,22 +103,26 @@ class ReflectedConstructorDefinition<T> extends ConstructorDefinition {
             return Snapshot.of(throwsList);
         }
 
+        @Nonnull
         @Override
         public Renderable body() {
             return Reflection.renderableUnaccessibleCode();
         }
 
+        @Nonnull
         @Override
         public Nesting nesting() {
             return nesting;
         }
 
+        @Nonnull
         @Override
         public List<? extends Annotation> getAnnotation(ObjectDefinition definition) {
             initAnnotations();
             return annotations.getAnnotation(definition);
         }
 
+        @Nonnull
         @Override
         public Collection<? extends Annotation> allAnnotations() {
             initAnnotations();
@@ -127,6 +134,5 @@ class ReflectedConstructorDefinition<T> extends ConstructorDefinition {
                 annotations = reflection.readAnnotationCollection(constructor.getDeclaredAnnotations());
             }
         }
-
     }
 }

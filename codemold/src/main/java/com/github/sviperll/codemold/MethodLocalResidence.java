@@ -53,6 +53,7 @@ public class MethodLocalResidence implements Renderable, ResidenceProvider {
         return parent;
     }
 
+    @Nonnull
     @Override
     public final Renderer createRenderer(RendererContext context) {
         return Renderer.BLANK;

@@ -34,6 +34,7 @@ import com.github.sviperll.codemold.render.Renderable;
 import com.github.sviperll.codemold.render.Renderer;
 import com.github.sviperll.codemold.render.RendererContext;
 import java.util.Locale;
+import javax.annotation.Nonnull;
 import javax.annotation.ParametersAreNonnullByDefault;
 
 /**
@@ -82,6 +83,7 @@ public enum PrimitiveType implements Renderable, Type {
         return this == CHAR;
     }
 
+    @Nonnull
     @Override
     public AnyType asAny() {
         if (type == null)
@@ -89,6 +91,7 @@ public enum PrimitiveType implements Renderable, Type {
         return type;
     }
 
+    @Nonnull
     @Override
     public Renderer createRenderer(final RendererContext context) {
         return () -> {

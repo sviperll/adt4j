@@ -34,6 +34,8 @@ import com.github.sviperll.codemold.render.Renderable;
 import com.github.sviperll.codemold.render.Renderer;
 import com.github.sviperll.codemold.render.RendererContext;
 import com.github.sviperll.codemold.util.Strings;
+
+import javax.annotation.Nonnull;
 import javax.annotation.ParametersAreNonnullByDefault;
 
 /**
@@ -74,39 +76,48 @@ public abstract class AnyCompileTimeValue
         this.kind = kind;
     }
 
+    @Nonnull
     public Kind kind() {
         return kind;
     }
 
+    @Nonnull
     public PrimitiveCompileTimeValue getPrimitive() {
         throw new UnsupportedOperationException("Is not primitive");
     }
 
+    @Nonnull
     public String getString() {
         throw new UnsupportedOperationException("Is not string");
     }
 
+    @Nonnull
     public EnumConstant getEnumConstant() {
         throw new UnsupportedOperationException("Is not EnumConstant");
     }
 
+    @Nonnull
     public ObjectDefinition getObjectDefinition() {
         throw new UnsupportedOperationException("Is not ObjectDefinition");
     }
 
+    @Nonnull
     public Annotation getAnnotation() {
         throw new UnsupportedOperationException("Is not Annotation");
     }
 
+    @Nonnull
     public ArrayCompileTimeValue getArray() {
         throw new UnsupportedOperationException("Is not array");
     }
 
+    @Nonnull
     @Override
     public AnyCompileTimeValue asAny() {
         return this;
     }
 
+    @Nonnull
     @Override
     public Renderer createRenderer(final RendererContext context) {
         return () -> {
@@ -171,6 +182,7 @@ public abstract class AnyCompileTimeValue
             this.value = value;
         }
 
+        @Nonnull
         @Override
         public PrimitiveCompileTimeValue getPrimitive() {
             return value;
@@ -185,6 +197,7 @@ public abstract class AnyCompileTimeValue
             this.value = value;
         }
 
+        @Nonnull
         @Override
         public String getString() {
             return value;
@@ -199,6 +212,7 @@ public abstract class AnyCompileTimeValue
             super(Kind.ENUM_CONSTANT);
             this.value = value;
         }
+        @Nonnull
         @Override
         public EnumConstant getEnumConstant() {
             return value;
@@ -213,6 +227,7 @@ public abstract class AnyCompileTimeValue
             super(Kind.OBJECT_DEFINITION);
             this.value = value;
         }
+        @Nonnull
         @Override
         public ObjectDefinition getObjectDefinition() {
             return value;
@@ -228,6 +243,7 @@ public abstract class AnyCompileTimeValue
             this.value = value;
         }
 
+        @Nonnull
         @Override
         public Annotation getAnnotation() {
             return value;
@@ -243,6 +259,7 @@ public abstract class AnyCompileTimeValue
             this.value = value;
         }
 
+        @Nonnull
         @Override
         public ArrayCompileTimeValue getArray() {
             return value;

@@ -52,6 +52,7 @@ public abstract class ExecutableDefinition<T extends ExecutableType<T, D>, D ext
         this.implementation = implementation;
     }
 
+    @Nonnull
     @Override
     public final TypeParameters typeParameters() {
         return implementation.typeParameters();
@@ -72,6 +73,7 @@ public abstract class ExecutableDefinition<T extends ExecutableType<T, D>, D ext
         return implementation.body();
     }
 
+    @Nonnull
     @Override
     final Residence residence() {
         return nesting().residence();
@@ -101,11 +103,13 @@ public abstract class ExecutableDefinition<T extends ExecutableType<T, D>, D ext
         return nesting().parent();
     }
 
+    @Nonnull
     @Override
     public List<? extends Annotation> getAnnotation(ObjectDefinition definition) {
         return implementation.getAnnotation(definition);
     }
 
+    @Nonnull
     @Override
     public Collection<? extends Annotation> allAnnotations() {
         return implementation.allAnnotations();

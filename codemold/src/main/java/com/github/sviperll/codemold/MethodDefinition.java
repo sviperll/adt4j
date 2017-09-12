@@ -61,16 +61,19 @@ public abstract class MethodDefinition extends ExecutableDefinition<MethodType, 
     @Nonnull
     public abstract AnyCompileTimeValue defaultValue();
 
+    @Nonnull
     @Override
     final MethodType createType(ExecutableType.Implementation<MethodType, MethodDefinition> implementation) {
         return new MethodType(implementation);
     }
 
+    @Nonnull
     @Override
     final MethodDefinition fromGenericDefinition() {
         return this;
     }
 
+    @Nonnull
     @Override
     public Renderer createRenderer(final RendererContext context) {
         return () -> {

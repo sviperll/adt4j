@@ -38,6 +38,7 @@ import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.function.Consumer;
+import javax.annotation.Nonnull;
 import javax.annotation.ParametersAreNonnullByDefault;
 
 /**
@@ -75,6 +76,7 @@ public class EnumBuilder<B extends ResidenceProvider> extends AbstractClassBuild
         constant(name, Collections.<Expression>emptyList());
     }
 
+    @Nonnull
     @Override
     ObjectDefinition createDefinition(TypeParameters typeParameters) {
         return new BuiltDefinition(typeParameters);
@@ -90,11 +92,13 @@ public class EnumBuilder<B extends ResidenceProvider> extends AbstractClassBuild
             return true;
         }
 
+        @Nonnull
         @Override
         public ObjectType extendsClass() {
             return getCodeMold().objectType();
         }
 
+        @Nonnull
         @Override
         public List<? extends EnumConstant> enumConstants() {
             return Snapshot.of(constants);

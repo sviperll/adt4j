@@ -86,10 +86,12 @@ public final class CodeMold {
         return defaultPackage;
     }
 
+    @Nonnull
     public Optional<ObjectDefinition> getReference(String qualifiedName) {
         return defaultPackage().getReference(qualifiedName);
     }
 
+    @Nonnull
     public ObjectDefinition getReference(Class<?> klass) {
         if (klass.isPrimitive() || klass.isArray())
             throw new IllegalArgumentException(MessageFormat.format("{0} class should be object definition", klass));
@@ -102,6 +104,7 @@ public final class CodeMold {
         }
     }
 
+    @Nonnull
     Optional<Mirror> createMirror() {
         return elements.map(elems -> new Mirror(this, elems));
     }

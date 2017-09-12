@@ -33,13 +33,12 @@ package com.github.sviperll.codemold;
 import com.github.sviperll.codemold.render.Renderable;
 import com.github.sviperll.codemold.render.Renderer;
 import com.github.sviperll.codemold.render.RendererContext;
-import com.github.sviperll.codemold.util.CMCollections;
-import com.github.sviperll.codemold.util.Snapshot;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
+import com.github.sviperll.codemold.util.CMCollectors;
+
 import javax.annotation.Nonnull;
 import javax.annotation.ParametersAreNonnullByDefault;
+import java.util.Collection;
+import java.util.Collections;
 
 /**
  *
@@ -105,6 +104,7 @@ public abstract class AnyType implements Renderable, Type {
     @Nonnull
     public abstract Kind kind();
 
+    @Nonnull
     @Override
     public final AnyType asAny() {
         return this;
@@ -235,14 +235,14 @@ public abstract class AnyType implements Renderable, Type {
         if (!isIntersection())
             return Collections.singletonList(this);
         else {
-            List<AnyType> result = CMCollections.newArrayList();
-            getIntersectionDetails().intersectedTypes().stream().forEach((type) -> {
-                result.add(type.asAny());
-            });
-            return Snapshot.of(result);
+            return getIntersectionDetails().intersectedTypes()
+                    .stream()
+                    .map(ObjectType::asAny)
+                    .collect(CMCollectors.toImmutableList());
         }
     }
 
+    @Nonnull
     @Override
     public Renderer createRenderer(final RendererContext context) {
         return () -> {
@@ -269,6 +269,7 @@ public abstract class AnyType implements Renderable, Type {
     }
 
     private static class VoidType extends AnyType {
+        @Nonnull
         @Override
         public Kind kind() {
             return Kind.VOID;
@@ -283,11 +284,13 @@ public abstract class AnyType implements Renderable, Type {
             this.details = details;
         }
 
+        @Nonnull
         @Override
         public Kind kind() {
             return Kind.TYPE_VARIABLE;
         }
 
+        @Nonnull
         @Override
         public TypeVariable getVariableDetails() {
             return details;
@@ -301,11 +304,13 @@ public abstract class AnyType implements Renderable, Type {
             this.details = details;
         }
 
+        @Nonnull
         @Override
         public Kind kind() {
             return Kind.INTERSECTION;
         }
 
+        @Nonnull
         @Override
         public IntersectionType getIntersectionDetails() {
             return details;
@@ -320,11 +325,13 @@ public abstract class AnyType implements Renderable, Type {
             this.details = details;
         }
 
+        @Nonnull
         @Override
         public Kind kind() {
             return Kind.OBJECT;
         }
 
+        @Nonnull
         @Override
         public ObjectType getObjectDetails() {
             return details;
@@ -339,10 +346,12 @@ public abstract class AnyType implements Renderable, Type {
             this.details = details;
         }
 
+        @Nonnull
         @Override
         public Kind kind() {
             return Kind.PRIMITIVE;
         }
+        @Nonnull
         @Override
         public PrimitiveType getPrimitiveDetails() {
             return details;
@@ -357,11 +366,13 @@ public abstract class AnyType implements Renderable, Type {
             this.details = details;
         }
 
+        @Nonnull
         @Override
         public Kind kind() {
             return Kind.ARRAY;
         }
 
+        @Nonnull
         @Override
         public ArrayType getArrayDetails() {
             return details;
@@ -376,11 +387,13 @@ public abstract class AnyType implements Renderable, Type {
             this.details = details;
         }
 
+        @Nonnull
         @Override
         public Kind kind() {
             return Kind.WILDCARD;
         }
 
+        @Nonnull
         @Override
         public WildcardType getWildcardDetails() {
             return details;

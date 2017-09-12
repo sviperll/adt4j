@@ -32,6 +32,8 @@ package com.github.sviperll.codemold;
 
 import com.github.sviperll.codemold.util.CMCollections;
 import com.github.sviperll.codemold.util.Snapshot;
+
+import javax.annotation.Nonnull;
 import java.lang.reflect.TypeVariable;
 import java.util.List;
 
@@ -52,6 +54,7 @@ class ReflectedTypeParameters<T extends java.lang.reflect.GenericDeclaration> ex
         this.reflectedTypeParameters = reflectedTypeParameters;
     }
 
+    @Nonnull
     @Override
     public List<? extends TypeParameter> all() {
         if (allTypeParameters == null) {
@@ -65,6 +68,7 @@ class ReflectedTypeParameters<T extends java.lang.reflect.GenericDeclaration> ex
         return Snapshot.of(allTypeParameters);
     }
 
+    @Nonnull
     @Override
     public Residence residence() {
         return definition.residence();

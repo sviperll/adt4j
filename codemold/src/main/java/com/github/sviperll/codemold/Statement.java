@@ -50,8 +50,10 @@ abstract class Statement {
     abstract Renderer createStatementRenderer(RendererContext context);
 
     static abstract class Simple extends Statement {
+        @Nonnull
         abstract Renderer createSimpleStatementRenderer(RendererContext context);
 
+        @Nonnull
         @Override
         final Renderer createStatementRenderer(final RendererContext context) {
             return () -> {
@@ -82,6 +84,7 @@ abstract class Statement {
             this(isFinal, type, name, null);
         }
 
+        @Nonnull
         @Override
         Renderer createSimpleStatementRenderer(RendererContext context) {
             return declaration.createRenderer(context);
@@ -99,11 +102,13 @@ abstract class Statement {
                 return isFinal;
             }
 
+            @Nonnull
             @Override
             public AnyType type() {
                 return type;
             }
 
+            @Nonnull
             @Override
             public String name() {
                 return name;
@@ -114,6 +119,7 @@ abstract class Statement {
                 return initializer != null;
             }
 
+            @Nonnull
             @Override
             Renderable getInitialValue() {
                 if (initializer == null)

@@ -30,6 +30,7 @@
 
 package com.github.sviperll.codemold;
 
+import javax.annotation.Nonnull;
 import javax.annotation.ParametersAreNonnullByDefault;
 
 /**
@@ -62,6 +63,7 @@ public class PackageLevelBuilder implements ResidenceProvider {
             return isPublic;
         }
 
+        @Nonnull
         @Override
         public Package getPackage() {
             return pkg;

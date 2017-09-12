@@ -64,11 +64,13 @@ public class BlockBuilder implements Renderable, ExpressionContext {
         this.braces = braces;
     }
 
+    @Nonnull
     @Override
     public Renderer createRenderer(final RendererContext context) {
         return createBlockRenderer(context, false);
     }
 
+    @Nonnull
     @Override
     public ExpressionContextDefinition expressionContext() {
         return expressionContext;
@@ -150,12 +152,7 @@ public class BlockBuilder implements Renderable, ExpressionContext {
     }
 
     public void expression(final Expression expression) throws CodeMoldException {
-        statements.add(new Statement.Simple() {
-            @Override
-            Renderer createSimpleStatementRenderer(final RendererContext context) {
-                return expression.createRenderer(context);
-            }
-        });
+        statements.add(new ExpressionStatement(expression));
     }
 
     public void assignment(final String name, final Expression expression) throws CodeMoldException {
@@ -201,15 +198,38 @@ public class BlockBuilder implements Renderable, ExpressionContext {
     }
 
     public void returnStatement(final Expression result) {
-        statements.add(new Statement.Simple() {
-            @Override
-            Renderer createSimpleStatementRenderer(final RendererContext context) {
-                return () -> {
-                    context.appendText("return");
-                    context.appendWhiteSpace();
-                    context.appendRenderable(result);
-                };
-            }
-        });
+        statements.add(new ReturnStatement(result));
+    }
+
+    private static class ExpressionStatement extends Statement.Simple {
+        private final Expression expression;
+
+        public ExpressionStatement(Expression expression) {
+            this.expression = expression;
+        }
+
+        @Nonnull
+        @Override
+        Renderer createSimpleStatementRenderer(final RendererContext context) {
+            return expression.createRenderer(context);
+        }
+    }
+
+    private static class ReturnStatement extends Statement.Simple {
+        private final Expression result;
+
+        public ReturnStatement(Expression result) {
+            this.result = result;
+        }
+
+        @Nonnull
+        @Override
+        Renderer createSimpleStatementRenderer(final RendererContext context) {
+            return () -> {
+                context.appendText("return");
+                context.appendWhiteSpace();
+                context.appendRenderable(result);
+            };
+        }
     }
 }

@@ -31,6 +31,7 @@ package com.github.sviperll.codemold;
 
 import java.util.Optional;
 import java.util.Set;
+import javax.annotation.Nonnull;
 import javax.lang.model.element.Modifier;
 import javax.lang.model.element.TypeElement;
 import javax.lang.model.type.TypeMirror;
@@ -49,33 +50,46 @@ class Mirror {
         this.elements = elements;
     }
 
+    @Nonnull
     Optional<ObjectDefinition> createNewMirroredTypeObjectDefinition(Package pkg, String qualifiedName) {
         Optional<TypeElement> optional = Optional.ofNullable(elements.getTypeElement(qualifiedName));
         return optional.map(element -> {
             Set<Modifier> modifiers = element.getModifiers();
-            final boolean isPublic = modifiers.contains(Modifier.PUBLIC);
-            PackageLevelResidence residence = new PackageLevelResidence() {
-                @Override
-                public boolean isPublic() {
-                    return isPublic;
-                }
-
-                @Override
-                public com.github.sviperll.codemold.Package getPackage() {
-                    return pkg;
-                }
-            };
+            boolean isPublic = modifiers.contains(Modifier.PUBLIC);
+            PackageLevelResidence residence = new MirroredPackageLevelResidence(isPublic, pkg);
             return new MirroredObjectDefinition(this, residence, element);
         });
 
     }
 
+    @Nonnull
     CodeMold getCodeMold() {
         return codeMold;
     }
 
+    @Nonnull
     ObjectType readMirroredType(TypeMirror superclass) {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 
+    private static class MirroredPackageLevelResidence extends PackageLevelResidence {
+        private final boolean isPublic;
+        private final Package pkg;
+
+        public MirroredPackageLevelResidence(boolean isPublic, Package pkg) {
+            this.isPublic = isPublic;
+            this.pkg = pkg;
+        }
+
+        @Override
+        public boolean isPublic() {
+            return isPublic;
+        }
+
+        @Nonnull
+        @Override
+        public Package getPackage() {
+            return pkg;
+        }
+    }
 }

@@ -30,6 +30,7 @@
 
 package com.github.sviperll.codemold;
 
+import javax.annotation.Nonnull;
 import javax.annotation.ParametersAreNonnullByDefault;
 
 /**
@@ -38,5 +39,6 @@ import javax.annotation.ParametersAreNonnullByDefault;
  */
 @ParametersAreNonnullByDefault
 public interface CompileTimeValue {
+    @Nonnull
     AnyCompileTimeValue asAny();
 }

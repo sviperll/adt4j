@@ -107,11 +107,13 @@ public class FieldBuilder implements ExpressionContext, AnnotatableBuilder, Mode
     }
 
     private class BuiltFieldDeclaration extends FieldDeclaration {
+        @Nonnull
         @Override
         public String name() {
             return name;
         }
 
+        @Nonnull
         @Override
         public AnyType type() {
             return type;
@@ -132,6 +134,7 @@ public class FieldBuilder implements ExpressionContext, AnnotatableBuilder, Mode
             return isFinal;
         }
 
+        @Nonnull
         @Override
         Renderable getInitialValue() {
             if (!isInitialized)
@@ -140,11 +143,13 @@ public class FieldBuilder implements ExpressionContext, AnnotatableBuilder, Mode
                 return initializer;
         }
 
+        @Nonnull
         @Override
         public List<? extends Annotation> getAnnotation(ObjectDefinition definition) {
             return annotations.build().getAnnotation(definition);
         }
 
+        @Nonnull
         @Override
         public Collection<? extends Annotation> allAnnotations() {
             return annotations.build().allAnnotations();

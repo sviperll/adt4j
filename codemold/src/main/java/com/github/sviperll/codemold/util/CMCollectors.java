@@ -32,6 +32,8 @@ package com.github.sviperll.codemold.util;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
+import java.util.function.Function;
 import java.util.stream.Collector;
 import java.util.stream.Collectors;
 import javax.annotation.ParametersAreNonnullByDefault;
@@ -42,9 +44,18 @@ import javax.annotation.ParametersAreNonnullByDefault;
  */
 @ParametersAreNonnullByDefault
 public class CMCollectors {
-    public static <T> Collector<T, ?, List<? extends T>> toImmutableList() {
-        return Collectors.collectingAndThen(Collectors.toList(), l -> Snapshot.markedAsKnownToBeImmutableList(Collections.unmodifiableList(l)));
+    public static <T> Collector<T, ?, List<T>> toImmutableList() {
+        return Collectors.collectingAndThen(Collectors.toList(),
+                l -> Snapshot.markedAsKnownToBeImmutableList(Collections.unmodifiableList(l)));
     }
+
+    public static <T, K, U> Collector<T, ?, Map<K, U>> toImmutableMap(
+            Function<? super T, ? extends K> keyMapper,
+            Function<? super T, ? extends U> valueMapper) {
+        return Collectors.collectingAndThen(Collectors.toMap(keyMapper, valueMapper),
+                m -> Snapshot.markedAsKnownToBeImmutableMap(Collections.unmodifiableMap(m)));
+    }
+
     private CMCollectors() {
     }
 }

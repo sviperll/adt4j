@@ -30,6 +30,7 @@
 
 package com.github.sviperll.codemold;
 
+import javax.annotation.Nonnull;
 import java.lang.reflect.Modifier;
 
 /**
@@ -46,6 +47,7 @@ class ReflectedNesting extends Nesting {
         this.parent = parent;
     }
 
+    @Nonnull
     @Override
     public MemberAccess accessLevel() {
         if ((modifiers & Modifier.PUBLIC) != 0) {
@@ -64,6 +66,7 @@ class ReflectedNesting extends Nesting {
         return (modifiers & Modifier.STATIC) != 0;
     }
 
+    @Nonnull
     @Override
     public ObjectDefinition parent() {
         return parent;

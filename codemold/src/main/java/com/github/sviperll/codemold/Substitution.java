@@ -53,6 +53,7 @@ abstract class Substitution {
     private Substitution() {
     }
 
+    @Nonnull
     abstract Optional<AnyType> get(String name);
 
     @Nonnull
@@ -82,6 +83,7 @@ abstract class Substitution {
         private MapSubstitution(Map<? extends String, ? extends AnyType> map) {
             this.map = map;
         }
+        @Nonnull
         @Override
         Optional<AnyType> get(String name) {
             return Optional.ofNullable(map.get(name));
@@ -93,6 +95,7 @@ abstract class Substitution {
         EmptySubstitution() {
         }
 
+        @Nonnull
         @Override
         Optional<AnyType> get(String name) {
             return Optional.empty();
@@ -108,6 +111,7 @@ abstract class Substitution {
             this.second = second;
         }
 
+        @Nonnull
         @Override
         Optional<AnyType> get(String name) {
             Optional<AnyType> value = first.get(name);

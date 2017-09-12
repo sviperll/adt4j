@@ -91,25 +91,27 @@ public abstract class GenericDefinitionBuilder<B extends ResidenceProvider, T ex
 
     private class BuiltTypeParameters extends TypeParameters {
 
+        @Nonnull
         @Override
         public final List<? extends TypeParameter> all() {
             return typeParameters;
         }
 
+        @Nonnull
         @Override
         public final Optional<TypeParameter>get(String name) {
-            TypeParameter result = typeParametersMap.get(name);
-            if (result != null)
-                return Optional.of(result);
-            else {
-                if (!residence.residence().hasContextDefintion())
-                    return Optional.empty();
-                else {
-                    return residence.residence().getContextDefinition().typeParameters().get(name);
-                }
-            }
+            return Optional.ofNullable(typeParametersMap.get(name))
+                    .map(Optional::of)
+                    .orElseGet(() -> {
+                        Residence builtResidence = residence();
+                        if (!builtResidence.hasContextDefintion())
+                            return Optional.empty();
+                        else
+                            return builtResidence.getContextDefinition().typeParameters().get(name);
+                    });
         }
 
+        @Nonnull
         @Override
         final Residence residence() {
             return residence.residence();

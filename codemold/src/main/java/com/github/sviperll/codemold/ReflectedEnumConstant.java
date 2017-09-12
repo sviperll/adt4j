@@ -32,6 +32,8 @@ package com.github.sviperll.codemold;
 
 import com.github.sviperll.codemold.render.Renderable;
 import com.github.sviperll.codemold.render.RendererContext;
+
+import javax.annotation.Nonnull;
 import javax.annotation.ParametersAreNonnullByDefault;
 
 /**
@@ -48,16 +50,19 @@ class ReflectedEnumConstant extends EnumConstant {
         this.name = name;
     }
 
+    @Nonnull
     @Override
     public ObjectDefinition enumDefinition() {
         return enumDefinition;
     }
 
+    @Nonnull
     @Override
     public String name() {
         return name;
     }
 
+    @Nonnull
     @Override
     Renderable definition() {
         return (RendererContext context) -> () -> {

@@ -58,6 +58,7 @@ public class ArrayType implements Renderable, Type {
         return new ArrayType(elementType.substitute(environment)).asAny();
     }
 
+    @Nonnull
     @Override
     public AnyType asAny() {
         if (type == null)
@@ -65,6 +66,7 @@ public class ArrayType implements Renderable, Type {
         return type;
     }
 
+    @Nonnull
     @Override
     public Renderer createRenderer(final RendererContext context) {
         return () -> {
@@ -76,6 +78,7 @@ public class ArrayType implements Renderable, Type {
     class Wrappable {
         private Wrappable() {
         }
+        @Nonnull
         ArrayType value() {
             return ArrayType.this;
         }

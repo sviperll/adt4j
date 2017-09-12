@@ -31,6 +31,7 @@ package com.github.sviperll.codemold;
 
 import com.github.sviperll.codemold.render.Renderable;
 import java.util.stream.Stream;
+import javax.annotation.Nonnull;
 import javax.lang.model.element.TypeElement;
 
 /**
@@ -48,16 +49,19 @@ class MirroredEnumConstant extends EnumConstant {
         this.element = element;
     }
 
+    @Nonnull
     @Override
     public ObjectDefinition enumDefinition() {
         return enumDefinition;
     }
 
+    @Nonnull
     @Override
     public String name() {
         return element.getSimpleName().toString();
     }
 
+    @Nonnull
     @Override
     Renderable definition() {
         return context -> {

@@ -60,6 +60,7 @@ public class IntersectionType implements Renderable, Type {
         return Snapshot.of(bounds);
     }
 
+    @Nonnull
     @Override
     public AnyType asAny() {
         if (type == null)
@@ -75,6 +76,7 @@ public class IntersectionType implements Renderable, Type {
         return new IntersectionType(substituted).asAny();
     }
 
+    @Nonnull
     @Override
     public Renderer createRenderer(final RendererContext context) {
         return () -> {

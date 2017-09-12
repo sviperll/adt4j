@@ -65,6 +65,7 @@ public abstract class VariableDeclaration implements Renderable {
     @Nonnull
     abstract Renderable getInitialValue();
 
+    @Nonnull
     @Override
     public Renderer createRenderer(final RendererContext context) {
         return () -> {
@@ -102,11 +103,13 @@ public abstract class VariableDeclaration implements Renderable {
             return original.isFinal();
         }
 
+        @Nonnull
         @Override
         public AnyType type() {
             return original.type().substitute(environment);
         }
 
+        @Nonnull
         @Override
         public String name() {
             return original.name();
@@ -117,6 +120,7 @@ public abstract class VariableDeclaration implements Renderable {
             return original.isInitialized();
         }
 
+        @Nonnull
         @Override
         Renderable getInitialValue() {
             return original.getInitialValue();

@@ -31,6 +31,8 @@
 package com.github.sviperll.codemold;
 
 import com.github.sviperll.codemold.util.CMCollections;
+
+import javax.annotation.Nonnull;
 import java.lang.reflect.TypeVariable;
 import java.util.List;
 
@@ -51,11 +53,13 @@ class ReflectedTypeParameter<T extends java.lang.reflect.GenericDeclaration> ext
         this.reflectedTypeParameter = reflectedTypeParameter;
     }
 
+    @Nonnull
     @Override
     public String name() {
         return reflectedTypeParameter.getName();
     }
 
+    @Nonnull
     @Override
     public AnyType bound() {
         if (bound == null) {
@@ -74,6 +78,7 @@ class ReflectedTypeParameter<T extends java.lang.reflect.GenericDeclaration> ext
         return bound;
     }
 
+    @Nonnull
     @Override
     public GenericDefinition<?, ?> declaredIn() {
         return declaredIn;

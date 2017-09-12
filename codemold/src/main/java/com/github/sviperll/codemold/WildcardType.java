@@ -44,7 +44,7 @@ import javax.annotation.ParametersAreNonnullByDefault;
 @ParametersAreNonnullByDefault
 public final class WildcardType implements Renderable, Type {
 
-    private AnyType type = null;
+    private final AnyType type;
     private final BoundKind boundKind;
     private final AnyType bound;
     WildcardType(BoundKind boundKind, Type bound) {
@@ -52,6 +52,7 @@ public final class WildcardType implements Renderable, Type {
             throw new IllegalArgumentException(bound.asAny().kind() + " can't be wildcard bound");
         this.boundKind = boundKind;
         this.bound = bound.asAny();
+        this.type = AnyType.wrapWildcardType(new Wrappable());
     }
 
     @Nonnull
@@ -69,13 +70,13 @@ public final class WildcardType implements Renderable, Type {
         return new WildcardType(boundKind, bound.substitute(environment)).asAny();
     }
 
+    @Nonnull
     @Override
     public AnyType asAny() {
-        if (type == null)
-            type = AnyType.wrapWildcardType(new Wrappable());
         return type;
     }
 
+    @Nonnull
     @Override
     public Renderer createRenderer(final RendererContext context) {
         return () -> {
@@ -94,6 +95,7 @@ public final class WildcardType implements Renderable, Type {
     class Wrappable {
         private Wrappable() {
         }
+        @Nonnull
         WildcardType value() {
             return WildcardType.this;
         }

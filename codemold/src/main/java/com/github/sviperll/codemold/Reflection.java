@@ -61,6 +61,7 @@ class Reflection implements Model {
     private static final Logger logger = Logger.getLogger(Reflection.class.getName());
     private static final Renderable RENDERABLE_UNACCESSIBLE_CODE = new RenderableUnaccessibleCode();
 
+    @Nonnull
     static Renderable renderableUnaccessibleCode() {
         return RENDERABLE_UNACCESSIBLE_CODE;
     }
@@ -116,6 +117,7 @@ class Reflection implements Model {
             throw new UnsupportedOperationException("Can't read " + genericReflectedType);
     }
 
+    @Nonnull
     List<? extends AnyType> buildTypesFromReflections(java.lang.reflect.Type[] types) {
         List<AnyType> throwsListBuilder = CMCollections.newArrayList();
         for (java.lang.reflect.Type exceptionType : types) {
@@ -123,6 +125,7 @@ class Reflection implements Model {
         }
         return Snapshot.of(throwsListBuilder);
     }
+    @Nonnull
     List<? extends VariableDeclaration> createParameterList(Parameter[] reflectedParameters) {
         List<VariableDeclaration> parametersBuilder = CMCollections.newArrayList();
         for (Parameter parameter : reflectedParameters) {
@@ -131,15 +134,18 @@ class Reflection implements Model {
         return Snapshot.of(parametersBuilder);
     }
 
+    @Nonnull
     ObjectDefinition getReference(Class<?> klass) {
         return codeMold.getReference(klass);
     }
 
+    @Nonnull
     @Override
     public CodeMold getCodeMold() {
         return codeMold;
     }
 
+    @Nonnull
     Annotation readAnnotation(java.lang.annotation.Annotation reflectionAnnotation) {
         Class<? extends java.lang.annotation.Annotation> reflectionAnnotationType = reflectionAnnotation.annotationType();
         ObjectDefinition annotationType = getReference(reflectionAnnotationType);
@@ -158,6 +164,7 @@ class Reflection implements Model {
         return builder.build();
     }
 
+    @Nonnull
     AnnotationCollection readAnnotationCollection(java.lang.annotation.Annotation[] reflectionAnnotations) {
         AnnotationCollection.Builder collection = AnnotationCollection.createBuilder();
         for(java.lang.annotation.Annotation reflectionAnnotation: reflectionAnnotations) {
@@ -166,6 +173,7 @@ class Reflection implements Model {
         return collection.build();
     }
 
+    @Nonnull
     EnumConstant readEnumConstant(Enum<?> value) {
         ObjectDefinition enumDefinition = getReference(value.getDeclaringClass());
         return enumDefinition.enumConstants().stream().filter(c -> c.name().equals(value.name())).findFirst().orElseThrow(() -> {
@@ -173,6 +181,7 @@ class Reflection implements Model {
         });
     }
 
+    @Nonnull
     AnyCompileTimeValue readCompileTimeValue(Object value) {
         if (value instanceof Byte)
             return CompileTimeValues.of((Byte)value).asAny();
@@ -235,6 +244,7 @@ class Reflection implements Model {
             throw new UnsupportedOperationException(MessageFormat.format("Not supported yet. Value: {0} ({1})", value, value.getClass()));
     }
 
+    @Nonnull
     Optional<ObjectDefinition> createNewReflectedClassObjectDefinition(Package pkg, String qualifiedName) {
         try {
             Class<?> klass = Class.forName(qualifiedName);
@@ -242,18 +252,8 @@ class Reflection implements Model {
             // assert klass.isSynthetic() || klass.getEnclosingClass() == null;
             assert klass.getPackage().getName().equals(pkg.qualifiedName());
             int modifiers = klass.getModifiers();
-            final boolean isPublic = (modifiers & Modifier.PUBLIC) != 0;
-            PackageLevelResidence residence = new PackageLevelResidence() {
-                @Override
-                public boolean isPublic() {
-                    return isPublic;
-                }
-
-                @Override
-                public com.github.sviperll.codemold.Package getPackage() {
-                    return pkg;
-                }
-            };
+            boolean isPublic = (modifiers & Modifier.PUBLIC) != 0;
+            PackageLevelResidence residence = new ReflectedPackageLevelResidence(isPublic, pkg);
             return Optional.of(new ReflectedObjectDefinition<>(this, residence, klass));
         } catch (ClassNotFoundException ex) {
             return Optional.empty();
@@ -265,6 +265,7 @@ class Reflection implements Model {
         RenderableUnaccessibleCode() {
         }
 
+        @Nonnull
         @Override
         public Renderer createRenderer(final RendererContext context) {
             return new UnaccessibleCodeRenderer(context);
@@ -292,4 +293,24 @@ class Reflection implements Model {
     }
 
 
+    private static class ReflectedPackageLevelResidence extends PackageLevelResidence {
+        private final boolean isPublic;
+        private final Package pkg;
+
+        public ReflectedPackageLevelResidence(boolean isPublic, Package pkg) {
+            this.isPublic = isPublic;
+            this.pkg = pkg;
+        }
+
+        @Override
+        public boolean isPublic() {
+            return isPublic;
+        }
+
+        @Nonnull
+        @Override
+        public Package getPackage() {
+            return pkg;
+        }
+    }
 }

@@ -30,6 +30,7 @@
 
 package com.github.sviperll.codemold;
 
+import javax.annotation.Nonnull;
 import javax.annotation.ParametersAreNonnullByDefault;
 
 /**
@@ -58,11 +59,13 @@ public abstract class CallableDefinitionBuilder extends ExecutableBuilder<Method
             super(implementation);
         }
 
+        @Nonnull
         @Override
         public String name() {
             return name;
         }
 
+        @Nonnull
         @Override
         public AnyType returnType() {
             return resultType;

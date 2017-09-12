@@ -30,6 +30,7 @@
 
 package com.github.sviperll.codemold;
 
+import javax.annotation.Nonnull;
 import java.util.Collection;
 import java.util.List;
 
@@ -38,6 +39,9 @@ import java.util.List;
  * @author Victor Nazarov &lt;asviraspossible@gmail.com&gt;
  */
 public interface Annotated {
+    @Nonnull
     List<? extends Annotation> getAnnotation(ObjectDefinition definition);
+
+    @Nonnull
     Collection<? extends Annotation> allAnnotations();
 }

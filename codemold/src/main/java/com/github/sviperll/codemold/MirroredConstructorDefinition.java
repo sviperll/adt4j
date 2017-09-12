@@ -33,6 +33,7 @@ import com.github.sviperll.codemold.render.Renderable;
 import java.util.Collection;
 import java.util.List;
 import java.util.stream.Stream;
+import javax.annotation.Nonnull;
 import javax.lang.model.element.ExecutableElement;
 
 /**
@@ -41,7 +42,9 @@ import javax.lang.model.element.ExecutableElement;
  */
 class MirroredConstructorDefinition extends ConstructorDefinition {
 
+    @Nonnull
     static ConstructorDefinition createInstance(Mirror mirror, ExecutableElement executableElement) {
+        Nesting nesting = new MirroredNesting(mirror, executableElement.getEnclosingElement());
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 
@@ -52,39 +55,51 @@ class MirroredConstructorDefinition extends ConstructorDefinition {
     private static class MirroredExecutableDefinitionImplementation
             implements ExecutableDefinition.Implementation<ConstructorType, ConstructorDefinition> {
 
+        private final Mirror mirror;
+        private final ExecutableElement executableElement;
+
         MirroredExecutableDefinitionImplementation(Mirror mirror, ExecutableElement executableElement) {
+            this.mirror = mirror;
+            this.executableElement = executableElement;
         }
 
+        @Nonnull
         @Override
         public TypeParameters typeParameters() {
             throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
         }
 
+        @Nonnull
         @Override
         public List<? extends VariableDeclaration> parameters() {
             throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
         }
 
+        @Nonnull
         @Override
         public List<? extends AnyType> throwsList() {
             throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
         }
 
+        @Nonnull
         @Override
         public Renderable body() {
             throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
         }
 
+        @Nonnull
         @Override
         public Nesting nesting() {
             throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
         }
 
+        @Nonnull
         @Override
         public List<? extends Annotation> getAnnotation(ObjectDefinition definition) {
             throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
         }
 
+        @Nonnull
         @Override
         public Collection<? extends Annotation> allAnnotations() {
             throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.

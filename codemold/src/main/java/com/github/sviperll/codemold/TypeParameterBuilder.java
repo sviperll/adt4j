@@ -60,9 +60,7 @@ public class TypeParameterBuilder {
     }
 
     public void addAllBounds(Collection<? extends AnyType> bounds) {
-        bounds.stream().forEach((type) -> {
-            addBound(type);
-        });
+        bounds.forEach(this::addBound);
     }
     public void addBound(AnyType bound) {
         if (!(bound.canBeTypeVariableBound()))
@@ -83,16 +81,19 @@ public class TypeParameterBuilder {
     }
     private class BuiltTypeParameter extends TypeParameter {
 
+        @Nonnull
         @Override
         public String name() {
             return name;
         }
 
+        @Nonnull
         @Override
         public AnyType bound() {
             return effectiveBound;
         }
 
+        @Nonnull
         @Override
         public GenericDefinition<?, ?> declaredIn() {
             return declaredIn;

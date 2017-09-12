@@ -33,6 +33,7 @@ package com.github.sviperll.codemold;
 import com.github.sviperll.codemold.util.CMCollections;
 import com.github.sviperll.codemold.util.Snapshot;
 import java.util.List;
+import javax.annotation.Nonnull;
 import javax.annotation.ParametersAreNonnullByDefault;
 
 /**
@@ -50,6 +51,7 @@ public class InterfaceBuilder<B extends ResidenceProvider>
         super(ObjectKind.INTERFACE, residence, name);
     }
 
+    @Nonnull
     @Override
     public TypeParameterBuilder typeParameter(String name) throws CodeMoldException {
         return super.typeParameter(name);
@@ -90,6 +92,7 @@ public class InterfaceBuilder<B extends ResidenceProvider>
         interfaces.add(type);
     }
 
+    @Nonnull
     @Override
     ObjectDefinition createDefinition(TypeParameters typeParameters) {
         return new BuiltDefinition(typeParameters);
@@ -106,21 +109,25 @@ public class InterfaceBuilder<B extends ResidenceProvider>
             return false;
         }
 
+        @Nonnull
         @Override
         public ObjectType extendsClass() {
             return getCodeMold().objectType();
         }
 
+        @Nonnull
         @Override
         public List<? extends ObjectType> implementsInterfaces() {
             return Snapshot.of(interfaces);
         }
 
+        @Nonnull
         @Override
         public List<? extends ConstructorDefinition> constructors() {
             throw new UnsupportedOperationException("Constructors are listed for class definitions only. Use kind() method to check for object kind.");
         }
 
+        @Nonnull
         @Override
         public List<? extends EnumConstant> enumConstants() {
             throw new UnsupportedOperationException("Enum constants are listed for enum definitions only. Use kind() method to check for object kind.");

@@ -334,6 +334,7 @@ public class Expression implements Renderable {
         this.renderable = precedence;
     }
 
+    @Nonnull
     @Override
     public Renderer createRenderer(RendererContext context) {
         return renderable.createFreeStandingRenderer(context);

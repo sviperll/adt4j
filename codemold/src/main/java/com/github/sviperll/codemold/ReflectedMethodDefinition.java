@@ -32,6 +32,8 @@ package com.github.sviperll.codemold;
 
 import com.github.sviperll.codemold.render.Renderable;
 import com.github.sviperll.codemold.util.Snapshot;
+
+import javax.annotation.Nonnull;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.Collection;
@@ -43,9 +45,9 @@ import java.util.List;
  */
 class ReflectedMethodDefinition extends MethodDefinition {
 
+    @Nonnull
     static ReflectedMethodDefinition createInstance(Reflection reflection, Nesting nesting, Method method) {
-        ReflectedExecutableDefinitionImplementation executable = new ReflectedExecutableDefinitionImplementation(reflection, nesting, method);
-        return executable.definition();
+        return ReflectedExecutableDefinitionImplementation.createDefinition(reflection, nesting, method);
     }
     private final Reflection reflection;
     private final Method method;
@@ -62,6 +64,7 @@ class ReflectedMethodDefinition extends MethodDefinition {
         return Modifier.isFinal(method.getModifiers());
     }
 
+    @Nonnull
     @Override
     public AnyType returnType() {
         if (returnType == null) {
@@ -70,6 +73,7 @@ class ReflectedMethodDefinition extends MethodDefinition {
         return returnType;
     }
 
+    @Nonnull
     @Override
     public String name() {
         return method.getName();
@@ -85,6 +89,7 @@ class ReflectedMethodDefinition extends MethodDefinition {
         return method.getDefaultValue() != null;
     }
 
+    @Nonnull
     @Override
     public AnyCompileTimeValue defaultValue() {
         if (!hasDefaultValue()) {
@@ -94,6 +99,13 @@ class ReflectedMethodDefinition extends MethodDefinition {
     }
 
     private static class ReflectedExecutableDefinitionImplementation implements ExecutableDefinition.Implementation<MethodType, MethodDefinition> {
+        @Nonnull
+        private static ReflectedMethodDefinition createDefinition(Reflection reflection, Nesting nesting, Method method) {
+            ReflectedExecutableDefinitionImplementation implementation
+                    = new ReflectedExecutableDefinitionImplementation(reflection, nesting, method);
+            return implementation.definition;
+        }
+
         private final Reflection reflection;
         private final Nesting nesting;
         private final Method method;
@@ -107,23 +119,19 @@ class ReflectedMethodDefinition extends MethodDefinition {
             this.reflection = reflection;
             this.nesting = nesting;
             this.method = method;
+            this.definition = new ReflectedMethodDefinition(reflection, this, method);
         }
 
-        ReflectedMethodDefinition definition() {
-            if (definition == null) {
-                definition = new ReflectedMethodDefinition(reflection, this, method);
-            }
-            return definition;
-        }
-
+        @Nonnull
         @Override
         public TypeParameters typeParameters() {
             if (typeParameters == null) {
-                typeParameters = new ReflectedTypeParameters<>(reflection, definition(), method.getTypeParameters());
+                typeParameters = new ReflectedTypeParameters<>(reflection, definition, method.getTypeParameters());
             }
             return typeParameters;
         }
 
+        @Nonnull
         @Override
         public List<? extends VariableDeclaration> parameters() {
             if (parameters == null) {
@@ -132,6 +140,7 @@ class ReflectedMethodDefinition extends MethodDefinition {
             return Snapshot.of(parameters);
         }
 
+        @Nonnull
         @Override
         public List<? extends AnyType> throwsList() {
             if (throwsList == null) {
@@ -140,22 +149,26 @@ class ReflectedMethodDefinition extends MethodDefinition {
             return Snapshot.of(throwsList);
         }
 
+        @Nonnull
         @Override
         public Renderable body() {
             return Reflection.renderableUnaccessibleCode();
         }
 
+        @Nonnull
         @Override
         public Nesting nesting() {
             return nesting;
         }
 
+        @Nonnull
         @Override
         public List<? extends Annotation> getAnnotation(ObjectDefinition definition) {
             initAnnotations();
             return annotations.getAnnotation(definition);
         }
 
+        @Nonnull
         @Override
         public Collection<? extends Annotation> allAnnotations() {
             initAnnotations();

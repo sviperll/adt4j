@@ -202,11 +202,13 @@ public abstract class GenericType<T extends GenericType<T, D>, D extends Generic
             this.substitution = substitution;
         }
 
+        @Nonnull
         @Override
         T narrow(List<? extends Type> typeArguments) {
             return original.narrow(typeArguments);
         }
 
+        @Nonnull
         @Override
         T erasure() {
             return original.erasure();
@@ -222,6 +224,7 @@ public abstract class GenericType<T extends GenericType<T, D>, D extends Generic
             return original.isNarrowed();
         }
 
+        @Nonnull
         @Override
         List<? extends AnyType> typeArguments() {
             if (typeArguments == null) {
@@ -237,11 +240,13 @@ public abstract class GenericType<T extends GenericType<T, D>, D extends Generic
             return original.hasCapturedEnclosingType();
         }
 
+        @Nonnull
         @Override
         GenericType<?, ?> getCapturedEnclosingType() {
             return original.getCapturedEnclosingType();
         }
 
+        @Nonnull
         @Override
         Implementation<T, D> substitute(Substitution nextSubstitution) {
             return new SubstitutedArgumentsImplementation<>(definition(), original, substitution.andThen(nextSubstitution));
@@ -257,6 +262,7 @@ public abstract class GenericType<T extends GenericType<T, D>, D extends Generic
             this.capturedEnclosingType = capturedEnclosingType;
         }
 
+        @Nonnull
         @Override
         final T narrow(List<? extends Type> typeArguments) {
             List<AnyType> castedTypeArguments = CMCollections.newArrayList();
@@ -284,6 +290,7 @@ public abstract class GenericType<T extends GenericType<T, D>, D extends Generic
             return false;
         }
 
+        @Nonnull
         @Override
         final List<? extends AnyType> typeArguments() {
             if (typeArguments == null) {
@@ -300,6 +307,7 @@ public abstract class GenericType<T extends GenericType<T, D>, D extends Generic
             return Snapshot.of(typeArguments);
         }
 
+        @Nonnull
         @Override
         T erasure() {
             if (instance == null) {
@@ -313,6 +321,7 @@ public abstract class GenericType<T extends GenericType<T, D>, D extends Generic
             return capturedEnclosingType != null;
         }
 
+        @Nonnull
         @Override
         GenericType<?, ?> getCapturedEnclosingType() {
             if (capturedEnclosingType == null)
@@ -338,6 +347,7 @@ public abstract class GenericType<T extends GenericType<T, D>, D extends Generic
             this.arguments = Snapshot.of(arguments);
         }
 
+        @Nonnull
         @Override
         public T erasure() {
             return erasure;
@@ -353,11 +363,13 @@ public abstract class GenericType<T extends GenericType<T, D>, D extends Generic
             return false;
         }
 
+        @Nonnull
         @Override
         public T narrow(List<? extends Type> typeArguments) {
             throw new UnsupportedOperationException("Raw type expected");
         }
 
+        @Nonnull
         @Override
         public List<? extends AnyType> typeArguments() {
             return arguments;
@@ -368,6 +380,7 @@ public abstract class GenericType<T extends GenericType<T, D>, D extends Generic
             return erasure.hasCapturedEnclosingType();
         }
 
+        @Nonnull
         @Override
         GenericType<?, ?> getCapturedEnclosingType() {
             return erasure.getCapturedEnclosingType();

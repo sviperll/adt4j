@@ -33,6 +33,7 @@ package com.github.sviperll.codemold;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import javax.annotation.Nonnull;
 import javax.annotation.ParametersAreNonnullByDefault;
 
 /**
@@ -45,6 +46,7 @@ public class AnonymousClassBuilder extends ObjectBuilder<ExpressionContextDefini
         super(ObjectKind.CLASS, residence);
     }
 
+    @Nonnull
     @Override
     ObjectDefinition createDefinition(TypeParameters typeParameters) {
         return new BuiltDefinition(typeParameters);
@@ -85,21 +87,25 @@ public class AnonymousClassBuilder extends ObjectBuilder<ExpressionContextDefini
             return true;
         }
 
+        @Nonnull
         @Override
         public ObjectType extendsClass() {
             return residence().getNesting().parent().rawType();
         }
 
+        @Nonnull
         @Override
         public List<? extends ObjectType> implementsInterfaces() {
             return Collections.<ObjectType>emptyList();
         }
 
+        @Nonnull
         @Override
         public List<? extends ConstructorDefinition> constructors() {
             throw new UnsupportedOperationException("Constructors are listed for class definitions only. Use kind() method to check for object kind.");
         }
 
+        @Nonnull
         @Override
         public String simpleTypeName() {
             throw new UnsupportedOperationException("Enum constant definitions are nameless, but constants itself are not. Use enumConstants() method to get actual constants.");
@@ -110,16 +116,19 @@ public class AnonymousClassBuilder extends ObjectBuilder<ExpressionContextDefini
             return true;
         }
 
+        @Nonnull
         @Override
         public List<? extends EnumConstant> enumConstants() {
             throw new UnsupportedOperationException("Enum constants are listed for enum definitions only. Use kind() method to check for object kind.");
         }
 
+        @Nonnull
         @Override
         public List<? extends Annotation> getAnnotation(ObjectDefinition definition) {
             return Collections.emptyList();
         }
 
+        @Nonnull
         @Override
         public Collection<? extends Annotation> allAnnotations() {
             return Collections.emptyList();

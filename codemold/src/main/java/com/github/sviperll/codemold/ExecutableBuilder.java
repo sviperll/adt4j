@@ -67,6 +67,7 @@ public abstract class ExecutableBuilder<T extends ExecutableType<T, D>, D extend
         residence.setAccessLevel(accessLevel);
     }
 
+    @Nonnull
     @Override
     public final D definition() {
         return super.definition();
@@ -75,16 +76,19 @@ public abstract class ExecutableBuilder<T extends ExecutableType<T, D>, D extend
     @Nonnull
     abstract D createDefinition(ExecutableDefinition.Implementation<T, D> implementation);
 
+    @Nonnull
     @Override
     final D createDefinition(TypeParameters typeParameters) {
         return createDefinition(new BuiltExecutableDefinition(typeParameters, annotations));
     }
 
+    @Nonnull
     @Override
     protected TypeParameterBuilder typeParameter(String name) throws CodeMoldException {
         return super.typeParameter(name);
     }
 
+    @Nonnull
     protected VariableDeclaration addParameter(Type type, String name) throws CodeMoldException {
         name = scope.makeIntroducable(name);
         scope.introduce(name);
@@ -93,6 +97,7 @@ public abstract class ExecutableBuilder<T extends ExecutableType<T, D>, D extend
         return parameter;
     }
 
+    @Nonnull
     protected VariableDeclaration addFinalParameter(Type type, String name) throws CodeMoldException {
         name = scope.makeIntroducable(name);
         scope.introduce(name);
@@ -138,36 +143,43 @@ public abstract class ExecutableBuilder<T extends ExecutableType<T, D>, D extend
             this.typeParameters = typeParameters;
             this.annotations = annotations;
         }
+        @Nonnull
         @Override
         public final List<? extends VariableDeclaration> parameters() {
             return Snapshot.of(parameters);
         }
 
+        @Nonnull
         @Override
         public final List<? extends AnyType> throwsList() {
             return Snapshot.of(throwsList);
         }
 
+        @Nonnull
         @Override
         public final Renderable body() {
             return body;
         }
 
+        @Nonnull
         @Override
         public final Nesting nesting() {
             return residence.residence().getNesting();
         }
 
+        @Nonnull
         @Override
         public TypeParameters typeParameters() {
             return typeParameters;
         }
 
+        @Nonnull
         @Override
         public List<? extends Annotation> getAnnotation(ObjectDefinition definition) {
             return annotations.build().getAnnotation(definition);
         }
 
+        @Nonnull
         @Override
         public Collection<? extends Annotation> allAnnotations() {
             return annotations.build().allAnnotations();
@@ -193,11 +205,13 @@ public abstract class ExecutableBuilder<T extends ExecutableType<T, D>, D extend
             return isFinal;
         }
 
+        @Nonnull
         @Override
         public AnyType type() {
             return type;
         }
 
+        @Nonnull
         @Override
         public String name() {
             return name;
@@ -208,6 +222,7 @@ public abstract class ExecutableBuilder<T extends ExecutableType<T, D>, D extend
             return false;
         }
 
+        @Nonnull
         @Override
         Renderable getInitialValue() {
             throw new UnsupportedOperationException();

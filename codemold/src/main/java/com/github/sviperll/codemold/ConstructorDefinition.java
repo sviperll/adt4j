@@ -33,6 +33,7 @@ package com.github.sviperll.codemold;
 import com.github.sviperll.codemold.render.Renderer;
 import com.github.sviperll.codemold.render.RendererContext;
 import java.util.Iterator;
+import javax.annotation.Nonnull;
 import javax.annotation.ParametersAreNonnullByDefault;
 
 /**
@@ -46,16 +47,19 @@ public abstract class ConstructorDefinition extends ExecutableDefinition<Constru
         super(implementation);
     }
 
+    @Nonnull
     @Override
     final ConstructorType createType(ExecutableType.Implementation<ConstructorType, ConstructorDefinition> implementation) {
         return new ConstructorType(implementation);
     }
 
+    @Nonnull
     @Override
     final ConstructorDefinition fromGenericDefinition() {
         return this;
     }
 
+    @Nonnull
     @Override
     public Renderer createRenderer(final RendererContext context) {
         return () -> {

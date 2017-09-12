@@ -31,6 +31,8 @@
 package com.github.sviperll.codemold;
 
 import com.github.sviperll.codemold.render.Renderable;
+
+import javax.annotation.Nonnull;
 import java.lang.reflect.Parameter;
 import java.util.logging.Logger;
 
@@ -54,6 +56,7 @@ class ReflectedParameter extends VariableDeclaration {
         return false;
     }
 
+    @Nonnull
     @Override
     public AnyType type() {
         if (type == null) {
@@ -62,6 +65,7 @@ class ReflectedParameter extends VariableDeclaration {
         return type;
     }
 
+    @Nonnull
     @Override
     public String name() {
         return parameter.getName();
@@ -72,6 +76,7 @@ class ReflectedParameter extends VariableDeclaration {
         return false;
     }
 
+    @Nonnull
     @Override
     Renderable getInitialValue() {
         throw new UnsupportedOperationException();

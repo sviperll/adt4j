@@ -33,6 +33,7 @@ package com.github.sviperll.codemold;
 import com.github.sviperll.codemold.util.CMCollections;
 import com.github.sviperll.codemold.util.Snapshot;
 import java.util.List;
+import javax.annotation.Nonnull;
 import javax.annotation.ParametersAreNonnullByDefault;
 
 /**
@@ -51,41 +52,49 @@ abstract class AbstractClassBuilder<B extends ResidenceProvider>
         super(kind, residence, name);
     }
 
+    @Nonnull
     @Override
     public FieldBuilder field(Type type, String name) throws CodeMoldException {
         return super.field(type, name);
     }
 
+    @Nonnull
     @Override
     public FieldBuilder finalField(Type type, String name) throws CodeMoldException {
         return super.finalField(type, name);
     }
 
+    @Nonnull
     @Override
     public FieldBuilder staticField(Type type, String name) throws CodeMoldException {
         return super.staticField(type, name);
     }
 
+    @Nonnull
     @Override
     public FieldBuilder staticFinalField(Type type, String name) throws CodeMoldException {
         return super.staticFinalField(type, name);
     }
 
+    @Nonnull
     @Override
     public ClassBuilder<NestingBuilder> innerClass(String name) throws CodeMoldException {
         return super.innerClass(name);
     }
 
+    @Nonnull
     @Override
     public MethodBuilder method(String name) throws CodeMoldException {
         return super.method(name);
     }
 
+    @Nonnull
     @Override
     public MethodBuilder staticMethod(String name) throws CodeMoldException {
         return super.staticMethod(name);
     }
 
+    @Nonnull
     @Override
     MethodBuilder createMethodBuilder(NestingBuilder methodResidence, String name) {
         return new MethodBuilder(methodResidence, name);
@@ -114,11 +123,13 @@ abstract class AbstractClassBuilder<B extends ResidenceProvider>
             super(typeParameters);
         }
 
+        @Nonnull
         @Override
         final public List<? extends ObjectType> implementsInterfaces() {
             return Snapshot.of(interfaces);
         }
 
+        @Nonnull
         @Override
         final public List<? extends ConstructorDefinition> constructors() {
             return Snapshot.of(constructors);

@@ -194,26 +194,31 @@ abstract class ObjectBuilder<B extends ResidenceProvider, MB extends ExecutableB
             this.typeParameters = typeParameters;
         }
 
+        @Nonnull
         @Override
         public final TypeParameters typeParameters() {
             return typeParameters;
         }
 
+        @Nonnull
         @Override
         public final List<? extends MethodDefinition> methods() {
             return Snapshot.of(methods);
         }
 
+        @Nonnull
         @Override
         public final Collection<? extends ObjectDefinition> innerClasses() {
             return innerClasses.values();
         }
 
+        @Nonnull
         @Override
         public final Collection<? extends FieldDeclaration> fields() {
             return fields.values();
         }
 
+        @Nonnull
         @Override
         public final Residence residence() {
             return residence.residence();
@@ -224,16 +229,19 @@ abstract class ObjectBuilder<B extends ResidenceProvider, MB extends ExecutableB
             return residence().getCodeMold();
         }
 
+        @Nonnull
         @Override
         public final ObjectKind kind() {
             return kind;
         }
 
+        @Nonnull
         @Override
         final List<? extends Renderable> staticInitializationElements() {
             return staticInitOrdering;
         }
 
+        @Nonnull
         @Override
         final List<? extends Renderable> instanceInitializationElements() {
             return instanceInitOrdering;

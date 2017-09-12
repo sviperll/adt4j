@@ -33,6 +33,7 @@ import com.github.sviperll.codemold.render.Renderable;
 import com.github.sviperll.codemold.util.CMCollectors;
 import java.util.Collection;
 import java.util.List;
+import javax.annotation.Nonnull;
 import javax.lang.model.element.ElementKind;
 import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.Modifier;
@@ -59,6 +60,7 @@ class MirroredObjectDefinition extends ObjectDefinition {
         this.element = element;
     }
 
+    @Nonnull
     @Override
     public Residence residence() {
         return residence;
@@ -69,6 +71,7 @@ class MirroredObjectDefinition extends ObjectDefinition {
         return element.getModifiers().contains(Modifier.FINAL);
     }
 
+    @Nonnull
     @Override
     public ObjectKind kind() {
         if (element.getKind() == ElementKind.INTERFACE) {
@@ -82,6 +85,7 @@ class MirroredObjectDefinition extends ObjectDefinition {
         }
     }
 
+    @Nonnull
     @Override
     public ObjectType extendsClass() {
         if (extendsClass == null) {
@@ -94,16 +98,18 @@ class MirroredObjectDefinition extends ObjectDefinition {
         return extendsClass;
     }
 
+    @Nonnull
     @Override
     public List<? extends ObjectType> implementsInterfaces() {
         if (interfaces == null) {
             interfaces = element.getInterfaces().stream()
-                    .map(iface -> mirror.readMirroredType(iface))
+                    .map(mirror::readMirroredType)
                     .collect(CMCollectors.toImmutableList());
         }
         return interfaces;
     }
 
+    @Nonnull
     @Override
     public List<? extends EnumConstant> enumConstants() {
         if (enumConstants == null) {
@@ -115,6 +121,7 @@ class MirroredObjectDefinition extends ObjectDefinition {
         return enumConstants;
     }
 
+    @Nonnull
     @Override
     public List<? extends ConstructorDefinition> constructors() {
         if (constructors == null) {
@@ -126,21 +133,25 @@ class MirroredObjectDefinition extends ObjectDefinition {
         return constructors;
     }
 
+    @Nonnull
     @Override
     public List<? extends MethodDefinition> methods() {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 
+    @Nonnull
     @Override
     public Collection<? extends ObjectDefinition> innerClasses() {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 
+    @Nonnull
     @Override
     public Collection<? extends FieldDeclaration> fields() {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 
+    @Nonnull
     @Override
     public String simpleTypeName() {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
@@ -151,16 +162,19 @@ class MirroredObjectDefinition extends ObjectDefinition {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 
+    @Nonnull
     @Override
     List<? extends Renderable> staticInitializationElements() {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 
+    @Nonnull
     @Override
     List<? extends Renderable> instanceInitializationElements() {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 
+    @Nonnull
     @Override
     public TypeParameters typeParameters() {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
@@ -171,11 +185,13 @@ class MirroredObjectDefinition extends ObjectDefinition {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 
+    @Nonnull
     @Override
     public List<? extends Annotation> getAnnotation(ObjectDefinition definition) {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 
+    @Nonnull
     @Override
     public Collection<? extends Annotation> allAnnotations() {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.

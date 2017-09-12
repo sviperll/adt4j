@@ -30,6 +30,7 @@
 
 package com.github.sviperll.codemold;
 
+import javax.annotation.Nonnull;
 import javax.annotation.ParametersAreNonnullByDefault;
 
 /**
@@ -44,21 +45,25 @@ public class ConstructorBuilder extends ExecutableBuilder<ConstructorType, Const
             throw new CodeMoldException("Constructor can't be static");
     }
 
+    @Nonnull
     @Override
     ConstructorDefinition createDefinition(ExecutableDefinition.Implementation<ConstructorType, ConstructorDefinition> implementation) {
         return new BuiltDefinition(implementation);
     }
 
+    @Nonnull
     @Override
     public TypeParameterBuilder typeParameter(String name) throws CodeMoldException {
         return super.typeParameter(name);
     }
 
+    @Nonnull
     @Override
     public VariableDeclaration addParameter(Type type, String name) throws CodeMoldException {
         return super.addParameter(type, name);
     }
 
+    @Nonnull
     @Override
     public VariableDeclaration addFinalParameter(Type type, String name) throws CodeMoldException {
         return super.addFinalParameter(type, name);
@@ -74,6 +79,7 @@ public class ConstructorBuilder extends ExecutableBuilder<ConstructorType, Const
         super.throwsException(typeVariable);
     }
 
+    @Nonnull
     @Override
     public BlockBuilder body() {
         return super.body();

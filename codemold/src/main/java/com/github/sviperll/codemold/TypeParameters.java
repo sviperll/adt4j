@@ -34,11 +34,13 @@ import com.github.sviperll.codemold.render.Renderable;
 import com.github.sviperll.codemold.render.Renderer;
 import com.github.sviperll.codemold.render.RendererContext;
 import com.github.sviperll.codemold.util.CMCollections;
+import com.github.sviperll.codemold.util.CMCollectors;
 import com.github.sviperll.codemold.util.Snapshot;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.function.Function;
 import javax.annotation.Nonnull;
 import javax.annotation.ParametersAreNonnullByDefault;
 
@@ -59,14 +61,10 @@ public abstract class TypeParameters implements Renderable {
     @Nonnull
     abstract Residence residence();
 
+    @Nonnull
     public Optional<TypeParameter> get(String name) {
         if (map == null) {
-            List<? extends TypeParameter> all = all();
-            Map<String, TypeParameter> mapBuilder = CMCollections.newTreeMap();
-            all.stream().forEach((typeParameter) -> {
-                mapBuilder.put(typeParameter.name(), typeParameter);
-            });
-            map = Snapshot.of(mapBuilder);
+            map = all().stream().collect(CMCollectors.toImmutableMap(TypeParameter::name, Function.identity()));
         }
         TypeParameter result = map.get(name);
         if (result != null)
@@ -83,14 +81,11 @@ public abstract class TypeParameters implements Renderable {
     @Nonnull
     final List<? extends AnyType> asInternalTypeArguments() {
         if (asInternalTypeArguments == null) {
-            List<AnyType> internalTypeArgumentsBuilder = CMCollections.newArrayList();
-            List<? extends TypeParameter> all = all();
-            all.stream().forEach((typeParameter) -> {
-                internalTypeArgumentsBuilder.add(Types.variable(typeParameter.name()).asAny());
-            });
-            asInternalTypeArguments = Snapshot.of(internalTypeArgumentsBuilder);
+            asInternalTypeArguments = all().stream()
+                    .map(typeParameter -> Types.variable(typeParameter.name()).asAny())
+                    .collect(CMCollectors.toImmutableList());
         }
-        return Snapshot.of(asInternalTypeArguments);
+        return asInternalTypeArguments;
     }
 
     @Nonnull
@@ -98,6 +93,7 @@ public abstract class TypeParameters implements Renderable {
         return new PreventCycleTypeParameters(this, name);
     }
 
+    @Nonnull
     @Override
     public Renderer createRenderer(final RendererContext context) {
         return () -> {
@@ -135,11 +131,13 @@ public abstract class TypeParameters implements Renderable {
             this.name = name;
         }
 
+        @Nonnull
         @Override
         public List<? extends TypeParameter> all() {
             return parameters.all();
         }
 
+        @Nonnull
         @Override
         public Optional<TypeParameter> get(String name) {
             try {
@@ -153,6 +151,7 @@ public abstract class TypeParameters implements Renderable {
             }
         }
 
+        @Nonnull
         @Override
         public Residence residence() {
             return parameters.residence();

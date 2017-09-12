@@ -30,6 +30,7 @@
 
 package com.github.sviperll.codemold;
 
+import javax.annotation.Nonnull;
 import javax.annotation.ParametersAreNonnullByDefault;
 
 /**
@@ -48,6 +49,7 @@ public class AnnotationMethodBuilder extends CallableDefinitionBuilder {
         this.defaultValue = defaultValue.asAny();
     }
 
+    @Nonnull
     @Override
     MethodDefinition createDefinition(ExecutableDefinition.Implementation<MethodType, MethodDefinition> implementation) {
         return new BuiltDefinition(implementation);
@@ -73,6 +75,7 @@ public class AnnotationMethodBuilder extends CallableDefinitionBuilder {
             return defaultValue != null;
         }
 
+        @Nonnull
         @Override
         public AnyCompileTimeValue defaultValue() {
             if (defaultValue == null)

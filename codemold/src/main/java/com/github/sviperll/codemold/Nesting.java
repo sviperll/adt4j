@@ -61,6 +61,7 @@ public abstract class Nesting implements Renderable, ResidenceProvider {
         return residence;
     }
 
+    @Nonnull
     @Override
     public Renderer createRenderer(final RendererContext context) {
         return defaultRenderable.createRenderer(context);
@@ -88,6 +89,7 @@ public abstract class Nesting implements Renderable, ResidenceProvider {
             this.implicitlyStatic = implicitlyStatic;
         }
 
+        @Nonnull
         @Override
         public Renderer createRenderer(final RendererContext context) {
             return () -> {

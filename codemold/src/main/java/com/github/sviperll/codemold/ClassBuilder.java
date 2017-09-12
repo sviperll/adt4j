@@ -31,6 +31,7 @@
 package com.github.sviperll.codemold;
 
 import java.util.List;
+import javax.annotation.Nonnull;
 import javax.annotation.ParametersAreNonnullByDefault;
 
 /**
@@ -48,6 +49,7 @@ public class ClassBuilder<B extends ResidenceProvider>
         super(ObjectKind.CLASS, residence, name);
     }
 
+    @Nonnull
     @Override
     public TypeParameterBuilder typeParameter(String name) throws CodeMoldException {
         return super.typeParameter(name);
@@ -73,6 +75,7 @@ public class ClassBuilder<B extends ResidenceProvider>
         this.extendsClass = type;
     }
 
+    @Nonnull
     @Override
     ObjectDefinition createDefinition(TypeParameters typeParameters) {
         return new BuiltDefinition(typeParameters);
@@ -84,6 +87,7 @@ public class ClassBuilder<B extends ResidenceProvider>
             super(typeParameters);
         }
 
+        @Nonnull
         @Override
         final public ObjectType extendsClass() {
             return extendsClass != null ? extendsClass : getCodeMold().objectType();
@@ -94,6 +98,7 @@ public class ClassBuilder<B extends ResidenceProvider>
             return isFinal;
         }
 
+        @Nonnull
         @Override
         public List<? extends EnumConstant> enumConstants() {
             throw new UnsupportedOperationException("Enum constants are listed for enum definitions only. Use kind() method to check for object kind.");

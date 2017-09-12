@@ -33,6 +33,8 @@ package com.github.sviperll.codemold;
 import com.github.sviperll.codemold.util.CMCollections;
 import com.github.sviperll.codemold.util.CMCollectors;
 import com.github.sviperll.codemold.util.Snapshot;
+
+import javax.annotation.Nonnull;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
@@ -72,6 +74,7 @@ class ReflectedObjectDefinition<T> extends ObjectDefinition {
         return (klass.getModifiers() & Modifier.FINAL) != 0;
     }
 
+    @Nonnull
     @Override
     public ObjectKind kind() {
         if (klass.isInterface() && !klass.isAnnotation()) {
@@ -85,6 +88,7 @@ class ReflectedObjectDefinition<T> extends ObjectDefinition {
         }
     }
 
+    @Nonnull
     @Override
     public ObjectType extendsClass() {
         if (isJavaLangObject())
@@ -98,6 +102,7 @@ class ReflectedObjectDefinition<T> extends ObjectDefinition {
         return extendsClass;
     }
 
+    @Nonnull
     @Override
     public List<? extends ObjectType> implementsInterfaces() {
         if (implementsInterfaces == null) {
@@ -110,6 +115,7 @@ class ReflectedObjectDefinition<T> extends ObjectDefinition {
         return Snapshot.of(implementsInterfaces);
     }
 
+    @Nonnull
     @Override
     public List<? extends MethodDefinition> methods() {
         if (methods == null) {
@@ -123,6 +129,7 @@ class ReflectedObjectDefinition<T> extends ObjectDefinition {
         return Snapshot.of(methods);
     }
 
+    @Nonnull
     @Override
     public Collection<? extends ObjectDefinition> innerClasses() {
         if (innerClasses == null) {
@@ -136,6 +143,7 @@ class ReflectedObjectDefinition<T> extends ObjectDefinition {
         return Snapshot.of(innerClasses);
     }
 
+    @Nonnull
     @Override
     public Collection<? extends FieldDeclaration> fields() {
         throw new UnsupportedOperationException("Not supported yet.");
@@ -146,6 +154,7 @@ class ReflectedObjectDefinition<T> extends ObjectDefinition {
         return false;
     }
 
+    @Nonnull
     @Override
     public String simpleTypeName() {
         String simpleName = klass.getSimpleName();
@@ -157,26 +166,31 @@ class ReflectedObjectDefinition<T> extends ObjectDefinition {
         }
     }
 
+    @Nonnull
     @Override
     public Residence residence() {
         return residence;
     }
 
+    @Nonnull
     @Override
     public CodeMold getCodeMold() {
         return reflection.getCodeMold();
     }
 
+    @Nonnull
     @Override
     List<? extends ObjectInitializationElement> staticInitializationElements() {
         return Collections.emptyList();
     }
 
+    @Nonnull
     @Override
     List<? extends ObjectInitializationElement> instanceInitializationElements() {
         return Collections.emptyList();
     }
 
+    @Nonnull
     @Override
     public List<? extends ConstructorDefinition> constructors() {
         if (constructors == null) {
@@ -190,6 +204,7 @@ class ReflectedObjectDefinition<T> extends ObjectDefinition {
         return Snapshot.of(constructors);
     }
 
+    @Nonnull
     @Override
     public List<? extends EnumConstant> enumConstants() {
         if (enumConstants == null) {
@@ -200,6 +215,7 @@ class ReflectedObjectDefinition<T> extends ObjectDefinition {
         return Snapshot.of(enumConstants);
     }
 
+    @Nonnull
     @Override
     public TypeParameters typeParameters() {
         if (typeParameters == null)
@@ -207,12 +223,14 @@ class ReflectedObjectDefinition<T> extends ObjectDefinition {
         return typeParameters;
     }
 
+    @Nonnull
     @Override
     public List<? extends Annotation> getAnnotation(ObjectDefinition definition) {
         initAnnotationMap();
         return annotations.getAnnotation(definition);
     }
 
+    @Nonnull
     @Override
     public Collection<? extends Annotation> allAnnotations() {
         initAnnotationMap();

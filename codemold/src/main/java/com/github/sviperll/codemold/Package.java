@@ -123,6 +123,7 @@ public final class Package implements Model {
         return result;
     }
 
+    @Nonnull
     Optional<ObjectDefinition> getReference(String relativelyQualifiedName) {
         int index = relativelyQualifiedName.indexOf('.');
         if (index == 0)
@@ -169,6 +170,7 @@ public final class Package implements Model {
         return name.isEmpty() ? "" : name + ".";
     }
 
+    @Nonnull
     @Override
     public CodeMold getCodeMold() {
         return codeModel;

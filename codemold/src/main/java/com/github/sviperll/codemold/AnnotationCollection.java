@@ -38,6 +38,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import javax.annotation.Nonnull;
 import javax.annotation.ParametersAreNonnullByDefault;
 
 /**
@@ -55,11 +56,13 @@ class AnnotationCollection implements Annotated {
         this.annotationMap = Snapshot.of(annotationMap);
     }
 
+    @Nonnull
     @Override
     public List<? extends Annotation> getAnnotation(ObjectDefinition definition) {
         return Optional.ofNullable(annotationMap.get(definition.qualifiedTypeName())).map(Snapshot::of).orElseGet(Collections::emptyList);
     }
 
+    @Nonnull
     @Override
     public Collection<? extends Annotation> allAnnotations() {
         return annotationMap.values().stream().flatMap(list -> list.stream()).collect(CMCollectors.toImmutableList());
